@@ -12,9 +12,11 @@ classes = [Organization, Domain, RegexRule, Scanner, Scan, Match,
            Url, ConversionQueueItem]
 map(ar, classes)
 
+
 class ProfileInline(admin.TabularInline):
     model = UserProfile
     extra = 1
+
 
 class MyUserAdmin(UserAdmin):
     inlines = [ProfileInline]
