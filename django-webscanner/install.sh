@@ -1,20 +1,30 @@
 #!/usr/bin/env bash
 
-# Setup virtualenv, install packages necessary to run BibOS Admin.
-# System requirements, installed packages etc. are checked 
-# in a separate dependencies file. 
+DIR=$(dirname ${BASH_SOURCE[0]})
+
+# System dependencies. These are the packages we need that are not present on a
+# fresh Ubuntu install.
+
+SYSTEM_PACKAGES=$(cat "$DIR/doc/SYSTEM_DEPENDENCIES")
+
+for package in "${SYSTEM_PACKAGES[@]}"
+do
+    sudo apt-get -y install $package
+done
+
+
+# Setup virtualenv, install Python packages necessary to run BibOS Admin.
 
 if [ -e ../python-env/bin/activate ]
 then
     echo "virtual environment already installed" 1>&2
-    exit
+else
+    virtualenv ../python-env
 fi
 
-virtualenv ../python-env
 source ../python-env/bin/activate
 
-DIR=$(dirname ${BASH_SOURCE[0]})
-PYTHON_PACKAGES=$(cat "$DIR/PYTHON_DEPENDENCIES")
+PYTHON_PACKAGES=$(cat "$DIR/doc/PYTHON_DEPENDENCIES")
 
 for  package in "${PYTHON_PACKAGES[@]}"
 do

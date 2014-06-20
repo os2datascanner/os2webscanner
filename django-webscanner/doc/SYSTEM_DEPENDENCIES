@@ -1,0 +1,8 @@
+python-virtualenv
+postgresql
+libpq-dev
+build-essential
+libffi-dev
+python-dev
+libxml2-dev
+libxslt1-dev
