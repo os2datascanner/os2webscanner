@@ -41,4 +41,6 @@ do
     fi
 done
 
-
+pushd django-os2webscanner
+python setup.py develop
+popd
