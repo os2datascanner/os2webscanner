@@ -23,7 +23,7 @@ class ScannerSpider(FollowAllSpider, SitemapSpider):
     name = 'scanner'
     processors = {
         # 'application/pdf': pdf2html,
-        'text/html': html.process,
+        'text/html': html.HTMLProcessor(),
     }
 
     def __init__(self, sitemap_urls, allowed_domains, *a, **kw):
@@ -61,14 +61,14 @@ class ScannerSpider(FollowAllSpider, SitemapSpider):
         processor = self.processors.get(mime_type, None)
         matches = []
         if processor is not None:
-            if callable(processor):
-                log.msg("Processing with " + processor.__name__)
+            if callable(processor.process):
+                log.msg("Processing with " + processor.__class__.__name__)
                 # Process the text (for example to remove HTML, or add to conversion queue)
-                text = processor(response, self)
+                text = processor.process(response)
                 # TODO: Check if the processor only adds it to the conversion queue
                 matches = self.execute_rules(text)
             else:
-                raise Exception("Processor not callable")
+                raise Exception("Processor lacks process method")
         else:
             log.msg("No processor available for mime type: " + mime_type)
         return matches
