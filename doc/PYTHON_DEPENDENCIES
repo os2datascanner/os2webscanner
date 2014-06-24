@@ -3,3 +3,4 @@ pep8==1.2
 psycopg2
 scrapy
 service_identity
+regex
