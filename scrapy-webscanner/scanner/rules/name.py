@@ -49,7 +49,7 @@ def load_name_file(file_name):
 def load_whitelist(whitelist):
     """Load a list of names from a multi-line string, one name per line.
     Returns a set of the names in all upper-case characters"""
-    return set([line.upper().strip() for line in whitelist.splitlines(True)])
+    return set([line.upper().strip() for line in whitelist.splitlines()])
 
 class NameRule(Rule):
     name = 'name'
