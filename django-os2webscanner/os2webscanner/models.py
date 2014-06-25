@@ -128,6 +128,10 @@ class Scan(models.Model):
     )
     status = models.CharField(max_length=10, choices=status_choices,
                               default=NEW)
+    # Reason for failure
+    reason = models.CharField(max_length=1024, blank=True, default="")
+    pid = models.IntegerField(null=True, blank=True)
+
 
     def __unicode__(self):
         return "SCAN: " + self.scanner.name

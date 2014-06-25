@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Include the Django model
+# Include the Django app
 import os
 import sys
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
