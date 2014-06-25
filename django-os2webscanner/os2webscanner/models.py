@@ -151,7 +151,8 @@ class Match(models.Model):
     matched_rule = models.CharField(max_length=256)  # Name of matching rule.
     sensitivity = models.IntegerField(choices=Sensitivity.choices,
                                       default=Sensitivity.HIGH)
-
+    def __unicode__(self):
+        return u"Match: %s; [%s] %s <%s>" % (self.get_sensitivity_display(), self.matched_rule, self.matched_data, self.url)
 
 class ConversionQueueItem(models.Model):
     """Represents an item in the conversion queue."""

@@ -79,7 +79,12 @@ class NameRule(Rule):
             else:
                 sensitivity = Sensitivity.OK
 
+            # TODO: Also check middle name(s)?
+
             # Store the original matching text
             matched_text = name[3]
-            matches.add(MatchItem(matched_data = matched_text, sensitivity = sensitivity))
+
+            # TODO: For testing; remove in production;
+            if sensitivity == Sensitivity.HIGH:
+                matches.add(MatchItem(matched_data = matched_text, sensitivity = sensitivity))
         return matches

@@ -9,3 +9,10 @@ from os2webscanner.models import *
 
 class MatchItem(DjangoItem):
     django_model = Match
+
+class UrlItem(DjangoItem):
+    django_model = Url
+
+class ScanItem(DjangoItem):
+    django_model = Scan
+

@@ -11,9 +11,9 @@ from twisted.internet import reactor
 from scrapy.crawler import Crawler
 from scrapy import log, signals
 from scrapy.utils.project import get_project_settings
-from scanner.spiders.scanner import ScannerSpider
+from scanner.spiders.scanner_spider import ScannerSpider
 
-spider = ScannerSpider(url='http://www.magenta.dk', sitemap_urls=['http://www.magenta-aps.dk/sitemap.xml'], allowed_domains=['magenta.dk'])
+spider = ScannerSpider(scan_id=sys.argv[1])
 settings = get_project_settings()
 crawler = Crawler(settings)
 crawler.signals.connect(reactor.stop, signal=signals.spider_closed)

@@ -4,11 +4,12 @@
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
 from scrapy import log
-from scrapy.exceptions import DropItem
+from items import *
 
 class MatchSaverPipeline(object):
     def process_item(self, item, spider):
-        # TODO: Save match to Django DB
-        # item.save()
-        log.msg("Match: " + str(item))
+        if isinstance(item, MatchItem):
+            log.msg("Match: " + str(item))
+            # Save match to DB
+            item.save()
         return item
