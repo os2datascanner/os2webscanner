@@ -55,10 +55,11 @@ class Scanner:
             if not root_url.startswith('http://') and not root_url.startswith('https://'):
                 root_url = 'http://%s/' % root_url
             urls.append(root_url + "/sitemap.xml")
-            urls.append(root_url + "/sitemap.xml.gz")
             # Add uploaded sitemap.xml file
             if domain.sitemap != '':
-                urls.append('file://' + domain.sitemap)
+                from django.conf import settings
+                sitemap_path = "%s/%s" % (settings.BASE_DIR, domain.sitemap.url)
+                urls.append('file://' + sitemap_path)
         return urls
 
     def get_domains(self):
