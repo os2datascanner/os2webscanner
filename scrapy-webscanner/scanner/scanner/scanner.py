@@ -40,7 +40,7 @@ class Scanner:
         if self.scanner_object.do_cpr_scan:
             rules.append(CPRRule())
         if self.scanner_object.do_name_scan:
-            rules.append(NameRule())
+            rules.append(NameRule(whitelist=self.scanner_object.whitelisted_names))
         # TODO: Add Regex Rules
         for rule in self.scanner_object.regex_rules.all():
             rules.append(RegexRule(name=rule.name, match_string=rule.match_string, sensitivity=rule.sensitivity))

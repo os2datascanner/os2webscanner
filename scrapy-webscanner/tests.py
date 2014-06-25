@@ -16,12 +16,16 @@ class NameTest(unittest.TestCase):
         :return:
         """
         text = """
-            Jens Jensen
+            Jens Jensen.
+            Jim Smith.
             sdfsdsad Asdfsddsfasd
             """
+        whitelist = """
+        Jim Smith
+        """
         valid_names = ['Jens Jensen']
-        invalid_names = ['sdfsdsad Asdfsddsfasd']
-        matches = name.NameRule().execute(text)
+        invalid_names = ['sdfsdsad Asdfsddsfasd', 'Jim Smith']
+        matches = name.NameRule(whitelist=whitelist).execute(text)
         for valid_name in valid_names:
             print matches
             self.assertTrue(any(m['matched_data'] == valid_name for m in matches))
