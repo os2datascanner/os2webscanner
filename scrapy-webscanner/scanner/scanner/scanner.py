@@ -10,7 +10,7 @@ from ..rules.regexrule import RegexRule
 from ..items import UrlItem, ScanItem
 
 from ..processors import html
-from os2webscanner.models import Scan, Url
+from os2webscanner.models import Scan, Url, Domain
 
 
 class Scanner:
@@ -32,6 +32,8 @@ class Scanner:
         self.scanner_object = self.scan_object.scanner
         self.rules = self.load_rules()
 
+        self.valid_domains = self.scanner_object.domains.filter(validation_status=Domain.VALID)
+
     def load_rules(self):
         """Load rules based on Scanner settings."""
         rules = []
@@ -47,7 +49,7 @@ class Scanner:
     def get_sitemap_urls(self):
         """Returns a list of sitemap.xml URLs including any uploaded sitemap.xml file."""
         urls = []
-        for domain in self.scanner_object.domains.all():
+        for domain in self.valid_domains:
             # TODO: Do some normalization of the URL to get the sitemap.xml file
             root_url = domain.url
             if not root_url.startswith('http://') and not root_url.startswith('https://'):
@@ -61,7 +63,7 @@ class Scanner:
 
     def get_domains(self):
         """Returns a list of domain URLs."""
-        return [d.url for d in self.scanner_object.domains.all()]
+        return [d.url for d in self.valid_domains]
 
     def scan(self, response):
         """Scans a scrapy Response object for matches executing all the rules

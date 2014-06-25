@@ -13,10 +13,27 @@ from scrapy import log, signals
 from scrapy.utils.project import get_project_settings
 from scanner.spiders.scanner_spider import ScannerSpider
 
-spider = ScannerSpider(scan_id=sys.argv[1])
+from os2webscanner.models import Scan
+
+scan_id = sys.argv[1]
+scan_object = Scan.objects.get(pk=scan_id)
+
+def handle_closed(spider, reason):
+    scan_object.status = Scan.DONE
+    scan_object.save()
+    # TODO: Check reason for if it was finished, cancelled, or shutdown
+    reactor.stop()
+
+def handle_error(failure, response, spider):
+    scan_object.status = Scan.FAILED
+    log.msg("Scan failed: %s" % failure.getErrorMessage(), level=log.ERROR)
+    # TODO: Store Reason for failure
+
+spider = ScannerSpider(scan_id=scan_id)
 settings = get_project_settings()
 crawler = Crawler(settings)
-crawler.signals.connect(reactor.stop, signal=signals.spider_closed)
+crawler.signals.connect(handle_closed, signal=signals.spider_closed)
+crawler.signals.connect(handle_error, signal=signals.spider_error)
 crawler.configure()
 crawler.crawl(spider)
 crawler.start()
