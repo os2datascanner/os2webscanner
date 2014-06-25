@@ -68,8 +68,8 @@ class Domain(models.Model):
                                             default=INVALID)
     validation_method = models.IntegerField(choices=validation_method_choices,
                                             default=ROBOTSTXT)
-    exception_rules = models.TextField()
-    sitemap = models.FileField(upload_to='sitemaps')
+    exception_rules = models.TextField(blank=True, default="")
+    sitemap = models.FileField(upload_to='sitemaps', blank=True)
 
     def __unicode__(self):
         return self.url
@@ -101,7 +101,7 @@ class Scanner(models.Model):
                                      null=False)
     do_cpr_scan = models.BooleanField(default=True)
     do_name_scan = models.BooleanField(default=True)
-    regex_rules = models.ManyToManyField(RegexRule, null=True)
+    regex_rules = models.ManyToManyField(RegexRule, blank=True, null=True)
 
     def __unicode__(self):
         return self.name
@@ -111,8 +111,8 @@ class Scan(models.Model):
     """An actual instance of the scanning process done by a scanner."""
 
     scanner = models.ForeignKey(Scanner, null=False)
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
+    start_time = models.DateTimeField(blank=True, null=True)
+    end_time = models.DateTimeField(blank=True, null=True)
 
     # Scan status
     NEW = "NEW"
@@ -121,7 +121,7 @@ class Scan(models.Model):
     FAILED = "FAILED"
 
     status_choices = (
-        (NEW, ""),
+        (NEW, "Ny"),
         (STARTED, "I gang"),
         (DONE, "Afsluttet"),
         (FAILED, "Fejlet"),
