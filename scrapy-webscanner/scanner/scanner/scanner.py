@@ -1,6 +1,5 @@
 import re
 import mimetypes
-from datetime import datetime
 
 from scrapy import log
 
@@ -10,6 +9,7 @@ from ..rules.regexrule import RegexRule
 from ..items import UrlItem, ScanItem
 
 from ..processors import html
+from django.utils import timezone
 from os2webscanner.models import Scan, Url, Domain
 
 
@@ -26,7 +26,7 @@ class Scanner:
         self.scan_object = Scan.objects.get(pk=scan_id)
 
         # Update start_time to now and status to STARTED
-        self.scan_object.start_time = datetime.now()
+        self.scan_object.start_time = timezone.now()
         self.scan_object.status = Scan.STARTED
         self.scan_object.save()
         self.scanner_object = self.scan_object.scanner
