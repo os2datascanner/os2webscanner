@@ -28,12 +28,12 @@ def handle_closed(spider, reason):
     reactor.stop()
 
 def handle_error(failure, response, spider):
+    log.msg("Scan failed: %s" % failure.getErrorMessage(), level=log.ERROR)
     scan_object = Scan.objects.get(pk=scan_id)
     scan_object.status = Scan.FAILED
     scan_object.end_time = timezone.now()
+    scan_object.reason = failure.getErrorMessage()
     scan_object.save()
-    log.msg("Scan failed: %s" % failure.getErrorMessage(), level=log.ERROR)
-    # TODO: Store Reason for failure
 
 spider = ScannerSpider(scan_id=scan_id)
 settings = get_project_settings()
