@@ -8,6 +8,7 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 
 import unittest
 from scanner.rules import cpr, name
+import re
 
 class NameTest(unittest.TestCase):
     def test_matching(self):
@@ -16,21 +17,23 @@ class NameTest(unittest.TestCase):
         :return:
         """
         text = """
-            Jens Jensen.
-            Jim Smith.
+            Jens Jensen
+            Jim Smith Jones
             sdfsdsad Asdfsddsfasd
             """
-        whitelist = """
-        Jim Smith
-        """
-        valid_names = ['Jens Jensen']
-        invalid_names = ['sdfsdsad Asdfsddsfasd', 'Jim Smith']
-        matches = name.NameRule(whitelist=whitelist).execute(text)
+        # whitelist = """
+        # Jim Smiths
+        # """
+        valid_names = ['Jens Jensen', 'Jensen Jim', 'Jim Smith', 'Jens Jensen Jim', 'Jensen Jim Smith', 'Jens Jensen Jim Smith',
+                       'Smith Jones', 'Jim Smith Jones', 'Jensen Jim Smith Jones']
+        invalid_names = ['sdfsdsad Asdfsddsfasd']
+        matches = name.NameRule().execute(text)
+        matches = [re.sub('\s+', ' ', m['matched_data']) for m in matches]
         for valid_name in valid_names:
             print matches
-            self.assertTrue(any(m['matched_data'] == valid_name for m in matches))
+            self.assertTrue(any(m == valid_name for m in matches))
         for invalid_name in invalid_names:
-            self.assertFalse(any(m['matched_data'] == invalid_name for m in matches))
+            self.assertFalse(any(m == invalid_name for m in matches))
 
 class CPRTest(unittest.TestCase):
     def test_matching(self):

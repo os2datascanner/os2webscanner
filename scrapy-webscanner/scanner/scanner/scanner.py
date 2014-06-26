@@ -1,4 +1,3 @@
-import re
 import mimetypes
 
 from scrapy import log
@@ -6,17 +5,16 @@ from scrapy import log
 from ..rules.name import NameRule
 from ..rules.cpr import CPRRule
 from ..rules.regexrule import RegexRule
-from ..items import UrlItem, ScanItem
 
-from ..processors import html
+from ..processors import html, pdf
 from django.utils import timezone
-from os2webscanner.models import Scan, Url, Domain
+from os2webscanner.models import Scan, Domain
 
 
 class Scanner:
     processors = {
-        # 'application/pdf': pdf2html,
-        'text/html': html.HTMLProcessor(),
+        'application/pdf': pdf.PDFProcessor,
+        'text/html': html.HTMLProcessor,
         }
 
     def __init__(self, scan_id):
@@ -33,6 +31,13 @@ class Scanner:
         self.rules = self.load_rules()
 
         self.valid_domains = self.scanner_object.domains.filter(validation_status=Domain.VALID)
+
+        self.init_processors()
+
+    def init_processors(self):
+        """Initialize each Processor object with a reference to the Scanner"""
+        for mime in self.processors.keys():
+            self.processors[mime] = self.processors[mime](scanner=self)
 
     def load_rules(self):
         """Load rules based on Scanner settings."""
@@ -66,43 +71,38 @@ class Scanner:
         """Returns a list of domain URLs."""
         return [d.url for d in self.valid_domains]
 
-    def scan(self, response):
-        """Scans a scrapy Response object for matches executing all the rules
+    def scan(self, data, url="", mime_type=None):
+        """Scans data for matches executing all the rules
         associated with this scanner."""
-        # Get the mime-type from the Content-Type header or the file extension
-        content_type = response.headers.get('content-type')
-        if content_type:
-            mime_type = parse_content_type(content_type)
-            log.msg("Content-Type: " + content_type, level=log.DEBUG)
-        else:
+        text = self.process(data, url=url, mime_type=mime_type)
+        matches = self.execute_rules(text)
+        return matches
+
+    def process(self, data, url="", mime_type=None):
+        """Scans data for matches executing all the rules
+        associated with this scanner."""
+        if not mime_type and url != "":
             log.msg("Guessing mime-type based on file extension", level=log.DEBUG)
-            mime_type = mimetypes.guess_type(response.url)
-            if mime_type is None:
-                mime_type = 'text/plain'
+            mime_type, encoding = mimetypes.guess_type(url)
 
-        log.msg("Scanning " + response.url + " Mime-type: " + mime_type)
+        if mime_type is None:
+            # Default to process as plain text
+            mime_type = 'text/plain'
 
-        # Save the URL item to the database
-        url_object = Url(url=response.url, mime_type=mime_type, scan=self.scan_object)
-        url_object.save()
+        log.msg("Scanning " + url + " Mime-type: " + mime_type)
 
         processor = self.processors.get(mime_type, None)
-        matches = []
+        text = ""
         if processor is not None:
             if callable(processor.process):
                 log.msg("Processing with " + processor.__class__.__name__)
                 # Process the text (for example to remove HTML, or add to conversion queue)
-                text = processor.process(response)
-                # TODO: Check if the processor only adds it to the conversion queue
-                matches = self.execute_rules(text)
+                text = processor.process(data)
             else:
                 raise Exception("Processor lacks process method")
         else:
             log.msg("No processor available for mime type: " + mime_type)
-        for match in matches:
-            match['url'] = url_object
-            match['scan'] = self.scan_object
-        return matches
+        return text
 
     def execute_rules(self, text):
         """Executes the scanner's rules on the given text returning a list of matches"""
@@ -114,8 +114,3 @@ class Scanner:
                 match['matched_rule'] = rule.name
             matches.extend(rule_matches)
         return matches
-
-def parse_content_type(content_type):
-    """Parses and returns the mime-type from a Content-Type header value"""
-    m = re.search('([^/]+/[^;\s]+)', content_type)
-    return m.group(1)

@@ -1,2 +1,3 @@
 class Processor:
-    pass
+    def __init__(self, scanner):
+        self.scanner = scanner

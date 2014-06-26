@@ -3,7 +3,10 @@ from scrapy.contrib.spiders.sitemap import SitemapSpider
 from scrapy.http import Request, HtmlResponse
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 
+import re
+
 from ..scanner.scanner import Scanner
+from os2webscanner.models import Url
 
 class ScannerSpider(SitemapSpider):
     name = 'scanner'
@@ -56,5 +59,35 @@ class ScannerSpider(SitemapSpider):
 
     def scan(self, response):
         """Scan a response, returning any matches."""
-        matches = self.scanner.scan(response)
+        content_type = response.headers.get('content-type')
+        if content_type:
+            mime_type = parse_content_type(content_type)
+            log.msg("Content-Type: " + content_type, level=log.DEBUG)
+        else:
+            log.msg("Guessing mime-type based on file extension", level=log.DEBUG)
+            mime_type, encoding = mimetypes.guess_type(response.url)
+            # Scrapy already guesses the encoding.. we don't need it
+
+        # Save the URL item to the database
+        url_object = Url(url=response.url, mime_type=mime_type, scan=self.scanner.scan_object)
+        url_object.save()
+
+        # TODO: Only for HTML/text documents?
+        if hasattr(response, "encoding"):
+            data = response.body.decode(response.encoding)
+        else:
+            data = response.body
+
+        matches = self.scanner.scan(data, mime_type=mime_type)
+
+        for match in matches:
+            match['url'] = url_object
+            match['scan'] = self.scanner.scan_object
+
         return matches
+
+
+def parse_content_type(content_type):
+    """Parses and returns the mime-type from a Content-Type header value"""
+    m = re.search('([^/]+/[^;\s]+)', content_type)
+    return m.group(1)

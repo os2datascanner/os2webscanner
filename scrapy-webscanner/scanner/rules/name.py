@@ -8,23 +8,39 @@ from rule import Rule
 from ..items import MatchItem
 from os2webscanner.models import Sensitivity
 
-name_regex = regex.compile("\\b(?P<first>\\p{Uppercase}\\p{Lowercase}+)(?P<middle>(\\s+\\p{Uppercase}(\\p{Lowercase}+|\\.)){0,2})\\s+(?P<last>\\p{Uppercase}\\p{Lowercase}+)\\b", regex.UNICODE)
+name_regexs = [
+    # Match First Last
+    regex.compile("\\b(?P<first>\\p{Uppercase}\\p{Lowercase}+)\\s+(?P<last>\\p{Uppercase}\\p{Lowercase}+)\\b",
+                  regex.UNICODE),
+    # Match First Middle Last
+    regex.compile(
+        "\\b(?P<first>\\p{Uppercase}\\p{Lowercase}+)(?P<middle>(\\s+\\p{Uppercase}(\\p{Lowercase}+|\\.)))\\s+(?P<last>\\p{Uppercase}\\p{Lowercase}+)\\b",
+        regex.UNICODE),
+    # Match First Middle Middle Last
+    regex.compile(
+        "\\b(?P<first>\\p{Uppercase}\\p{Lowercase}+)(?P<middle>(\\s+\\p{Uppercase}(\\p{Lowercase}+|\\.)){2})\\s+(?P<last>\\p{Uppercase}\\p{Lowercase}+)\\b",
+        regex.UNICODE)]
+
 
 def match_name(text):
-    it = name_regex.finditer(text)
     matches = set()
-    for m in it:
-        first = m.group("first")
-        middle = m.group("middle")
-        if middle != '':
-            middle = middle.lstrip()
-            middle = tuple(regex.split('\s+', middle, regex.UNICODE))
-        else:
-            middle = None
-        last = m.group("last")
-        matched_text = m.group(0)
-        matches.add((first, middle, last, matched_text))
+    for name_regex in name_regexs:
+        it = name_regex.finditer(text, overlapped=True)
+        for m in it:
+            first = m.group("first")
+            try:
+                middle = m.group("middle")
+            except IndexError:
+                middle = ''
+            if middle != '':
+                middle_split = tuple(regex.split('\s+', middle.lstrip(), regex.UNICODE))
+            else:
+                middle_split = None
+            last = m.group("last")
+            matched_text = m.group(0)
+            matches.add((first, middle_split, last, matched_text))
     return matches
+
 
 def load_name_file(file_name):
     """
@@ -51,12 +67,14 @@ def load_whitelist(whitelist):
     Returns a set of the names in all upper-case characters"""
     return set([line.upper().strip() for line in whitelist.splitlines()])
 
+
 class NameRule(Rule):
     name = 'name'
     _data_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))) + '/data'
     _last_name_file = 'efternavne_2014.txt'
     _first_name_files = ['fornavne_2014_-_kvinder.txt', 'fornavne_2014_-_mænd.txt']
-    def __init__(self, whitelist = None):
+
+    def __init__(self, whitelist=None):
         # Load first and last names from data files
         self.last_names = load_name_file(self._data_dir + '/' + self._last_name_file)
         self.first_names = []
@@ -99,5 +117,5 @@ class NameRule(Rule):
             # Store the original matching text
             matched_text = name[3]
 
-            matches.add(MatchItem(matched_data = matched_text, sensitivity = sensitivity))
+            matches.add(MatchItem(matched_data=matched_text, sensitivity=sensitivity))
         return matches
