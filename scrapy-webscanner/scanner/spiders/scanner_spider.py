@@ -5,15 +5,14 @@ from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 
 import re
 
-from ..scanner.scanner import Scanner
 from os2webscanner.models import Url
 
 class ScannerSpider(SitemapSpider):
     name = 'scanner'
 
-    def __init__(self, scan_id, *a, **kw):
+    def __init__(self, scanner, *a, **kw):
         # Create scanner
-        self.scanner = Scanner(scan_id)
+        self.scanner = scanner
 
         self.allowed_domains = self.scanner.get_domains()
         self.sitemap_urls = self.scanner.get_sitemap_urls()
@@ -44,7 +43,7 @@ class ScannerSpider(SitemapSpider):
         """Process a response and follow all links"""
         r = []
         r.extend(self._extract_requests(response))
-        r.extend(self.scan(response))
+        self.scan(response)
         return r
 
     def _extract_requests(self, response):
@@ -74,18 +73,22 @@ class ScannerSpider(SitemapSpider):
 
         # TODO: Only for HTML/text documents?
         if hasattr(response, "encoding"):
-            data = response.body.decode(response.encoding)
+            try:
+                data = response.body.decode(response.encoding)
+            except UnicodeDecodeError:
+                log.msg("Response could not be decoded as Unicode", level=log.WARNING)
+                data = response.body
         else:
             data = response.body
 
-        matches = self.scanner.scan(data, mime_type=mime_type)
+        self.scanner.scan(data, matches_callback=lambda matches: self.process_matches(matches, url_object), mime_type=mime_type, url=response.url)
 
+    def process_matches(self, matches, url_object):
         for match in matches:
+            log.msg("Match: " + str(match))
             match['url'] = url_object
             match['scan'] = self.scanner.scan_object
-
-        return matches
-
+            match.save()
 
 def parse_content_type(content_type):
     """Parses and returns the mime-type from a Content-Type header value"""

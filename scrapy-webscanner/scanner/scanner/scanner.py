@@ -1,15 +1,16 @@
 import mimetypes
 
 from scrapy import log
+from twisted.internet import defer
 
 from ..rules.name import NameRule
 from ..rules.cpr import CPRRule
 from ..rules.regexrule import RegexRule
 
 from ..processors import html, pdf
+from ..processors.processor import ProcessRequest
 from django.utils import timezone
 from os2webscanner.models import Scan, Domain
-
 
 class Scanner:
     processors = {
@@ -36,6 +37,7 @@ class Scanner:
 
     def init_processors(self):
         """Initialize each Processor object with a reference to the Scanner"""
+        self.deferred_count = 0
         for mime in self.processors.keys():
             self.processors[mime] = self.processors[mime](scanner=self)
 
@@ -71,16 +73,31 @@ class Scanner:
         """Returns a list of domain URLs."""
         return [d.url for d in self.valid_domains]
 
-    def scan(self, data, url="", mime_type=None):
+    def scan(self, data, matches_callback, url="", mime_type=None):
         """Scans data for matches executing all the rules
         associated with this scanner."""
-        text = self.process(data, url=url, mime_type=mime_type)
-        matches = self.execute_rules(text)
-        return matches
+        self.process(data, url=url, mime_type=mime_type,
+                     processed_callback = lambda result: self.processed(result, matches_callback))
 
-    def process(self, data, url="", mime_type=None):
-        """Scans data for matches executing all the rules
-        associated with this scanner."""
+    def processed(self, result, matches_callback):
+        log.msg("processed: %s" % matches_callback)
+        if isinstance(result, basestring):
+            matches = self.execute_rules(result)
+            log.msg("Matches: %s" % matches)
+            matches_callback(matches)
+        else:
+            log.msg("processed requests %s" % result)
+            for r in result:
+                if isinstance(r, ProcessRequest):
+                    # Recursively process any returned ProcessRequests
+                    self.process(r.data, processed_callback = lambda result: self.processed(result, matches_callback), url=r.url, mime_type=r.mime_type)
+                else:
+                    matches = self.execute_rules(r)
+                    matches_callback(matches)
+
+
+    def process(self, data, processed_callback, url="", mime_type=None):
+        """Processes the data, returning text or Deferred if it was set aside to process in the background."""
         if not mime_type and url != "":
             log.msg("Guessing mime-type based on file extension", level=log.DEBUG)
             mime_type, encoding = mimetypes.guess_type(url)
@@ -92,17 +109,21 @@ class Scanner:
         log.msg("Scanning " + url + " Mime-type: " + mime_type)
 
         processor = self.processors.get(mime_type, None)
-        text = ""
         if processor is not None:
             if callable(processor.process):
                 log.msg("Processing with " + processor.__class__.__name__)
                 # Process the text (for example to remove HTML, or add to conversion queue)
-                text = processor.process(data)
+                processor.process(data, processed_callback)
             else:
                 raise Exception("Processor lacks process method")
         else:
             log.msg("No processor available for mime type: " + mime_type)
-        return text
+
+    def active_processor_count(self):
+        return self.deferred_count
+
+    def is_processing(self):
+        return self.deferred_count > 0
 
     def execute_rules(self, text):
         """Executes the scanner's rules on the given text returning a list of matches"""

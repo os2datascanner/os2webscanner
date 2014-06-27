@@ -11,10 +11,6 @@ BOT_NAME = 'scanner'
 SPIDER_MODULES = ['scanner.spiders']
 NEWSPIDER_MODULE = 'scanner.spiders'
 
-ITEM_PIPELINES = {
-    'scanner.pipelines.MatchSaverPipeline': 300
-}
-
 # Set to True in testing to avoid pegging websites, if only testing processing
 # MUST BE REMOVED IN PRODUCTION!!
 HTTPCACHE_ENABLED = True
