@@ -8,6 +8,8 @@ from subprocess import Popen
 import shutil
 import os
 
+from scrapy import log
+
 import contextlib
 
 @contextlib.contextmanager
@@ -26,6 +28,7 @@ class DeferredProcessor(Processor):
 
     def process(self, data, callback):
         self.scanner.deferred_count += 1
+        log.msg("Deferred processors: %d" % self.scanner.deferred_count)
         d = threads.deferToThread(self.process_func, data)
         d.addCallback(self.result_callback, callback)
         return d
@@ -52,9 +55,11 @@ class DeferredProcessor(Processor):
             # Remove the temporary file so we don't reprocess it
             os.remove(temp_file_path)
 
-            # Process all files in the temporary directory
-            # TODO: Recursively?
-            files = [os.path.join(temp_dir, file) for file in os.listdir(temp_dir) if os.path.isfile(os.path.join(temp_dir, file))]
+            # Recursively process all files in the temporary directory
+            files = []
+            for root, dirs, files in os.walk(temp_dir):
+                for file_name in files:
+                    files.append(os.path.join(root, file_name))
 
             for file in files:
                 # Scan each file

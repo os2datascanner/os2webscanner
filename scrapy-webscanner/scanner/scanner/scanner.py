@@ -48,7 +48,7 @@ class Scanner:
             rules.append(CPRRule())
         if self.scanner_object.do_name_scan:
             rules.append(NameRule(whitelist=self.scanner_object.whitelisted_names))
-        # TODO: Add Regex Rules
+        # Add Regex Rules
         for rule in self.scanner_object.regex_rules.all():
             rules.append(RegexRule(name=rule.name, match_string=rule.match_string, sensitivity=rule.sensitivity))
         return rules
@@ -57,7 +57,7 @@ class Scanner:
         """Returns a list of sitemap.xml URLs including any uploaded sitemap.xml file."""
         urls = []
         for domain in self.valid_domains:
-            # TODO: Do some normalization of the URL to get the sitemap.xml file
+            # Do some normalization of the URL to get the sitemap.xml file
             root_url = domain.url
             if not root_url.startswith('http://') and not root_url.startswith('https://'):
                 root_url = 'http://%s/' % root_url
@@ -82,7 +82,6 @@ class Scanner:
     def processed(self, result, matches_callback):
         if isinstance(result, basestring):
             matches = self.execute_rules(result)
-            log.msg("Matches: %s" % matches)
             matches_callback(matches)
         else:
             log.msg("processed requests %s" % result)
@@ -129,8 +128,8 @@ class Scanner:
         matches = []
         for rule in self.rules:
             rule_matches = rule.execute(text)
-            # TODO: Associate the URL and scan with each match
+            # Associate the rule with the match
             for match in rule_matches:
-                match['matched_rule'] = rule.name
+                match.matched_rule = rule.name
             matches.extend(rule_matches)
         return matches
