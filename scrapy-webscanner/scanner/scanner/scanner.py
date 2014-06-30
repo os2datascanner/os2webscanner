@@ -80,7 +80,6 @@ class Scanner:
                      processed_callback = lambda result: self.processed(result, matches_callback))
 
     def processed(self, result, matches_callback):
-        log.msg("processed: %s" % matches_callback)
         if isinstance(result, basestring):
             matches = self.execute_rules(result)
             log.msg("Matches: %s" % matches)

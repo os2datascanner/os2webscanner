@@ -5,8 +5,7 @@ import codecs
 
 from scrapy import log
 from rule import Rule
-from ..items import MatchItem
-from os2webscanner.models import Sensitivity
+from os2webscanner.models import Sensitivity, Match
 
 name_regexs = [
     # Match First Last
@@ -117,5 +116,5 @@ class NameRule(Rule):
             # Store the original matching text
             matched_text = name[3]
 
-            matches.add(MatchItem(matched_data=matched_text, sensitivity=sensitivity))
+            matches.add(Match(matched_data=matched_text, sensitivity=sensitivity))
         return matches

@@ -2,8 +2,7 @@ import regex
 from datetime import datetime
 
 from rule import Rule
-from ..items import MatchItem
-from os2webscanner.models import Sensitivity
+from os2webscanner.models import Match, Sensitivity
 
 class CPRRule(Rule):
     name = 'cpr'
@@ -60,5 +59,5 @@ def match_cprs(text, mask_digits = True):
             # Mask last 6 digits
             cpr = cpr[0:4] + "XXXXXX"
         if valid_date:
-            matches.add(MatchItem(matched_data = cpr, sensitivity = Sensitivity.HIGH))
+            matches.add(Match(matched_data = cpr, sensitivity = Sensitivity.HIGH))
     return matches

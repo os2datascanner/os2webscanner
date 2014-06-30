@@ -17,7 +17,6 @@ from scrapy.exceptions import DontCloseSpider
 from django.utils import timezone
 
 from scanner.scanner.scanner import Scanner
-from scanner.scanner.converter import Converter
 from os2webscanner.models import Scan
 
 def callback():
