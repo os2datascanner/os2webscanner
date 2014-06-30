@@ -168,14 +168,22 @@ class ConversionQueueItem(models.Model):
     NEW = "NEW"
     PROCESSING = "PROCESSING"
     FAILED = "FAILED"
+    SUCCEEDED = "SUCCEEDED"
 
     status_choices = (
         (NEW, "Ny"),
         (PROCESSING, "I gang"),
-        (FAILED, "Fejlet")
+        (FAILED, "Fejlet"),
+        (SUCCEEDED, "Success")
     )
     status = models.CharField(max_length=10, choices=status_choices,
                               default=NEW)
 
     process_id = models.IntegerField(blank=True, null=True)
     process_start_time = models.DateTimeField(blank=True, null=True)
+
+    @property
+    def file_path(self):
+        """Returns the full path to the file to convert"""
+        from django.conf import settings
+        return "%s/%s" % (settings.BASE_DIR, self.file.url)

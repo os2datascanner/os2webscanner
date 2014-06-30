@@ -1,5 +1,4 @@
 from queued import QueuedProcessor
-import time
 import os
 import os.path
 import subprocess
@@ -30,38 +29,9 @@ class LibreOfficeProcessor(QueuedProcessor):
 
         self.lock_file = os.path.join(self.home_dir, "running.lock")
 
-    def run(self):
-        keep_running = True
-
-        # TODO: Need a locking mechanism to ensure we're not running multiple
-        # instances:
-        #
-        #if(os.path.exists(self.lock_file)):
-        #    raise "Lockfile '" + self.lock_file + "' exists, will not run"
-        #
-        #f = open(self.lock_file, 'a').close();
-        #f.write(os.getpid())
-        #f.close()
-
-        while keep_running:
-            item = self.get_next_item()
-            if item is None:
-                print "Sleeping..."
-                time.sleep(1)
-            else:
-                scan_id = item.url.scan.pk
-                tmp_dir = os.path.join(
-                    var_dir,
-                    'scan_%d' % (scan_id),
-                    'queue_item_%d' % (item.pk)
-                )
-                if not os.path.exists(tmp_dir):
-                    os.makedirs(tmp_dir)
-
-                # TODO: Input type to filter mapping?
-                subprocess.call([
-                    "libreoffice", "--convert-to", "htm:HTML",
-                    item.file, "--outdir", tmp_dir
-                ], env=self.env)
-
-                self.add_processed_files(tmp_dir)
+    def convert(self, item, tmp_dir):
+        return_code = subprocess.call([
+                            "libreoffice", "--headless", "--convert-to", "htm:HTML",
+                            item.file_path, "--outdir", tmp_dir
+                        ], env=self.env)
+        return return_code == 0
