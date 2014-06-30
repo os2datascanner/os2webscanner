@@ -163,3 +163,19 @@ class ConversionQueueItem(models.Model):
     file = models.FileField(upload_to='conversion_queue')
     type = models.CharField(max_length=256)  # We may want to specify choices
     url = models.ForeignKey(Url, null=False)
+
+    # Note that SUCCESS is indicated by just deleting the record
+    NEW = "NEW"
+    PROCESSING = "PROCESSING"
+    FAILED = "FAILED"
+
+    status_choices = (
+        (NEW, "Ny"),
+        (PROCESSING, "I gang"),
+        (FAILED, "Fejlet")
+    )
+    status = models.CharField(max_length=10, choices=status_choices,
+                              default=NEW)
+
+    process_id = models.IntegerField(blank=True, null=True)
+    process_start_time = models.DateTimeField(blank=True, null=True)
