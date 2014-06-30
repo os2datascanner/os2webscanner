@@ -7,7 +7,7 @@ from ..rules.name import NameRule
 from ..rules.cpr import CPRRule
 from ..rules.regexrule import RegexRule
 
-from ..processors import html, pdf
+from ..processors import text, html, pdf
 from ..processors.processor import ProcessRequest
 from django.utils import timezone
 from os2webscanner.models import Scan, Domain
@@ -16,11 +16,17 @@ class Scanner:
     processors = {
         'application/pdf': pdf.PDFProcessor,
         'text/html': html.HTMLProcessor,
+        'text/plain': text.TextProcessor,
         }
 
-    def __init__(self, scan_id):
-        """Initialize the Scanner with the given scan_id to be loaded from the
-        database."""
+    def __init__(self, rules = [], domains = []):
+        """Initialize the Scanner with the given list of rules and list of domains"""
+        self.rules = rules
+        self.valid_domains = domains
+        self.init_processors()
+
+    def load_by_id(self, scan_id):
+        """Load the scanner settings from the given scan ID in the database."""
         # Get scan object from DB
         self.scan_object = Scan.objects.get(pk=scan_id)
 
@@ -29,11 +35,8 @@ class Scanner:
         self.scan_object.status = Scan.STARTED
         self.scan_object.save()
         self.scanner_object = self.scan_object.scanner
-        self.rules = self.load_rules()
-
+        self.rules = self.load_rules(self.scanner_object)
         self.valid_domains = self.scanner_object.domains.filter(validation_status=Domain.VALID)
-
-        self.init_processors()
 
     def init_processors(self):
         """Initialize each Processor object with a reference to the Scanner"""
@@ -41,15 +44,15 @@ class Scanner:
         for mime in self.processors.keys():
             self.processors[mime] = self.processors[mime](scanner=self)
 
-    def load_rules(self):
+    def load_rules(self, scanner_object):
         """Load rules based on Scanner settings."""
         rules = []
-        if self.scanner_object.do_cpr_scan:
+        if scanner_object.do_cpr_scan:
             rules.append(CPRRule())
-        if self.scanner_object.do_name_scan:
-            rules.append(NameRule(whitelist=self.scanner_object.whitelisted_names))
+        if scanner_object.do_name_scan:
+            rules.append(NameRule(whitelist=scanner_object.whitelisted_names))
         # Add Regex Rules
-        for rule in self.scanner_object.regex_rules.all():
+        for rule in scanner_object.regex_rules.all():
             rules.append(RegexRule(name=rule.name, match_string=rule.match_string, sensitivity=rule.sensitivity))
         return rules
 
@@ -130,6 +133,6 @@ class Scanner:
             rule_matches = rule.execute(text)
             # Associate the rule with the match
             for match in rule_matches:
-                match.matched_rule = rule.name
+                match['matched_rule'] = rule.name
             matches.extend(rule_matches)
         return matches

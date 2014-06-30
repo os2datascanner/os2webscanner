@@ -93,8 +93,8 @@ class ScannerSpider(SitemapSpider):
 
     def process_matches(self, matches, url_object):
         for match in matches:
-            match.url = url_object
-            match.scan = self.scanner.scan_object
+            match['url'] = url_object
+            match['scan'] = self.scanner.scan_object
             log.msg("Match: " + str(match))
             match.save()
 

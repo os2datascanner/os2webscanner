@@ -31,7 +31,8 @@ def printResult(result):
 class ScannerApp:
     def __init__(self):
         self.scan_id = sys.argv[1]
-        self.scanner = Scanner(self.scan_id)
+        self.scanner = Scanner()
+        self.scanner.load_by_id(self.scan_id)
 
     def run(self):
         self.run_spider()
