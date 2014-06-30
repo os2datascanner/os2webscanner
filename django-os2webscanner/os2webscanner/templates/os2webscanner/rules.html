@@ -1,0 +1,122 @@
+{% extends 'os2webscanner/base.html' %}
+{%  block title %}
+Regler
+{% endblock %}
+
+{% block body %}
+
+    <div class="table-responsive">
+		<table class="table table-striped">
+          <thead>
+            <tr>
+              <td>
+                <strong>
+                  <small>
+                    Beskrivelse
+                  </small>
+                </strong>
+              </td>
+              <td>
+                <strong>
+                  <small>
+                    Regulært udtryk
+                  </small>
+                </strong>
+              </td>
+              <td>
+                <strong>
+                  <small>
+                    Handling
+                  </small>
+                </strong>
+              </td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="rule-description">
+                <span>
+                  Søg efter CPR-numre
+                </span>
+              </td>
+              <td class="rule-expression">
+                <code>(?&lt;!\d)(?:0[1-9]|[12]\d|3[01])([\s-/\.]?)(?:0[1-9]|1[012])\1\d{2}(?:\s{0,3}[-/\.]\s{0,3}|\s{0,3})\d{4}\b</code>
+              </td>
+              <td class="rule-actions">
+                <button type="button" class="btn btn-default btn-xs btn-domain-settings">
+              	  <span class="glyphicon glyphicon-cog"></span><span class="sr-only">Indstillinger for regel</span>
+				</button>
+              </td>
+            </tr>
+            <tr>
+              <td class="rule-description">
+                <span>
+                  Søg efter navne
+                </span>
+              </td>
+              <td class="rule-expression">
+                <code>Jens Jensen</code>
+              </td>
+              <td class="rule-actions">
+                <button type="button" class="btn btn-default btn-xs btn-domain-settings">
+              	  <span class="glyphicon glyphicon-cog"></span><span class="sr-only">Indstillinger for regel</span>
+				</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+{% endblock %}
+
+{% block heading %} 
+Regler 
+<small class="page-action" style="float:right;">
+    <button type="button" class="btn btn-default" data-toggle="modal" data-target="#create-rule-modal">
+        Tilføj ny 
+        <span style="position:relative;top:.15em;" class="glyphicon glyphicon-plus-sign">
+        </span>
+    </button>
+</small>
+
+{% endblock %}
+
+{% block modal %}
+<div class="modal" id="create-rule-modal" tabindex="-1" role="dialog" aria-labelledby="create-rule-modal-title" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    &times;
+                </button>
+                <h4 class="modal-title" id="create-rule-modal-title">
+                    Opret ny regel
+                </h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal" role="form">
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <label for="field-rule-description">
+                                Beskrivelse
+                            </label>
+                            <input type="text" class="form-control" id="field-rule-description">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <label for="field-rule-expression">Regulært udtryk</label>
+                            <textarea class="form-control" id="field-rule-expression" rows="3"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">
+                        Luk
+                    </button>
+                    <button type="button" class="btn btn-primary">
+                        Gem ændringer
+                    </button>
+                </div>
+            </div>
+            {% endblock %}

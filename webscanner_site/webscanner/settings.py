@@ -86,3 +86,5 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 AUTH_PROFILE_MODULE = 'os2webscanner.UserProfile'
+
+LOGIN_REDIRECT_URL = '/'

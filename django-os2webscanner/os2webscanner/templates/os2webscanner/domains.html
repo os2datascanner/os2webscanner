@@ -1,0 +1,203 @@
+{% extends 'os2webscanner/base.html' %}
+{%  block title %}
+Domæner
+{% endblock %}
+
+{% block body %}
+
+     <div class="table-responsive">
+		<table class="table table-striped">
+          <thead>
+            <tr>
+              <td>
+                <strong>
+                  <small>
+                    URL
+                  </small>
+                </strong>
+              </td>
+              <td>
+                <strong>
+                  <small>
+                    Ekskluderingsregler
+                  </small>
+                </strong>
+              </td>
+              <td>
+                <strong>
+                  <small>
+                    Valideret
+                  </small>
+                </strong>
+              </td>
+              <td>
+                <strong>
+                  <small>
+                    Handling
+                  </small>
+                </strong>
+              </td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="domain-url">
+                <span>
+                  http://www.magenta.dk
+                </span>
+              </td>
+              <td class="domain-exclusion-rules">
+                <code>?print=1</code><br/><code>&amp;print=1</code>
+              </td>
+              <td class="domain-validation">
+                <span class="glyphicon glyphicon-ok"></span><span class="sr-only">Er valideret</span>
+              </td>
+              <td class="domain-actions">
+                <button type="button" class="btn btn-default btn-xs btn-domain-settings">
+              	  <span class="glyphicon glyphicon-cog"></span><span class="sr-only">Indstillinger for domæne</span>
+				</button>
+              </td>
+            </tr>
+            <tr>
+              <td class="domain-description">
+                <span>
+                  dbc.dk/nationale-opgaver
+                </span>
+              </td>
+              <td class="domain-exclusion-rules">
+                
+              </td>
+              <td class="domain-validation">
+                <span class="glyphicon glyphicon-remove"></span><span class="sr-only">Er ikke valideret</span>
+              </td>
+              <td class="domain-actions">
+                <button type="button" class="btn btn-default btn-xs btn-domain-settings">
+              	  <span class="glyphicon glyphicon-cog"></span><span class="sr-only">Indstillinger for domæne</span>
+				</button>
+              </td>
+            </tr>
+            <tr>
+              <td class="domain-description">
+                <span>
+                  www.ltk.dk
+                </span>
+              </td>
+              <td class="domain-exclusion-rules">
+                <code>/borger</code>
+              </td>
+              <td class="domain-validation">
+                <span class="glyphicon glyphicon-ok"></span><span class="sr-only">Er valideret</span>
+              </td>
+              <td class="domain-actions">
+                <button type="button" class="btn btn-default btn-xs btn-domain-settings">
+              	  <span class="glyphicon glyphicon-cog"></span><span class="sr-only">Indstillinger for domæne</span>
+				</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+{% endblock %}
+
+{% block heading %} 
+Domæner 
+<small class="page-action" style="float:right;">
+    <button type="button" class="btn btn-default" data-toggle="modal" data-target="#create-domain-modal">
+        Tilføj nyt 
+        <span style="position:relative;top:.15em;" class="glyphicon glyphicon-plus-sign">
+        </span>
+    </button>
+</small>
+{% endblock %}
+
+{% block modal %}
+    <div class="modal" id="create-domain-modal" tabindex="-1" role="dialog" aria-labelledby="create-domain-modal-title" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+              &times;
+            </button>
+            <h4 class="modal-title" id="create-domain-modal-title">
+              Opret nyt domæne
+            </h4>
+          </div>
+          <div class="modal-body">
+            <form class="form-horizontal" role="form">
+              <div class="form-group">
+                  <div class="col-sm-12">
+                    <label for="field-domain-url">
+                      URL
+                    </label>
+                    <input type="text" class="form-control" id="field-domain-url">
+                  </div>
+              </div>
+              <div class="form-group">
+                  <div class="col-sm-12">
+                    <label for="field-domain-exclusion">URL ekskluderingsregler</label>
+                    <textarea class="form-control" id="field-domain-exclusion" rows="3" placeholder="Indsæt regulære udtryk adskilt af linjeskift"></textarea>
+                  </div>
+              </div>
+              <div class="panel panel-default">
+              	<div class="panel-heading">Godkendelsesmetode</div>
+                <div class="panel-body">
+              	  <div class="col-sm-5">
+                    <div class="form-group">
+                      <div class="radio">
+                        <label>
+                          <input type="radio" name="field-domain-validation" value="validate-robots" id="validate-robots" checked>
+                          Robots.txt
+                        </label>
+                      </div>
+                      <div class="radio">
+                        <label>
+                          <input type="radio" name="field-domain-validation" value="validate-webscan" id="validate-webscan">
+                          Webscan.html
+                        </label>
+                      </div>
+                      <div class="radio">
+                        <label>
+                          <input type="radio" name="field-domain-validation" value="validate-metafield" id="validate-metafield">
+                          Metafield
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-sm-7">
+                  	<div class="form-group">
+                      <p class="form-control-static">
+                      	Indsæt følgende
+                      </p>
+                      <pre style="margin-top:.7em;">User-agent: OS2Webscanner<br/>Disallow:
+                      </pre>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="col-sm-12">
+                  <label for="field-domain-sitemap" class="sr-only">
+               	    Sitemap
+                  </label>
+                  <span class="btn btn-default btn-block btn-sitemap-upload form-control">
+                    Klik her for at uploade sitemap.xml <input type="file">
+                  </span>
+                </div>
+              </div>
+              <div class="alert alert-warning" role="alert">
+                  	<span class="glyphicon glyphicon-ban-circle"></span> Dette domæne er endnu ikke valideret
+                  <button style="margin-left:1em;" type="button" class="btn btn-default">Validér nu</button>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <div class="btn-group">
+              <button type="button" class="btn btn-default" data-dismiss="modal">
+                Luk
+              </button>
+              <button type="button" class="btn btn-primary">
+                Gem ændringer
+              </button>
+            </div>
+          </div>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends 'os2webscanner/base.html' %}
+{%  block title %}
+Rapporter
+{% endblock %}
+
+{% block body %}
+      <div class="table-responsive">
+		<table class="table table-striped">
+          <thead>
+            <tr>
+              <td>
+                <strong>
+                  <small>
+                    Domæne
+                  </small>
+                </strong>
+              </td>
+              <td>
+                <strong>
+                  <small>
+                    Udført
+                  </small>
+                </strong>
+              </td>
+              <td>
+                <strong>
+                  <small>
+                    Regler
+                  </small>
+                </strong>
+              </td>
+              <td>
+                <strong>
+                  <small>
+                    Handling
+                  </small>
+                </strong>
+              </td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="report-domain">
+                <span>
+                  http://www.magenta.dk
+                </span>
+              </td>
+              <td class="report-scandate">
+                <span>25/6-2014 01:05</span>
+              </td>
+              <td class="report-rules">
+                <span>Søg efter CPR-numre<br/>Søg efter navne</span>
+              </td>
+              <td class="report-actions">
+                <button type="button" class="btn btn-sm btn-default"><span class="glyphicon glyphicon-tasks"></span> Vis rapport</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+      </div>
+{% endblock %}
+
+{% block heading %} 
+Rapporter 
+{% endblock %}
+
+{% block modal %}
+{% endblock %}
