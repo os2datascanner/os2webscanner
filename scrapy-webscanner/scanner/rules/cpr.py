@@ -2,8 +2,8 @@ import regex
 from datetime import datetime
 
 from rule import Rule
-from ..items import MatchItem
 from os2webscanner.models import Sensitivity
+from ..items import MatchItem
 
 class CPRRule(Rule):
     name = 'cpr'

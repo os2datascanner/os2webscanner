@@ -1,0 +1,24 @@
+{% extends 'os2webscanner/base.html' %}
+{%  block title %}
+Login
+{% endblock %}
+
+{% block body %}
+
+<div class="container">
+      <form method="post" action="{% url 'django.contrib.auth.views.login' %}">
+          {% csrf_token %}
+          <label>Brugernavn:</label>
+          {{ form.username }}
+          <label>Password:</label>
+          {{ form.password }}
+      <br>
+      <input class="btn btn-primary" type="submit" value="Log ind">
+    </form>
+</div>
+
+{% endblock %}
+
+{% block heading %} 
+OS2 Webscanner Login:
+{% endblock %}

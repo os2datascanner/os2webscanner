@@ -8,7 +8,17 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 
 import unittest
 from scanner.rules import cpr, name
+from scanner.scanner.scanner import Scanner
 import re
+
+class ScannerTest(unittest.TestCase):
+    def test_scanner(self):
+        scanner = Scanner(rules = [cpr.CPRRule()], domains = [])
+        data = """Blah blah 211062-5629 Blah blah."""
+        scanner.scan(data, matches_callback=self.matches_callback)
+
+    def matches_callback(self, matches):
+        self.assertTrue("2110XXXXXX" in [m['matched_data'] for m in matches])
 
 class NameTest(unittest.TestCase):
     def test_matching(self):
@@ -29,8 +39,8 @@ class NameTest(unittest.TestCase):
         invalid_names = ['sdfsdsad Asdfsddsfasd']
         matches = name.NameRule().execute(text)
         matches = [re.sub('\s+', ' ', m['matched_data']) for m in matches]
+        print matches
         for valid_name in valid_names:
-            print matches
             self.assertTrue(any(m == valid_name for m in matches))
         for invalid_name in invalid_names:
             self.assertFalse(any(m == invalid_name for m in matches))

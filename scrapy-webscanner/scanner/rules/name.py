@@ -5,8 +5,8 @@ import codecs
 
 from scrapy import log
 from rule import Rule
-from ..items import MatchItem
 from os2webscanner.models import Sensitivity
+from ..items import MatchItem
 
 name_regexs = [
     # Match First Last
