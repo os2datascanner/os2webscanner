@@ -6,6 +6,8 @@
 #     http://doc.scrapy.org/en/latest/topics/settings.html
 #
 
+
+
 BOT_NAME = 'scanner'
 
 SPIDER_MODULES = ['scanner.spiders']
@@ -22,3 +24,4 @@ USER_AGENT = 'os2webscanner'
 #   This is the default in Scrapy, but we are explicit here just in case they
 #   ever change it.
 ROBOTSTXT_OBEY=False
+

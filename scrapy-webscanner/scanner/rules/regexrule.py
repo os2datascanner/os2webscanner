@@ -1,7 +1,7 @@
 import regex
 
 from rule import Rule
-from os2webscanner.models import Match
+from ..items import MatchItem
 
 class RegexRule(Rule):
     def __init__(self, name, match_string, sensitivity):
@@ -13,5 +13,5 @@ class RegexRule(Rule):
         matches = set()
         re_matches = self.regex.finditer(text)
         for match in re_matches:
-            matches.add(Match(matched_data = match.group(0), sensitivity = self.sensitivity))
+            matches.add(MatchItem(matched_data = match.group(0), sensitivity = self.sensitivity))
         return matches
