@@ -67,9 +67,7 @@ class Scanner:
             urls.append(root_url + "/sitemap.xml")
             # Add uploaded sitemap.xml file
             if domain.sitemap != '':
-                from django.conf import settings
-                sitemap_path = "%s/%s" % (settings.BASE_DIR, domain.sitemap.url)
-                urls.append('file://' + sitemap_path)
+                urls.append('file://' + domain.sitemap_full_path)
         return urls
 
     def get_domains(self):

@@ -71,6 +71,11 @@ class Domain(models.Model):
     exception_rules = models.TextField(blank=True, default="")
     sitemap = models.FileField(upload_to='sitemaps', blank=True)
 
+    @property
+    def sitemap_full_path(self):
+        from django.conf import settings
+        return "%s/%s" % (settings.BASE_DIR, self.sitemap.url)
+
     def __unicode__(self):
         return self.url
 
