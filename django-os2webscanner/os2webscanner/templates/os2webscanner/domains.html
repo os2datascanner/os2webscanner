@@ -40,35 +40,22 @@ Domæner
             </tr>
           </thead>
           <tbody>
+          {% for domain in domain_list %}
             <tr>
               <td class="domain-url">
                 <span>
-                  http://www.magenta.dk
+                    {{domain.url}}
                 </span>
               </td>
               <td class="domain-exclusion-rules">
-                <code>?print=1</code><br/><code>&amp;print=1</code>
+               <pre>{{domain.exception_rules}}</pre> 
               </td>
               <td class="domain-validation">
+                  {% if domain.validation_status %}
                 <span class="glyphicon glyphicon-ok"></span><span class="sr-only">Er valideret</span>
-              </td>
-              <td class="domain-actions">
-                <button type="button" class="btn btn-default btn-xs btn-domain-settings">
-              	  <span class="glyphicon glyphicon-cog"></span><span class="sr-only">Indstillinger for domæne</span>
-				</button>
-              </td>
-            </tr>
-            <tr>
-              <td class="domain-description">
-                <span>
-                  dbc.dk/nationale-opgaver
-                </span>
-              </td>
-              <td class="domain-exclusion-rules">
-                
-              </td>
-              <td class="domain-validation">
+                {% else %}
                 <span class="glyphicon glyphicon-remove"></span><span class="sr-only">Er ikke valideret</span>
+                {% endif %}
               </td>
               <td class="domain-actions">
                 <button type="button" class="btn btn-default btn-xs btn-domain-settings">
@@ -76,24 +63,7 @@ Domæner
 				</button>
               </td>
             </tr>
-            <tr>
-              <td class="domain-description">
-                <span>
-                  www.ltk.dk
-                </span>
-              </td>
-              <td class="domain-exclusion-rules">
-                <code>/borger</code>
-              </td>
-              <td class="domain-validation">
-                <span class="glyphicon glyphicon-ok"></span><span class="sr-only">Er valideret</span>
-              </td>
-              <td class="domain-actions">
-                <button type="button" class="btn btn-default btn-xs btn-domain-settings">
-              	  <span class="glyphicon glyphicon-cog"></span><span class="sr-only">Indstillinger for domæne</span>
-				</button>
-              </td>
-            </tr>
+            {% endfor %}
           </tbody>
         </table>
 
@@ -200,4 +170,8 @@ Domæner
               </button>
             </div>
           </div>
+{% endblock %}
+
+{% block domains_active %}
+class="active"
 {% endblock %}

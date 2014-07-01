@@ -103,6 +103,11 @@ class Scanner(models.Model):
     do_name_scan = models.BooleanField(default=True)
     regex_rules = models.ManyToManyField(RegexRule, blank=True, null=True)
 
+    @property
+    def schedule_description(self):
+        f = lambda s: "Schedule: " + s
+        return f
+
     def __unicode__(self):
         return self.name
 

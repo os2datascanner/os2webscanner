@@ -33,20 +33,18 @@ Scannere
             </tr>
           </thead>
           <tbody>
+          {% for scanner in scanner_list %}
             <tr>
               <td class="scanner-description">
                 <span>
-                  Scan hovedsite
+                    {{scanner.name}} 
                 </span>
               </td>
               <td class="scanner-runtime">
-                <span class="scanner-date">
-                  25/6-14
+                <span class="scanner-schedule-description">
+                    {{scanner.schedule_description}}
                 </span>
                 
-                <span class="scanner-time">
-                  01:05
-                </span>
               </td>
               <td class="scanner-actions">
                 <span class="scanner-status">
@@ -71,82 +69,7 @@ Scannere
                 </button>
               </td>
             </tr>
-            <tr>
-              <td class="scanner-description">
-                <span>
-                  Scan af testsite
-                </span>
-              </td>
-              <td class="scanner-runtime">
-                <span class="scanner-date">
-                  Hver søndag
-                </span>
-                
-                <span class="scanner-time">
-                  03:00
-                </span>
-              </td>
-              <td class="scanner-actions">
-                <span class="scanner-status">
-                  Kører
-                </span>
-                
-                <button type="button" class="btn btn-disabled btn-xs btn-scanner-start">
-                  <span class="glyphicon glyphicon-play">
-                  </span>
-                  
-                  <span class="sr-only">
-                    Start scanner
-                  </span>
-                </button>
-                <button type="button" class="btn btn-disabled btn-xs btn-scanner-settings">
-                  <span class="glyphicon glyphicon-cog">
-                  </span>
-                  
-                  <span class="sr-only">
-                    Indstillinger for scanner
-                  </span>
-                </button>
-              </td>
-            </tr>
-            <tr>
-              <td class="scanner-description">
-                <span>
-                  Scan af sekundært site
-                </span>
-              </td>
-              <td class="scanner-runtime">
-                <span class="scanner-date">
-                  Den 10. i hver måned
-                </span>
-                
-                <span class="scanner-time">
-                  23:00
-                </span>
-              </td>
-              <td class="scanner-actions">
-                <span class="scanner-status">
-                  Klar
-                </span>
-                
-                <button type="button" class="btn btn-default btn-xs btn-scanner-start">
-                  <span class="glyphicon glyphicon-play">
-                  </span>
-                  
-                  <span class="sr-only">
-                    Start scanner
-                  </span>
-                </button>
-                <button type="button" class="btn btn-default btn-xs btn-scanner-settings">
-                  <span class="glyphicon glyphicon-cog">
-                  </span>
-                  
-                  <span class="sr-only">
-                    Indstillinger for scanner
-                  </span>
-                </button>
-              </td>
-            </tr>
+            {% endfor %}
           </tbody>
         </table>
         
@@ -340,4 +263,8 @@ Scannere
               </button>
             </div>
           </div>
+{% endblock %}
+
+{% block scanners_active %}
+class="active"
 {% endblock %}

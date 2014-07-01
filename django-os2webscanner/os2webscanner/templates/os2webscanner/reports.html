@@ -25,7 +25,7 @@ Rapporter
               <td>
                 <strong>
                   <small>
-                    Regler
+                    Status
                   </small>
                 </strong>
               </td>
@@ -39,22 +39,24 @@ Rapporter
             </tr>
           </thead>
           <tbody>
+          {% for scan in scan_list %}
             <tr>
               <td class="report-domain">
                 <span>
-                  http://www.magenta.dk
+                    {{ scan.scanner.name }}
                 </span>
               </td>
               <td class="report-scandate">
-                <span>25/6-2014 01:05</span>
+                  <span>{{ scan.start_time }}</span>
               </td>
-              <td class="report-rules">
-                <span>Søg efter CPR-numre<br/>Søg efter navne</span>
+              <td class="report-status">
+                  <span>{{ scan.get_status_display }}</span>
               </td>
               <td class="report-actions">
                 <button type="button" class="btn btn-sm btn-default"><span class="glyphicon glyphicon-tasks"></span> Vis rapport</button>
               </td>
             </tr>
+            {% endfor %}
           </tbody>
         </table>
         
@@ -66,4 +68,8 @@ Rapporter
 {% endblock %}
 
 {% block modal %}
+{% endblock %}
+
+{% block reports_active %}
+class="active"
 {% endblock %}

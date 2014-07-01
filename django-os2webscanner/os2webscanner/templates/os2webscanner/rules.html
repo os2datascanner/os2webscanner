@@ -12,6 +12,13 @@ Regler
               <td>
                 <strong>
                   <small>
+                    Navn
+                  </small>
+                </strong>
+              </td>
+              <td>
+                <strong>
+                  <small>
                     Beskrivelse
                   </small>
                 </strong>
@@ -26,6 +33,13 @@ Regler
               <td>
                 <strong>
                   <small>
+                    Følsomhed
+                  </small>
+                </strong>
+              </td>
+              <td>
+                <strong>
+                  <small>
                     Handling
                   </small>
                 </strong>
@@ -33,14 +47,25 @@ Regler
             </tr>
           </thead>
           <tbody>
+          {% for rule in regexrule_list %}
             <tr>
+              <td class="rule-name">
+                <span>
+                    {{ rule.name }}
+                </span>
+              </td>
               <td class="rule-description">
                 <span>
-                  Søg efter CPR-numre
+                    {{ rule.description }}
                 </span>
               </td>
               <td class="rule-expression">
-                <code>(?&lt;!\d)(?:0[1-9]|[12]\d|3[01])([\s-/\.]?)(?:0[1-9]|1[012])\1\d{2}(?:\s{0,3}[-/\.]\s{0,3}|\s{0,3})\d{4}\b</code>
+                  <code>{{ rule.match_string }}</code>
+              </td>
+              <td class="rule-sensitivity">
+                <span>
+                    {{ rule.get_sensitivity_display }}
+                </span>
               </td>
               <td class="rule-actions">
                 <button type="button" class="btn btn-default btn-xs btn-domain-settings">
@@ -48,21 +73,7 @@ Regler
 				</button>
               </td>
             </tr>
-            <tr>
-              <td class="rule-description">
-                <span>
-                  Søg efter navne
-                </span>
-              </td>
-              <td class="rule-expression">
-                <code>Jens Jensen</code>
-              </td>
-              <td class="rule-actions">
-                <button type="button" class="btn btn-default btn-xs btn-domain-settings">
-              	  <span class="glyphicon glyphicon-cog"></span><span class="sr-only">Indstillinger for regel</span>
-				</button>
-              </td>
-            </tr>
+            {% endfor %}
           </tbody>
         </table>
 {% endblock %}
@@ -120,3 +131,7 @@ Regler
                 </div>
             </div>
             {% endblock %}
+
+{% block rules_active %}
+class="active"
+{% endblock %}
