@@ -39,7 +39,7 @@ class ScannerSpider(SitemapSpider):
         # TODO: Add more tags to extract links from?
         self.link_extractor = LxmlLinkExtractor(
             deny_extensions=(),
-            tags=('a', 'area', 'frame', 'iframe'),
+            tags=('a', 'area', 'frame', 'iframe', 'script'),
             attrs=('href', 'src')
         )
 
