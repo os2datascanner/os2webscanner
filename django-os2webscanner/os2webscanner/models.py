@@ -137,7 +137,6 @@ class Scan(models.Model):
     reason = models.CharField(max_length=1024, blank=True, default="")
     pid = models.IntegerField(null=True, blank=True)
 
-
     def __unicode__(self):
         return "SCAN: " + self.scanner.name
 
@@ -160,8 +159,12 @@ class Match(models.Model):
     matched_rule = models.CharField(max_length=256)  # Name of matching rule.
     sensitivity = models.IntegerField(choices=Sensitivity.choices,
                                       default=Sensitivity.HIGH)
+
     def __unicode__(self):
-        return u"Match: %s; [%s] %s <%s>" % (self.get_sensitivity_display(), self.matched_rule, self.matched_data, self.url)
+        return u"Match: %s; [%s] %s <%s>" % (self.get_sensitivity_display(),
+                                             self.matched_rule,
+                                             self.matched_data, self.url)
+
 
 class ConversionQueueItem(models.Model):
     """Represents an item in the conversion queue."""
