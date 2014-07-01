@@ -115,7 +115,7 @@ class ScannerSpider(SitemapSpider):
             data = response.body
 
         # Save the URL item to the database
-        url_object = Url(url=response.url, mime_type=mime_type,
+        url_object = Url(url=response.request.url, mime_type=mime_type,
                          scan=self.scanner.scan_object)
         url_object.save()
         result = self.scanner.scan(data, url_object)
