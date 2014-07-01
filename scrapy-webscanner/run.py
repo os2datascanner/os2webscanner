@@ -17,22 +17,23 @@ from scrapy.exceptions import DontCloseSpider
 from django.utils import timezone
 
 from scanner.scanner.scanner import Scanner
-from os2webscanner.models import Scan
+from os2webscanner.models import Scan, ConversionQueueItem
 
-def callback():
-    return "CAllback"
-    print "Callback"
-    log.msg("Callback")
-
-def printResult(result):
-    print "Result : " + result
-    log.msg("Result: " + result)
+from scanner.processors import *
 
 class ScannerApp:
     def __init__(self):
         self.scan_id = sys.argv[1]
-        self.scanner = Scanner()
-        self.scanner.load_by_id(self.scan_id)
+
+        # Get scan object from DB
+        self.scan_object = Scan.objects.get(pk=self.scan_id)
+
+        # Update start_time to now and status to STARTED
+        self.scan_object.start_time = timezone.now()
+        self.scan_object.status = Scan.STARTED
+        self.scan_object.save()
+
+        self.scanner = Scanner(self.scan_id)
 
     def run(self):
         self.run_spider()
@@ -72,8 +73,14 @@ class ScannerApp:
         # pass
         log.msg("Spider Idle...")
         # Keep spider alive if there are still active processors running in other threads
-        if self.scanner.is_processing():
-            log.msg("Keeping spider alive: %d processors still active" % self.scanner.active_processor_count())
+
+        remaining_queue_items = ConversionQueueItem.objects.filter(
+            status = ConversionQueueItem.NEW,
+            url__scan = self.scan_object
+        ).count()
+
+        if remaining_queue_items > 0:
+            log.msg("Keeping spider alive: %d remaining queue items to process" % remaining_queue_items)
             raise DontCloseSpider
         else:
             log.msg("No more active processors, closing spider...")

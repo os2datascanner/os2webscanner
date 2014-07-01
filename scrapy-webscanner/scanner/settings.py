@@ -15,7 +15,7 @@ NEWSPIDER_MODULE = 'scanner.spiders'
 
 # Set to True in testing to avoid pegging websites, if only testing processing
 # MUST BE REMOVED IN PRODUCTION!!
-HTTPCACHE_ENABLED = True
+HTTPCACHE_ENABLED = False
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 USER_AGENT = 'os2webscanner'

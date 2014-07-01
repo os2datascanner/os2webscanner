@@ -165,7 +165,7 @@ class Match(models.Model):
 
 class ConversionQueueItem(models.Model):
     """Represents an item in the conversion queue."""
-    file = models.FileField(upload_to='conversion_queue')
+    file = models.CharField(max_length=4096)
     type = models.CharField(max_length=256)  # We may want to specify choices
     url = models.ForeignKey(Url, null=False)
 
@@ -189,6 +189,4 @@ class ConversionQueueItem(models.Model):
 
     @property
     def file_path(self):
-        """Returns the full path to the file to convert"""
-        from django.conf import settings
-        return "%s/%s" % (settings.BASE_DIR, self.file.url)
+        return self.file

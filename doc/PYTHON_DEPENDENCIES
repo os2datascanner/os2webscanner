@@ -6,3 +6,4 @@ service_identity
 regex
 croniter
 chardet
+python-magic
