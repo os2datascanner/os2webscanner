@@ -11,7 +11,7 @@ import pep8
 from django.test import TestCase
 from django.conf import settings
 
-parent_directory = os.path.dirname(os.path.join(settings.BASE_DIR, '..'))
+install_directory = os.path.abspath(os.path.join(settings.BASE_DIR, '..'))
 
 
 class SimpleTest(TestCase):
@@ -38,6 +38,7 @@ def pep8_test(filepath):
 class Pep8Test(TestCase):
     """Test that the template system a well as the default clients and plugins
     are PEP8-compliant."""
-    j = lambda dir: os.path.join(parent_directory, dir)
+    j = lambda dir: os.path.join(install_directory, dir)
 
-    test_os2webscanner = pep8_test(j('os2webscanner'))
+    test_os2webscanner = pep8_test(j('django-os2webscanner'))
+    test_scrapywebscanner = pep8_test(j('scrapy-webscanner'))
