@@ -3,6 +3,7 @@ from text import TextProcessor
 import os
 import subprocess
 
+
 class OCRProcessor(Processor):
     item_type = "ocr"
     text_processor = TextProcessor()
@@ -15,11 +16,14 @@ class OCRProcessor(Processor):
 
     def convert(self, item, tmp_dir):
         txt_file = os.path.join(tmp_dir, "file")
-        return_code = subprocess.call(["tesseract", item.file_path, txt_file, "-l", "dan+eng"])
+        return_code = subprocess.call(
+            ["tesseract", item.file_path, txt_file, "-l", "dan+eng"]
+        )
         txt_file += ".txt"
         self.text_processor.process_file(txt_file, item.url)
         if os.path.exists(txt_file):
             os.remove(txt_file)
         return return_code == 0
+
 
 Processor.register_processor(OCRProcessor.item_type, OCRProcessor)

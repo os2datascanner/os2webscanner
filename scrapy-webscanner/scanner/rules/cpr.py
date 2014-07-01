@@ -5,8 +5,10 @@ from rule import Rule
 from os2webscanner.models import Sensitivity
 from ..items import MatchItem
 
+
 class CPRRule(Rule):
     name = 'cpr'
+
     def execute(self, text):
         matches = match_cprs(text)
         return matches
@@ -14,10 +16,11 @@ class CPRRule(Rule):
 # TODO: Improve
 cpr_regex = regex.compile("\\b(\\d{6})[\\s\-]?(\\d{4})\\b")
 
+
 def date_check(cpr):
     """Check a CPR number for a valid date.
-    The CPR number is passed as a string of sequential digits with no spaces or dashes
-    """
+    The CPR number is passed as a string of sequential digits with no spaces
+    or dashes."""
     day = int(cpr[0:2])
     month = int(cpr[2:4])
     year = int(cpr[4:6])
@@ -50,7 +53,8 @@ def date_check(cpr):
         # Invalid date
         return False
 
-def match_cprs(text, mask_digits = True):
+
+def match_cprs(text, mask_digits=True):
     it = cpr_regex.finditer(text)
     matches = set()
     for m in it:
@@ -60,5 +64,6 @@ def match_cprs(text, mask_digits = True):
             # Mask last 6 digits
             cpr = cpr[0:4] + "XXXXXX"
         if valid_date:
-            matches.add(MatchItem(matched_data = cpr, sensitivity = Sensitivity.HIGH))
+            matches.add(
+                MatchItem(matched_data=cpr, sensitivity=Sensitivity.HIGH))
     return matches

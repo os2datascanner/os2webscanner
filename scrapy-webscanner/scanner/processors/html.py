@@ -4,6 +4,7 @@ from w3lib.html import remove_tags, replace_entities
 from text import TextProcessor
 from scrapy import log
 
+
 class HTMLProcessor(Processor):
     item_type = "html"
     text_processor = TextProcessor()

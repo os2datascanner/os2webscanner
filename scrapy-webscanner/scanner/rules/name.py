@@ -10,15 +10,21 @@ from ..items import MatchItem
 
 name_regexs = [
     # Match First Last
-    regex.compile("\\b(?P<first>\\p{Uppercase}\\p{Lowercase}+)\\s+(?P<last>\\p{Uppercase}\\p{Lowercase}+)\\b",
-                  regex.UNICODE),
+    regex.compile(
+        "\\b(?P<first>\\p{Uppercase}\\p{Lowercase}+)" +
+        "\\s+(?P<last>\\p{Uppercase}\\p{Lowercase}+)\\b",
+        regex.UNICODE),
     # Match First Middle Last
     regex.compile(
-        "\\b(?P<first>\\p{Uppercase}\\p{Lowercase}+)(?P<middle>(\\s+\\p{Uppercase}(\\p{Lowercase}+|\\.)))\\s+(?P<last>\\p{Uppercase}\\p{Lowercase}+)\\b",
+        "\\b(?P<first>\\p{Uppercase}\\p{Lowercase}+)" +
+        "(?P<middle>(\\s+\\p{Uppercase}(\\p{Lowercase}+|\\.)))\\s+" +
+        "(?P<last>\\p{Uppercase}\\p{Lowercase}+)\\b",
         regex.UNICODE),
     # Match First Middle Middle Last
     regex.compile(
-        "\\b(?P<first>\\p{Uppercase}\\p{Lowercase}+)(?P<middle>(\\s+\\p{Uppercase}(\\p{Lowercase}+|\\.)){2})\\s+(?P<last>\\p{Uppercase}\\p{Lowercase}+)\\b",
+        "\\b(?P<first>\\p{Uppercase}\\p{Lowercase}+)" +
+        "(?P<middle>(\\s+\\p{Uppercase}(\\p{Lowercase}+|\\.)){2})\\s+" +
+        "(?P<last>\\p{Uppercase}\\p{Lowercase}+)\\b",
         regex.UNICODE)]
 
 
@@ -33,7 +39,8 @@ def match_name(text):
             except IndexError:
                 middle = ''
             if middle != '':
-                middle_split = tuple(regex.split('\s+', middle.lstrip(), regex.UNICODE))
+                middle_split = tuple(
+                    regex.split('\s+', middle.lstrip(), regex.UNICODE))
             else:
                 middle_split = None
             last = m.group("last")
@@ -70,13 +77,16 @@ def load_whitelist(whitelist):
 
 class NameRule(Rule):
     name = 'name'
-    _data_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))) + '/data'
+    _data_dir = os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.realpath(__file__)))) + '/data'
     _last_name_file = 'efternavne_2014.txt'
-    _first_name_files = ['fornavne_2014_-_kvinder.txt', 'fornavne_2014_-_mænd.txt']
+    _first_name_files = ['fornavne_2014_-_kvinder.txt',
+                         'fornavne_2014_-_mænd.txt']
 
     def __init__(self, whitelist=None):
         # Load first and last names from data files
-        self.last_names = load_name_file(self._data_dir + '/' + self._last_name_file)
+        self.last_names = load_name_file(
+            self._data_dir + '/' + self._last_name_file)
         self.first_names = []
         for f in self._first_name_files:
             self.first_names.extend(load_name_file(self._data_dir + '/' + f))
@@ -117,5 +127,6 @@ class NameRule(Rule):
             # Store the original matching text
             matched_text = name[3]
 
-            matches.add(MatchItem(matched_data=matched_text, sensitivity=sensitivity))
+            matches.add(
+                MatchItem(matched_data=matched_text, sensitivity=sensitivity))
         return matches

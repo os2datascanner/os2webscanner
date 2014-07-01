@@ -12,4 +12,3 @@ from scanner.processors.processor import Processor
 
 queued_processor = Processor.processor_by_type(sys.argv[1])
 queued_processor.process_queue()
-

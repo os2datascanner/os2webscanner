@@ -10,6 +10,7 @@ import magic
 
 from os2webscanner.models import Url
 
+
 class ScannerSpider(SitemapSpider):
     name = 'scanner'
     magic = magic.Magic(mime=True)
@@ -30,17 +31,23 @@ class ScannerSpider(SitemapSpider):
         self.start_urls = []
         # TODO: Starting URLs and domains should be specified separately?
         for url in self.allowed_domains:
-            if not url.startswith('http://') and not url.startswith('https://'):
+            if (not url.startswith('http://')
+                and not url.startswith('https://')):
                 url = 'http://%s/' % url
             self.start_urls.append(url)
 
         # TODO: Add more tags to extract links from?
-        self.link_extractor = LxmlLinkExtractor(deny_extensions=(), tags=('a', 'area', 'frame', 'iframe'), attrs=('href', 'src'))
-
+        self.link_extractor = LxmlLinkExtractor(
+            deny_extensions=(),
+            tags=('a', 'area', 'frame', 'iframe'),
+            attrs=('href', 'src')
+        )
 
     def start_requests(self):
-        """Start the spider with requests for all starting URLs AND sitemap URLs"""
-        requests = [Request(url, callback=self.parse) for url in self.start_urls]
+        """Start the spider with requests for all starting URLs
+        AND sitemap URLs"""
+        requests = [Request(url, callback=self.parse)
+                    for url in self.start_urls]
         requests.extend(list(SitemapSpider.start_requests(self)))
         return requests
 
@@ -60,7 +67,6 @@ class ScannerSpider(SitemapSpider):
             r.extend(Request(x.url, callback=self.parse) for x in links)
         return r
 
-
     def scan(self, response):
         """Scan a response, returning any matches."""
         content_type = response.headers.get('content-type')
@@ -68,7 +74,8 @@ class ScannerSpider(SitemapSpider):
             mime_type = parse_content_type(content_type)
             log.msg("Content-Type: " + content_type, level=log.DEBUG)
         else:
-            log.msg("Guessing mime-type based on file extension", level=log.DEBUG)
+            log.msg("Guessing mime-type based on file extension",
+                    level=log.DEBUG)
             mime_type, encoding = mimetypes.guess_type(response.url)
             # Scrapy already guesses the encoding.. we don't need it
 
@@ -77,29 +84,42 @@ class ScannerSpider(SitemapSpider):
                 data = response.body.decode(response.encoding)
             except UnicodeDecodeError, e:
                 try:
-                    # Encoding specified in Content-Type header was wrong, try to detect the encoding and decode again
+                    # Encoding specified in Content-Type header was wrong, try
+                    # to detect the encoding and decode again
                     encoding = chardet.detect(response.body).get('encoding')
                     if encoding is not None:
                         data = response.body.decode(encoding)
-                        log.msg("Error decoding response as %s. Detected the encoding as %s." % (response.encoding, encoding))
+                        log.msg(("Error decoding response as %s. " +
+                                 "Detected the encoding as %s.") % (
+                                    response.encoding, encoding))
                     else:
                         mime_type = self.magic.from_buffer(response.body)
                         data = response.body
-                        log.msg("Error decoding response as %s. Detected the mime type as %s." % (response.encoding, mime_type))
+                        log.msg(("Error decoding response as %s. " +
+                                 "Detected the mime " +
+                                 "type as %s.") % (response.encoding,
+                                                   mime_type))
                 except UnicodeDecodeError, e:
-                    # Could not decode with the detected encoding, so assume the file is
-                    # binary and try to guess the mimetype from the file
+                    # Could not decode with the detected encoding, so assume
+                    # the file is binary and try to guess the mimetype from
+                    # the file
                     mime_type = self.magic.from_buffer(response.body)
                     data = response.body
-                    log.msg("Error decoding response as %s. Detected the mime type as %s." % (response.encoding, mime_type))
+                    log.msg(
+                        ("Error decoding response as %s. Detected the "
+                         "mime type as %s.") % (response.encoding,
+                                                mime_type)
+                    )
 
         else:
             data = response.body
 
         # Save the URL item to the database
-        url_object = Url(url=response.url, mime_type=mime_type, scan=self.scanner.scan_object)
+        url_object = Url(url=response.url, mime_type=mime_type,
+                         scan=self.scanner.scan_object)
         url_object.save()
         result = self.scanner.scan(data, url_object)
+
 
 def parse_content_type(content_type):
     """Parses and returns the mime-type from a Content-Type header value"""

@@ -10,6 +10,7 @@ base_dir = os.path.realpath(os.path.join(
 ))
 var_dir = os.path.join(base_dir, "var")
 
+
 class Processor(object):
     processors_by_type = {}
     processor_instances = {}
@@ -55,11 +56,11 @@ class Processor(object):
 
         # Create a conversion queue item
         new_item = ConversionQueueItem(
-            file = tmp_file_path,
-            type = self.mimetype_to_processor_type(url_object.mime_type),
-            url = url_object,
-            status = ConversionQueueItem.NEW,
-            )
+            file=tmp_file_path,
+            type=self.mimetype_to_processor_type(url_object.mime_type),
+            url=url_object,
+            status=ConversionQueueItem.NEW,
+        )
         new_item.save()
         return True
 
@@ -80,7 +81,7 @@ class Processor(object):
         # TODO: Need a locking mechanism to ensure we're not running multiple
         # instances:
         #
-        #if(os.path.exists(self.lock_file)):
+        # if(os.path.exists(self.lock_file)):
         #    raise "Lockfile '" + self.lock_file + "' exists, will not run"
         #
         #f = open(self.lock_file, 'a').close();
@@ -111,7 +112,7 @@ class Processor(object):
                     # Get the first unprocessed item of the wanted type
                     result = ConversionQueueItem.objects.filter(
                         type=self.item_type,
-                        status = ConversionQueueItem.NEW
+                        status=ConversionQueueItem.NEW
                     ).order_by("pk")[0]
 
                     # Change status of the found item
@@ -158,14 +159,15 @@ class Processor(object):
                 # TODO: How do we decide which types are supported?
                 try:
                     mimetype, encoding = mimetypes.guess_type(fname)
-                    processor_type = Processor.mimetype_to_processor_type(mimetype)
+                    processor_type = Processor.mimetype_to_processor_type(
+                        mimetype)
                     if processor_type is not None:
                         new_item = ConversionQueueItem(
-                            file = os.path.join(root, fname),
-                            type = processor_type,
-                            url = item.url,
-                            status = ConversionQueueItem.NEW,
-                            )
+                            file=os.path.join(root, fname),
+                            type=processor_type,
+                            url=item.url,
+                            status=ConversionQueueItem.NEW,
+                        )
                         new_item.save()
                 except ValueError:
                     continue
@@ -173,6 +175,9 @@ class Processor(object):
     @classmethod
     def register_processor(cls, type, processor):
         cls.processors_by_type[type] = processor
+
+    opendocument = 'application/vnd.oasis.opendocument'
+    officedocument = 'application/vnd.openxmlformats-officedocument'
 
     mimetypes_to_processors = {
         'text': 'text',
@@ -185,28 +190,28 @@ class Processor(object):
         'application/pdf': 'pdf',
 
         'application/msword': 'libreoffice',
-        'application/vnd.oasis.opendocument.chart': 'libreoffice',
-        'application/vnd.oasis.opendocument.database': 'libreoffice',
-        'application/vnd.oasis.opendocument.formula': 'libreoffice',
-        'application/vnd.oasis.opendocument.graphics': 'libreoffice',
-        'application/vnd.oasis.opendocument.graphics-template': 'libreoffice',
-        'application/vnd.oasis.opendocument.image': 'libreoffice',
-        'application/vnd.oasis.opendocument.presentation': 'libreoffice',
-        'application/vnd.oasis.opendocument.presentation-template': 'libreoffice',
-        'application/vnd.oasis.opendocument.spreadsheet': 'libreoffice',
-        'application/vnd.oasis.opendocument.spreadsheet-template': 'libreoffice',
-        'application/vnd.oasis.opendocument.text': 'libreoffice',
-        'application/vnd.oasis.opendocument.text-master': 'libreoffice',
-        'application/vnd.oasis.opendocument.text-template': 'libreoffice',
-        'application/vnd.oasis.opendocument.text-web': 'libreoffice',
-        'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'libreoffice',
-        'application/vnd.openxmlformats-officedocument.presentationml.slide': 'libreoffice',
-        'application/vnd.openxmlformats-officedocument.presentationml.slideshow': 'libreoffice',
-        'application/vnd.openxmlformats-officedocument.presentationml.template': 'libreoffice',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'libreoffice',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.template': 'libreoffice',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'libreoffice',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.template': 'libreoffice',
+        opendocument + '.chart': 'libreoffice',
+        opendocument + '.database': 'libreoffice',
+        opendocument + '.formula': 'libreoffice',
+        opendocument + '.graphics': 'libreoffice',
+        opendocument + '.graphics-template': 'libreoffice',
+        opendocument + '.image': 'libreoffice',
+        opendocument + '.presentation': 'libreoffice',
+        opendocument + '.presentation-template': 'libreoffice',
+        opendocument + '.spreadsheet': 'libreoffice',
+        opendocument + '.spreadsheet-template': 'libreoffice',
+        opendocument + '.text': 'libreoffice',
+        opendocument + '.text-master': 'libreoffice',
+        opendocument + '.text-template': 'libreoffice',
+        opendocument + '.text-web': 'libreoffice',
+        officedocument + '.presentationml.presentation': 'libreoffice',
+        officedocument + '.presentationml.slide': 'libreoffice',
+        officedocument + '.presentationml.slideshow': 'libreoffice',
+        officedocument + '.presentationml.template': 'libreoffice',
+        officedocument + '.spreadsheetml.sheet': 'libreoffice',
+        officedocument + '.spreadsheetml.template': 'libreoffice',
+        officedocument + '.wordprocessingml.document': 'libreoffice',
+        officedocument + '.wordprocessingml.template': 'libreoffice',
         'application/vnd.ms-excel': 'libreoffice',
         'application/vnd.ms-powerpoint': 'libreoffice',
     }
@@ -215,5 +220,7 @@ class Processor(object):
     def mimetype_to_processor_type(cls, mime_type):
         processor = cls.mimetypes_to_processors.get(mime_type, None)
         if processor is None:
-            processor = cls.mimetypes_to_processors.get(mime_type.split("/")[0], None)
+            processor = cls.mimetypes_to_processors.get(
+                mime_type.split("/")[0], None
+            )
         return processor

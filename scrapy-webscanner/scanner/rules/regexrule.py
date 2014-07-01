@@ -3,6 +3,7 @@ import regex
 from rule import Rule
 from ..items import MatchItem
 
+
 class RegexRule(Rule):
     def __init__(self, name, match_string, sensitivity):
         self.name = name
@@ -13,5 +14,6 @@ class RegexRule(Rule):
         matches = set()
         re_matches = self.regex.finditer(text)
         for match in re_matches:
-            matches.add(MatchItem(matched_data = match.group(0), sensitivity = self.sensitivity))
+            matches.add(MatchItem(matched_data=match.group(0),
+                                  sensitivity=self.sensitivity))
         return matches

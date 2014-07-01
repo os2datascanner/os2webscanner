@@ -1,6 +1,7 @@
 from ..scanner.scanner import Scanner
 from processor import Processor
 
+
 class TextProcessor(Processor):
     item_type = "text"
 

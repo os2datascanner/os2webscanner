@@ -13,6 +13,7 @@ var_dir = Processor.var_dir()
 lo_dir = os.path.join(var_dir, "libreoffice")
 home_root_dir = os.path.join(lo_dir, "homedirs")
 
+
 class LibreOfficeProcessor(Processor):
     item_type = "libreoffice"
 
@@ -22,7 +23,7 @@ class LibreOfficeProcessor(Processor):
         # Make a unique home directory for LibreOffice
         while True:
             self.instance_name = hashlib.md5(str(random.random())).hexdigest()
-            self.home_dir = os.path.join(home_root_dir, self.instance_name);
+            self.home_dir = os.path.join(home_root_dir, self.instance_name)
 
             if not os.path.exists(self.home_dir):
                 os.makedirs(self.home_dir)
@@ -40,9 +41,12 @@ class LibreOfficeProcessor(Processor):
     def convert(self, item, tmp_dir):
         # TODO: Input type to filter mapping?
         return_code = subprocess.call([
-                            "libreoffice", "--headless", "--convert-to", "htm:HTML",
-                            item.file_path, "--outdir", tmp_dir
-                        ], env=self.env)
+                                          "libreoffice", "--headless",
+                                          "--convert-to", "htm:HTML",
+                                          item.file_path, "--outdir", tmp_dir
+                                      ], env=self.env)
         return return_code == 0
 
-Processor.register_processor(LibreOfficeProcessor.item_type, LibreOfficeProcessor)
+
+Processor.register_processor(LibreOfficeProcessor.item_type,
+                             LibreOfficeProcessor)

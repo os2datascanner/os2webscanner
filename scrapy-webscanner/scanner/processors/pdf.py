@@ -3,6 +3,7 @@ import shutil
 import os
 import subprocess
 
+
 class PDFProcessor(Processor):
     item_type = "pdf"
 
@@ -16,7 +17,9 @@ class PDFProcessor(Processor):
         # Move file to temp dir before conversion
         shutil.move(item.file_path, tmp_dir)
         new_file_path = os.path.join(tmp_dir, os.path.basename(item.file_path))
-        return_code = subprocess.call(["pdftohtml", "-noframes", "-hidden", "-q", new_file_path])
+        return_code = subprocess.call(
+            ["pdftohtml", "-noframes", "-hidden", "-q", new_file_path]
+        )
         os.remove(new_file_path)
         return return_code == 0
 
