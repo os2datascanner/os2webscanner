@@ -71,6 +71,11 @@ class Domain(models.Model):
     exception_rules = models.TextField(blank=True, default="")
     sitemap = models.FileField(upload_to='sitemaps', blank=True)
 
+    @property
+    def sitemap_full_path(self):
+        from django.conf import settings
+        return "%s/%s" % (settings.BASE_DIR, self.sitemap.url)
+
     def __unicode__(self):
         return self.url
 
@@ -168,7 +173,7 @@ class Match(models.Model):
 
 class ConversionQueueItem(models.Model):
     """Represents an item in the conversion queue."""
-    file = models.FileField(upload_to='conversion_queue')
+    file = models.CharField(max_length=4096)
     type = models.CharField(max_length=256)  # We may want to specify choices
     url = models.ForeignKey(Url, null=False)
 
@@ -192,6 +197,4 @@ class ConversionQueueItem(models.Model):
 
     @property
     def file_path(self):
-        """Returns the full path to the file to convert"""
-        from django.conf import settings
-        return "%s/%s" % (settings.BASE_DIR, self.file.url)
+        return self.file

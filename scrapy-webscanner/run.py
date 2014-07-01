@@ -17,22 +17,24 @@ from scrapy.exceptions import DontCloseSpider
 from django.utils import timezone
 
 from scanner.scanner.scanner import Scanner
-from os2webscanner.models import Scan
+from os2webscanner.models import Scan, ConversionQueueItem
 
-def callback():
-    return "CAllback"
-    print "Callback"
-    log.msg("Callback")
+from scanner.processors import *
 
-def printResult(result):
-    print "Result : " + result
-    log.msg("Result: " + result)
 
 class ScannerApp:
     def __init__(self):
         self.scan_id = sys.argv[1]
-        self.scanner = Scanner()
-        self.scanner.load_by_id(self.scan_id)
+
+        # Get scan object from DB
+        self.scan_object = Scan.objects.get(pk=self.scan_id)
+
+        # Update start_time to now and status to STARTED
+        self.scan_object.start_time = timezone.now()
+        self.scan_object.status = Scan.STARTED
+        self.scan_object.save()
+
+        self.scanner = Scanner(self.scan_id)
 
     def run(self):
         self.run_spider()
@@ -41,14 +43,16 @@ class ScannerApp:
         spider = ScannerSpider(self.scanner)
         settings = get_project_settings()
         crawler = Crawler(settings)
-        crawler.signals.connect(self.handle_closed, signal=signals.spider_closed)
+        crawler.signals.connect(self.handle_closed,
+                                signal=signals.spider_closed)
         crawler.signals.connect(self.handle_error, signal=signals.spider_error)
         crawler.signals.connect(self.handle_idle, signal=signals.spider_idle)
         crawler.configure()
         crawler.crawl(spider)
         crawler.start()
         log.start()
-        reactor.run() # the script will block here until the spider_closed signal was sent
+        # the script will block here until the spider_closed signal was sent
+        reactor.run()
 
     def handle_closed(self, spider, reason):
         scan_object = Scan.objects.get(pk=self.scan_id)
@@ -67,15 +71,21 @@ class ScannerApp:
         scan_object.save()
 
     def handle_idle(self, spider):
-        # TODO: Process conversion queue items if there are any remaining
-        # TODO: Add any new requests to the spider
-        # pass
         log.msg("Spider Idle...")
-        # Keep spider alive if there are still active processors running in other threads
-        if self.scanner.is_processing():
-            log.msg("Keeping spider alive: %d processors still active" % self.scanner.active_processor_count())
+        # Keep spider alive if there are still queue items to be processed
+        remaining_queue_items = ConversionQueueItem.objects.filter(
+            status=ConversionQueueItem.NEW,
+            url__scan=self.scan_object
+        ).count()
+
+        if remaining_queue_items > 0:
+            log.msg(
+                "Keeping spider alive: %d remaining queue items to process" %
+                remaining_queue_items
+            )
             raise DontCloseSpider
         else:
             log.msg("No more active processors, closing spider...")
+
 
 ScannerApp().run()

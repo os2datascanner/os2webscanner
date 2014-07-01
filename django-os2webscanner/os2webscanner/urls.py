@@ -12,7 +12,7 @@ urlpatterns = patterns(
     url(r'^reports/$', ReportList.as_view(), name='reports'),
     # Login/logout stuff
     url(r'^accounts/login/', 'django.contrib.auth.views.login',
-        { 'template_name': 'login.html'}, name='login'),
+        {'template_name': 'login.html'}, name='login'),
     url(r'^accounts/logout/', 'django.contrib.auth.views.logout',
         {'template_name': 'logout.html'}, name='logout'),
 

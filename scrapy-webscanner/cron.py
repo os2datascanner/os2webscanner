@@ -12,9 +12,11 @@ from os2webscanner.models import Scanner, Scan
 import croniter
 from datetime import datetime
 
+
 def strip_seconds(d):
     """Remove any seconds or microseconds from the datetime"""
     return d.replace(second=0, microsecond=0)
+
 
 from subprocess import Popen
 
@@ -35,12 +37,14 @@ for scanner in Scanner.objects.all():
         # This shouldn't happen because we should validate in the Web interface
         reason = "Invalid cron expression: %s" % e
         print reason
-        scan = Scan(scanner=scanner, status=Scan.FAILED, reason=reason, start_time=datetime.now(), end_time=datetime.now())
+        scan = Scan(scanner=scanner, status=Scan.FAILED, reason=reason,
+                    start_time=datetime.now(), end_time=datetime.now())
         scan.save()
         continue
 
     # Check if it's time to run the scanner
-    # Basically, just check if the next or previous scheduled time is the same as now
+    # Basically, just check if the next or previous scheduled time is the
+    # same as now.
     next_run = strip_seconds(cron.get_next(datetime))
     if next_run != now:
         prev_run = strip_seconds(cron.get_prev(datetime))
