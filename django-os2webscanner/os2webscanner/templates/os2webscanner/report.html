@@ -1,0 +1,85 @@
+{% extends 'os2webscanner/base.html' %}
+{%  block title %}
+Rapport &dash; {{scan.scanner.name}}
+{% endblock %}
+
+{% block body %}
+      <div class="table-responsive">
+        <table class="table">
+            <tbody>
+            <tr>
+                <td>Udført:</td>
+                <td>{{ scan.start_time }}</td>
+            </tr>
+            <tr>
+                <td>Sluttidspunkt:</td>
+                <td>{{ scan.end_time }}</td>
+            </tr>
+            </tbody>
+        </table>
+      </div>
+      <div class="table-responsive">
+		<table class="table table-striped">
+          <thead>
+            <tr>
+              <td>
+                <strong>
+                  <small>
+                    URL
+                  </small>
+                </strong>
+              </td>
+              <td>
+                <strong>
+                  <small>
+                    Regel
+                  </small>
+                </strong>
+              </td>
+              <td>
+                <strong>
+                  <small>
+                    Match
+                  </small>
+                </strong>
+              </td>
+              <td>
+                <strong>
+                  <small>
+                    Følsomhed
+                  </small>
+                </strong>
+              </td></tr>
+          </thead>
+          <tbody>
+          {% for url, matches in matches_by_url.items %}
+            <tr>
+              <td class="match-url" rowspan="{{ matches|length|add:"1" }}" >
+                <span>
+                    <a href="{{ url }}">{{ url }}</a>
+                </span>
+              </td>
+            </tr>
+              {% for match in matches %}
+                  <tr class="{{ match.get_sensitivity_class }}">
+                      <td class="match-rule">
+                          <span>{{ match.get_matched_rule_display }}</span>
+                      </td>
+                      <td class="match-data">
+                          <span>{{ match.matched_data }}</span>
+                      </td>
+                      <td class="match-sensitivity">
+                          <span>{{ match.get_sensitivity_display }}</span>
+                      </td>
+                  </tr>
+              {% endfor %}
+          {% endfor %}
+          </tbody>
+        </table>
+
+      </div>
+{% endblock %}
+
+{% block heading %}
+Rapport &dash; {{scan.scanner.name}}
+{% endblock %}
