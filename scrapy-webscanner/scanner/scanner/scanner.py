@@ -38,6 +38,14 @@ class Scanner:
             )
         return rules
 
+    def get_exclusion_rules(self):
+        """Returns a list of exclusion rules for all Domains associated with
+        the Scanner"""
+        exclusion_rules = []
+        for domain in self.valid_domains:
+            exclusion_rules.extend(domain.exclusion_rule_list())
+        return exclusion_rules
+
     def get_sitemap_urls(self):
         """Returns a list of sitemap.xml URLs including any uploaded
         sitemap.xml file."""

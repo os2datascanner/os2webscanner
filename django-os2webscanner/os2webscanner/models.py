@@ -1,4 +1,5 @@
 # encoding: utf-8
+import re
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -68,8 +69,20 @@ class Domain(models.Model):
                                             default=INVALID)
     validation_method = models.IntegerField(choices=validation_method_choices,
                                             default=ROBOTSTXT)
-    exception_rules = models.TextField(blank=True, default="")
+    exclusion_rules = models.TextField(blank=True, default="")
     sitemap = models.FileField(upload_to='sitemaps', blank=True)
+
+    def exclusion_rule_list(self):
+        """Return the exclusion rules as a list of strings or regex objects"""
+        REGEX_PREFIX = "regex:"
+        rules = []
+        for line in self.exclusion_rules.splitlines():
+            line = line.strip()
+            if line.startswith(REGEX_PREFIX):
+                rules.append(re.compile(line[len(REGEX_PREFIX):], re.IGNORECASE))
+            else:
+                rules.append(line)
+        return rules
 
     @property
     def root_url(self):
