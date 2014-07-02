@@ -79,7 +79,8 @@ class Domain(models.Model):
         for line in self.exclusion_rules.splitlines():
             line = line.strip()
             if line.startswith(REGEX_PREFIX):
-                rules.append(re.compile(line[len(REGEX_PREFIX):], re.IGNORECASE))
+                rules.append(re.compile(line[len(REGEX_PREFIX):],
+                                        re.IGNORECASE))
             else:
                 rules.append(line)
         return rules
@@ -185,6 +186,14 @@ class Match(models.Model):
     matched_rule = models.CharField(max_length=256)  # Name of matching rule.
     sensitivity = models.IntegerField(choices=Sensitivity.choices,
                                       default=Sensitivity.HIGH)
+
+    def get_matched_rule_display(self):
+        if self.matched_rule == 'cpr':
+            return "CPR"
+        elif self.matched_rule == 'name':
+            return "Navn"
+        else:
+            return self.matched_rule
 
     def __unicode__(self):
         return u"Match: %s; [%s] %s <%s>" % (self.get_sensitivity_display(),

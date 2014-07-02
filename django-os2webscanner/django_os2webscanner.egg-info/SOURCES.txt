@@ -11,4 +11,5 @@ os2webscanner/admin.py
 os2webscanner/models.py
 os2webscanner/tests.py
 os2webscanner/urls.py
+os2webscanner/validate.py
 os2webscanner/views.py
