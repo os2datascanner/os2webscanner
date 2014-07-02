@@ -127,7 +127,7 @@ try:
             process_id__in=[ pdata['pid'] for pdata in process_list ]
         )
         for p in stuck_processes:
-            restart_process(process_map[p.pid])
+            restart_process(process_map[p.process_id])
         time.sleep(10)
 except KeyboardInterrupt:
     pass

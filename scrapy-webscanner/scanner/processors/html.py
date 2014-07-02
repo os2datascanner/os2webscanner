@@ -3,6 +3,7 @@ from w3lib.html import remove_tags, replace_entities
 
 from text import TextProcessor
 from scrapy import log
+import os
 
 class HTMLProcessor(Processor):
     item_type = "html"
@@ -12,7 +13,10 @@ class HTMLProcessor(Processor):
         return self.process(data, url_object)
 
     def handle_queue_item(self, item):
-        return self.process_file(item.file_path, item.url)
+        result = self.process_file(item.file_path, item.url)
+        if os.path.exists(item.file_path):
+            os.remove(item.file_path)
+        return result
 
     def process(self, data, url_object):
         log.msg("Process HTML %s" % url_object.url)
