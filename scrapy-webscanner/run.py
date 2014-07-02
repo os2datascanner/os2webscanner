@@ -91,7 +91,7 @@ class ScannerApp:
         log.msg("Spider Idle...")
         # Keep spider alive if there are still queue items to be processed
         remaining_queue_items = ConversionQueueItem.objects.filter(
-            status=ConversionQueueItem.NEW,
+            status__in=[ConversionQueueItem.NEW, ConversionQueueItem.PROCESSING],
             url__scan=self.scan_object
         ).count()
 
