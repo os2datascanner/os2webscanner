@@ -1,9 +1,11 @@
 # coding=utf-8
+
+"""Rules for name scanning."""
+
 import regex
 import os
 import codecs
 
-from scrapy import log
 from rule import Rule
 from os2webscanner.models import Sensitivity
 from ..items import MatchItem
@@ -29,6 +31,7 @@ name_regexs = [
 
 
 def match_name(text):
+    """Return possible name matches in the given text."""
     matches = set()
     for name_regex in name_regexs:
         it = name_regex.finditer(text, overlapped=True)
@@ -50,13 +53,15 @@ def match_name(text):
 
 
 def load_name_file(file_name):
-    """
-    Load a data file containing persons names in uppercase, separated by a tab
-    character followed by a number, one per line.
+    r"""Load a data file containing persons names in uppercase.
+
+    The names should be separated by a tab character followed by a number,
+    one name per line.
 
     The file is of the format:
     NAME\t12312
-    Return a list of all the names in unicode
+
+    Return a list of all the names in unicode.
     :param file_name:
     :return:
     """
@@ -71,11 +76,21 @@ def load_name_file(file_name):
 
 def load_whitelist(whitelist):
     """Load a list of names from a multi-line string, one name per line.
-    Returns a set of the names in all upper-case characters"""
+
+    Returns a set of the names in all upper-case characters
+    """
     return set([line.upper().strip() for line in whitelist.splitlines()])
 
 
 class NameRule(Rule):
+
+    """Represents a rule which scans for Full Names in text.
+
+    The rule loads a list of names from first and last name files and matches
+    names against them to determine the sensitivity level of the matches.
+    Matches against full, capitalized, names with up to 2 middle names.
+    """
+
     name = 'name'
     _data_dir = os.path.dirname(
         os.path.dirname(os.path.dirname(os.path.realpath(__file__)))) + '/data'
@@ -84,6 +99,11 @@ class NameRule(Rule):
                          'fornavne_2014_-_mænd.txt']
 
     def __init__(self, whitelist=None):
+        """Initialize the rule with an optional whitelist.
+
+        The whitelist should contains a multi-line string, with one name per
+        line.
+        """
         # Load first and last names from data files
         self.last_names = load_name_file(
             self._data_dir + '/' + self._last_name_file)
@@ -100,6 +120,7 @@ class NameRule(Rule):
             self.whitelist = set()
 
     def execute(self, text):
+        """Execute the Name rule."""
         names = match_name(text)
         matches = set()
         for name in names:

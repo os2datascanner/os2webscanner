@@ -122,7 +122,7 @@ class ReportDetails(DetailView, LoginRequiredMixin):
             matches_by_url.setdefault(match.url.url, []).append(match)
         # Sort matches by sensitivity
         for url, matches in matches_by_url.items():
-            matches.sort(key=attrgetter('sensitivity'))
+            matches.sort(key=attrgetter('sensitivity'), reverse=True)
 
         context['matches_by_url'] = matches_by_url
         return context
