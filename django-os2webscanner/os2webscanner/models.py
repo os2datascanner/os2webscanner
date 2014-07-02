@@ -190,6 +190,22 @@ class Match(models.Model):
     sensitivity = models.IntegerField(choices=Sensitivity.choices,
                                       default=Sensitivity.HIGH)
 
+    def get_matched_rule_display(self):
+        if self.matched_rule == 'cpr':
+            return "CPR"
+        elif self.matched_rule == 'name':
+            return "Navn"
+        else:
+            return self.matched_rule
+
+    def get_sensitivity_class(self):
+        if self.sensitivity == Sensitivity.HIGH:
+            return "danger"
+        elif self.sensitivity == Sensitivity.LOW:
+            return "warning"
+        elif self.sensitivity == Sensitivity.OK:
+            return "success"
+
     def __unicode__(self):
         return u"Match: %s; [%s] %s <%s>" % (self.get_sensitivity_display(),
                                              self.matched_rule,

@@ -35,8 +35,7 @@ Rapporter
                     Handling
                   </small>
                 </strong>
-              </td>
-            </tr>
+              </td></tr>
           </thead>
           <tbody>
           {% for scan in scan_list %}
@@ -53,7 +52,8 @@ Rapporter
                   <span>{{ scan.get_status_display }}</span>
               </td>
               <td class="report-actions">
-                <button type="button" class="btn btn-sm btn-default"><span class="glyphicon glyphicon-tasks"></span> Vis rapport</button>
+                <a class="btn btn-sm btn-default"
+                   href="/report/{{scan.pk}}"><span class="glyphicon glyphicon-tasks"></span> Vis rapport</a>
               </td>
             </tr>
             {% endfor %}
