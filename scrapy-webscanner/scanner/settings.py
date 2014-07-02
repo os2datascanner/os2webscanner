@@ -17,7 +17,7 @@ HTTPCACHE_ENABLED = False
 
 # Crawl responsibly by identifying yourself (and your website) on the
 # user-agent
-USER_AGENT = 'os2webscanner'
+USER_AGENT = 'OS2Webscanner'
 
 # Ignore Robots.txt:
 #   This is the default in Scrapy, but we are explicit here just in case they

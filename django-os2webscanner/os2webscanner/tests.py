@@ -11,7 +11,26 @@ import pep8
 from django.test import TestCase
 from django.conf import settings
 
+from os2webscanner.models import Domain
+from validate import validate_domain
+
 install_directory = os.path.abspath(os.path.join(settings.BASE_DIR, '..'))
+
+
+class ValidateDomainTest(TestCase):
+    def test_validate_domain(self):
+        # Make sure Google does not validate in any of the possible methods
+        all_methods = [Domain.ROBOTSTXT, Domain.WEBSCANFILE, Domain.METAFIELD]
+        for validation_method in all_methods:
+            domain = Domain(url="http://www.google.com/",
+                            validation_method=validation_method)
+            self.assertFalse(validate_domain(domain))
+
+        # Make sure Magenta's website validates using all possible methods
+        for validation_method in all_methods:
+            domain = Domain(url="http://www.magenta.dk/",
+                            validation_method=validation_method)
+            self.assertTrue(validate_domain(domain))
 
 
 class SimpleTest(TestCase):
@@ -24,7 +43,7 @@ class SimpleTest(TestCase):
 
 def pep8_test(filepath):
     def do_test(self):
-        #print "PATH:", filepath
+        # print "PATH:", filepath
         arglist = ['--exclude=lib', filepath]
         pep8.process_options(arglist)
         pep8.input_dir(filepath)

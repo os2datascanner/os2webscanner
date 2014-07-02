@@ -72,6 +72,14 @@ class Domain(models.Model):
     sitemap = models.FileField(upload_to='sitemaps', blank=True)
 
     @property
+    def root_url(self):
+        if (not self.url.startswith('http://') and not
+                self.url.startswith('https://')):
+            return 'http://%s/' % self.url
+        else:
+            return self.url
+
+    @property
     def sitemap_full_path(self):
         from django.conf import settings
         return "%s/%s" % (settings.BASE_DIR, self.sitemap.url)

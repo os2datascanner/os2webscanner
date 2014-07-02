@@ -44,11 +44,7 @@ class Scanner:
         urls = []
         for domain in self.valid_domains:
             # Do some normalization of the URL to get the sitemap.xml file
-            root_url = domain.url
-            if (not root_url.startswith('http://') and not
-                    root_url.startswith('https://')):
-                root_url = 'http://%s/' % root_url
-            urls.append(root_url + "/sitemap.xml")
+            urls.append(domain.root_url + "/sitemap.xml")
             # Add uploaded sitemap.xml file
             if domain.sitemap != '':
                 urls.append('file://' + domain.sitemap_full_path)
