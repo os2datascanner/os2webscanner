@@ -77,6 +77,33 @@ class ScannerDelete(DeleteView, LoginRequiredMixin):
     success_url = '/scanners/'
 
 
+class DomainCreate(CreateView, LoginRequiredMixin):
+    model = Domain
+
+
+class DomainUpdate(UpdateView, LoginRequiredMixin):
+    model = Domain
+
+
+class DomainDelete(DeleteView, LoginRequiredMixin):
+    model = Domain
+    success_url = '/domains/'
+
+
+class RuleCreate(CreateView, LoginRequiredMixin):
+    model = RegexRule
+
+
+class RuleUpdate(UpdateView, LoginRequiredMixin):
+    model = RegexRule
+
+
+class RuleDelete(DeleteView, LoginRequiredMixin):
+    model = RegexRule
+    success_url = '/rules/'
+
+# Reports stuff
+
 class ReportDetails(DetailView, LoginRequiredMixin):
     """Display a detailed report."""
     model = Scan

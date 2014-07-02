@@ -98,6 +98,9 @@ class Domain(models.Model):
         from django.conf import settings
         return "%s/%s" % (settings.BASE_DIR, self.sitemap.url)
 
+    def get_absolute_url(self):
+        return '/domains/'
+
     def __unicode__(self):
         return self.url
 
@@ -112,6 +115,9 @@ class RegexRule(models.Model):
     description = models.TextField()
     sensitivity = models.IntegerField(choices=Sensitivity.choices,
                                       default=Sensitivity.HIGH)
+
+    def get_absolute_url(self):
+        return '/rules/'
 
     def __unicode__(self):
         return self.name
