@@ -4,6 +4,7 @@ from django.utils import timezone
 import time
 import os
 import mimetypes
+import sys
 import magic
 
 base_dir = os.path.realpath(os.path.join(
@@ -78,23 +79,17 @@ class Processor(object):
             return False
         return True
 
+    def setup_queue_processing(self, *args):
+        raise NotImplementedError
+
     def process_queue(self):
-        keep_running = True
-
-        # TODO: Need a locking mechanism to ensure we're not running multiple
-        # instances:
-        #
-        # if(os.path.exists(self.lock_file)):
-        #    raise "Lockfile '" + self.lock_file + "' exists, will not run"
-        #
-        #f = open(self.lock_file, 'a').close();
-        #f.write(os.getpid())
-        #f.close()
-
-        while keep_running:
+        print "Starting processing queue items of type %s, pid %s" % (
+            self.item_type, os.getpid()
+        )
+        sys.stdout.flush()
+        while True:
             item = self.get_next_queue_item()
             if item is None:
-                print "Sleeping..."
                 time.sleep(1)
             else:
                 result = self.handle_queue_item(item)
@@ -103,6 +98,12 @@ class Processor(object):
                 else:
                     item.status = ConversionQueueItem.SUCCEEDED
                     # TODO: Delete item instead of changing status
+                print "%s (%s): %s" % (
+                    item.file_path,
+                    item.url.url,
+                    "success" if result else "fail"
+                )
+                sys.stdout.flush()
                 item.save()
 
     @transaction.atomic

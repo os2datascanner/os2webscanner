@@ -17,8 +17,11 @@ class OCRProcessor(Processor):
     def convert(self, item, tmp_dir):
         txt_file = os.path.join(tmp_dir, "file")
         return_code = subprocess.call(
-            ["tesseract", item.file_path, txt_file, "-l", "dan+eng"]
+            ["tesseract", item.file_path, txt_file, "-l", "dan+eng", "quiet"]
         )
+        if return_code != 0:
+            return False
+
         txt_file += ".txt"
         self.text_processor.process_file(txt_file, item.url)
         if os.path.exists(txt_file):

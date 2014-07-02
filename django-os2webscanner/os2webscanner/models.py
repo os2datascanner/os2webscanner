@@ -135,6 +135,9 @@ class Scanner(models.Model):
         f = lambda s: "Schedule: " + s
         return f
 
+    def get_absolute_url(self):
+        return '/scanners/'
+
     def __unicode__(self):
         return self.name
 
