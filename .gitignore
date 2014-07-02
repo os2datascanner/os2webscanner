@@ -1,3 +1,4 @@
 *.pyc
 python-env
 *.komodoproject
+webscanner_site/static
