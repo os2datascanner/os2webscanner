@@ -1,3 +1,5 @@
+"""Contains a scanner spider."""
+
 from scrapy import log
 from scrapy.contrib.spiders.sitemap import SitemapSpider
 from scrapy.http import Request, HtmlResponse
@@ -12,10 +14,17 @@ from os2webscanner.models import Url
 
 
 class ScannerSpider(SitemapSpider):
+
+    """A spider which uses a scanner to scan all data it comes across."""
+
     name = 'scanner'
     magic = magic.Magic(mime=True)
 
     def __init__(self, scanner, *a, **kw):
+        """Initialize the ScannerSpider with a Scanner object.
+
+        The configuration will be loaded from the Scanner.
+        """
         # Create scanner
         self.scanner = scanner
 
@@ -45,22 +54,21 @@ class ScannerSpider(SitemapSpider):
         )
 
     def start_requests(self):
-        """Start the spider with requests for all starting URLs
-        AND sitemap URLs"""
+        """Return requests for all starting URLs AND sitemap URLs."""
         requests = [Request(url, callback=self.parse)
                     for url in self.start_urls]
         requests.extend(list(SitemapSpider.start_requests(self)))
         return requests
 
     def parse(self, response):
-        """Process a response and follow all links"""
+        """Process a response and follow all links."""
         r = []
         r.extend(self._extract_requests(response))
         self.scan(response)
         return r
 
     def _extract_requests(self, response):
-        """Extract requests from the response"""
+        """Extract requests from the response."""
         r = []
         if isinstance(response, HtmlResponse):
             links = self.link_extractor.extract_links(response)
@@ -123,6 +131,6 @@ class ScannerSpider(SitemapSpider):
 
 
 def parse_content_type(content_type):
-    """Parses and returns the mime-type from a Content-Type header value"""
+    """Return the mime-type from the given "Content-Type" header value."""
     m = re.search('([^/]+/[^;\s]+)', content_type)
     return m.group(1)

@@ -22,9 +22,12 @@ from os2webscanner.models import Scan, ConversionQueueItem
 from scanner.processors import *
 
 import signal
+
+
 def signal_handler(signal, frame):
     scanner_app.handle_killed()
     reactor.stop()
+
 signal.signal(signal.SIGINT | signal.SIGTERM, signal_handler)
 
 
