@@ -184,11 +184,18 @@ class Processor(object):
         'image': 'ocr',
 
         'text/html': 'html',
+        'text/xml': 'html',
+        'application/xhtml+xml': 'html',
+        'application/xml': 'html',
+        'application/vnd.google-earth.kml+xml': 'html',
 
         'application/javascript': 'text',
+        'application/json': 'text',
+        'application/csv': 'text',
 
         'application/pdf': 'pdf',
 
+        'application/rtf': 'libreoffice',
         'application/msword': 'libreoffice',
         opendocument + '.chart': 'libreoffice',
         opendocument + '.database': 'libreoffice',
