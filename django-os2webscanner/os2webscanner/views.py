@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.views.generic import View, ListView, TemplateView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
@@ -16,7 +17,7 @@ class LoginRequiredMixin(View):
 
 class RestrictedListView(ListView, LoginRequiredMixin):
     """Make sure users only see data that belong to their own organization."""
-    
+ 
     def get_queryset(self):
         """Restrict to the organization of the logged-in user."""
         user = self.request.user
@@ -57,3 +58,18 @@ class ReportList(ListView, LoginRequiredMixin):
     """Displays list of scanners."""
     model = Scan
     template_name = 'os2webscanner/reports.html'
+
+
+# Create/Update/Delete Views.
+
+class ScannerCreate(CreateView, LoginRequiredMixin):
+    model = Scanner
+
+
+class ScannerUpdate(UpdateView, LoginRequiredMixin):
+    model = Scanner
+
+
+class ScannerDelete(DeleteView, LoginRequiredMixin):
+    model = Scanner
+    success_url = '/scanners/'

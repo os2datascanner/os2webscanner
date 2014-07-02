@@ -79,7 +79,8 @@ class Domain(models.Model):
         for line in self.exclusion_rules.splitlines():
             line = line.strip()
             if line.startswith(REGEX_PREFIX):
-                rules.append(re.compile(line[len(REGEX_PREFIX):], re.IGNORECASE))
+                rules.append(re.compile(line[len(REGEX_PREFIX):],
+                                        re.IGNORECASE))
             else:
                 rules.append(line)
         return rules
@@ -133,6 +134,9 @@ class Scanner(models.Model):
     def schedule_description(self):
         f = lambda s: "Schedule: " + s
         return f
+
+    def get_absolute_url(self):
+        return '/scanners/'
 
     def __unicode__(self):
         return self.name
