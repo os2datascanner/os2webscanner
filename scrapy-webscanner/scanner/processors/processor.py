@@ -5,6 +5,7 @@ import time
 import os
 import mimetypes
 import sys
+import magic
 
 base_dir = os.path.realpath(os.path.join(
     os.path.dirname(os.path.realpath(__file__)), '..', '..', '..'
@@ -13,6 +14,8 @@ var_dir = os.path.join(base_dir, "var")
 
 
 class Processor(object):
+    magic = magic.Magic(mime=True)
+
     processors_by_type = {}
     processor_instances = {}
 
@@ -159,12 +162,17 @@ class Processor(object):
             for fname in filenames:
                 # TODO: How do we decide which types are supported?
                 try:
-                    mimetype, encoding = mimetypes.guess_type(fname)
+                    # Guess the mime type from the file name
+                    mime_type, encoding = mimetypes.guess_type(fname)
+                    file_path = os.path.join(root, fname)
+                    if mime_type is None:
+                        # Guess the mime type from the file contents
+                        mime_type = self.magic.from_file(file_path)
                     processor_type = Processor.mimetype_to_processor_type(
-                        mimetype)
+                        mime_type)
                     if processor_type is not None:
                         new_item = ConversionQueueItem(
-                            file=os.path.join(root, fname),
+                            file=file_path,
                             type=processor_type,
                             url=item.url,
                             status=ConversionQueueItem.NEW,
@@ -226,6 +234,8 @@ class Processor(object):
 
     @classmethod
     def mimetype_to_processor_type(cls, mime_type):
+        if mime_type is None:
+            return None
         processor = cls.mimetypes_to_processors.get(mime_type, None)
         if processor is None:
             processor = cls.mimetypes_to_processors.get(

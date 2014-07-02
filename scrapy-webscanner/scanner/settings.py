@@ -11,13 +11,17 @@ BOT_NAME = 'scanner'
 SPIDER_MODULES = ['scanner.spiders']
 NEWSPIDER_MODULE = 'scanner.spiders'
 
+SPIDER_MIDDLEWARES = {
+    'scanner.middlewares.ExclusionRuleMiddleware': 1000,
+}
+
 # Set to True in testing to avoid pegging websites, if only testing processing
 # MUST BE REMOVED IN PRODUCTION!!
 HTTPCACHE_ENABLED = False
 
 # Crawl responsibly by identifying yourself (and your website) on the
 # user-agent
-USER_AGENT = 'os2webscanner'
+USER_AGENT = 'OS2Webscanner'
 
 # Ignore Robots.txt:
 #   This is the default in Scrapy, but we are explicit here just in case they

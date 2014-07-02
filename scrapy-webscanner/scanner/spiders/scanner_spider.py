@@ -19,6 +19,7 @@ class ScannerSpider(SitemapSpider):
         # Create scanner
         self.scanner = scanner
 
+        self.exclusion_rules = self.scanner.get_exclusion_rules()
         self.allowed_domains = self.scanner.get_domains()
         self.sitemap_urls = self.scanner.get_sitemap_urls()
 
