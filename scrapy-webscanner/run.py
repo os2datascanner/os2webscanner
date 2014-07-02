@@ -21,6 +21,12 @@ from os2webscanner.models import Scan, ConversionQueueItem
 
 from scanner.processors import *
 
+import signal
+def signal_handler(signal, frame):
+    scanner_app.handle_killed()
+    reactor.stop()
+signal.signal(signal.SIGINT | signal.SIGTERM, signal_handler)
+
 
 class ScannerApp:
     def __init__(self):
@@ -32,12 +38,21 @@ class ScannerApp:
         # Update start_time to now and status to STARTED
         self.scan_object.start_time = timezone.now()
         self.scan_object.status = Scan.STARTED
+        self.scan_object.reason = ""
+        self.scan_object.pid = os.getpid()
         self.scan_object.save()
 
         self.scanner = Scanner(self.scan_id)
 
     def run(self):
         self.run_spider()
+
+    def handle_killed(self):
+        self.scan_object = Scan.objects.get(pk=self.scan_id)
+        self.scan_object.pid = None
+        self.scan_object.status = Scan.FAILED
+        self.scan_object.reason = "Killed"
+        self.scan_object.save()
 
     def run_spider(self):
         spider = ScannerSpider(self.scanner)
@@ -57,6 +72,8 @@ class ScannerApp:
     def handle_closed(self, spider, reason):
         scan_object = Scan.objects.get(pk=self.scan_id)
         scan_object.status = Scan.DONE
+        scan_object.pid = None
+        scan_object.reason = ""
         scan_object.end_time = timezone.now()
         scan_object.save()
         # TODO: Check reason for if it was finished, cancelled, or shutdown
@@ -74,7 +91,7 @@ class ScannerApp:
         log.msg("Spider Idle...")
         # Keep spider alive if there are still queue items to be processed
         remaining_queue_items = ConversionQueueItem.objects.filter(
-            status=ConversionQueueItem.NEW,
+            status__in=[ConversionQueueItem.NEW, ConversionQueueItem.PROCESSING],
             url__scan=self.scan_object
         ).count()
 
@@ -87,5 +104,5 @@ class ScannerApp:
         else:
             log.msg("No more active processors, closing spider...")
 
-
-ScannerApp().run()
+scanner_app = ScannerApp()
+scanner_app.run()

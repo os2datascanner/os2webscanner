@@ -38,17 +38,21 @@ class Scanner:
             )
         return rules
 
+    def get_exclusion_rules(self):
+        """Returns a list of exclusion rules for all Domains associated with
+        the Scanner"""
+        exclusion_rules = []
+        for domain in self.valid_domains:
+            exclusion_rules.extend(domain.exclusion_rule_list())
+        return exclusion_rules
+
     def get_sitemap_urls(self):
         """Returns a list of sitemap.xml URLs including any uploaded
         sitemap.xml file."""
         urls = []
         for domain in self.valid_domains:
             # Do some normalization of the URL to get the sitemap.xml file
-            root_url = domain.url
-            if (not root_url.startswith('http://') and not
-                    root_url.startswith('https://')):
-                root_url = 'http://%s/' % root_url
-            urls.append(root_url + "/sitemap.xml")
+            urls.append(domain.root_url + "/sitemap.xml")
             # Add uploaded sitemap.xml file
             if domain.sitemap != '':
                 urls.append('file://' + domain.sitemap_full_path)

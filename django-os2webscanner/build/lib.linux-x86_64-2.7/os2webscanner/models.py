@@ -68,7 +68,7 @@ class Domain(models.Model):
                                             default=INVALID)
     validation_method = models.IntegerField(choices=validation_method_choices,
                                             default=ROBOTSTXT)
-    exception_rules = models.TextField()
+    exclusion_rules = models.TextField()
     sitemap = models.FileField(upload_to='sitemaps')
 
     def __unicode__(self):
