@@ -1,9 +1,261 @@
+{% extends 'os2webscanner/base.html' %}
+{% block topnav %}{% endblock %}
+{% block body %}
+{% if 0 %}
+  <form class="form-horizontal" role="form">
+  {% if form.non_field_errors %}
+    <ul>
+      {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  {% for field in form %}
+  <div id="{{ field.auto_id }}_container">
+    {{ field.help_text }}
+    <div>
+      {{ field.label_tag }} {{ field }}
+    </div>
+    <div id="{{ field.auto_id }}_errors">
+      {{ field.errors }}
+    </div>
+  </div>
+  {% endfor %}
+  </form>
+{% endif %}
+
 <form class="form-horizontal" role="form" method="post">
+  {% if form.non_field_errors %}
+    <ul>
+      {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  {% if form.errors %}
+    <p>Følgende felter er ikke udfyldt korrekt:</p>
+    <ul>
+      {% for error in form.errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  <div class="form-group col-sm-12">
+    {% csrf_token %}
     <div class="form-group col-sm-12">
-        {% csrf_token %}
-    {{ form.as_p }}
-</div>
-
-<input type="submit">
+      <div id="{{ form.name.auto_id }}_container">
+        <div>{{ form.name.help_text }}</div>
+        <div>
+          {{ form.name.label_tag }}
+          {{ form.name }}
+        </div>
+        <div id="{{ form.name.auto_id }}_errors">
+          {{ form.name.errors }}
+        </div>
+      </div>
+    </div>
+    {% if form.organization %}
+    <div class="form-group col-sm-12">
+      <div id="{{ form.organization.auto_id }}_container">
+        <div>{{ form.organization.help_text }}</div>
+        <div>
+          {{ form.organization.label_tag }}
+          {{ form.organization }}
+        </div>
+        <div id="{{ form.organization.auto_id }}_errors">
+          {{ form.organization.errors }}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    <ul class="nav nav-tabs" style="margin-bottom:1em;">
+      <li class="active"><a href="#domains" data-toggle="tab">Domæner</a></li>
+      <li><a href="#rules" data-toggle="tab">Regler</a></li>
+      <li><a href="#interval" data-toggle="tab">Interval</a></li>
+    </ul>
+    <div class="tab-content">
+      <div class="tab-pane active" id="domains">
+        <div class="form-group">
+          <div class="col-sm-12">
+            <div id="{{ form.domains.auto_id }}_container">
+              <div>{{ form.domains.label_tag }}</div>
+              <div>{{ form.domains.help_text }}</div>
+              <div>{{ form.domains }}</div>
+              <div id="{{ form.domains.auto_id }}_errors">
+                {{ form.domains.errors }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane" id="rules">
+        <div class="form-group col-sm-12">
+          <div id="{{ form.do_cpr_scan.auto_id }}_container">
+            <div>{{ form.do_cpr_scan.help_text }}</div>
+            <div>
+              {{ form.do_cpr_scan }} {{ form.do_cpr_scan.label_tag }}
+            </div>
+            <div id="{{ form.do_cpr_scan.auto_id }}_errors">
+              {{ form.do_cpr_scan.errors }}
+            </div>
+          </div>
+        </div>
+        <div class="form-group col-sm-12">
+          <div id="{{ form.do_name_scan.auto_id }}_container">
+            <div>{{ form.do_name_scan.help_text }}</div>
+            <div>
+              {{ form.do_name_scan }} {{ form.do_name_scan.label_tag }}
+            </div>
+            <div id="{{ form.do_name_scan.auto_id }}_errors">
+              {{ form.do_name_scan.errors }}
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-12">
+            <div id="{{ form.regex_rules.auto_id }}_container">
+              <div>{{ form.regex_rules.label_tag }}</div>
+              <div>{{ form.regex_rules.help_text }}</div>
+              <div>{{ form.regex_rules }}</div>
+              <div id="{{ form.regex_rules.auto_id }}_errors">
+                {{ form.regex_rules.errors }}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-12">
+            <div id="{{ form.whitelisted_names.auto_id }}_container">
+              <div>{{ form.whitelisted_names.label_tag }}</div>
+              <div>{{ form.whitelisted_names.help_text }}</div>
+              <div>{{ form.whitelisted_names }}</div>
+              <div id="{{ form.whitelisted_names.auto_id }}_errors">
+                {{ form.whitelisted_names.errors }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane" id="interval">
+        <div class="form-group col-sm-12">
+          <div id="{{ form.schedule.auto_id }}_container">
+            <div>{{ form.schedule.help_text }}</div>
+            <div>
+              {{ form.schedule.label_tag }}
+              {{ form.schedule }}
+            </div>
+            <div id="{{ form.schedule.auto_id }}_errors">
+              {{ form.schedule.errors }}
+            </div>
+          </div>
+        </div>
+        {% if 0 %}
+        <div class="form-group">
+          <div class="col-sm-6">
+            <div class="radio">
+              <label>
+                <input type="radio" name="field-scanner-runtime" value="runtime-weekdays" id="runtime-weekdays" checked>
+                Kør på følgende dage
+              </label>
+            </div>
+            <div class="col-sm-6">
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" name="field-run-mondays" value="field-run-mondays" >
+                  mandag
+                </label>
+              </div>
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" name="field-run-tuesdays" value="field-run-tuesdays" >
+                  tirsdag
+                </label>
+              </div>
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" name="field-run-wednesdays" value="field-run-wednesdays" >
+                  onsdag
+                </label>
+              </div>
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" name="field-run-thursdays" value="field-run-thursdays" >
+                  torsdag
+                </label>
+              </div>
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" name="field-run-fridays" value="field-run-fridays" >
+                  fredag
+                </label>
+              </div>
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" name="field-run-saturdays" value="field-run-saturdays" >
+                  lørdag
+                </label>
+              </div>
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" name="field-run-sundays" value="field-run-sundays" >
+                  søndag
+                </label>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <p class="form-control-static">
+                <a href="#">
+                  alle dage
+                </a>
+              </p>
+              <p class="form-control-static">
+                <a href="#">
+                  hverdage
+                </a>
+              </p>
+              <p class="form-control-static">
+                <a href="#">
+                  weekend
+                </a>
+              </p>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="radio">
+              <label>
+                <input type="radio" name="field-scanner-runtime" value="runtime-specific-date" id="runtime-specific-date">
+                Kør på følgende dato
+              </label>
+            </div>
+            <div class="col-sm-12" style="margin-top:1em;">
+              <label for="field-scanner-date" class="sr-only">Vælg dato</label>
+              <input type="text" class="form-control" id="field-scanner-date">
+              <span style="float:right;position:relative;top:-1.75em;margin-right:.5em;" class="glyphicon glyphicon-calendar"></span>
+              <label for="field-scanner-repeat-every" class="sr-only">Angiv gentagelse(r)</label>
+              <select class="form-control" id="field-scanner-repeat-every">
+                <option selected id="field-scanner-no-repeat" value="field-scanner-no-repeat">Gentag ikke</option>
+                <option id="field-scanner-repeat-twoweeks" value="field-scanner-repeat-twoweeks">Gentag hver 2. uge</option>
+                <option id="field-scanner-repeat-monthly" value="field-scanner-no-repeat">Gentag månedligt</option>
+                <option id="field-scanner-repeat-yearly" value="field-scanner-repeat-yearly">Gentag årligt</option>
+               </select>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <p style="margin-top:1em;">Kørselstidspunkt <span class="glyphicon glyphicon-time"></span></p>
+            <div class="col-sm-4">
+                <label for="field-scanner-run-hour" class="sr-only">Tidspunkt (time)</label>
+                <input style="width:100%;" type="number" name="field-scanner-run-hour" id="field-scanner-run-hour" min="0" max="23" placeholder="tt">
+            </div>
+            <div class="col-sm-4">
+                <label for="field-scanner-run-minute" class="sr-only">Tidspunkt (minut)</label>
+                <input style="width:100%;" type="number" name="field-scanner-run-minute" id="field-scanner-run-minute" min="0" max="59" placeholder="mm">
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    <input type="submit" />
+  </div>
 </form>
-
+{% endblock %}

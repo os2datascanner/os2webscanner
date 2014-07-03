@@ -71,9 +71,10 @@ class ReportList(RestrictedListView):
 class RestrictedCreateView(CreateView, LoginRequiredMixin):
 
     def form_valid(self, form):
-        user_profile = self.request.user.get_profile()
-        self.object = form.save(commit=False)
-        self.object.organization = user_profile.organization
+        if not self.request.user.is_superuser:
+            user_profile = self.request.user.get_profile()
+            self.object = form.save(commit=False)
+            self.object.organization = user_profile.organization
 
         return super(RestrictedCreateView, self).form_valid(form)
 

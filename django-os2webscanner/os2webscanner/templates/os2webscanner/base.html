@@ -53,6 +53,7 @@
   </style>
 </head>
 <body>
+  {% block topnav %}
   <div class="navbar navbar-inverse" role="navigation">
     <div class="container">
       <div class="navbar-header">
@@ -91,6 +92,7 @@
       </div>
     </div>
   </div>
+  {% endblock %}
 
   <div class="container">
     <h1 id="page-title">{% block heading %}{% endblock %}</h1>
