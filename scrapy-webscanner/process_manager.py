@@ -44,6 +44,13 @@ def stop_process(pdata):
     # Remove pid from process map
     if pid in process_map:
         del process_map[pid]
+    # Set any ongoing queue-items for this process id to failed
+    ConversionQueueItem.objects.filter(
+        status=ConversionQueueItem.PROCESSING,
+        process_id=pid
+    ).update(
+        status=ConversionQueueItem.FAILED
+    )
 
     # Close logfile and remove it
     if 'log_fh' in pdata:
