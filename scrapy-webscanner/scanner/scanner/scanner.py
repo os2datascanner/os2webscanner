@@ -1,3 +1,5 @@
+"""Contains a Scanner."""
+
 from ..rules.name import NameRule
 from ..rules.cpr import CPRRule
 from ..rules.regexrule import RegexRule
@@ -7,9 +9,11 @@ from os2webscanner.models import Scan, Domain
 
 
 class Scanner:
+
+    """Represents a scanner which can scan data using configured rules."""
+
     def __init__(self, scan_id):
-        """Initialize the scanner and load the scanner settings from the given
-        scan ID in the database."""
+        """Load the scanner settings from the given scan ID."""
         # Get scan object from DB
         self.scan_object = Scan.objects.get(pk=scan_id)
         self.scanner_object = self.scan_object.scanner
@@ -39,16 +43,17 @@ class Scanner:
         return rules
 
     def get_exclusion_rules(self):
-        """Returns a list of exclusion rules for all Domains associated with
-        the Scanner"""
+        """Return a list of exclusion rules associated with the Scanner."""
         exclusion_rules = []
         for domain in self.valid_domains:
             exclusion_rules.extend(domain.exclusion_rule_list())
         return exclusion_rules
 
     def get_sitemap_urls(self):
-        """Returns a list of sitemap.xml URLs including any uploaded
-        sitemap.xml file."""
+        """Return a list of sitemap.xml URLs.
+
+        This includes any uploaded sitemap.xml file.
+        """
         urls = []
         for domain in self.valid_domains:
             # Do some normalization of the URL to get the sitemap.xml file
@@ -59,20 +64,30 @@ class Scanner:
         return urls
 
     def get_domains(self):
-        """Returns a list of domain URLs."""
+        """Return a list of domain URLs."""
         return [d.url for d in self.valid_domains]
 
     def scan(self, data, url_object):
-        """Scans data for matches executing all the rules
-        associated with this scanner."""
-        type = Processor.mimetype_to_processor_type(url_object.mime_type)
-        processor = Processor.processor_by_type(type)
+        """Scan data for matches from a spider.
+
+        Processes the data using the appropriate processor for the mime-type
+        of the url_object parameter. The processor will either handle the data
+        immediately or add it to a conversion queue.
+        Returns True if the data was processed successfully or if the item
+        was queued to be processed.
+        """
+        processor_type = Processor.mimetype_to_processor_type(
+            url_object.mime_type
+        )
+        processor = Processor.processor_by_type(processor_type)
         if processor is not None:
             return processor.handle_spider_item(data, url_object)
 
     def execute_rules(self, text):
-        """Executes the scanner's rules on the given text returning a list of
-        matches"""
+        """Execute the scanner's rules on the given text.
+
+        Returns a list of matches.
+        """
         matches = []
         for rule in self.rules:
             rule_matches = rule.execute(text)

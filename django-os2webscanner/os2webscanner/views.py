@@ -77,6 +77,33 @@ class ScannerDelete(DeleteView, LoginRequiredMixin):
     success_url = '/scanners/'
 
 
+class DomainCreate(CreateView, LoginRequiredMixin):
+    model = Domain
+
+
+class DomainUpdate(UpdateView, LoginRequiredMixin):
+    model = Domain
+
+
+class DomainDelete(DeleteView, LoginRequiredMixin):
+    model = Domain
+    success_url = '/domains/'
+
+
+class RuleCreate(CreateView, LoginRequiredMixin):
+    model = RegexRule
+
+
+class RuleUpdate(UpdateView, LoginRequiredMixin):
+    model = RegexRule
+
+
+class RuleDelete(DeleteView, LoginRequiredMixin):
+    model = RegexRule
+    success_url = '/rules/'
+
+# Reports stuff
+
 class ReportDetails(DetailView, LoginRequiredMixin):
     """Display a detailed report."""
     model = Scan
@@ -95,7 +122,7 @@ class ReportDetails(DetailView, LoginRequiredMixin):
             matches_by_url.setdefault(match.url.url, []).append(match)
         # Sort matches by sensitivity
         for url, matches in matches_by_url.items():
-            matches.sort(key=attrgetter('sensitivity'))
+            matches.sort(key=attrgetter('sensitivity'), reverse=True)
 
         context['matches_by_url'] = matches_by_url
         return context

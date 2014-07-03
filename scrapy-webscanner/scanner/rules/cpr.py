@@ -1,3 +1,5 @@
+"""Rules for CPR scanning."""
+
 import regex
 from datetime import datetime
 
@@ -7,9 +9,13 @@ from ..items import MatchItem
 
 
 class CPRRule(Rule):
+
+    """Represents a rule which scans for CPR numbers."""
+
     name = 'cpr'
 
     def execute(self, text):
+        """Execute the CPR rule."""
         matches = match_cprs(text)
         return matches
 
@@ -19,8 +25,10 @@ cpr_regex = regex.compile("\\b(\\d{6})[\\s\-]?(\\d{4})\\b")
 
 def date_check(cpr):
     """Check a CPR number for a valid date.
+
     The CPR number is passed as a string of sequential digits with no spaces
-    or dashes."""
+    or dashes.
+    """
     day = int(cpr[0:2])
     month = int(cpr[2:4])
     year = int(cpr[4:6])
@@ -55,6 +63,10 @@ def date_check(cpr):
 
 
 def match_cprs(text, mask_digits=True):
+    """Return MatchItem objects for each CPR matched in the given text.
+
+    If mask_digits is False, then the matches will contain full CPR numbers.
+    """
     it = cpr_regex.finditer(text)
     matches = set()
     for m in it:

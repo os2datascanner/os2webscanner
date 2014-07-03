@@ -8,12 +8,16 @@ Rapport &dash; {{scan.scanner.name}}
         <table class="table">
             <tbody>
             <tr>
-                <td>Udført:</td>
+                <td>Starttidspunkt:</td>
                 <td>{{ scan.start_time }}</td>
             </tr>
             <tr>
                 <td>Sluttidspunkt:</td>
                 <td>{{ scan.end_time }}</td>
+            </tr>
+            <tr>
+                <td>Status:</td>
+                <td>{{ scan.get_status_display }}</td>
             </tr>
             </tbody>
         </table>
