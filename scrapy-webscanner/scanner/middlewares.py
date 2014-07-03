@@ -1,7 +1,9 @@
 """Middleware for the scanner."""
+import re
 
 from scrapy import Request
 from scrapy import log
+from scrapy.contrib.spidermiddleware.offsite import OffsiteMiddleware
 from scrapy.utils.httpobj import urlparse_cached
 
 
@@ -50,3 +52,12 @@ class ExclusionRuleMiddleware(object):
                 if rule.search(match_against) is not None:
                     return False
         return True
+
+class NoSubdomainOffsiteMiddleware(OffsiteMiddleware):
+    """Offsite middleware which doesn't allow subdomains of allowed_domains."""
+    def get_host_regex(self, spider):
+        allowed_domains = getattr(spider, 'allowed_domains', None)
+        if not allowed_domains:
+            return re.compile('') # allow all by default
+        regex = r'^(%s)$' % '|'.join(re.escape(d) for d in allowed_domains if d is not None)
+        return re.compile(regex)
