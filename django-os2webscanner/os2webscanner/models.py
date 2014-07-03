@@ -142,14 +142,17 @@ class Scanner(models.Model):
     def run(self, test_only=False):
         """Run a scan with the Scanner.
 
-        Return False if there is already a scanner running.
+        Return the Scan object if we started the scanner.
+        Return None if there is already a scanner running.
+        Return a Scan object with a FAILED status if there was a problem
+        running the scanner.
         If test_only is True, only check if we can run a scan, don't actually
         run one.
         """
         active_scanners = Scan.objects.filter(scanner=self, status__in=(
             Scan.NEW, Scan.STARTED)).count()
         if active_scanners > 0:
-            return False
+            return None
 
         # Create a new Scan
         scan = Scan(scanner=self, status=Scan.NEW)
@@ -161,11 +164,16 @@ class Scanner(models.Model):
         print SCRAPY_WEBSCANNER_DIR
 
         if test_only:
-            return True
+            return scan
 
-        process = Popen([os.path.join(SCRAPY_WEBSCANNER_DIR, "run.py"),
+        try:
+            process = Popen([os.path.join(SCRAPY_WEBSCANNER_DIR, "run.py"),
                          str(scan.pk)])
-        return True
+        except Exception as e:
+            scan.status = Scan.FAILED
+            scan.reason = repr(e)
+            scan.save()
+        return scan
 
     @property
     def schedule_description(self):

@@ -11,7 +11,7 @@ import pep8
 from django.test import TestCase
 from django.conf import settings
 
-from os2webscanner.models import Domain, Organization, Scanner
+from os2webscanner.models import Domain, Organization, Scanner, Scan
 from validate import validate_domain
 
 install_directory = os.path.abspath(os.path.join(settings.BASE_DIR, '..'))
@@ -51,7 +51,7 @@ class ScannerTest(TestCase):
                         validation_method=Domain.ROBOTSTXT)
         scanner = Scanner(organization=self.magenta, schedule="")
         scanner.save()
-        self.assertTrue(scanner.run(test_only=True))
+        self.assertTrue(isinstance(scanner.run(test_only=True), Scan))
         self.assertFalse(scanner.run(test_only=True))
 
 
