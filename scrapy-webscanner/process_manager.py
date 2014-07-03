@@ -21,7 +21,7 @@ if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
 processes_per_type = 5
-seconds_until_stuck = 60
+seconds_until_stuck = 120
 
 process_types = ('html', 'libreoffice', 'ocr', 'pdf')
 

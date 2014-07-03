@@ -1,5 +1,5 @@
 from os2webscanner.models import ConversionQueueItem
-from django.db import transaction, IntegrityError
+from django.db import transaction, IntegrityError, DatabaseError
 from django.utils import timezone
 import time
 import os
@@ -117,19 +117,19 @@ class Processor(object):
                     result = ConversionQueueItem.objects.filter(
                         type=self.item_type,
                         status=ConversionQueueItem.NEW
-                    ).order_by("pk")[0]
+                    ).select_for_update(nowait=True).order_by("pk")[0]
 
                     # Change status of the found item
                     result.status = ConversionQueueItem.PROCESSING
                     result.process_id = os.getpid()
                     result.process_start_time = timezone.now()
                     result.save()
-            except IntegrityError:
+            except (DatabaseError, IntegrityError)  as e:
                 # Database transaction failed, we just try again
-                print "".join(
+                print "".join([
                     "Transaction failed while getting queue item of type ",
                     "'" + self.item_type + "'"
-                )
+                ])
                 result = None
             except IndexError:
                 # Nothing in the queue, return None
