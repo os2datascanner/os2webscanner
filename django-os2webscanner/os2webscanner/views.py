@@ -23,15 +23,11 @@ class RestrictedListView(ListView, LoginRequiredMixin):
     def get_queryset(self):
         """Restrict to the organization of the logged-in user."""
         user = self.request.user
-        try:
-            profile = user.get_profile()
-        except UserProfile.DoesNotExist:
-            profile = None
-
-        if profile:
-            return self.model.objects.filter(organization=profile.organization)
-        else:
+        if user.is_superuser:
             return self.model.objects.all()
+        else:
+            profile = user.get_profile()
+            return self.model.objects.filter(organization=profile.organization)
 
 
 class MainPageView(TemplateView):
@@ -56,25 +52,44 @@ class RuleList(RestrictedListView):
     template_name = 'os2webscanner/rules.html'
 
 
-class ReportList(ListView, LoginRequiredMixin):
+class ReportList(RestrictedListView):
     """Displays list of scanners."""
     model = Scan
     template_name = 'os2webscanner/reports.html'
 
+    def get_queryset(self):
+        """Restrict to the organization of the logged-in user."""
+        user = self.request.user
+        if user.is_superuser:
+            return self.model.objects.all()
+        else:
+            profile = user.get_profile()
+            return self.model.objects.filter(scanner__organization=profile.organization)
 
 # Create/Update/Delete Views.
 
-class ScannerCreate(CreateView, LoginRequiredMixin):
-    model = Scanner
-    fields = ['name', 'schedule', 'whitelisted_names', 'domains',
-              'do_cpr_scan', 'do_name_scan', 'regex_rules']
+class RestrictedCreateView(CreateView, LoginRequiredMixin):
 
     def form_valid(self, form):
         user_profile = self.request.user.get_profile()
         self.object = form.save(commit=False)
         self.object.organization = user_profile.organization
 
-        return super(ScannerCreate, self).form_valid(form)
+        return super(RestrictedCreateView, self).form_valid(form)
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_superuser:
+            self.fields.append('organization')
+
+        result = super(RestrictedCreateView, self).get(self, request, *args,
+                                                     **kwargs)
+        return result
+
+
+class ScannerCreate(RestrictedCreateView):
+    model = Scanner
+    fields = ['name', 'schedule', 'whitelisted_names', 'domains',
+              'do_cpr_scan', 'do_name_scan', 'regex_rules']
 
 
 class ScannerUpdate(UpdateView, LoginRequiredMixin):
@@ -88,17 +103,10 @@ class ScannerDelete(DeleteView, LoginRequiredMixin):
     success_url = '/scanners/'
 
 
-class DomainCreate(CreateView, LoginRequiredMixin):
+class DomainCreate(RestrictedCreateView):
     model = Domain
     fields = ['url', 'validation_status', 'validation_method',
               'exclusion_rules', 'sitemap']
-
-    def form_valid(self, form):
-        user_profile = self.request.user.get_profile()
-        self.object = form.save(commit=False)
-        self.object.organization = user_profile.organization
-
-        return super(DomainCreate, self).form_valid(form)
 
 
 class DomainUpdate(UpdateView, LoginRequiredMixin):
@@ -112,16 +120,9 @@ class DomainDelete(DeleteView, LoginRequiredMixin):
     success_url = '/domains/'
 
 
-class RuleCreate(CreateView, LoginRequiredMixin):
+class RuleCreate(RestrictedCreateView):
     model = RegexRule
     fields = ['name', 'match_string', 'description', 'sensitivity']
-
-    def form_valid(self, form):
-        user_profile = self.request.user.get_profile()
-        self.object = form.save(commit=False)
-        self.object.organization = user_profile.organization
-
-        return super(RuleCreate, self).form_valid(form)
 
 
 class RuleUpdate(UpdateView, LoginRequiredMixin):
