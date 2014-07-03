@@ -21,6 +21,11 @@ SPIDER_MIDDLEWARES = {
     'scanner.middlewares.ExclusionRuleMiddleware': 1000,
 }
 
+DOWNLOADER_MIDDLEWARES = {
+    'scrapy.contrib.downloadermiddleware.redirect.RedirectMiddleware': None,
+    'scanner.middlewares.OffsiteRedirectMiddleware': 600,
+}
+
 # Set to True in testing to avoid pegging websites, if only testing processing
 # MUST BE REMOVED IN PRODUCTION!!
 HTTPCACHE_ENABLED = False

@@ -40,6 +40,7 @@ class ScannerSpider(SitemapSpider):
 
         self.start_urls = []
         # TODO: Starting URLs and domains should be specified separately?
+        print "Start urls: %s" % self.allowed_domains
         for url in self.allowed_domains:
             if (not url.startswith('http://')
                 and not url.startswith('https://')):
