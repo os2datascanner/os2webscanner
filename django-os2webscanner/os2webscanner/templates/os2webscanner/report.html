@@ -19,6 +19,10 @@ Rapport &dash; {{scan.scanner.name}}
                 <td>Status:</td>
                 <td>{{ scan.get_status_display }}</td>
             </tr>
+            <tr>
+                <td>Totalt antal matches:</td>
+                <td>{{ matches|length }}</td>
+            </tr>
             </tbody>
         </table>
       </div>

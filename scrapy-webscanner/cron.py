@@ -18,8 +18,6 @@ def strip_seconds(d):
     return d.replace(second=0, microsecond=0)
 
 
-from subprocess import Popen
-
 now = strip_seconds(datetime.now())
 print "Current time %s" % now
 
@@ -52,13 +50,4 @@ for scanner in Scanner.objects.all():
             continue
 
     print "Running scanner %s" % scanner
-    try:
-        scan = Scan(scanner=scanner, status=Scan.NEW)
-        scan.save()
-        process = Popen(["./run.py", str(scan.id)])
-    except Exception, e:
-        reason = repr(e)
-        print reason
-        scan.status = Scan.FAILED
-        scan.reason = reason
-        scan.save()
+    scanner.run()

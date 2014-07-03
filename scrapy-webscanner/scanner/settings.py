@@ -12,6 +12,12 @@ SPIDER_MODULES = ['scanner.spiders']
 NEWSPIDER_MODULE = 'scanner.spiders'
 
 SPIDER_MIDDLEWARES = {
+    # Disable default OffsiteMiddleware
+    'scrapy.contrib.spidermiddleware.offsite.OffsiteMiddleware': None,
+
+    # Use our own custom OffsiteMiddleware which doesn't allow subdomains
+    'scanner.middlewares.NoSubdomainOffsiteMiddleware': 500,
+
     'scanner.middlewares.ExclusionRuleMiddleware': 1000,
 }
 
