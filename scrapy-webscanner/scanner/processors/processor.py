@@ -1,5 +1,5 @@
 from os2webscanner.models import ConversionQueueItem
-from django.db import transaction, IntegrityError
+from django.db import transaction, IntegrityError, DatabaseError
 from django.utils import timezone
 import time
 import os
@@ -95,16 +95,15 @@ class Processor(object):
                 result = self.handle_queue_item(item)
                 if not result:
                     item.status = ConversionQueueItem.FAILED
+                    item.save()
                 else:
-                    item.status = ConversionQueueItem.SUCCEEDED
-                    # TODO: Delete item instead of changing status
+                    item.delete()
                 print "%s (%s): %s" % (
                     item.file_path,
                     item.url.url,
                     "success" if result else "fail"
                 )
                 sys.stdout.flush()
-                item.save()
 
     @transaction.atomic
     def get_next_queue_item(self):
@@ -117,19 +116,19 @@ class Processor(object):
                     result = ConversionQueueItem.objects.filter(
                         type=self.item_type,
                         status=ConversionQueueItem.NEW
-                    ).order_by("pk")[0]
+                    ).select_for_update(nowait=True).order_by("pk")[0]
 
                     # Change status of the found item
                     result.status = ConversionQueueItem.PROCESSING
                     result.process_id = os.getpid()
                     result.process_start_time = timezone.now()
                     result.save()
-            except IntegrityError:
+            except (DatabaseError, IntegrityError)  as e:
                 # Database transaction failed, we just try again
-                print "".join(
+                print "".join([
                     "Transaction failed while getting queue item of type ",
                     "'" + self.item_type + "'"
-                )
+                ])
                 result = None
             except IndexError:
                 # Nothing in the queue, return None
@@ -201,6 +200,8 @@ class Processor(object):
         'application/javascript': 'text',
         'application/json': 'text',
         'application/csv': 'text',
+
+        'application/zip': 'zip',
 
         'application/pdf': 'pdf',
 

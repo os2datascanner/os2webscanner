@@ -144,15 +144,7 @@ class ReportDetails(DetailView, LoginRequiredMixin):
         context = super(ReportDetails, self).get_context_data(**kwargs)
         all_matches = Match.objects.filter(
             scan=self.get_object()
-        ).order_by('url', 'matched_rule')
+        ).order_by('-sensitivity', 'url', 'matched_rule', 'matched_data')
 
-        matches_by_url = {}
-        # Group matches by URL
-        for match in all_matches:
-            matches_by_url.setdefault(match.url.url, []).append(match)
-        # Sort matches by sensitivity
-        for url, matches in matches_by_url.items():
-            matches.sort(key=attrgetter('sensitivity'), reverse=True)
-
-        context['matches_by_url'] = matches_by_url
+        context['matches'] = all_matches
         return context

@@ -1,1 +1,1 @@
-__all__ = ["html", "libreoffice", "pdf", "ocr", "zip"]
+__all__ = ["html", "libreoffice", "pdf", "ocr", "zip", "text"]

@@ -20,10 +20,10 @@ log_dir = os.path.join(var_dir, "logs")
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
-processes_per_type = 5
-seconds_until_stuck = 60
+processes_per_type = 2
+seconds_until_stuck = 120
 
-process_types = ('html', 'libreoffice', 'ocr', 'pdf')
+process_types = ('html', 'libreoffice', 'ocr', 'pdf', 'zip', 'text')
 
 process_map = {}
 process_list = []
@@ -44,6 +44,13 @@ def stop_process(pdata):
     # Remove pid from process map
     if pid in process_map:
         del process_map[pid]
+    # Set any ongoing queue-items for this process id to failed
+    ConversionQueueItem.objects.filter(
+        status=ConversionQueueItem.PROCESSING,
+        process_id=pid
+    ).update(
+        status=ConversionQueueItem.FAILED
+    )
 
     # Close logfile and remove it
     if 'log_fh' in pdata:

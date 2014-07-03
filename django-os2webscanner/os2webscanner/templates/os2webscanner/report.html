@@ -19,6 +19,10 @@ Rapport &dash; {{scan.scanner.name}}
                 <td>Status:</td>
                 <td>{{ scan.get_status_display }}</td>
             </tr>
+            <tr>
+                <td>Totalt antal matches:</td>
+                <td>{{ matches|length }}</td>
+            </tr>
             </tbody>
         </table>
       </div>
@@ -56,27 +60,23 @@ Rapport &dash; {{scan.scanner.name}}
               </td></tr>
           </thead>
           <tbody>
-          {% for url, matches in matches_by_url.items %}
-            <tr>
-              <td class="match-url" rowspan="{{ matches|length|add:"1" }}" >
-                <span>
-                    <a href="{{ url }}">{{ url }}</a>
-                </span>
-              </td>
-            </tr>
-              {% for match in matches %}
-                  <tr class="{{ match.get_sensitivity_class }}">
-                      <td class="match-rule">
-                          <span>{{ match.get_matched_rule_display }}</span>
-                      </td>
-                      <td class="match-data">
-                          <span>{{ match.matched_data }}</span>
-                      </td>
-                      <td class="match-sensitivity">
-                          <span>{{ match.get_sensitivity_display }}</span>
-                      </td>
-                  </tr>
-              {% endfor %}
+          {% for match in matches %}
+              <tr class="{{ match.get_sensitivity_class }}">
+                  <td class="match-url">
+                    <span>
+                        <a href="{{ match.url.url }}">{{ match.url.url }}</a>
+                    </span>
+                  </td>
+                  <td class="match-rule">
+                      <span>{{ match.get_matched_rule_display }}</span>
+                  </td>
+                  <td class="match-data">
+                      <span>{{ match.matched_data }}</span>
+                  </td>
+                  <td class="match-sensitivity">
+                      <span>{{ match.get_sensitivity_display }}</span>
+                  </td>
+              </tr>
           {% endfor %}
           </tbody>
         </table>

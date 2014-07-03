@@ -11,7 +11,7 @@ import pep8
 from django.test import TestCase
 from django.conf import settings
 
-from os2webscanner.models import Domain
+from os2webscanner.models import Domain, Organization
 from validate import validate_domain
 
 install_directory = os.path.abspath(os.path.join(settings.BASE_DIR, '..'))
@@ -21,15 +21,23 @@ class ValidateDomainTest(TestCase):
     def test_validate_domain(self):
         # Make sure Google does not validate in any of the possible methods
         all_methods = [Domain.ROBOTSTXT, Domain.WEBSCANFILE, Domain.METAFIELD]
+        google = Organization(name="Google")
+        google.save()
+        magenta = Organization(name="Magenta")
+        magenta.save()
         for validation_method in all_methods:
             domain = Domain(url="http://www.google.com/",
-                            validation_method=validation_method)
+                            validation_method=validation_method,
+                            organization=google)
+            domain.save()
             self.assertFalse(validate_domain(domain))
 
         # Make sure Magenta's website validates using all possible methods
         for validation_method in all_methods:
             domain = Domain(url="http://www.magenta.dk/",
-                            validation_method=validation_method)
+                            validation_method=validation_method,
+                            organization=magenta)
+            domain.save()
             self.assertTrue(validate_domain(domain))
 
 

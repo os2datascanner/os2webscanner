@@ -228,13 +228,11 @@ class ConversionQueueItem(models.Model):
     NEW = "NEW"
     PROCESSING = "PROCESSING"
     FAILED = "FAILED"
-    SUCCEEDED = "SUCCEEDED"
 
     status_choices = (
         (NEW, "Ny"),
         (PROCESSING, "I gang"),
         (FAILED, "Fejlet"),
-        (SUCCEEDED, "Success")
     )
     status = models.CharField(max_length=10, choices=status_choices,
                               default=NEW)
