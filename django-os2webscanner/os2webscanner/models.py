@@ -1,4 +1,6 @@
 # encoding: utf-8
+import os
+from subprocess import Popen
 import re
 from django.db import models
 from django.contrib.auth.models import User
@@ -88,7 +90,7 @@ class Domain(models.Model):
     @property
     def root_url(self):
         if (not self.url.startswith('http://') and not
-                self.url.startswith('https://')):
+            self.url.startswith('https://')):
             return 'http://%s/' % self.url
         else:
             return self.url
@@ -96,6 +98,7 @@ class Domain(models.Model):
     @property
     def sitemap_full_path(self):
         from django.conf import settings
+
         return "%s/%s" % (settings.BASE_DIR, self.sitemap.url)
 
     def get_absolute_url(self):
@@ -135,6 +138,34 @@ class Scanner(models.Model):
     do_cpr_scan = models.BooleanField(default=True)
     do_name_scan = models.BooleanField(default=True)
     regex_rules = models.ManyToManyField(RegexRule, blank=True, null=True)
+
+    def run(self, test_only=False):
+        """Run a scan with the Scanner.
+
+        Return False if there is already a scanner running.
+        If test_only is True, only check if we can run a scan, don't actually
+        run one.
+        """
+        active_scanners = Scan.objects.filter(scanner=self, status__in=(
+            Scan.NEW, Scan.STARTED)).count()
+        if active_scanners > 0:
+            return False
+
+        # Create a new Scan
+        scan = Scan(scanner=self, status=Scan.NEW)
+        scan.save()
+        # Get path to run script
+        SCRAPY_WEBSCANNER_DIR = os.path.join(os.path.dirname(os.path.dirname(
+            os.path.dirname(
+                os.path.realpath(__file__)))), "scrapy-webscanner")
+        print SCRAPY_WEBSCANNER_DIR
+
+        if test_only:
+            return True
+
+        process = Popen([os.path.join(SCRAPY_WEBSCANNER_DIR, "run.py"),
+                         str(scan.pk)])
+        return True
 
     @property
     def schedule_description(self):
