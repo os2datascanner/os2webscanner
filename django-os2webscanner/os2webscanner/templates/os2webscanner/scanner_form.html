@@ -1,5 +1,5 @@
-<form class="scanner_form" method="post">
-    <div class="scanner_fields">
+<form class="form-horizontal" role="form" method="post">
+    <div class="form-group col-sm-12">
         {% csrf_token %}
     {{ form.as_p }}
 </div>
