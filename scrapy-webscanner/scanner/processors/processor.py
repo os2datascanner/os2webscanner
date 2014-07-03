@@ -95,16 +95,15 @@ class Processor(object):
                 result = self.handle_queue_item(item)
                 if not result:
                     item.status = ConversionQueueItem.FAILED
+                    item.save()
                 else:
-                    item.status = ConversionQueueItem.SUCCEEDED
-                    # TODO: Delete item instead of changing status
+                    item.delete()
                 print "%s (%s): %s" % (
                     item.file_path,
                     item.url.url,
                     "success" if result else "fail"
                 )
                 sys.stdout.flush()
-                item.save()
 
     @transaction.atomic
     def get_next_queue_item(self):
@@ -201,6 +200,8 @@ class Processor(object):
         'application/javascript': 'text',
         'application/json': 'text',
         'application/csv': 'text',
+
+        'application/zip': 'zip',
 
         'application/pdf': 'pdf',
 

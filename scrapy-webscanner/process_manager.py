@@ -20,10 +20,10 @@ log_dir = os.path.join(var_dir, "logs")
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
-processes_per_type = 5
+processes_per_type = 2
 seconds_until_stuck = 120
 
-process_types = ('html', 'libreoffice', 'ocr', 'pdf')
+process_types = ('html', 'libreoffice', 'ocr', 'pdf', 'zip', 'text')
 
 process_map = {}
 process_list = []

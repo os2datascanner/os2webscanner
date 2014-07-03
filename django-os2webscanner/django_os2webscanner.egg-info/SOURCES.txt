@@ -8,6 +8,7 @@ django_os2webscanner.egg-info/dependency_links.txt
 django_os2webscanner.egg-info/top_level.txt
 os2webscanner/__init__.py
 os2webscanner/admin.py
+os2webscanner/forms.py
 os2webscanner/models.py
 os2webscanner/tests.py
 os2webscanner/urls.py
