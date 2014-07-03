@@ -143,9 +143,8 @@ class Scanner(models.Model):
         """Run a scan with the Scanner.
 
         Return the Scan object if we started the scanner.
-        Return None if there is already a scanner running.
-        Return a Scan object with a FAILED status if there was a problem
-        running the scanner.
+        Return None if there is already a scanner running,
+        or if there was a problem running the scanner.
         If test_only is True, only check if we can run a scan, don't actually
         run one.
         """
@@ -170,9 +169,7 @@ class Scanner(models.Model):
             process = Popen([os.path.join(SCRAPY_WEBSCANNER_DIR, "run.py"),
                          str(scan.pk)])
         except Exception as e:
-            scan.status = Scan.FAILED
-            scan.reason = repr(e)
-            scan.save()
+            return None
         return scan
 
     @property

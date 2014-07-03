@@ -18,8 +18,6 @@ def strip_seconds(d):
     return d.replace(second=0, microsecond=0)
 
 
-from subprocess import Popen
-
 now = strip_seconds(datetime.now())
 print "Current time %s" % now
 
