@@ -19,7 +19,7 @@ class LoginRequiredMixin(View):
 
 class RestrictedListView(ListView, LoginRequiredMixin):
     """Make sure users only see data that belong to their own organization."""
- 
+
     def get_queryset(self):
         """Restrict to the organization of the logged-in user."""
         user = self.request.user
@@ -66,10 +66,21 @@ class ReportList(ListView, LoginRequiredMixin):
 
 class ScannerCreate(CreateView, LoginRequiredMixin):
     model = Scanner
+    fields = ['name', 'schedule', 'whitelisted_names', 'domains',
+              'do_cpr_scan', 'do_name_scan', 'regex_rules']
+
+    def form_valid(self, form):
+        user_profile = self.request.user.get_profile()
+        self.object = form.save(commit=False)
+        self.object.organization = user_profile.organization
+
+        return super(ScannerCreate, self).form_valid(form)
 
 
 class ScannerUpdate(UpdateView, LoginRequiredMixin):
     model = Scanner
+    fields = ['name', 'schedule', 'whitelisted_names', 'domains',
+              'do_cpr_scan', 'do_name_scan', 'regex_rules']
 
 
 class ScannerDelete(DeleteView, LoginRequiredMixin):
@@ -79,10 +90,21 @@ class ScannerDelete(DeleteView, LoginRequiredMixin):
 
 class DomainCreate(CreateView, LoginRequiredMixin):
     model = Domain
+    fields = ['url', 'validation_status', 'validation_method',
+              'exclusion_rules', 'sitemap']
+
+    def form_valid(self, form):
+        user_profile = self.request.user.get_profile()
+        self.object = form.save(commit=False)
+        self.object.organization = user_profile.organization
+
+        return super(DomainCreate, self).form_valid(form)
 
 
 class DomainUpdate(UpdateView, LoginRequiredMixin):
     model = Domain
+    fields = ['url', 'validation_status', 'validation_method',
+              'exclusion_rules', 'sitemap']
 
 
 class DomainDelete(DeleteView, LoginRequiredMixin):
@@ -92,6 +114,14 @@ class DomainDelete(DeleteView, LoginRequiredMixin):
 
 class RuleCreate(CreateView, LoginRequiredMixin):
     model = RegexRule
+    fields = ['name', 'match_string', 'description', 'sensitivity']
+
+    def form_valid(self, form):
+        user_profile = self.request.user.get_profile()
+        self.object = form.save(commit=False)
+        self.object.organization = user_profile.organization
+
+        return super(RuleCreate, self).form_valid(form)
 
 
 class RuleUpdate(UpdateView, LoginRequiredMixin):
@@ -102,8 +132,8 @@ class RuleDelete(DeleteView, LoginRequiredMixin):
     model = RegexRule
     success_url = '/rules/'
 
-# Reports stuff
 
+# Reports stuff
 class ReportDetails(DetailView, LoginRequiredMixin):
     """Display a detailed report."""
     model = Scan

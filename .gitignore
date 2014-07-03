@@ -2,3 +2,5 @@
 python-env
 *.komodoproject
 webscanner_site/static
+django-os2webscanner/build
+django-os2webscanner/django.os2webscanner.egg-info
