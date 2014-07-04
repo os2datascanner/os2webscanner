@@ -22,7 +22,7 @@ def _get_validation_hash(domain):
     return hashlib.md5(str(domain.organization.pk)).hexdigest()
 
 
-def get_validation_str(domain):
+def get_validation_str(domain, method=None):
     """Return the validation string for the domain.
 
     The validation string is what must be inserted by the user into a
@@ -31,7 +31,8 @@ def get_validation_str(domain):
     organization.
     """
     hash_str = _get_validation_hash(domain)
-    method = domain.validation_method
+    if method is None:
+        method = domain.validation_method
     if method == Domain.ROBOTSTXT:
         return "User-agent: " + hash_str + "\nDisallow:"
     elif method == Domain.WEBSCANFILE:

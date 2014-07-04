@@ -5,6 +5,10 @@ from django.views.generic import View, ListView, TemplateView, DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django import forms
+from django.forms.models import modelform_factory
+
+from validate import validate_domain, get_validation_str
 
 from .models import Scanner, Domain, RegexRule, Scan, Match, UserProfile
 
@@ -69,6 +73,19 @@ class ReportList(RestrictedListView):
 # Create/Update/Delete Views.
 
 class RestrictedCreateView(CreateView, LoginRequiredMixin):
+    def get_form_fields(self):
+        fields = [ f for f in self.fields ]
+
+        if self.request.user.is_superuser:
+            fields.append('organization')
+
+        return fields
+
+    def get_form(self, form_class):
+        fields = self.get_form_fields()
+        form_class = modelform_factory(self.model, fields=fields)
+        kwargs = self.get_form_kwargs();
+        return form_class(**kwargs)
 
     def form_valid(self, form):
         if not self.request.user.is_superuser:
@@ -77,15 +94,6 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
             self.object.organization = user_profile.organization
 
         return super(RestrictedCreateView, self).form_valid(form)
-
-    def get(self, request, *args, **kwargs):
-        if request.user.is_superuser:
-            self.fields.append('organization')
-
-        result = super(RestrictedCreateView, self).get(self, request, *args,
-                                                     **kwargs)
-        return result
-
 
 class ScannerCreate(RestrictedCreateView):
     model = Scanner
@@ -106,14 +114,97 @@ class ScannerDelete(DeleteView, LoginRequiredMixin):
 
 class DomainCreate(RestrictedCreateView):
     model = Domain
-    fields = ['url', 'validation_status', 'validation_method',
-              'exclusion_rules', 'sitemap']
+    fields = ['url', 'exclusion_rules', 'sitemap']
 
+    def get_form_fields(self):
+        fields = super(DomainCreate, self).get_form_fields()
+        if self.request.user.is_superuser:
+            fields.append('validation_status')
+        return fields
+
+    def get_form(self, form_class):
+        form = super(DomainCreate, self).get_form(form_class)
+
+        for fname in form.fields:
+            f = form.fields[fname]
+            f.widget.attrs['class'] = 'form-control'
+
+        return form
 
 class DomainUpdate(UpdateView, LoginRequiredMixin):
     model = Domain
-    fields = ['url', 'validation_status', 'validation_method',
-              'exclusion_rules', 'sitemap']
+    fields = [ 'url', 'exclusion_rules', 'sitemap' ]
+
+    def get_form(self, form_class):
+        enabled_fields = [ f for f in DomainUpdate.fields ]
+        if self.request.user.is_superuser:
+            enabled_fields.append('validation_status')
+            enabled_fields.append('organization')
+        elif not self.object.validation_status:
+            enabled_fields.append('validation_method')
+
+        form_class = modelform_factory(self.model, fields=enabled_fields)
+        kwargs = self.get_form_kwargs();
+        form = form_class(**kwargs)
+
+        for fname in form.fields:
+            f = form.fields[fname]
+            f.widget.attrs['class'] = 'form-control'
+
+        if 'validation_method' in form.fields:
+            vm_field = form.fields['validation_method']
+            if vm_field:
+                vm_field.widget = forms.RadioSelect(
+                    choices = vm_field.widget.choices
+                )
+                vm_field.widget.attrs['class'] = 'validateradio'
+
+        return form
+
+    def form_valid(self, form):
+        old_obj = Domain.objects.get(pk=self.object.pk)
+        if old_obj.url != self.object.url:
+            self.object.validation_status = Domain.INVALID
+
+        if not self.request.user.is_superuser:
+            user_profile = self.request.user.get_profile()
+            self.object = form.save(commit=False)
+            self.object.organization = user_profile.organization
+
+        result = super(DomainUpdate, self).form_valid(form)
+
+        return result
+
+    def get_context_data(self, **kwargs):
+        context = super(DomainUpdate, self).get_context_data(**kwargs)
+        for value, desc in Domain.validation_method_choices:
+            key = 'valid_txt_' + str(value)
+            context[key] = get_validation_str(self.object, value)
+        return context
+
+    def get_success_url(self):
+        url = self.object.get_absolute_url()
+        if 'save_and_validate' in self.request.POST:
+            return 'validate/';
+        else:
+            return '../'
+
+class DomainValidate(DetailView, LoginRequiredMixin):
+    model = Domain
+
+    def get_context_data(self, **kwargs):
+        context = super(DomainValidate, self).get_context_data(**kwargs)
+        context['validation_status'] = self.object.validation_status
+        if not self.object.validation_status:
+            result = validate_domain(self.object)
+
+            if result:
+                self.object.validation_status = Domain.VALID
+                self.object.save()
+
+            context['validation_success'] = result
+
+        return context
 
 
 class DomainDelete(DeleteView, LoginRequiredMixin):

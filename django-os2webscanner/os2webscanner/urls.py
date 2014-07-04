@@ -3,7 +3,7 @@ from django.conf.urls import patterns, url
 from .views import MainPageView, ScannerList, DomainList, RuleList
 from .views import ReportDetails, ReportList
 from .views import ScannerCreate, ScannerUpdate, ScannerDelete
-from .views import DomainCreate, DomainUpdate, DomainDelete
+from .views import DomainCreate, DomainUpdate, DomainValidate, DomainDelete
 from .views import RuleCreate, RuleUpdate, RuleDelete
 
 urlpatterns = patterns(
@@ -18,6 +18,8 @@ urlpatterns = patterns(
         name='scanner_delete'),
     url(r'^domains/$', DomainList.as_view(), name='domains'),
     url(r'^domains/add/$', DomainCreate.as_view(), name='domain_add'),
+    url(r'^domains/(?P<pk>\d+)/validate/$', DomainValidate.as_view(),
+        name='domain_validate'),
     url(r'^domains/(?P<pk>\d+)/$', DomainUpdate.as_view(),
         name='domain_update'),
     url(r'^domains/(?P<pk>\d+)/delete/$', DomainDelete.as_view(),

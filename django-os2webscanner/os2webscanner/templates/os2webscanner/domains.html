@@ -58,9 +58,15 @@ Domæner
                 {% endif %}
               </td>
               <td class="domain-actions">
-                <button type="button" class="btn btn-default btn-xs btn-domain-settings">
+                <button type="button"
+		  class="btn btn-default btn-xs btn-domain-settings"
+		  onclick="os2web.iframeDialog(
+		      &quot;#edit-domain-modal&quot;,
+		      &quot;/domains/{{domain.pk}}&quot;,
+		      &quot;Redigér domæne '{{domain.url}}'&quot;
+		  )">
               	  <span class="glyphicon glyphicon-cog"></span><span class="sr-only">Indstillinger for domæne</span>
-				</button>
+		</button>
                 <span>
                     <a href="/domains/{{domain.pk}}/delete/">Slet domæne</a>
                 </span>
@@ -84,95 +90,52 @@ Domæner
 {% endblock %}
 
 {% block modal %}
-    <div class="modal" id="create-domain-modal" tabindex="-1" role="dialog" aria-labelledby="create-domain-modal-title" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-              &times;
-            </button>
-            <h4 class="modal-title" id="create-domain-modal-title">
-              Opret nyt domæne
-            </h4>
-          </div>
-          <div class="modal-body">
-            <form class="form-horizontal" role="form">
-              <div class="form-group">
-                  <div class="col-sm-12">
-                    <label for="field-domain-url">
-                      URL
-                    </label>
-                    <input type="text" class="form-control" id="field-domain-url">
-                  </div>
-              </div>
-              <div class="form-group">
-                  <div class="col-sm-12">
-                    <label for="field-domain-exclusion">URL ekskluderingsregler</label>
-                    <textarea class="form-control" id="field-domain-exclusion" rows="3" placeholder="Indsæt regulære udtryk adskilt af linjeskift"></textarea>
-                  </div>
-              </div>
-              <div class="panel panel-default">
-              	<div class="panel-heading">Godkendelsesmetode</div>
-                <div class="panel-body">
-              	  <div class="col-sm-5">
-                    <div class="form-group">
-                      <div class="radio">
-                        <label>
-                          <input type="radio" name="field-domain-validation" value="validate-robots" id="validate-robots" checked>
-                          Robots.txt
-                        </label>
-                      </div>
-                      <div class="radio">
-                        <label>
-                          <input type="radio" name="field-domain-validation" value="validate-webscan" id="validate-webscan">
-                          Webscan.html
-                        </label>
-                      </div>
-                      <div class="radio">
-                        <label>
-                          <input type="radio" name="field-domain-validation" value="validate-metafield" id="validate-metafield">
-                          Metafield
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-sm-7">
-                  	<div class="form-group">
-                      <p class="form-control-static">
-                      	Indsæt følgende
-                      </p>
-                      <pre style="margin-top:.7em;">User-agent: OS2Webscanner<br/>Disallow:
-                      </pre>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="form-group">
-                <div class="col-sm-12">
-                  <label for="field-domain-sitemap" class="sr-only">
-               	    Sitemap
-                  </label>
-                  <span class="btn btn-default btn-block btn-sitemap-upload form-control">
-                    Klik her for at uploade sitemap.xml <input type="file">
-                  </span>
-                </div>
-              </div>
-              <div class="alert alert-warning" role="alert">
-                  	<span class="glyphicon glyphicon-ban-circle"></span> Dette domæne er endnu ikke valideret
-                  <button style="margin-left:1em;" type="button" class="btn btn-default">Validér nu</button>
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <div class="btn-group">
-              <button type="button" class="btn btn-default" data-dismiss="modal">
-                Luk
-              </button>
-              <button type="button" class="btn btn-primary">
-                Gem ændringer
-              </button>
-            </div>
-          </div>
+<div class="modal iframe" id="create-domain-modal" tabindex="-1" role="dialog"
+  aria-labelledby="create-domain-modal-title" aria-hidden="true"
+  data-href="/domains/add/">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+	  &times;
+	</button>
+	<h4 class="modal-title" id="create-domain-modal-title">
+	  Opret nyt domæne
+	</h4>
+      </div>
+      <div class="modal-body">
+	<iframe src="about:blank" frameborder="0"
+	  width="550" height="650"></iframe>
+      </div>
+      <div class="modal-footer">
+	<div class="btn-group"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal iframe" id="edit-domain-modal" tabindex="-1" role="dialog"
+  aria-labelledby="edit-domain-modal-title" aria-hidden="true"
+  data-href="/domains/add/">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+	  &times;
+	</button>
+	<h4 class="modal-title" id="edit-domain-modal-title">
+	  Opret nyt domæne
+	</h4>
+      </div>
+      <div class="modal-body">
+	<iframe src="about:blank" frameborder="0"
+	  width="550" height="650"></iframe>
+      </div>
+      <div class="modal-footer">
+	<div class="btn-group"></div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block domains_active %}

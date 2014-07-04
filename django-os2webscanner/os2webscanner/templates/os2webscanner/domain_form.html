@@ -1,9 +1,168 @@
+{% extends 'os2webscanner/base.html' %}
+{% block topnav %}{% endblock %}
+{% block body %}
+{% if 0 %}
+  <form class="form-horizontal" role="form">
+  {% if form.non_field_errors %}
+    <ul>
+      {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  {% for field in form %}
+  <div id="{{ field.auto_id }}_container">
+    {{ field.help_text }}
+    <div>
+      {{ field.label_tag }} {{ field }}
+    </div>
+    <div id="{{ field.auto_id }}_errors">
+      {{ field.errors }}
+    </div>
+  </div>
+  {% endfor %}
+  </form>
+{% endif %}
+
 <form class="scanner_form" method="post">
-    <div class="scanner_fields">
-        {% csrf_token %}
-    {{ form.as_p }}
-</div>
-
-<input type="submit">
+  <div class="scanner_fields">
+  </div>
+  <div>
+    <form class="form-horizontal" role="form">
+      {% csrf_token %}
+      <div class="form-group clearfix">
+        <div class="col-sm-12">
+          <div id="{{ form.url.auto_id }}_container">
+            <div>{{ form.url.help_text }}</div>
+            <div>
+              {{ form.url.label_tag }}
+              {{ form.url }}
+            </div>
+            <div id="{{ form.url.auto_id }}_errors">
+              {{ form.url.errors }}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% if form.organization %}
+      <div class="form-group clearfix">
+        <div class="col-sm-12">
+          <div id="{{ form.organization.auto_id }}_container">
+            <div>{{ form.organization.help_text }}</div>
+            <div>
+              {{ form.organization.label_tag }}
+              {{ form.organization }}
+            </div>
+            <div id="{{ form.organization.auto_id }}_errors">
+              {{ form.organization.errors }}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      {% if form.validation_status %}
+      <div class="form-group clearfix">
+        <div class="col-sm-12">
+          <div id="{{ form.validation_status.auto_id }}_container">
+            <div>{{ form.organization.help_text }}</div>
+            <div>
+              {{ form.validation_status.label_tag }}
+              {{ form.validation_status }}
+            </div>
+            <div id="{{ form.validation_status.auto_id }}_errors">
+              {{ form.validation_status.errors }}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      <div class="form-group clearfix">
+          <div class="col-sm-12">
+            <div id="{{ form.exclusion_rules.auto_id }}_container">
+              <div>{{ form.exclusion_rules.label_tag }}</div>
+              <div>{{ form.exclusion_rules.help_text }}</div>
+              <div>{{ form.exclusion_rules }}</div>
+              <div id="{{ form.exclusion_rules.auto_id }}_errors">
+                {{ form.exclusion_rules.errors }}
+              </div>
+            </div>
+          </div>
+      </div>
+      <div class="form-group clearfix">
+        <div class="col-sm-12">
+          <div id="{{ form.sitemap.auto_id }}_container">
+            <div>{{ form.sitemap.label_tag }}</div>
+            <div>{{ form.sitemap.help_text }}</div>
+            <div>
+            <span class="btn btn-default btn-block btn-sitemap-upload form-control">
+              Klik her for at uploade sitemap.xml
+              {{ form.sitemap }}
+            </span>
+            </div>
+            <div id="{{ form.sitemap.auto_id }}_errors">
+              {{ form.sitemap.errors }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group clearfix">
+        <div class="col-sm-12">
+          <br />
+          <button type="submit" class="btn btn-primary" name="save">
+            Gem ændringer
+          </button>
+        </div>
+      </div>
+      {% if form.validation_method %}
+      <div class="form-group col-sm-12 clearfix">
+        <div class="alert alert-warning clearfix" role="alert">
+          <p>
+            <span class="glyphicon glyphicon-ban-circle"></span>
+            Dette domæne er endnu ikke valideret
+          </p>
+          <div class="panel panel-default">
+            <div class="panel-body">
+              <div class="panel-heading">Godkendelsesmetode</div>
+              <div class="col-sm-5">
+                <div class="form-group">
+                  <div id="{{ form.validation_method.auto_id }}_container">
+                    <div>{{ form.validation_method.label_tag }}</div>
+                    <div>{{ form.validation_method.help_text }}</div>
+                    <div>{{ form.validation_method }}</div>
+                    <div id="{{ form.validation_method.auto_id }}_errors">
+                      {{ form.validation_method.errors }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-7">
+                <div class="form-group">
+                  <div class="tab-content">
+                    <p class="form-control-static">
+                      Indsæt følgende
+                    </p>
+                    <div id="validation_method_desc_0" class="tab-pane active schedule-pane" >
+                      <pre style="margin-top:.7em;">{{valid_txt_0|escape}}</pre>
+                    </div>
+                    <div id="validation_method_desc_1" class="tab-pane schedule-pane" >
+                      <pre style="margin-top:.7em;">{{valid_txt_1|escape}}</pre>
+                    </div>
+                    <div id="validation_method_desc_2" class="tab-pane schedule-pane" >
+                      <pre style="margin-top:.7em;">{{valid_txt_2|escape}}</pre>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button type="submit" name="save_and_validate"
+                class="btn btn-default">
+          Validér nu
+        </button>
+      </div>
+      {% endif %}
+    </form>
+  </div>
 </form>
-
+{% endblock %}

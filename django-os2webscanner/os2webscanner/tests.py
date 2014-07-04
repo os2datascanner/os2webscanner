@@ -30,20 +30,22 @@ class ScannerTest(TestCase):
     def test_validate_domain(self):
         # Make sure Google does not validate in any of the possible methods
         all_methods = [Domain.ROBOTSTXT, Domain.WEBSCANFILE, Domain.METAFIELD]
-        for validation_method in all_methods:
-            domain = Domain(url="http://www.google.com/",
-                            validation_method=validation_method,
-                            organization=self.google)
-            domain.save()
-            self.assertFalse(validate_domain(domain))
-
         # Make sure Magenta's website validates using all possible methods
         for validation_method in all_methods:
             domain = Domain(url="http://www.magenta.dk/",
                             validation_method=validation_method,
-                            organization=self.magenta)
+                            organization=self.magenta
+                            pk=1)
             domain.save()
             self.assertTrue(validate_domain(domain))
+
+        for validation_method in all_methods:
+            domain = Domain(url="http://www.google.com/",
+                            validation_method=validation_method,
+                            organization=self.google
+                            pk=2)
+            domain.save()
+            self.assertFalse(validate_domain(domain))
 
     def test_run_scan(self):
         domain = Domain(url="http://www.magenta.dk/",
