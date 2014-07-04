@@ -1,3 +1,5 @@
+"""URL mappings."""
+
 from django.conf.urls import patterns, url
 
 from .views import MainPageView, ScannerList, DomainList, RuleList

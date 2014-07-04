@@ -1,8 +1,6 @@
-"""
-This file demonstrates writing tests using the unittest module. These will pass
-when you run "manage.py test".
+"""Unittests for the os2webscanner.
 
-Replace this with more appropriate tests for your application.
+These will pass when you run "manage.py test os2webscanner".
 """
 
 import os
@@ -18,8 +16,12 @@ install_directory = os.path.abspath(os.path.join(settings.BASE_DIR, '..'))
 
 
 class ScannerTest(TestCase):
+
+    """Test running a scan and domain validation."""
+
     @classmethod
     def setUpClass(cls):
+        """Setup some data to test with."""
         # Don't change the order of these, because Magenta needs pk = 2 to pass
         # the validation test
         cls.google = Organization(name="Google")
@@ -28,6 +30,7 @@ class ScannerTest(TestCase):
         cls.magenta.save()
 
     def test_validate_domain(self):
+        """Test validating domains."""
         # Make sure Google does not validate in any of the possible methods
         all_methods = [Domain.ROBOTSTXT, Domain.WEBSCANFILE, Domain.METAFIELD]
         for validation_method in all_methods:
@@ -46,6 +49,7 @@ class ScannerTest(TestCase):
             self.assertTrue(validate_domain(domain))
 
     def test_run_scan(self):
+        """Test running a scan."""
         domain = Domain(url="http://www.magenta.dk/",
                         organization=self.magenta,
                         validation_method=Domain.ROBOTSTXT)
@@ -55,15 +59,8 @@ class ScannerTest(TestCase):
         self.assertFalse(scanner.run(test_only=True))
 
 
-class SimpleTest(TestCase):
-    def test_basic_addition(self):
-        """
-        Tests that 1 + 1 always equals 2.
-        """
-        self.assertEqual(1 + 1, 2)
-
-
 def pep8_test(filepath):
+    """Run a pep8 test on the filepath."""
     def do_test(self):
         # print "PATH:", filepath
         arglist = ['--exclude=lib', filepath]
@@ -77,8 +74,9 @@ def pep8_test(filepath):
 
 
 class Pep8Test(TestCase):
-    """Test that the template system a well as the default clients and plugins
-    are PEP8-compliant."""
+
+    """Test that django app and scrapy webscanner are PEP8-compliant."""
+
     j = lambda dir: os.path.join(install_directory, dir)
 
     test_os2webscanner = pep8_test(j('django-os2webscanner'))

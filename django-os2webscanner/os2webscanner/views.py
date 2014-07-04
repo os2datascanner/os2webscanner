@@ -1,3 +1,5 @@
+"""Contains Django views."""
+
 from django.shortcuts import render
 from django.views.generic import View, ListView, TemplateView, DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
@@ -8,6 +10,7 @@ from .models import Scanner, Domain, RegexRule, Scan, Match, UserProfile
 
 
 class LoginRequiredMixin(View):
+
     """Include to require login."""
 
     @method_decorator(login_required)
@@ -16,6 +19,7 @@ class LoginRequiredMixin(View):
 
 
 class RestrictedListView(ListView, LoginRequiredMixin):
+
     """Make sure users only see data that belong to their own organization."""
 
     def get_queryset(self):
@@ -29,29 +33,40 @@ class RestrictedListView(ListView, LoginRequiredMixin):
 
 
 class MainPageView(TemplateView):
+
+    """Display the main page."""
+
     template_name = 'index.html'
 
 
 class ScannerList(RestrictedListView):
+
     """Displays list of scanners."""
+
     model = Scanner
     template_name = 'os2webscanner/scanners.html'
 
 
 class DomainList(RestrictedListView):
+
     """Displays list of domains."""
+
     model = Domain
     template_name = 'os2webscanner/domains.html'
 
 
 class RuleList(RestrictedListView):
+
     """Displays list of scanners."""
+
     model = RegexRule
     template_name = 'os2webscanner/rules.html'
 
 
 class ReportList(RestrictedListView):
+
     """Displays list of scanners."""
+
     model = Scan
     template_name = 'os2webscanner/reports.html'
 
@@ -87,61 +102,91 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
 
 
 class ScannerCreate(RestrictedCreateView):
+
+    """Create a scanner view."""
+
     model = Scanner
     fields = ['name', 'schedule', 'whitelisted_names', 'domains',
               'do_cpr_scan', 'do_name_scan', 'regex_rules']
 
 
 class ScannerUpdate(UpdateView, LoginRequiredMixin):
+
+    """Update a scanner view."""
+
     model = Scanner
     fields = ['name', 'schedule', 'whitelisted_names', 'domains',
               'do_cpr_scan', 'do_name_scan', 'regex_rules']
 
 
 class ScannerDelete(DeleteView, LoginRequiredMixin):
+
+    """Delete a scanner view."""
+
     model = Scanner
     success_url = '/scanners/'
 
 
 class DomainCreate(RestrictedCreateView):
+
+    """Create a domain view."""
+
     model = Domain
     fields = ['url', 'validation_status', 'validation_method',
               'exclusion_rules', 'sitemap']
 
 
 class DomainUpdate(UpdateView, LoginRequiredMixin):
+
+    """Update a domain view."""
+
     model = Domain
     fields = ['url', 'validation_status', 'validation_method',
               'exclusion_rules', 'sitemap']
 
 
 class DomainDelete(DeleteView, LoginRequiredMixin):
+
+    """Delete a domain view."""
+
     model = Domain
     success_url = '/domains/'
 
 
 class RuleCreate(RestrictedCreateView):
+
+    """Create a rule view."""
+
     model = RegexRule
     fields = ['name', 'match_string', 'description', 'sensitivity']
 
 
 class RuleUpdate(UpdateView, LoginRequiredMixin):
+
+    """Update a rule view."""
+
     model = RegexRule
 
 
 class RuleDelete(DeleteView, LoginRequiredMixin):
+
+    """Delete a rule view."""
+
     model = RegexRule
     success_url = '/rules/'
 
 
 # Reports stuff
 class ReportDetails(DetailView, LoginRequiredMixin):
+
     """Display a detailed report."""
+
     model = Scan
     template_name = 'os2webscanner/report.html'
     context_object_name = "scan"
 
     def get_context_data(self, **kwargs):
+        """Add the scan's matches to the report context data."""
         context = super(ReportDetails, self).get_context_data(**kwargs)
         all_matches = Match.objects.filter(
             scan=self.get_object()
