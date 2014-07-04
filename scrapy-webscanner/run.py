@@ -10,6 +10,8 @@ base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(base_dir + "/webscanner_site")
 os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 
+os.environ["SCRAPY_SETTINGS_MODULE"] = "scanner.settings"
+
 from twisted.internet import reactor
 from scrapy.crawler import Crawler
 from scrapy import log, signals
