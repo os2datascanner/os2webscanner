@@ -28,6 +28,7 @@ def signal_handler(signal, frame):
     scanner_app.handle_killed()
     reactor.stop()
 
+
 signal.signal(signal.SIGINT | signal.SIGTERM, signal_handler)
 
 
@@ -94,7 +95,8 @@ class ScannerApp:
         log.msg("Spider Idle...")
         # Keep spider alive if there are still queue items to be processed
         remaining_queue_items = ConversionQueueItem.objects.filter(
-            status__in=[ConversionQueueItem.NEW, ConversionQueueItem.PROCESSING],
+            status__in=[ConversionQueueItem.NEW,
+                        ConversionQueueItem.PROCESSING],
             url__scan=self.scan_object
         ).count()
 
@@ -106,6 +108,7 @@ class ScannerApp:
             raise DontCloseSpider
         else:
             log.msg("No more active processors, closing spider...")
+
 
 scanner_app = ScannerApp()
 scanner_app.run()

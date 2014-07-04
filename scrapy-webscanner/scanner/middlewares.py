@@ -3,8 +3,7 @@ import re
 
 from scrapy import Request
 from scrapy import log
-from scrapy.contrib.downloadermiddleware.redirect import BaseRedirectMiddleware, \
-    RedirectMiddleware
+from scrapy.contrib.downloadermiddleware.redirect import RedirectMiddleware
 from scrapy.contrib.spidermiddleware.offsite import OffsiteMiddleware
 from scrapy.exceptions import IgnoreRequest
 from scrapy.utils.httpobj import urlparse_cached

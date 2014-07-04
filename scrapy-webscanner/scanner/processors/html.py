@@ -5,6 +5,7 @@ from text import TextProcessor
 from scrapy import log
 import os
 
+
 class HTMLProcessor(Processor):
     item_type = "html"
     text_processor = TextProcessor()
@@ -25,5 +26,6 @@ class HTMLProcessor(Processor):
         # Strip tags from the HTML (except comments)
         no_tags_html = remove_tags(entity_replaced_html, keep=("!--",))
         return self.text_processor.process(no_tags_html, url_object)
+
 
 Processor.register_processor(HTMLProcessor.item_type, HTMLProcessor)

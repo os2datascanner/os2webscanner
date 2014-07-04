@@ -28,6 +28,7 @@ process_types = ('html', 'libreoffice', 'ocr', 'pdf', 'zip', 'text')
 process_map = {}
 process_list = []
 
+
 def stop_process(pdata):
     if not 'process_handle' in pdata:
         print "Process %s already stopped" % pdata['name']
@@ -57,6 +58,7 @@ def stop_process(pdata):
         log_fh = pdata['log_fh']
         del pdata['log_fh']
         log_fh.close()
+
 
 def start_process(pdata):
     if 'process_handle' in pdata:
@@ -90,14 +92,17 @@ def start_process(pdata):
     pdata['pid'] = process_handle.pid
     process_map[process_handle.pid] = process_data
 
+
 def restart_process(pdata):
     stop_process(pdata)
     start_process(pdata)
+
 
 def exit_handler(signum, frame):
     for pdata in process_list:
         stop_process(pdata)
     sys.exit(1)
+
 
 signal.signal(signal.SIGTERM | signal.SIGINT | signal.SIGQUIT, exit_handler)
 
@@ -112,7 +117,7 @@ for ptype in process_types:
         # Libreoffice takes the homedir name as second arg
         if "libreoffice" == ptype:
             program.append(name)
-        process_data = { 'program_args': program, 'name': name }
+        process_data = {'program_args': program, 'name': name}
         process_map[name] = process_data
         process_list.append(process_data)
 
@@ -124,18 +129,19 @@ try:
         for pdata in process_list:
             result = pdata['process_handle'].poll()
             if pdata['process_handle'].poll() is not None:
-                print "Process %s has terminated, restarting it" % pdata['name']
+                print "Process %s has terminated, restarting it" % (
+                    pdata['name']
+                )
                 restart_process(pdata)
         stuck_processes = ConversionQueueItem.objects.filter(
             status=ConversionQueueItem.PROCESSING,
             process_start_time__lt=timezone.now() - timedelta(
                 0, seconds_until_stuck
             ),
-            process_id__in=[ pdata['pid'] for pdata in process_list ]
+            process_id__in=[pdata['pid'] for pdata in process_list]
         )
         for p in stuck_processes:
             restart_process(process_map[p.process_id])
         time.sleep(10)
 except KeyboardInterrupt:
     pass
-

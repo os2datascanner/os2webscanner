@@ -1,5 +1,3 @@
-from operator import attrgetter
-
 from django.shortcuts import render
 from django.views.generic import View, ListView, TemplateView, DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
@@ -64,12 +62,13 @@ class ReportList(RestrictedListView):
             return self.model.objects.all()
         else:
             profile = user.get_profile()
-            return self.model.objects.filter(scanner__organization=profile.organization)
+            return self.model.objects.filter(
+                scanner__organization=profile.organization)
+
 
 # Create/Update/Delete Views.
 
 class RestrictedCreateView(CreateView, LoginRequiredMixin):
-
     def form_valid(self, form):
         if not self.request.user.is_superuser:
             user_profile = self.request.user.get_profile()
@@ -83,7 +82,7 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
             self.fields.append('organization')
 
         result = super(RestrictedCreateView, self).get(self, request, *args,
-                                                     **kwargs)
+                                                       **kwargs)
         return result
 
 

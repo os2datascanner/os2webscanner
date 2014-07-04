@@ -123,7 +123,7 @@ class Processor(object):
                     result.process_id = os.getpid()
                     result.process_start_time = timezone.now()
                     result.save()
-            except (DatabaseError, IntegrityError)  as e:
+            except (DatabaseError, IntegrityError) as e:
                 # Database transaction failed, we just try again
                 print "".join([
                     "Transaction failed while getting queue item of type ",

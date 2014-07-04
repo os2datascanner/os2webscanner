@@ -1,7 +1,7 @@
 """Base classes for rules."""
 
-class Rule:
 
+class Rule:
     """Represents a rule which can be executed on text and returns matches."""
 
     def execute(self, text):

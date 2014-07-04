@@ -51,7 +51,7 @@ class LibreOfficeProcessor(Processor):
     def convert(self, item, tmp_dir):
         if self.home_dir is None:
             self.setup_homedir()
-        
+
         # TODO: Input type to filter mapping?
         return_code = subprocess.call([
                                           "libreoffice", "--headless",
