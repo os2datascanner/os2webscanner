@@ -74,11 +74,12 @@ class ReportList(RestrictedListView):
         """Restrict to the organization of the logged-in user."""
         user = self.request.user
         if user.is_superuser:
-            return self.model.objects.all()
+            reports = self.model.objects.all()
         else:
             profile = user.get_profile()
-            return self.model.objects.filter(
+            reports = self.model.objects.filter(
                 scanner__organization=profile.organization)
+        return reports.order_by('-start_time')
 
 
 # Create/Update/Delete Views.
