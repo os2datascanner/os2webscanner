@@ -1,3 +1,5 @@
+"""Domain validation functions."""
+
 import re
 import urllib2
 import urlparse
@@ -6,6 +8,7 @@ from os2webscanner.models import Domain
 
 
 def _do_request(url):
+    """Make a request and return the data."""
     try:
         request = urllib2.Request(url, headers={"User-Agent": "OS2Webscanner"})
         r = urllib2.urlopen(request)
@@ -41,10 +44,10 @@ def get_validation_str(domain):
 
 
 def validate_domain(domain):
-    """Validate a Domain by using the validation method specified
-    by the Domain object. Returns True if it validated or False if it did
-    not."""
+    """Validate a Domain by using the Domain's validation method.
 
+    Returns True if it validated or False if it did not.
+    """
     hash_str = _get_validation_hash(domain)
 
     validators = {

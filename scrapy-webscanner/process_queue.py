@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+
+"""Program which processes the queue of the given type (argument 1).
+
+Pass extra arguments to the processor after the first argument.
+"""
+
 import os
 import sys
 import signal

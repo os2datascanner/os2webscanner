@@ -1,4 +1,5 @@
 """Contains a Scanner."""
+from urlparse import urljoin
 
 from ..rules.name import NameRule
 from ..rules.cpr import CPRRule
@@ -57,7 +58,7 @@ class Scanner:
         urls = []
         for domain in self.valid_domains:
             # Do some normalization of the URL to get the sitemap.xml file
-            urls.append(domain.root_url + "/sitemap.xml")
+            urls.append(urljoin(domain.root_url, "/sitemap.xml"))
             # Add uploaded sitemap.xml file
             if domain.sitemap != '':
                 urls.append('file://' + domain.sitemap_full_path)

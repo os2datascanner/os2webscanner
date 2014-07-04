@@ -1,3 +1,5 @@
+"""URL mappings."""
+
 from django.conf.urls import patterns, url
 from django.views.generic import View, ListView, TemplateView, DetailView
 
