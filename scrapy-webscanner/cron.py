@@ -15,8 +15,9 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 
 from os2webscanner.models import Scanner, Scan
 
-import croniter
 from datetime import datetime
+from dateutil.rrule import *
+from dateutil.relativedelta import relativedelta
 
 
 def strip_seconds(d):
@@ -24,36 +25,35 @@ def strip_seconds(d):
     return d.replace(second=0, microsecond=0)
 
 
-now = strip_seconds(datetime.now())
-print "Current time %s" % now
+current_minute = strip_seconds(datetime.now())
+print "Current time %s" % current_minute
 
 # Loop through all scanners
 for scanner in Scanner.objects.all():
     # Skip scanners that are not scheduled
-    if scanner.schedule == "":
+    if scanner.schedule.strip() == "":
         continue
     print "Scanner: %s; schedule: %s" % (scanner, scanner.schedule)
 
     try:
-        # Parse the cron schedule expression
-        cron = croniter.croniter(scanner.schedule, now)
+        # Parse the recurrence rule expression
+        rule = rrulestr(scanner.schedule)
     except ValueError as e:
-        # This shouldn't happen because we should validate in the Web interface
-        reason = "Invalid cron expression: %s" % e
+        # This shouldn't happen because we should validate in the UI
+        reason = "Invalid schedule expression: %s" % e
         print reason
-        scan = Scan(scanner=scanner, status=Scan.FAILED, reason=reason,
-                    start_time=datetime.now(), end_time=datetime.now())
-        scan.save()
         continue
 
+    # Get the start of the next minute
+    next_minute = strip_seconds(current_minute + relativedelta(minutes=+1))
+
+    # Subtract 1 microsecond, so we don't include jobs starting at the
+    # start of the next minute
+    next_minute = next_minute - relativedelta(microseconds=1)
+
     # Check if it's time to run the scanner
-    # Basically, just check if the next or previous scheduled time is the
-    # same as now.
-    next_run = strip_seconds(cron.get_next(datetime))
-    if next_run != now:
-        prev_run = strip_seconds(cron.get_prev(datetime))
-        if prev_run != now:
-            continue
+    if not rule.between(current_minute, next_minute, inc=True):
+        continue
 
     print "Running scanner %s" % scanner
     scanner.run()
