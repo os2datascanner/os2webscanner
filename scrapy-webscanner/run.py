@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+
+"""Run a scan by Scan ID."""
+
 import os
 import sys
 
@@ -25,6 +28,7 @@ import signal
 
 
 def signal_handler(signal, frame):
+    """Handle being killed."""
     scanner_app.handle_killed()
     reactor.stop()
 
@@ -33,7 +37,14 @@ signal.signal(signal.SIGINT | signal.SIGTERM, signal_handler)
 
 
 class ScannerApp:
+
+    """A scanner application which can be run."""
+
     def __init__(self):
+        """Initialize the scanner application.
+
+        Updates the scan status and sets the pid.
+        """
         self.scan_id = sys.argv[1]
 
         # Get scan object from DB
@@ -49,9 +60,11 @@ class ScannerApp:
         self.scanner = Scanner(self.scan_id)
 
     def run(self):
+        """Run the scanner."""
         self.run_spider()
 
     def handle_killed(self):
+        """Handle being killed by updating the scan status."""
         self.scan_object = Scan.objects.get(pk=self.scan_id)
         self.scan_object.pid = None
         self.scan_object.status = Scan.FAILED
@@ -59,6 +72,7 @@ class ScannerApp:
         self.scan_object.save()
 
     def run_spider(self):
+        """Run the scanner spider and block until it finishes."""
         spider = ScannerSpider(self.scanner)
         settings = get_project_settings()
         crawler = Crawler(settings)
@@ -74,6 +88,7 @@ class ScannerApp:
         reactor.run()
 
     def handle_closed(self, spider, reason):
+        """Handle the spider being finished, by updating scan status."""
         scan_object = Scan.objects.get(pk=self.scan_id)
         scan_object.status = Scan.DONE
         scan_object.pid = None
@@ -84,6 +99,8 @@ class ScannerApp:
         reactor.stop()
 
     def handle_error(self, failure, response, spider):
+        """Handle spider errors, updating scan status."""
+        # TODO: Don't set as failed, simply log errors.
         log.msg("Scan failed: %s" % failure.getErrorMessage(), level=log.ERROR)
         scan_object = Scan.objects.get(pk=self.scan_id)
         scan_object.status = Scan.FAILED
@@ -92,6 +109,10 @@ class ScannerApp:
         scan_object.save()
 
     def handle_idle(self, spider):
+        """Handle when the spider is idle.
+
+        Keep it open if there are still queue items to be processed.
+        """
         log.msg("Spider Idle...")
         # Keep spider alive if there are still queue items to be processed
         remaining_queue_items = ConversionQueueItem.objects.filter(

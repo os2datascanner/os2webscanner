@@ -10,6 +10,7 @@ from scrapy.utils.httpobj import urlparse_cached
 
 
 class ExclusionRuleMiddleware(object):
+
     """A Spider Middleware which excludes certain URLs from being followed.
 
     If the spider has an exclusion_rules attribute, this is used to determine
@@ -60,9 +61,14 @@ class ExclusionRuleMiddleware(object):
 
 
 class NoSubdomainOffsiteMiddleware(OffsiteMiddleware):
+
     """Offsite middleware which doesn't allow subdomains of allowed_domains."""
 
     def get_host_regex(self, spider):
+        """Disallow subdomains of the allowed domains.
+
+        Overrides OffsiteMiddleware.
+        """
         allowed_domains = getattr(spider, 'allowed_domains', None)
         if not allowed_domains:
             return re.compile('')  # allow all by default
@@ -75,14 +81,16 @@ class NoSubdomainOffsiteMiddleware(OffsiteMiddleware):
 class OffsiteRedirectMiddleware(RedirectMiddleware,
                                 NoSubdomainOffsiteMiddleware,
                                 ExclusionRuleMiddleware):
-    """Handle redirects but make sure they are not offsite and not on the
-    exclusion list."""
+
+    """Handle redirects, ensuring they are not offsite or excluded URLs."""
 
     def process_response(self, request, response, spider):
+        """Process a spider response."""
         if not hasattr(self, 'host_regex'):
             self.host_regex = self.get_host_regex(spider)
-        result = RedirectMiddleware.process_response(self,
-                                                     request, response, spider)
+        result = RedirectMiddleware.process_response(
+            self, request, response, spider
+        )
         if isinstance(result, Request):
             # Check that the redirect request is not offsite
             if NoSubdomainOffsiteMiddleware.should_follow(self, result,

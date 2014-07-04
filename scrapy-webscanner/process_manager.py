@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 
+"""Start up and manage queue processors to ensure they stay running.
+
+Starts up multiple instances of each processor.
+Restarts processors if they die or if they get stuck processing a single
+item for too long.
+"""
+
 import os
 import sys
 import subprocess
@@ -30,6 +37,7 @@ process_list = []
 
 
 def stop_process(pdata):
+    """Stop the process."""
     if not 'process_handle' in pdata:
         print "Process %s already stopped" % pdata['name']
         return
@@ -61,6 +69,7 @@ def stop_process(pdata):
 
 
 def start_process(pdata):
+    """Start the process."""
     if 'process_handle' in pdata:
         raise BaseException(
             "Program %s is already running" % pdata['name']
@@ -94,11 +103,13 @@ def start_process(pdata):
 
 
 def restart_process(pdata):
+    """Stop and start the process."""
     stop_process(pdata)
     start_process(pdata)
 
 
 def exit_handler(signum, frame):
+    """Handle process manager exit signals by stopping all processes."""
     for pdata in process_list:
         stop_process(pdata)
     sys.exit(1)

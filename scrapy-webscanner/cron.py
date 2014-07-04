@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+
+"""Program meant to be run once a minute by cron.
+
+Starts spiders scheduled to run during the current minute.
+"""
+
 import os
 import sys
 
@@ -14,7 +20,7 @@ from datetime import datetime
 
 
 def strip_seconds(d):
-    """Remove any seconds or microseconds from the datetime"""
+    """Remove any seconds or microseconds from the datetime."""
     return d.replace(second=0, microsecond=0)
 
 
