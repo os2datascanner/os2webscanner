@@ -61,7 +61,14 @@ class="active"
 	      Start scanner
 	    </span>
 	  </button>
-	  <button type="button" class="btn btn-default btn-xs btn-scanner-settings">
+	  <button type="button"
+	    class="btn btn-default btn-xs btn-scanner-settings"
+	    onclick="os2web.iframeDialog(
+		&quot;#edit-scanner-modal&quot;,
+		&quot;/scanners/{{scanner.pk}}&quot;,
+		&quot;Redigér scanner '{{scanner.name}}'&quot;
+	    )"
+	  >
 	    <span class="glyphicon glyphicon-cog">
 	    </span>
 
@@ -96,7 +103,7 @@ Scannere
 {% endblock %}
 
 {% block modal %}
-<div class="modal" id="create-scanner-modal" tabindex="-1" role="dialog"
+<div class="modal iframe" id="create-scanner-modal" tabindex="-1" role="dialog"
     aria-labelledby="create-scanner-modal-title" aria-hidden="true"
     data-href="/scanners/add/">
   <div class="modal-dialog">
@@ -128,14 +135,41 @@ Scannere
     </div>
   </div>
 </div>
+<div class="modal iframe" id="edit-scanner-modal" tabindex="-1" role="dialog"
+    aria-labelledby="edit-scanner-modal-title" aria-hidden="true"
+    data-href="/scanners/add/">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+	  &times;
+	</button>
+	<h4 class="modal-title" id="edit-scanner-modal-title">
+	  Rediger scanner
+	</h4>
+      </div>
+      <div class="modal-body">
+	<iframe src="about:blank" frameborder="0"
+	  width="550" height="650"></iframe>
+      </div>
+      <div class="modal-footer">
+	{% if 0 %}{# disable for now #}
+	<div class="btn-group">
+	  <button type="button" class="btn btn-default" data-dismiss="modal">
+	    Luk
+	  </button>
+	  <button type="button" class="btn btn-primary">
+	    Gem ændringer
+	  </button>
+	</div>
+	{% endif %}
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block jquery_script %}
 <script type="text/javascript"><!--
-$('#create-scanner-modal').on('shown.bs.modal', function() {
-  var $this = $(this), src = $this.attr("data-href"), onload_handler;
-  if(src)
-    $this.find('iframe').first().attr("src", src);
-})
 //--></script>
 {% endblock %}
