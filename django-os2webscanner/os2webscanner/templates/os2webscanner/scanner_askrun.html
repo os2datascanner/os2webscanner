@@ -1,0 +1,16 @@
+{% extends 'os2webscanner/base.html' %}
+{% block topnav %}{% endblock %}
+{% block body %}
+
+{% if not scanner.has_active_scans %}
+<div style="runscanner-success">
+    Er du sikker på, du ønsker at starte skanneren? I givet fald <a
+        href="/scanners/{{scanner.pk}}/run/">Klik her</a>!
+    
+</div>
+{% else %}
+<div style="runscanner-failure">
+Scanneren kunne ikke startes, fordi der allerede er en scanning i gang for den.
+</div>
+{% endif %}
+{% endblock %}

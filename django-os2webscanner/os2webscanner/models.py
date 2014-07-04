@@ -139,6 +139,23 @@ class Scanner(models.Model):
     do_name_scan = models.BooleanField(default=True)
     regex_rules = models.ManyToManyField(RegexRule, blank=True, null=True)
 
+    @property
+    def schedule_description(self):
+        f = lambda s: "Schedule: " + s
+        return f
+
+    @property
+    def has_active_scans(self):
+        active_scanners = Scan.objects.filter(scanner=self, status__in=(
+                        Scan.NEW, Scan.STARTED)).count()
+        return active_scanners > 0
+
+    def get_absolute_url(self):
+        return '/scanners/'
+
+    def __unicode__(self):
+        return self.name
+
     def run(self, test_only=False):
         """Run a scan with the Scanner.
 
@@ -148,11 +165,8 @@ class Scanner(models.Model):
         If test_only is True, only check if we can run a scan, don't actually
         run one.
         """
-        active_scanners = Scan.objects.filter(scanner=self, status__in=(
-            Scan.NEW, Scan.STARTED)).count()
-        if active_scanners > 0:
+        if self.has_active_scans:
             return None
-
         # Create a new Scan
         scan = Scan(scanner=self, status=Scan.NEW)
         scan.save()
@@ -171,17 +185,6 @@ class Scanner(models.Model):
         except Exception as e:
             return None
         return scan
-
-    @property
-    def schedule_description(self):
-        f = lambda s: "Schedule: " + s
-        return f
-
-    def get_absolute_url(self):
-        return '/scanners/'
-
-    def __unicode__(self):
-        return self.name
 
 
 class Scan(models.Model):

@@ -104,6 +104,21 @@ class ScannerDelete(DeleteView, LoginRequiredMixin):
     success_url = '/scanners/'
 
 
+class ScannerRun(DetailView, LoginRequiredMixin):
+    model = Scanner
+    template_name = 'os2webscanner/scanner_run.html'
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        
+        result = self.object.run()
+        context = self.get_context_data(object=self.object)
+        context['success'] = not result is None
+        context['scan'] = result
+
+        return self.render_to_response(context)
+
+    
 class DomainCreate(RestrictedCreateView):
     model = Domain
     fields = ['url', 'validation_status', 'validation_method',
