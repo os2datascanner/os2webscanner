@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+
+"""Unit tests for the scanner."""
+
 # Include the Django app
 import os
 import sys
@@ -13,11 +16,11 @@ import re
 
 
 class NameTest(unittest.TestCase):
+
+    """Test the name rule."""
+
     def test_matching(self):
-        """
-        Test Name matching in text
-        :return:
-        """
+        """Test Name matching in text."""
         text = """
             Jens Jensen
             Jim Smith Jones
@@ -42,11 +45,11 @@ class NameTest(unittest.TestCase):
 
 
 class CPRTest(unittest.TestCase):
+
+    """Test the CPR rule."""
+
     def test_matching(self):
-        """
-        Test CPR matching in text
-        :return:
-        """
+        """Test CPR matching in text."""
         text = """
             211062-5629
             4110625629
@@ -67,6 +70,7 @@ class CPRTest(unittest.TestCase):
 
 
 def main():
+    """Run the unit tests."""
     unittest.main()
 
 

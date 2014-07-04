@@ -8,3 +8,6 @@ libxml2-dev
 libxslt1-dev
 tesseract-ocr
 tesseract-ocr-dan
+pdftohtml
+unzip
+libreoffice-common

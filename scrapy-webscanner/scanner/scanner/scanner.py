@@ -1,4 +1,5 @@
 """Contains a Scanner."""
+from urlparse import urljoin, urlparse
 
 from ..rules.name import NameRule
 from ..rules.cpr import CPRRule
@@ -9,7 +10,6 @@ from os2webscanner.models import Scan, Domain
 
 
 class Scanner:
-
     """Represents a scanner which can scan data using configured rules."""
 
     def __init__(self, scan_id):
@@ -57,15 +57,21 @@ class Scanner:
         urls = []
         for domain in self.valid_domains:
             # Do some normalization of the URL to get the sitemap.xml file
-            urls.append(domain.root_url + "/sitemap.xml")
+            urls.append(urljoin(domain.root_url, "/sitemap.xml"))
             # Add uploaded sitemap.xml file
             if domain.sitemap != '':
                 urls.append('file://' + domain.sitemap_full_path)
         return urls
 
     def get_domains(self):
-        """Return a list of domain URLs."""
-        return [d.url for d in self.valid_domains]
+        """Return a list of domains."""
+        domains = []
+        for d in self.valid_domains:
+            if d.url.startswith('http://') or d.url.startswith('https://'):
+                domains.append(urlparse(d.url).hostname)
+            else:
+                domains.append(d.url)
+        return domains
 
     def scan(self, data, url_object):
         """Scan data for matches from a spider.

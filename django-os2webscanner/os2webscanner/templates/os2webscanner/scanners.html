@@ -53,12 +53,13 @@ class="active"
 	    Klar
 	  </span>
 
-	  <button type="button" class="btn btn-default btn-xs btn-scanner-start">
+	  <button type="button"
+	    class="btn btn-default btn-xs btn-scanner-settings"
+	    onclick="os2web.iframeDialog(
+		&quot;#edit-scanner-modal&quot;,
+		&quot;/scanners/{{scanner.pk}}/askrun/&quot;,
+                &quot;Kør scanner '{{scanner.name}}'&quot;)">
 	    <span class="glyphicon glyphicon-play">
-	    </span>
-
-	    <span class="sr-only">
-	      Start scanner
 	    </span>
 	  </button>
 	  <button type="button"

@@ -1,3 +1,4 @@
+"""OCR Processors."""
 from processor import Processor
 from text import TextProcessor
 import os
@@ -5,16 +6,22 @@ import subprocess
 
 
 class OCRProcessor(Processor):
+
+    """A processor which uses tesseract OCR to process an image."""
+
     item_type = "ocr"
     text_processor = TextProcessor()
 
     def handle_spider_item(self, data, url_object):
+        """Add the item to the queue."""
         return self.add_to_queue(data, url_object)
 
     def handle_queue_item(self, item):
+        """Convert the queue item."""
         return self.convert_queue_item(item)
 
     def convert(self, item, tmp_dir):
+        """Convert the item and immediately run a Text processor on it."""
         txt_file = os.path.join(tmp_dir, "file")
         return_code = subprocess.call(
             ["tesseract", item.file_path, txt_file, "-l", "dan+eng"]

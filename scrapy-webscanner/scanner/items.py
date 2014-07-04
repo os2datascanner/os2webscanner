@@ -1,3 +1,5 @@
+"""Scrapy Items."""
+
 # Define here the models for your scraped items
 #
 # See documentation in:
@@ -9,4 +11,7 @@ from os2webscanner.models import *
 
 
 class MatchItem(DjangoItem):
+
+    """Scrapy Item using the Match object from the Django model as storage."""
+
     django_model = Match

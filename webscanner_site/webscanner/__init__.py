@@ -1,0 +1,1 @@
+"""Webscanner site django application."""

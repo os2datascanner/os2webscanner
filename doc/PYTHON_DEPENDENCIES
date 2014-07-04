@@ -4,6 +4,6 @@ psycopg2
 scrapy==0.24.1
 service_identity
 regex
-croniter
 chardet
 python-magic
+python-dateutil

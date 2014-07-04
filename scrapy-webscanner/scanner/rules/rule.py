@@ -1,5 +1,6 @@
 """Base classes for rules."""
 
+
 class Rule:
 
     """Represents a rule which can be executed on text and returns matches."""
