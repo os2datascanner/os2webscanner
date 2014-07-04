@@ -1,23 +1,30 @@
 """URL mappings."""
 
 from django.conf.urls import patterns, url
+from django.views.generic import View, ListView, TemplateView, DetailView
 
 from .views import MainPageView, ScannerList, DomainList, RuleList
 from .views import ReportDetails, ReportList
-from .views import ScannerCreate, ScannerUpdate, ScannerDelete
+from .views import ScannerCreate, ScannerUpdate, ScannerDelete, ScannerRun
 from .views import DomainCreate, DomainUpdate, DomainDelete
 from .views import RuleCreate, RuleUpdate, RuleDelete
-
+from .models import Scanner
 urlpatterns = patterns(
     '',
     # App URLs
     url(r'^$', MainPageView.as_view(), name='index'),
     url(r'^scanners/$', ScannerList.as_view(), name='scanners'),
     url(r'^scanners/add/$', ScannerCreate.as_view(), name='scanner_add'),
-    url(r'^scanners/(?P<pk>\d+)/$', ScannerUpdate.as_view(),
-        name='scanner_update'),
     url(r'^scanners/(?P<pk>\d+)/delete/$', ScannerDelete.as_view(),
         name='scanner_delete'),
+    url(r'^scanners/(?P<pk>\d+)/run/$', ScannerRun.as_view(),
+        name='scanner_run'),
+    url(r'^scanners/(?P<pk>\d+)/askrun/$', 
+        DetailView.as_view(template_name='os2webscanner/scanner_askrun.html',
+                           model=Scanner),
+        name='scanner_askrun'),
+    url(r'^scanners/(?P<pk>\d+)/$', ScannerUpdate.as_view(),
+        name='scanner_update'),
     url(r'^domains/$', DomainList.as_view(), name='domains'),
     url(r'^domains/add/$', DomainCreate.as_view(), name='domain_add'),
     url(r'^domains/(?P<pk>\d+)/$', DomainUpdate.as_view(),
