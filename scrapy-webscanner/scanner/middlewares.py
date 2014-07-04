@@ -92,8 +92,12 @@ class OffsiteRedirectMiddleware(RedirectMiddleware,
                                                          spider):
                     return result
                 else:
+                    log.msg("Excluding redirect due to exclusion rule %s" %
+                            result.url)
                     raise IgnoreRequest
             else:
+                log.msg("Excluding redirect due to no offsite domains %s" %
+                        result.url)
                 raise IgnoreRequest
         else:
             return result
