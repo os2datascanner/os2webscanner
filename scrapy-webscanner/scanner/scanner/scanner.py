@@ -1,5 +1,5 @@
 """Contains a Scanner."""
-from urlparse import urljoin
+from urlparse import urljoin, urlparse
 
 from ..rules.name import NameRule
 from ..rules.cpr import CPRRule
@@ -10,7 +10,6 @@ from os2webscanner.models import Scan, Domain
 
 
 class Scanner:
-
     """Represents a scanner which can scan data using configured rules."""
 
     def __init__(self, scan_id):
@@ -65,8 +64,14 @@ class Scanner:
         return urls
 
     def get_domains(self):
-        """Return a list of domain URLs."""
-        return [d.url for d in self.valid_domains]
+        """Return a list of domains."""
+        domains = []
+        for d in self.valid_domains:
+            if d.url.startswith('http://') or d.url.startswith('https://'):
+                domains.append(urlparse(d.url).hostname)
+            else:
+                domains.append(d.url)
+        return domains
 
     def scan(self, data, url_object):
         """Scan data for matches from a spider.
