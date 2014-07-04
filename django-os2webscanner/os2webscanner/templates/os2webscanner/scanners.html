@@ -50,7 +50,11 @@ class="active"
 	</td>
 	<td class="scanner-actions">
 	  <span class="scanner-status">
-	    Klar
+	    {% if not scanner.has_active_scans %}
+          Klar
+        {% else %}
+          Aktiv
+        {% endif %}
 	  </span>
 
 	  <button type="button"
