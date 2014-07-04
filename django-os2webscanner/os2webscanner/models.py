@@ -197,14 +197,12 @@ class Scanner(models.Model):
         SCRAPY_WEBSCANNER_DIR = os.path.join(os.path.dirname(os.path.dirname(
             os.path.dirname(
                 os.path.realpath(__file__)))), "scrapy-webscanner")
-        print SCRAPY_WEBSCANNER_DIR
 
         if test_only:
             return scan
-
         try:
-            process = Popen([os.path.join(SCRAPY_WEBSCANNER_DIR, "run.py"),
-                         str(scan.pk)])
+            process = Popen([os.path.join(SCRAPY_WEBSCANNER_DIR, "run.sh"),
+                         str(scan.pk)], cwd=SCRAPY_WEBSCANNER_DIR)
         except Exception as e:
             return None
         return scan
