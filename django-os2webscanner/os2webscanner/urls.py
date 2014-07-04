@@ -19,7 +19,7 @@ urlpatterns = patterns(
         name='scanner_delete'),
     url(r'^scanners/(?P<pk>\d+)/run/$', ScannerRun.as_view(),
         name='scanner_run'),
-    url(r'^scanners/(?P<pk>\d+)/askrun/$', 
+    url(r'^scanners/(?P<pk>\d+)/askrun/$',
         DetailView.as_view(template_name='os2webscanner/scanner_askrun.html',
                            model=Scanner),
         name='scanner_askrun'),
