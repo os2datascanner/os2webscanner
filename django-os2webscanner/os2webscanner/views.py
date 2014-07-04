@@ -58,6 +58,8 @@ class DomainList(RestrictedListView):
     model = Domain
     template_name = 'os2webscanner/domains.html'
 
+    def get_queryset(self):
+        return self.model.objects.all().order_by('url', 'pk')
 
 class RuleList(RestrictedListView):
 
