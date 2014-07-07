@@ -61,6 +61,7 @@ class DomainList(RestrictedListView):
     def get_queryset(self):
         return self.model.objects.all().order_by('url', 'pk')
 
+
 class RuleList(RestrictedListView):
 
     """Displays list of scanners."""
@@ -92,7 +93,7 @@ class ReportList(RestrictedListView):
 
 class RestrictedCreateView(CreateView, LoginRequiredMixin):
     def get_form_fields(self):
-        fields = [ f for f in self.fields ]
+        fields = [f for f in self.fields]
 
         if self.request.user.is_superuser:
             fields.append('organization')
@@ -102,7 +103,7 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
     def get_form(self, form_class):
         fields = self.get_form_fields()
         form_class = modelform_factory(self.model, fields=fields)
-        kwargs = self.get_form_kwargs();
+        kwargs = self.get_form_kwargs()
         return form_class(**kwargs)
 
     def form_valid(self, form):
@@ -112,6 +113,7 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
             self.object.organization = user_profile.organization
 
         return super(RestrictedCreateView, self).form_valid(form)
+
 
 class ScannerCreate(RestrictedCreateView):
 
@@ -176,15 +178,16 @@ class DomainCreate(RestrictedCreateView):
 
         return form
 
+
 class DomainUpdate(UpdateView, LoginRequiredMixin):
 
     """Update a domain view."""
 
     model = Domain
-    fields = [ 'url', 'exclusion_rules', 'sitemap' ]
+    fields = ['url', 'exclusion_rules', 'sitemap']
 
     def get_form(self, form_class):
-        enabled_fields = [ f for f in DomainUpdate.fields ]
+        enabled_fields = [f for f in DomainUpdate.fields]
         if self.request.user.is_superuser:
             enabled_fields.append('validation_status')
             enabled_fields.append('organization')
@@ -192,7 +195,7 @@ class DomainUpdate(UpdateView, LoginRequiredMixin):
             enabled_fields.append('validation_method')
 
         form_class = modelform_factory(self.model, fields=enabled_fields)
-        kwargs = self.get_form_kwargs();
+        kwargs = self.get_form_kwargs()
         form = form_class(**kwargs)
 
         for fname in form.fields:
@@ -203,7 +206,7 @@ class DomainUpdate(UpdateView, LoginRequiredMixin):
             vm_field = form.fields['validation_method']
             if vm_field:
                 vm_field.widget = forms.RadioSelect(
-                    choices = vm_field.widget.choices
+                    choices=vm_field.widget.choices
                 )
                 vm_field.widget.attrs['class'] = 'validateradio'
 
@@ -233,9 +236,10 @@ class DomainUpdate(UpdateView, LoginRequiredMixin):
     def get_success_url(self):
         url = self.object.get_absolute_url()
         if 'save_and_validate' in self.request.POST:
-            return 'validate/';
+            return 'validate/'
         else:
             return '../'
+
 
 class DomainValidate(DetailView, LoginRequiredMixin):
     model = Domain

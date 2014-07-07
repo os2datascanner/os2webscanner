@@ -24,10 +24,10 @@ class ScannerTest(TestCase):
         """Setup some data to test with."""
         # Don't change the order of these, because Magenta needs pk = 2 to pass
         # the validation test
-        cls.google = Organization(name="Google")
-        cls.google.save()
-        cls.magenta = Organization(name="Magenta", pk=2)
+        cls.magenta = Organization(name="Magenta", pk=1)
         cls.magenta.save()
+        cls.google = Organization(name="Google", pk=2)
+        cls.google.save()
 
     def test_validate_domain(self):
         """Test validating domains."""
@@ -37,7 +37,7 @@ class ScannerTest(TestCase):
         for validation_method in all_methods:
             domain = Domain(url="http://www.magenta.dk/",
                             validation_method=validation_method,
-                            organization=self.magenta
+                            organization=self.magenta,
                             pk=1)
             domain.save()
             self.assertTrue(validate_domain(domain))
@@ -45,7 +45,7 @@ class ScannerTest(TestCase):
         for validation_method in all_methods:
             domain = Domain(url="http://www.google.com/",
                             validation_method=validation_method,
-                            organization=self.google
+                            organization=self.google,
                             pk=2)
             domain.save()
             self.assertFalse(validate_domain(domain))

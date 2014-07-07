@@ -8,6 +8,8 @@ import re
 from django.db import models
 from django.contrib.auth.models import User
 
+from .utils import notify_user
+
 
 # Sensitivity values
 class Sensitivity:
@@ -33,6 +35,8 @@ class Organization(models.Model):
     """
 
     name = models.CharField(max_length=256, unique=True)
+    contact_email = models.CharField(max_length=256)
+    contact_phone = models.CharField(max_length=256)
 
     def __unicode__(self):
         """Return the name of the organization."""
@@ -242,8 +246,17 @@ class Scan(models.Model):
         (DONE, "Afsluttet"),
         (FAILED, "Fejlet"),
     )
+
     status = models.CharField(max_length=10, choices=status_choices,
                               default=NEW)
+
+    @property
+    def status_text(self):
+        """Returns a display text for the scan's status. Relies on the
+        restriction that the status must be one of the allowed values."""
+        text = [t for s, t in Scan.status_choices if self.status == s][0]
+        return text
+
     # Reason for failure
     reason = models.CharField(max_length=1024, blank=True, default="")
     pid = models.IntegerField(null=True, blank=True)
@@ -251,6 +264,20 @@ class Scan(models.Model):
     def __unicode__(self):
         """Return the name of the scan's scanner."""
         return "SCAN: " + self.scanner.name
+
+    def save(self, *args, **kwargs):
+        # Pre-save stuff
+        super(Scan, self).save(*args, **kwargs)
+        # Post-save stuff
+
+        if (self.status in [Scan.DONE, Scan.FAILED] and
+            self._old_status in [Scan.NEW, Scan.STARTED]):
+            # Send email
+            notify_user(self, status)
+
+    def __init__(self, *args, **kwargs):
+        super(Scan, self).__init__(*args, **kwargs)
+        self._old_status = self.status
 
 
 class Url(models.Model):
