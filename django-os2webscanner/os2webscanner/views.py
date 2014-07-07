@@ -1,6 +1,6 @@
 """Contains Django views."""
 
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.views.generic import View, ListView, TemplateView, DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.contrib.auth.decorators import login_required
@@ -123,6 +123,8 @@ class ScannerCreate(RestrictedCreateView):
     fields = ['name', 'schedule', 'whitelisted_names', 'domains',
               'do_cpr_scan', 'do_name_scan', 'regex_rules']
 
+    def get_success_url(self):
+        return '/scanners/%s/created/' % self.object.pk
 
 class ScannerUpdate(UpdateView, LoginRequiredMixin):
 
@@ -132,6 +134,8 @@ class ScannerUpdate(UpdateView, LoginRequiredMixin):
     fields = ['name', 'schedule', 'whitelisted_names', 'domains',
               'do_cpr_scan', 'do_name_scan', 'regex_rules']
 
+    def get_success_url(self):
+        return '/scanners/%s/saved/' % self.object.pk
 
 class ScannerDelete(DeleteView, LoginRequiredMixin):
 
@@ -178,6 +182,8 @@ class DomainCreate(RestrictedCreateView):
 
         return form
 
+    def get_success_url(self):
+        return '/domains/%s/created/' % self.object.pk
 
 class DomainUpdate(UpdateView, LoginRequiredMixin):
 
@@ -238,7 +244,7 @@ class DomainUpdate(UpdateView, LoginRequiredMixin):
         if 'save_and_validate' in self.request.POST:
             return 'validate/'
         else:
-            return '../'
+            return '/domains/%s/saved/' % self.object.pk
 
 
 class DomainValidate(DetailView, LoginRequiredMixin):
@@ -283,6 +289,8 @@ class RuleCreate(RestrictedCreateView):
 
         return form    
 
+    def get_success_url(self):
+        return '/rules/%s/created/' % self.object.pk
 
 class RuleUpdate(UpdateView, LoginRequiredMixin):
 
@@ -299,7 +307,8 @@ class RuleUpdate(UpdateView, LoginRequiredMixin):
 
         return form        
     
-
+    def get_success_url(self):
+        return '/rules/%s/created/' % self.object.pk
 
 class RuleDelete(DeleteView, LoginRequiredMixin):
 
@@ -326,4 +335,27 @@ class ReportDetails(DetailView, LoginRequiredMixin):
         ).order_by('-sensitivity', 'url', 'matched_rule', 'matched_data')
 
         context['matches'] = all_matches
+        return context
+
+class DialogSuccess(TemplateView):
+    template_name = 'os2webscanner/dialogsuccess.html'
+
+    type_map = {
+        'domains': Domain,
+        'scanners': Scanner,
+        'rules': RegexRule
+    }
+
+    def get_context_data(self, **kwargs):
+        context = super(DialogSuccess, self).get_context_data(**kwargs)
+        model_type = self.args[0]
+        pk = self.args[1]
+        created = self.args[2] == 'created'
+        if model_type not in self.type_map:
+            raise Http404
+        model = self.type_map[model_type]
+        item = get_object_or_404(model, pk=pk);
+        context['item_description'] = item.display_name
+        context['action'] = "oprettet" if created else "gemt"
+        context['reload_url'] = '/' + model_type + '/'
         return context

@@ -8,6 +8,7 @@ from .views import ReportDetails, ReportList
 from .views import ScannerCreate, ScannerUpdate, ScannerDelete, ScannerRun
 from .views import DomainCreate, DomainUpdate, DomainValidate, DomainDelete
 from .views import RuleCreate, RuleUpdate, RuleDelete
+from .views import DialogSuccess
 from .models import Scanner
 urlpatterns = patterns(
     '',
@@ -29,6 +30,7 @@ urlpatterns = patterns(
     url(r'^domains/add/$', DomainCreate.as_view(), name='domain_add'),
     url(r'^domains/(?P<pk>\d+)/validate/$', DomainValidate.as_view(),
         name='domain_validate'),
+    url(r'^(domains)/(\d+)/(success)/$', DialogSuccess.as_view()),
     url(r'^domains/(?P<pk>\d+)/$', DomainUpdate.as_view(),
         name='domain_update'),
     url(r'^domains/(?P<pk>\d+)/delete/$', DomainDelete.as_view(),
@@ -47,4 +49,9 @@ urlpatterns = patterns(
     url(r'^accounts/logout/', 'django.contrib.auth.views.logout',
         {'template_name': 'logout.html'}, name='logout'),
 
+    # General dialog success handler
+    url(r'^(scanners|domains|rules)/(\d+)/(created)/$',
+        DialogSuccess.as_view()),
+    url(r'^(scanners|domains|rules)/(\d+)/(saved)/$',
+        DialogSuccess.as_view()),
 )

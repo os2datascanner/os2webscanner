@@ -93,6 +93,10 @@ class Domain(models.Model):
     exclusion_rules = models.TextField(blank=True, default="")
     sitemap = models.FileField(upload_to='sitemaps', blank=True)
 
+    @property
+    def display_name(self):
+        return "Domain '%s'" % self.root_url
+
     def exclusion_rule_list(self):
         """Return the exclusion rules as a list of strings or regexes."""
         REGEX_PREFIX = "regex:"
@@ -142,6 +146,10 @@ class RegexRule(models.Model):
     sensitivity = models.IntegerField(choices=Sensitivity.choices,
                                       default=Sensitivity.HIGH)
 
+    @property
+    def display_name(self):
+        return "Regel '%s'" % self.name
+
     def get_absolute_url(self):
         """Get the absolute URL for rules."""
         return '/rules/'
@@ -165,6 +173,10 @@ class Scanner(models.Model):
     do_cpr_scan = models.BooleanField(default=True)
     do_name_scan = models.BooleanField(default=True)
     regex_rules = models.ManyToManyField(RegexRule, blank=True, null=True)
+
+    @property
+    def display_name(self):
+        return "Scanner '%s'" % self.name
 
     @property
     def schedule_description(self):

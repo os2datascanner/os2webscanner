@@ -1,0 +1,13 @@
+{% extends 'os2webscanner/base.html' %}
+{% block topnav %}{% endblock %}
+{% block body %}
+<h1>Valider domæne '{{object.url}}'</h1>
+
+{% if validation_status %}
+<p class="alert alert-success">Domænet er allerede valideret</p>
+{% elif validation_success %}
+<p class="alert alert-success">Domænet er nu valideret</p>
+{% else %}
+<p class="alert alert-danger">Domænet blev <strong>ikke</strong> valideret</p>
+{% endif %}
+{% endblock %}
