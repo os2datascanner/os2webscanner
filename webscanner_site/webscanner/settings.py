@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
+# Site URL for calculating absolute URLs in emails.
+SITE_URL = 'http://webscanner.magenta-aps.dk'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
@@ -89,3 +91,11 @@ STATIC_ROOT = '/home/os2/os2webscanner/webscanner_site/static'
 AUTH_PROFILE_MODULE = 'os2webscanner.UserProfile'
 
 LOGIN_REDIRECT_URL = '/'
+
+# Email settings
+
+DEFAULT_FROM_EMAIL = 'carstena@magenta.dk'
+ADMIN_EMAIL = 'carstena@magenta.dk'
+EMAIL_HOST = 'localhost'
+EMAIL_PORT = 25
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
