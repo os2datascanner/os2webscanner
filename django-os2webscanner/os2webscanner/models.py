@@ -243,7 +243,7 @@ class Scan(models.Model):
     status_choices = (
         (NEW, "Ny"),
         (STARTED, "I gang"),
-        (DONE, "Afsluttet"),
+        (DONE, "OK"),
         (FAILED, "Fejlet"),
     )
 
@@ -273,7 +273,7 @@ class Scan(models.Model):
         if (self.status in [Scan.DONE, Scan.FAILED] and
             self._old_status in [Scan.NEW, Scan.STARTED]):
             # Send email
-            notify_user(self, status)
+            notify_user(self)
 
     def __init__(self, *args, **kwargs):
         super(Scan, self).__init__(*args, **kwargs)

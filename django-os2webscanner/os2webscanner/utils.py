@@ -9,17 +9,18 @@ def notify_user(scan):
 
     t = loader.get_template(template)
 
-    c = Context({'scan': Scan})
+    c = Context({'scan': scan, 'domain': settings.SITE_URL})
 
     subject = "Scanning afsluttet: {0}".format(scan.status_text)
     to_address = scan.scanner.organization.contact_email
-    if not email_address:
+    if not to_address:
         toaddress = settings.ADMIN_EMAIL
 
     try:
         body = t.render(c)
         message = EmailMessage(subject, body, settings.ADMIN_EMAIL,
                                ['carstena@magenta.dk'])
-    except SocketError as e:
+        message.send()
+    except Exception as e:
         # TODO: Handle this properly
         raise
