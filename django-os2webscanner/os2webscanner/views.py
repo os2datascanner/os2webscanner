@@ -269,6 +269,15 @@ class RuleCreate(RestrictedCreateView):
 
     model = RegexRule
     fields = ['name', 'match_string', 'description', 'sensitivity']
+    
+    def get_form(self, form_class):
+        form = super(RuleCreate, self).get_form(form_class)
+
+        for fname in form.fields:
+            f = form.fields[fname]
+            f.widget.attrs['class'] = 'form-control'
+
+        return form    
 
 
 class RuleUpdate(UpdateView, LoginRequiredMixin):
@@ -276,6 +285,16 @@ class RuleUpdate(UpdateView, LoginRequiredMixin):
     """Update a rule view."""
 
     model = RegexRule
+    
+    def get_form(self, form_class):
+        form = super(RuleUpdate, self).get_form(form_class)
+
+        for fname in form.fields:
+            f = form.fields[fname]
+            f.widget.attrs['class'] = 'form-control'
+
+        return form        
+    
 
 
 class RuleDelete(DeleteView, LoginRequiredMixin):

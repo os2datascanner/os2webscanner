@@ -1,9 +1,100 @@
-<form class="scanner_form" method="post">
-    <div class="scanner_fields">
-        {% csrf_token %}
-    {{ form.as_p }}
-</div>
+{% extends 'os2webscanner/base.html' %}
+{% block topnav %}{% endblock %}
+{% block body %}
 
-<input type="submit">
+
+    
+<div>
+<form class="form-horizontal" role="form" method="post">
+{% csrf_token %}    
+    
+  <div class="form-group clearfix">
+    <div class="col-sm-12">
+      <div id="{{ form.name.auto_id }}_container">
+        <div>{{ form.name.help_text }}</div>
+        <div>
+          {{ form.name.label_tag }}
+          {{ form.name }}
+        </div>
+        <div id="{{ form.name.auto_id }}_errors">
+          {{ form.name.errors }}
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  {% if form.organization %}
+    <div class="form-group clearfix">
+      <div class="col-sm-12">
+        <div id="{{ form.organization.auto_id }}_container">
+          <div>{{ form.organization.help_text }}</div>
+          <div>
+            {{ form.organization.label_tag }}
+            {{ form.organization }}
+          </div>
+          <div id="{{ form.organization.auto_id }}_errors">
+            {{ form.organization.errors }}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}    
+  
+  <div class="form-group clearfix">
+    <div class="col-sm-12">
+      <div id="{{ form.match_string.auto_id }}_container">
+        <div>{{ form.match_string.help_text }}</div>
+        <div>
+          {{ form.match_string.label_tag }}
+          {{ form.match_string }}
+        </div>
+        <div id="{{ form.match_string.auto_id }}_errors">
+          {{ form.match_string.errors }}
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="form-group clearfix">
+    <div class="col-sm-12">
+      <div id="{{ form.description.auto_id }}_container">
+        <div>{{ form.description.help_text }}</div>
+        <div>
+          {{ form.description.label_tag }}
+          {{ form.description }}
+        </div>
+        <div id="{{ form.description.auto_id }}_errors">
+          {{ form.description.errors }}
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="form-group clearfix">
+    <div class="col-sm-12">
+      <div id="{{ form.sensitivity.auto_id }}_container">
+        <div>{{ form.sensitivity.help_text }}</div>
+        <div>
+          {{ form.sensitivity.label_tag }}
+          {{ form.sensitivity }}
+        </div>
+        <div id="{{ form.sensitivity.auto_id }}_errors">
+          {{ form.sensitivity.errors }}
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="form-group clearfix">
+    <div class="col-sm-12">
+      <br />
+      <button type="submit" class="btn btn-primary" name="save">
+        Gem ændringer
+      </button>
+    </div>
+  </div>
+
+    {#{ form.as_p }#}
 </form>
-
+</div>
+{% endblock %}

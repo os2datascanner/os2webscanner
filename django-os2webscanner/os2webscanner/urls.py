@@ -35,7 +35,7 @@ urlpatterns = patterns(
         name='domain_delete'),
     url(r'^rules/$', RuleList.as_view(), name='rules'),
     url(r'^rules/add/$', RuleCreate.as_view(), name='rule_add'),
-    url(r'^ruless/(?P<pk>\d+)/$', RuleUpdate.as_view(),
+    url(r'^rules/(?P<pk>\d+)/$', RuleUpdate.as_view(),
         name='rule_update'),
     url(r'^rules/(?P<pk>\d+)/delete/$', RuleDelete.as_view(),
         name='rule_delete'),
