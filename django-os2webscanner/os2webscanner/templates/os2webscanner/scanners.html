@@ -60,7 +60,7 @@ class="active"
 	  <button type="button"
 	    class="btn btn-default btn-xs btn-scanner-settings"
 	    onclick="os2web.iframeDialog(
-		&quot;#edit-scanner-modal&quot;,
+		&quot;#run-scanner-modal&quot;,
 		&quot;/scanners/{{scanner.pk}}/askrun/&quot;,
                 &quot;Kør scanner '{{scanner.name}}'&quot;)">
 	    <span class="glyphicon glyphicon-play">
@@ -156,6 +156,39 @@ Scannere
       <div class="modal-body">
 	<iframe src="about:blank" frameborder="0"
 	  width="550" height="650"></iframe>
+      </div>
+      <div class="modal-footer">
+	{% if 0 %}{# disable for now #}
+	<div class="btn-group">
+	  <button type="button" class="btn btn-default" data-dismiss="modal">
+	    Luk
+	  </button>
+	  <button type="button" class="btn btn-primary">
+	    Gem ændringer
+	  </button>
+	</div>
+	{% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal iframe" id="run-scanner-modal" tabindex="-1" role="dialog"
+    aria-labelledby="run-scanner-modal-title" aria-hidden="true"
+    data-href="/scanners/add/">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+	  &times;
+	</button>
+	<h4 class="modal-title" id="run-scanner-modal-title">
+	  Kør scanner
+	</h4>
+      </div>
+      <div class="modal-body">
+	<iframe src="about:blank" frameborder="0"
+	  width="550" height="150"></iframe>
       </div>
       <div class="modal-footer">
 	{% if 0 %}{# disable for now #}
