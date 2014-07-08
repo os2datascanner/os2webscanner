@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django import forms
 from django.forms.models import modelform_factory
+from django.conf import settings
 
 from validate import validate_domain, get_validation_str
 
@@ -340,6 +341,7 @@ class ReportDetails(DetailView, LoginRequiredMixin):
         ).order_by('-sensitivity', 'url', 'matched_rule', 'matched_data')
 
         context['matches'] = all_matches
+        context['reports_url'] = settings.SITE_URL + '/reports/'
         return context
 
 
