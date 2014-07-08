@@ -36,8 +36,8 @@ class Organization(models.Model):
     """
 
     name = models.CharField(max_length=256, unique=True, verbose_name='Navn')
-    contact_email = models.CharField(max_length=256, verbose_name ='Email')
-    contact_phone = models.CharField(max_length=256, verbose_name ='Telefon')
+    contact_email = models.CharField(max_length=256, verbose_name='Email')
+    contact_phone = models.CharField(max_length=256, verbose_name='Telefon')
 
     def __unicode__(self):
         """Return the name of the organization."""
@@ -51,8 +51,13 @@ class UserProfile(models.Model):
     Each user MUST be associated with an organization.
     """
 
-    organization = models.ForeignKey(Organization, null=False, verbose_name='Organisation')
-    user = models.ForeignKey(User, unique=True, related_name='user_profile', verbose_name='Bruger')
+    organization = models.ForeignKey(Organization,
+                                     null=False,
+                                     verbose_name='Organisation')
+    user = models.ForeignKey(User,
+                             unique=True,
+                             related_name='user_profile',
+                             verbose_name='Bruger')
 
     def __unicode__(self):
         """Return the user's username."""
@@ -86,13 +91,21 @@ class Domain(models.Model):
     )
 
     url = models.CharField(max_length=2048, verbose_name='Url')
-    organization = models.ForeignKey(Organization, null=False, verbose_name='Organisation')
+    organization = models.ForeignKey(Organization,
+                                     null=False,
+                                     verbose_name='Organisation')
     validation_status = models.IntegerField(choices=validation_choices,
-                                            default=INVALID, verbose_name='Valideringsstatus')
+                                            default=INVALID,
+                                            verbose_name='Valideringsstatus')
     validation_method = models.IntegerField(choices=validation_method_choices,
-                                            default=ROBOTSTXT, verbose_name='Valideringsmetode')
-    exclusion_rules = models.TextField(blank=True, default="", verbose_name='Ekskluderingsregler')
-    sitemap = models.FileField(upload_to='sitemaps', blank=True, verbose_name='Sitemap')
+                                            default=ROBOTSTXT,
+                                            verbose_name='Valideringsmetode')
+    exclusion_rules = models.TextField(blank=True,
+                                       default="",
+                                       verbose_name='Ekskluderingsregler')
+    sitemap = models.FileField(upload_to='sitemaps',
+                               blank=True,
+                               verbose_name='Sitemap')
 
     @property
     def display_name(self):
@@ -139,13 +152,17 @@ class RegexRule(models.Model):
 
     """Represents matching rules based on regular expressions."""
 
-    name = models.CharField(max_length=256, unique=True, null=False, verbose_name='Navn')
-    organization = models.ForeignKey(Organization, null=False, verbose_name='Organisation')
-    match_string = models.CharField(max_length=1024, blank=False, verbose_name='Udtryk')
+    name = models.CharField(max_length=256, unique=True, null=False,
+                            verbose_name='Navn')
+    organization = models.ForeignKey(Organization, null=False,
+                                     verbose_name='Organisation')
+    match_string = models.CharField(max_length=1024, blank=False,
+                                    verbose_name='Udtryk')
 
     description = models.TextField(verbose_name='Beskrivelse')
     sensitivity = models.IntegerField(choices=Sensitivity.choices,
-                                      default=Sensitivity.HIGH, verbose_name='Følsomhed')
+                                      default=Sensitivity.HIGH,
+                                      verbose_name='Følsomhed')
 
     @property
     def display_name(self):
@@ -164,16 +181,22 @@ class Scanner(models.Model):
 
     """A scanner, i.e. a template for actual scanning jobs."""
 
-    name = models.CharField(max_length=256, unique=True, null=False, verbose_name='Navn')
-    organization = models.ForeignKey(Organization, null=False, verbose_name='Organisation')
+    name = models.CharField(max_length=256, unique=True, null=False,
+                            verbose_name='Navn')
+    organization = models.ForeignKey(Organization, null=False,
+                                     verbose_name='Organisation')
     schedule = RecurrenceField(max_length=1024, verbose_name='Planlagt afvikling')
     whitelisted_names = models.TextField(max_length=4096, blank=True,
-                                         default="", verbose_name='Godkendte navne')
+                                         default="",
+                                         verbose_name='Godkendte navne')
     domains = models.ManyToManyField(Domain, related_name='scanners',
                                      null=False, verbose_name='Domæner')
     do_cpr_scan = models.BooleanField(default=True, verbose_name='CPR')
     do_name_scan = models.BooleanField(default=True, verbose_name='Navn')
-    regex_rules = models.ManyToManyField(RegexRule, blank=True, null=True, verbose_name='Regex regler')
+    regex_rules = models.ManyToManyField(RegexRule,
+                                         blank=True,
+                                         null=True,
+                                         verbose_name='Regex regler')
 
     @property
     def display_name(self):
@@ -244,8 +267,10 @@ class Scan(models.Model):
     """An actual instance of the scanning process done by a scanner."""
 
     scanner = models.ForeignKey(Scanner, null=False, verbose_name='Scanner')
-    start_time = models.DateTimeField(blank=True, null=True, verbose_name='Starttidspunkt')
-    end_time = models.DateTimeField(blank=True, null=True, verbose_name='Sluttidspunkt')
+    start_time = models.DateTimeField(blank=True, null=True,
+                                      verbose_name='Starttidspunkt')
+    end_time = models.DateTimeField(blank=True, null=True,
+                                    verbose_name='Sluttidspunkt')
 
     # Scan status
     NEW = "NEW"
@@ -271,7 +296,8 @@ class Scan(models.Model):
         return text
 
     # Reason for failure
-    reason = models.CharField(max_length=1024, blank=True, default="", verbose_name='Årsag')
+    reason = models.CharField(max_length=1024, blank=True, default="",
+                              verbose_name='Årsag')
     pid = models.IntegerField(null=True, blank=True, verbose_name='Pid')
 
     def __unicode__(self):
@@ -298,7 +324,7 @@ class Url(models.Model):
     """A representation of an actual URL on a domain with its MIME type."""
 
     url = models.CharField(max_length=2048, verbose_name='Url')
-    mime_type = models.CharField(max_length=256, verbose_name='Mime-type')  # TODO: Use choices/codes?
+    mime_type = models.CharField(max_length=256, verbose_name='Mime-type')
     scan = models.ForeignKey(Scan, null=False, verbose_name='Scan')
 
     def __unicode__(self):
@@ -313,9 +339,10 @@ class Match(models.Model):
     url = models.ForeignKey(Url, null=False, verbose_name='Url')
     scan = models.ForeignKey(Scan, null=False, verbose_name='Scan')
     matched_data = models.CharField(max_length=1024, verbose_name='Data match')
-    matched_rule = models.CharField(max_length=256, verbose_name='Regel match')  # Name of matching rule.
+    matched_rule = models.CharField(max_length=256, verbose_name='Regel match')
     sensitivity = models.IntegerField(choices=Sensitivity.choices,
-                                      default=Sensitivity.HIGH, verbose_name='Følsomhed')
+                                      default=Sensitivity.HIGH,
+                                      verbose_name='Følsomhed')
 
     def get_matched_rule_display(self):
         """Return a display name for the rule."""
@@ -347,7 +374,7 @@ class ConversionQueueItem(models.Model):
     """Represents an item in the conversion queue."""
 
     file = models.CharField(max_length=4096, verbose_name='Fil')
-    type = models.CharField(max_length=256, verbose_name='Type')  # We may want to specify choices
+    type = models.CharField(max_length=256, verbose_name='Type')
     url = models.ForeignKey(Url, null=False, verbose_name='Url')
 
     # Note that SUCCESS is indicated by just deleting the record
@@ -363,8 +390,11 @@ class ConversionQueueItem(models.Model):
     status = models.CharField(max_length=10, choices=status_choices,
                               default=NEW, verbose_name='Status')
 
-    process_id = models.IntegerField(blank=True, null=True, verbose_name='Proces id')
-    process_start_time = models.DateTimeField(blank=True, null=True, verbose_name='Proces starttidspunkt')
+    process_id = models.IntegerField(blank=True, null=True,
+                                     verbose_name='Proces id')
+    process_start_time = models.DateTimeField(
+        blank=True, null=True, verbose_name='Proces starttidspunkt'
+    )
 
     @property
     def file_path(self):
