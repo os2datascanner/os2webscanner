@@ -7,3 +7,4 @@ regex
 chardet
 python-magic
 python-dateutil
+django-recurrence

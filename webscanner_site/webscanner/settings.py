@@ -39,6 +39,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'os2webscanner',
+    'recurrence'
 )
 
 MIDDLEWARE_CLASSES = (
