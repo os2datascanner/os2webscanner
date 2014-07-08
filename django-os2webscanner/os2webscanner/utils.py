@@ -14,12 +14,12 @@ def notify_user(scan):
     subject = "Scanning afsluttet: {0}".format(scan.status_text)
     to_address = scan.scanner.organization.contact_email
     if not to_address:
-        toaddress = settings.ADMIN_EMAIL
+        to_address = settings.ADMIN_EMAIL
 
     try:
         body = t.render(c)
         message = EmailMessage(subject, body, settings.ADMIN_EMAIL,
-                               ['carstena@magenta.dk'])
+                               [to_address])
         message.send()
     except Exception as e:
         # TODO: Handle this properly

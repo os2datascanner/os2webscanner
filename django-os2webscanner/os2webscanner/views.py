@@ -126,6 +126,7 @@ class ScannerCreate(RestrictedCreateView):
     def get_success_url(self):
         return '/scanners/%s/created/' % self.object.pk
 
+
 class ScannerUpdate(UpdateView, LoginRequiredMixin):
 
     """Update a scanner view."""
@@ -136,6 +137,7 @@ class ScannerUpdate(UpdateView, LoginRequiredMixin):
 
     def get_success_url(self):
         return '/scanners/%s/saved/' % self.object.pk
+
 
 class ScannerDelete(DeleteView, LoginRequiredMixin):
 
@@ -184,6 +186,7 @@ class DomainCreate(RestrictedCreateView):
 
     def get_success_url(self):
         return '/domains/%s/created/' % self.object.pk
+
 
 class DomainUpdate(UpdateView, LoginRequiredMixin):
 
@@ -279,7 +282,7 @@ class RuleCreate(RestrictedCreateView):
 
     model = RegexRule
     fields = ['name', 'match_string', 'description', 'sensitivity']
-    
+
     def get_form(self, form_class):
         form = super(RuleCreate, self).get_form(form_class)
 
@@ -287,17 +290,18 @@ class RuleCreate(RestrictedCreateView):
             f = form.fields[fname]
             f.widget.attrs['class'] = 'form-control'
 
-        return form    
+        return form
 
     def get_success_url(self):
         return '/rules/%s/created/' % self.object.pk
+
 
 class RuleUpdate(UpdateView, LoginRequiredMixin):
 
     """Update a rule view."""
 
     model = RegexRule
-    
+
     def get_form(self, form_class):
         form = super(RuleUpdate, self).get_form(form_class)
 
@@ -305,10 +309,11 @@ class RuleUpdate(UpdateView, LoginRequiredMixin):
             f = form.fields[fname]
             f.widget.attrs['class'] = 'form-control'
 
-        return form        
-    
+        return form
+
     def get_success_url(self):
         return '/rules/%s/created/' % self.object.pk
+
 
 class RuleDelete(DeleteView, LoginRequiredMixin):
 
@@ -337,6 +342,7 @@ class ReportDetails(DetailView, LoginRequiredMixin):
         context['matches'] = all_matches
         return context
 
+
 class DialogSuccess(TemplateView):
     template_name = 'os2webscanner/dialogsuccess.html'
 
@@ -354,7 +360,7 @@ class DialogSuccess(TemplateView):
         if model_type not in self.type_map:
             raise Http404
         model = self.type_map[model_type]
-        item = get_object_or_404(model, pk=pk);
+        item = get_object_or_404(model, pk=pk)
         context['item_description'] = item.display_name
         context['action'] = "oprettet" if created else "gemt"
         context['reload_url'] = '/' + model_type + '/'
