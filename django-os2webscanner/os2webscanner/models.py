@@ -247,12 +247,6 @@ class Scanner(models.Model):
             return None
         return scan
 
-    @property
-    def schedule_description(self):
-        """Text representation of the scanner's schedule."""
-        f = lambda s: "Schedule: " + s
-        return f
-
     def get_absolute_url(self):
         """Get the absolute URL for scanners."""
         return '/scanners/'
