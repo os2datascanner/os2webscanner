@@ -2,7 +2,7 @@ from django.conf import settings
 from django.core.mail import EmailMessage
 from django.template import loader, Context
 
-import models 
+import models
 
 
 def notify_user(scan):
@@ -27,7 +27,7 @@ def notify_user(scan):
     try:
         body = t.render(c)
         message = EmailMessage(subject, body, settings.ADMIN_EMAIL,
-                               [to_address,])
+                               [to_address, ])
         message.send()
         print "Mail sendt til", to_address
     except Exception as e:

@@ -5,6 +5,7 @@ from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.http import Http404
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import View, ListView, TemplateView, DetailView
+from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -37,7 +38,9 @@ class RestrictedListView(ListView, LoginRequiredMixin):
         else:
             try:
                 profile = user.get_profile()
-                return self.model.objects.filter(organization=profile.organization)
+                return self.model.objects.filter(
+                    organization=profile.organization
+                )
             except UserProfile.DoesNotExist:
                 return self.model.objects.filter(organization=None)
 
@@ -133,21 +136,31 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
         return super(RestrictedCreateView, self).form_valid(form)
 
 
-class RestrictedUpdateView(UpdateView, LoginRequiredMixin):
+class OrgRestrictedMixin(SingleObjectMixin, LoginRequiredMixin):
 
-      def get(self, request, *args, **kwargs):
-          self.object = self.get_object()
-          if not self.request.user.is_superuser:
-              try:
-                  user_profile = self.request.user.get_profile()
-                  organization = user_profile.organization
-              except UserProfile.DoesNotExist:
-                  organization = None
-              if organization != self.object.organization:
-                  raise Http404
+    def get_queryset(self):
+        queryset = super(OrgRestrictedMixin, self).get_queryset()
+        if not self.request.user.is_superuser:
+            try:
+                user_profile = self.request.user.get_profile()
+                organization = user_profile.organization
+            except UserProfile.DoesNotExist:
+                organization = None
+                queryset = queryset.filter(organization=organization)
+        return queryset
 
-          return super(RestrictedUpdateView, self).get(request, *args,
-                                                       **kwargs)
+
+class RestrictedUpdateView(UpdateView, OrgRestrictedMixin):
+    pass
+
+
+class RestrictedDetailView(DetailView, OrgRestrictedMixin):
+    pass
+
+
+class RestrictedDeleteView(DeleteView, OrgRestrictedMixin):
+    pass
+
 
 class ScannerCreate(RestrictedCreateView):
 
@@ -159,8 +172,6 @@ class ScannerCreate(RestrictedCreateView):
 
     def get_success_url(self):
         return '/scanners/%s/created/' % self.object.pk
-    
-    
 
 
 class ScannerUpdate(RestrictedUpdateView):
@@ -175,7 +186,7 @@ class ScannerUpdate(RestrictedUpdateView):
         return '/scanners/%s/saved/' % self.object.pk
 
 
-class ScannerDelete(DeleteView, LoginRequiredMixin):
+class ScannerDelete(RestrictedDeleteView):
 
     """Delete a scanner view."""
 
@@ -183,7 +194,7 @@ class ScannerDelete(DeleteView, LoginRequiredMixin):
     success_url = '/scanners/'
 
 
-class ScannerRun(DetailView, LoginRequiredMixin):
+class ScannerRun(RestrictedDetailView):
     model = Scanner
     template_name = 'os2webscanner/scanner_run.html'
 
@@ -224,7 +235,7 @@ class DomainCreate(RestrictedCreateView):
         return '/domains/%s/created/' % self.object.pk
 
 
-class DomainUpdate(UpdateView, LoginRequiredMixin):
+class DomainUpdate(RestrictedUpdateView):
 
     """Update a domain view."""
 
@@ -286,7 +297,7 @@ class DomainUpdate(UpdateView, LoginRequiredMixin):
             return '/domains/%s/saved/' % self.object.pk
 
 
-class DomainValidate(DetailView, LoginRequiredMixin):
+class DomainValidate(RestrictedDetailView):
     model = Domain
 
     def get_context_data(self, **kwargs):
@@ -304,7 +315,7 @@ class DomainValidate(DetailView, LoginRequiredMixin):
         return context
 
 
-class DomainDelete(DeleteView, LoginRequiredMixin):
+class DomainDelete(RestrictedDeleteView):
 
     """Delete a domain view."""
 
@@ -332,7 +343,7 @@ class RuleCreate(RestrictedCreateView):
         return '/rules/%s/created/' % self.object.pk
 
 
-class RuleUpdate(UpdateView, LoginRequiredMixin):
+class RuleUpdate(RestrictedUpdateView):
 
     """Update a rule view."""
 
@@ -351,7 +362,7 @@ class RuleUpdate(UpdateView, LoginRequiredMixin):
         return '/rules/%s/created/' % self.object.pk
 
 
-class RuleDelete(DeleteView, LoginRequiredMixin):
+class RuleDelete(RestrictedDeleteView):
 
     """Delete a rule view."""
 
@@ -360,13 +371,24 @@ class RuleDelete(DeleteView, LoginRequiredMixin):
 
 
 # Reports stuff
-class ReportDetails(DetailView, LoginRequiredMixin):
+class ReportDetails(UpdateView, LoginRequiredMixin):
 
     """Display a detailed report."""
 
     model = Scan
     template_name = 'os2webscanner/report.html'
     context_object_name = "scan"
+
+    def get_queryset(self):
+        queryset = super(ReportDetails, self).get_queryset()
+        if not self.request.user.is_superuser:
+            try:
+                user_profile = self.request.user.get_profile()
+                organization = user_profile.organization
+            except UserProfile.DoesNotExist:
+                organization = None
+            queryset = queryset.filter(scanner__organization=organization)
+        return queryset
 
     def get_context_data(self, **kwargs):
         """Add the scan's matches to the report context data."""
