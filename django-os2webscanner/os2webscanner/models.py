@@ -7,6 +7,7 @@ from subprocess import Popen
 import re
 from django.db import models
 from django.contrib.auth.models import User
+from recurrence.fields import RecurrenceField
 
 from .utils import notify_user
 
@@ -184,7 +185,7 @@ class Scanner(models.Model):
                             verbose_name='Navn')
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')
-    schedule = models.CharField(max_length=1024, verbose_name='Plan')
+    schedule = RecurrenceField(max_length=1024, verbose_name='Planlagt afvikling')
     whitelisted_names = models.TextField(max_length=4096, blank=True,
                                          default="",
                                          verbose_name='Godkendte navne')
