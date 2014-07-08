@@ -1,13 +1,15 @@
 """Contains Django views."""
 
 from django import forms
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
+from django.http import Http404
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import View, ListView, TemplateView, DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.forms.models import modelform_factory
+from django.conf import settings
 
 from validate import validate_domain, get_validation_str
 
@@ -131,6 +133,22 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
         return super(RestrictedCreateView, self).form_valid(form)
 
 
+class RestrictedUpdateView(UpdateView, LoginRequiredMixin):
+
+      def get(self, request, *args, **kwargs):
+          self.object = self.get_object()
+          if not self.request.user.is_superuser:
+              try:
+                  user_profile = self.request.user.get_profile()
+                  organization = user_profile.organization
+              except UserProfile.DoesNotExist:
+                  organization = None
+              if organization != self.object.organization:
+                  raise Http404
+
+          return super(RestrictedUpdateView, self).get(request, *args,
+                                                       **kwargs)
+
 class ScannerCreate(RestrictedCreateView):
 
     """Create a scanner view."""
@@ -145,7 +163,7 @@ class ScannerCreate(RestrictedCreateView):
     
 
 
-class ScannerUpdate(UpdateView, LoginRequiredMixin):
+class ScannerUpdate(RestrictedUpdateView):
 
     """Update a scanner view."""
 
@@ -358,6 +376,7 @@ class ReportDetails(DetailView, LoginRequiredMixin):
         ).order_by('-sensitivity', 'url', 'matched_rule', 'matched_data')
 
         context['matches'] = all_matches
+        context['reports_url'] = settings.SITE_URL + '/reports/'
         return context
 
 

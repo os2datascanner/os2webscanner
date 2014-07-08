@@ -1,0 +1,2 @@
+alter table "os2webscanner_organization" add column "contact_email" varchar(256) NOT NULL default '';
+alter table "os2webscanner_organization" add column "contact_phone" varchar(256) NOT NULL default '';
