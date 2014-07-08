@@ -1,6 +1,6 @@
 {% load staticfiles %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="da">
 <head>
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -87,7 +87,15 @@
             <a href="/reports/">
               Rapporter
             </a>
-          </li>
+            </li>
+            {% if user.is_authenticated %}
+            <li>
+            <a href="/">Velkommen, {{user.username}}!</a>
+            </li>
+            <li>
+            <a href="/accounts/logout">Log ud</a>
+            </li>
+            {% endif %}
         </ul>
       </div>
     </div>

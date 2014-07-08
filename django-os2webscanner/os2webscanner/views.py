@@ -1,11 +1,12 @@
 """Contains Django views."""
 
+from django import forms
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import View, ListView, TemplateView, DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from django import forms
 from django.forms.models import modelform_factory
 
 from validate import validate_domain, get_validation_str
@@ -32,11 +33,14 @@ class RestrictedListView(ListView, LoginRequiredMixin):
         if user.is_superuser:
             return self.model.objects.all()
         else:
-            profile = user.get_profile()
-            return self.model.objects.filter(organization=profile.organization)
+            try:
+                profile = user.get_profile()
+                return self.model.objects.filter(organization=profile.organization)
+            except UserProfile.DoesNotExist:
+                return self.model.objects.filter(organization=None)
 
 
-class MainPageView(TemplateView):
+class MainPageView(TemplateView, LoginRequiredMixin):
 
     """Display the main page."""
 
@@ -59,7 +63,10 @@ class DomainList(RestrictedListView):
     template_name = 'os2webscanner/domains.html'
 
     def get_queryset(self):
-        return self.model.objects.all().order_by('url', 'pk')
+
+        query_set = super(DomainList, self).get_queryset()
+
+        return query_set.order_by('url', 'pk')
 
 
 class RuleList(RestrictedListView):
@@ -83,9 +90,15 @@ class ReportList(RestrictedListView):
         if user.is_superuser:
             reports = self.model.objects.all()
         else:
-            profile = user.get_profile()
-            reports = self.model.objects.filter(
-                scanner__organization=profile.organization)
+            try:
+                profile = user.get_profile()
+                reports = self.model.objects.filter(
+                    scanner__organization=profile.organization
+                )
+            except UserProfile.DoesNotExist:
+                reports = self.model.objects.filter(
+                    scanner__organization=None
+                )
         return reports.order_by('-start_time')
 
 
@@ -108,7 +121,10 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
 
     def form_valid(self, form):
         if not self.request.user.is_superuser:
-            user_profile = self.request.user.get_profile()
+            try:
+                user_profile = self.request.user.get_profile()
+            except UserProfile.DoesNotExist:
+                raise PermissionDenied
             self.object = form.save(commit=False)
             self.object.organization = user_profile.organization
 
