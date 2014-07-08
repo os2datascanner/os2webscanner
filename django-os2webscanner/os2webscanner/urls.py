@@ -1,6 +1,7 @@
 """URL mappings."""
 
 from django.conf.urls import patterns, url
+from django.views.i18n import javascript_catalog
 from django.views.generic import View, ListView, TemplateView, DetailView
 
 from .views import MainPageView, ScannerList, DomainList, RuleList
@@ -10,6 +11,12 @@ from .views import DomainCreate, DomainUpdate, DomainValidate, DomainDelete
 from .views import RuleCreate, RuleUpdate, RuleDelete
 from .views import DialogSuccess
 from .models import Scanner
+
+
+js_info_dict = {
+    'packages': ('os2webscanner', 'recurrence')
+}
+
 urlpatterns = patterns(
     '',
     # App URLs
@@ -54,4 +61,5 @@ urlpatterns = patterns(
         DialogSuccess.as_view()),
     url(r'^(scanners|domains|rules)/(\d+)/(saved)/$',
         DialogSuccess.as_view()),
+    url(r'^jsi18n/$', javascript_catalog, js_info_dict)
 )
