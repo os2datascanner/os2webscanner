@@ -125,6 +125,8 @@ class ScannerCreate(RestrictedCreateView):
 
     def get_success_url(self):
         return '/scanners/%s/created/' % self.object.pk
+    
+    
 
 
 class ScannerUpdate(UpdateView, LoginRequiredMixin):
