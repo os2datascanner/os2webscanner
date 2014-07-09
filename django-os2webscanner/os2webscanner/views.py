@@ -168,7 +168,7 @@ class ScannerCreate(RestrictedCreateView):
 
     model = Scanner
     fields = ['name', 'schedule', 'whitelisted_names', 'domains',
-              'do_cpr_scan', 'do_name_scan', 'regex_rules']
+              'do_cpr_scan', 'do_name_scan', 'do_ocr', 'regex_rules']
 
     def get_form(self, form_class):
         form = super(ScannerCreate, self).get_form(form_class)
@@ -194,7 +194,7 @@ class ScannerUpdate(RestrictedUpdateView):
 
     model = Scanner
     fields = ['name', 'schedule', 'whitelisted_names', 'domains',
-              'do_cpr_scan', 'do_name_scan', 'regex_rules']
+              'do_cpr_scan', 'do_name_scan', 'do_ocr', 'regex_rules']
 
     def get_success_url(self):
         return '/scanners/%s/saved/' % self.object.pk
