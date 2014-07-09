@@ -166,6 +166,12 @@
             </div>
           </div>
         </div>
+        {% if object.pk %}
+        <p>
+          Scanneren vil starte på følgende tidspunkt på de valgte dage:<br />
+          {{ object.get_start_time }}
+        </p>
+        {% endif %}
       </div>
     </div>
     <div class="form-group clearfix">
