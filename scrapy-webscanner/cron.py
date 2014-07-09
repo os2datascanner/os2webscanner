@@ -34,9 +34,6 @@ next_qhr = current_qhr + datetime.timedelta(
     minutes=15, microseconds=-1
 )
 
-print current_qhr
-print next_qhr
-
 # Loop through all scanners
 for scanner in Scanner.objects.exclude(schedule=""):
     # Skip scanners that should not start now
