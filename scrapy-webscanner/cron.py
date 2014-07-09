@@ -26,7 +26,6 @@ def strip_seconds(d):
 
 
 current_qhr = strip_seconds(datetime.datetime.now())
-current_qhr += datetime.timedelta(minutes=105)
 current_qhr = current_qhr.replace(
     minute=current_qhr.minute - current_qhr.minute % 15
 )
