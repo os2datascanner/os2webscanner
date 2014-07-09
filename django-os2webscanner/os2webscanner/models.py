@@ -194,6 +194,7 @@ class Scanner(models.Model):
                                      null=False, verbose_name='Domæner')
     do_cpr_scan = models.BooleanField(default=True, verbose_name='CPR')
     do_name_scan = models.BooleanField(default=True, verbose_name='Navn')
+    do_ocr = models.BooleanField(default=True, verbose_name='Scan billeder?')
     regex_rules = models.ManyToManyField(RegexRule,
                                          blank=True,
                                          null=True,
@@ -305,7 +306,7 @@ class Scan(models.Model):
         # Post-save stuff
 
         if (self.status in [Scan.DONE, Scan.FAILED] and
-            self._old_status != Scan.status):
+            (self._old_status != self.status)):
             # Send email
             notify_user(self)
 
