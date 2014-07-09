@@ -85,8 +85,8 @@ class Domain(models.Model):
     METAFIELD = 2
 
     validation_method_choices = (
-        (ROBOTSTXT, 'Robots.txt'),
-        (WEBSCANFILE, 'Webscan.html'),
+        (ROBOTSTXT, 'robots.txt'),
+        (WEBSCANFILE, 'webscan.html'),
         (METAFIELD, 'Meta-felt'),
     )
 
@@ -185,7 +185,8 @@ class Scanner(models.Model):
                             verbose_name='Navn')
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')
-    schedule = RecurrenceField(max_length=1024, verbose_name='Planlagt afvikling')
+    schedule = RecurrenceField(max_length=1024,
+                               verbose_name='Planlagt afvikling')
     whitelisted_names = models.TextField(max_length=4096, blank=True,
                                          default="",
                                          verbose_name='Godkendte navne')
@@ -304,7 +305,7 @@ class Scan(models.Model):
         # Post-save stuff
 
         if (self.status in [Scan.DONE, Scan.FAILED] and
-            self._old_status in [Scan.NEW, Scan.STARTED]):
+            self._old_status != Scan.status):
             # Send email
             notify_user(self)
 
