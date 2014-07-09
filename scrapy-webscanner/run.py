@@ -71,6 +71,7 @@ class ScannerApp:
         self.scan_object.pid = None
         self.scan_object.status = Scan.FAILED
         self.scan_object.reason = "Killed"
+        # TODO: Remove all non-processed conversion queue items.
         self.scan_object.save()
 
     def run_spider(self):
@@ -102,10 +103,8 @@ class ScannerApp:
 
     def handle_error(self, failure, response, spider):
         """Handle spider errors, updating scan status."""
-        # TODO: Don't set as failed, simply log errors.
         log.msg("Scan failed: %s" % failure.getErrorMessage(), level=log.ERROR)
         scan_object = Scan.objects.get(pk=self.scan_id)
-        scan_object.status = Scan.FAILED
         scan_object.end_time = timezone.now()
         scan_object.reason = failure.getErrorMessage()
         scan_object.save()
