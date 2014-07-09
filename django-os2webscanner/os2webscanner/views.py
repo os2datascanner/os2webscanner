@@ -422,7 +422,8 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
             scan=self.get_object()
         ).order_by('-sensitivity', 'url', 'matched_rule', 'matched_data')
 
-        context['matches'] = all_matches
+        context['matches'] = all_matches[:100]
+        context['no_of_matches'] = len(all_matches)
         context['reports_url'] = settings.SITE_URL + '/reports/'
         return context
 
