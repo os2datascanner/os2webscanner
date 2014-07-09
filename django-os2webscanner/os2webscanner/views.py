@@ -171,7 +171,7 @@ class ScannerCreate(RestrictedCreateView):
               'do_cpr_scan', 'do_name_scan', 'regex_rules']
 
     def get_form(self, form_class):
-        form = super(ScannerUpdate, self).get_form(form_class)
+        form = super(ScannerCreate, self).get_form(form_class)
         try:
             organization = self.request.user.get_profile().organization
         except UserProfile.DoesNotExist:
