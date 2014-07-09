@@ -305,9 +305,10 @@ class Scan(models.Model):
         # Post-save stuff
 
         if (self.status in [Scan.DONE, Scan.FAILED] and
-            self._old_status != Scan.status):
+           (self._old_status != self.status)):
             # Send email
             notify_user(self)
+            self._old_status = self.status
 
     def __init__(self, *args, **kwargs):
         super(Scan, self).__init__(*args, **kwargs)
