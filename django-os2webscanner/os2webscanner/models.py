@@ -5,6 +5,7 @@
 import os
 from subprocess import Popen
 import re
+import datetime
 from django.db import models
 from django.contrib.auth.models import User
 from recurrence.fields import RecurrenceField
@@ -199,6 +200,29 @@ class Scanner(models.Model):
                                          blank=True,
                                          null=True,
                                          verbose_name='Regex regler')
+
+    # First possible start time
+    FIRST_START_TIME = datetime.time(18, 0)
+    # Amount of quarter-hours that can be added to the start time
+    STARTTIME_QUARTERS = 6 * 4
+
+    def get_start_time(self):
+        added_minutes = 15 * (self.pk % Scanner.STARTTIME_QUARTERS)
+        added_hours = int(added_minutes / 60)
+        added_minutes -= added_hours * 60
+        return Scanner.FIRST_START_TIME.replace(
+            hour=Scanner.FIRST_START_TIME.hour + added_hours,
+            minute=Scanner.FIRST_START_TIME.minute + added_minutes
+        )
+
+    @classmethod
+    # Convert a given time to the according modulo of the pk
+    def modulo_for_starttime(cls, time):
+        if(time < cls.FIRST_START_TIME):
+            return None
+        hours = time.hour - cls.FIRST_START_TIME.hour
+        minutes = 60 * hours + time.minute - cls.FIRST_START_TIME.minute
+        return int(minutes / 15)
 
     @property
     def display_name(self):
