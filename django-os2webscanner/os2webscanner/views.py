@@ -1,3 +1,4 @@
+# encoding: utf-8
 """Contains Django views."""
 
 import csv
@@ -442,17 +443,26 @@ class CSVReportDetails(ReportDetails):
         response[
             'Content-Disposition'
         ] = 'attachment; filename={0}'.format(report_file)
-        print report_file
         writer = csv.writer(response)
         all_matches = Match.objects.filter(scan=scan).order_by(
             '-sensitivity', 'url', 'matched_rule', 'matched_data'
         )
+        # CSV utilities
         e = lambda fields: ([f.encode('utf-8') for f in fields])
+        # Print summary header
+        writer.writerow(e([u'Starttidspunkt', u'Sluttidspunkt', u'Status',
+                        u'Totalt antal matches']))
+        # Print summary
+        writer.writerow(e([str(scan.start_time),
+            str(scan.end_time), scan.get_status_display(),
+            str(len(all_matches))]))
+        # Print match header
+        writer.writerow(e([u'URL', u'Regel', u'Match', u'Følsomhed']))
         for match in all_matches:
             writer.writerow(e([match.url.url,
-                                      match.get_matched_rule_display(),
-                                      match.matched_data.replace('\n', ''),
-                                      match.get_sensitivity_display()]))
+                             match.get_matched_rule_display(),
+                             match.matched_data.replace('\n', ''),
+                             match.get_sensitivity_display()]))
         return response
 
 
