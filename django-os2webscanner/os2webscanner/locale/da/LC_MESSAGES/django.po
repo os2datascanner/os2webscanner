@@ -60,21 +60,7 @@ msgstr ""
 msgid "dag"
 msgstr ""
 
-#: base.py:876
-msgid "time"
-msgstr ""
 
-#: base.py:876
-msgid "minut"
-msgstr ""
-
-#: base.py:876
-msgid "sekund"
-msgstr ""
-
-#: base.py:879
-msgid "år"
-msgstr ""
 
 #: base.py:879
 msgid "måneder"
