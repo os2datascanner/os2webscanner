@@ -426,7 +426,7 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
         ).order_by('-sensitivity', 'url', 'matched_rule', 'matched_data')
 
         context['matches'] = all_matches[:100]
-        context['no_of_matches'] = len(all_matches)
+        context['no_of_matches'] = all_matches.count()
         context['reports_url'] = settings.SITE_URL + '/reports/'
         return context
 
