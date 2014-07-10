@@ -23,9 +23,9 @@ class Sensitivity:
     OK = 0
 
     choices = (
-        (OK, 'Grøn'),
-        (LOW, 'Gul'),
-        (HIGH, 'Rød'),
+        (OK, u'Grøn'),
+        (LOW, u'Gul'),
+        (HIGH, u'Rød'),
     )
 
 

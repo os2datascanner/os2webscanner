@@ -5,7 +5,7 @@ from django.views.i18n import javascript_catalog
 from django.views.generic import View, ListView, TemplateView, DetailView
 
 from .views import MainPageView, ScannerList, DomainList, RuleList
-from .views import ReportDetails, ReportList
+from .views import CSVReportDetails, ReportDetails, ReportList
 from .views import ScannerCreate, ScannerUpdate, ScannerDelete, ScannerRun
 from .views import DomainCreate, DomainUpdate, DomainValidate, DomainDelete
 from .views import RuleCreate, RuleUpdate, RuleDelete
@@ -50,6 +50,8 @@ urlpatterns = patterns(
         name='rule_delete'),
     url(r'^reports/$', ReportList.as_view(), name='reports'),
     url(r'^report/(?P<pk>[0-9]+)/$', ReportDetails.as_view(), name='report'),
+    url(r'^report/(?P<pk>[0-9]+)/csv/$', CSVReportDetails.as_view(),
+        name='csvreport'),
     # Login/logout stuff
     url(r'^accounts/login/', 'django.contrib.auth.views.login',
         {'template_name': 'login.html'}, name='login'),
