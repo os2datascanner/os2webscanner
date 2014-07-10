@@ -106,4 +106,4 @@ local_settings_file = os.path.join(
     'local_settings.py'
 )
 if os.path.exists(local_settings_file):
-    import local_settings
+    from local_settings import *
