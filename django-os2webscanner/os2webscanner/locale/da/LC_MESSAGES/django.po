@@ -17,381 +17,381 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: base.py:871
-msgid "årlig"
-msgstr ""
+msgid "annually"
+msgstr "årligt"
 
 #: base.py:871
-msgid "månedligt"
-msgstr ""
+msgid "monthly"
+msgstr "månedligt"
 
 #: base.py:871
-msgid "ugenligt"
-msgstr ""
+msgid "weekly"
+msgstr "ugenligt"
 
 #: base.py:871
-msgid "dagligt"
-msgstr ""
+msgid "daily"
+msgstr "dagligt"
 
 #: base.py:872
-msgid "time"
-msgstr ""
+msgid "hourly"
+msgstr "time"
 
 #: base.py:872
-msgid "minut"
-msgstr ""
+msgid "minutely"
+msgstr "pr. minut"
 
 #: base.py:872
-msgid "sekund"
-msgstr ""
+msgid "secondly"
+msgstr "pr. sekund"
 
 #: base.py:875
-msgid "år"
-msgstr ""
+msgid "year"
+msgstr "år"
 
 #: base.py:875
-msgid "måned"
-msgstr ""
+msgid "month"
+msgstr "måned"
 
 #: base.py:875
-msgid "uge"
-msgstr ""
+msgid "week"
+msgstr "uge"
 
 #: base.py:875
-msgid "dag"
-msgstr ""
+msgid "day"
+msgstr "dag"
 
 #: base.py:876
-msgid "time"
-msgstr ""
+msgid "hour"
+msgstr "time"
 
 #: base.py:876
-msgid "minut"
-msgstr ""
+msgid "minute"
+msgstr "minut"
 
 #: base.py:876
-msgid "sekund"
-msgstr ""
+msgid "second"
+msgstr "sekund"
 
 #: base.py:879
-msgid "år"
-msgstr ""
+msgid "years"
+msgstr "år"
 
 #: base.py:879
-msgid "måneder"
-msgstr ""
+msgid "months"
+msgstr "måneder"
 
 #: base.py:879
-msgid "uger"
-msgstr ""
+msgid "weeks"
+msgstr "uger"
 
 #: base.py:879
-msgid "dage"
-msgstr ""
+msgid "days"
+msgstr "dage"
 
 #: base.py:880
-msgid "timer"
-msgstr ""
+msgid "hours"
+msgstr "timer"
 
 #: base.py:880
-msgid "minutter"
-msgstr ""
+msgid "minutes"
+msgstr "minutter"
 
 #: base.py:880
-msgid "sekunder"
-msgstr ""
+msgid "seconds"
+msgstr "sekunder"
 
 #: base.py:885
 #, python-format
-msgid "1. %(weekday)"
-msgstr ""
+msgid "1st %(weekday)s"
+msgstr "1. %(weekday)s"
 
 #: base.py:886
 #, python-format
-msgid "2. %(weekday)"
-msgstr ""
+msgid "2nd %(weekday)s"
+msgstr "2. %(weekday)s"
 
 #: base.py:887
 #, python-format
-msgid "3. %(weekday)"
-msgstr ""
+msgid "3rd %(weekday)s"
+msgstr "3. %(weekday)s"
 
 #: base.py:888 base.py:907
 #, python-format
-msgid "sidste %(weekday)"
-msgstr ""
+msgid "last %(weekday)s"
+msgstr "sidste %(weekday)s"
 
 #: base.py:889
 #, python-format
-msgid "2. sidste %(weekday)"
-msgstr ""
+msgid "2nd last %(weekday)s"
+msgstr "2. sidste %(weekday)s"
 
 #: base.py:890
 #, python-format
-msgid "3. sidste %(weekday)"
-msgstr ""
+msgid "3rd last %(weekday)s"
+msgstr "3. sidste %(weekday)s"
 
 #: base.py:893
-msgid "Man"
-msgstr ""
+msgid "Mon"
+msgstr "Man"
 
 #: base.py:893
-msgid "Tir"
-msgstr ""
+msgid "Tue"
+msgstr "Tir"
 
 #: base.py:893
-msgid "Ons"
-msgstr ""
+msgid "Wed"
+msgstr "Ons"
 
 #: base.py:894
-msgid "Tors"
-msgstr ""
+msgid "Thu"
+msgstr "Tor"
 
 #: base.py:894
-msgid "Fre"
-msgstr ""
+msgid "Fri"
+msgstr "Fre"
 
 #: base.py:894
-msgid "Lør"
-msgstr ""
+msgid "Sat"
+msgstr "Lør"
 
 #: base.py:894
-msgid "Søn"
-msgstr ""
+msgid "Sun"
+msgstr "Søn"
 
 #: base.py:897
 msgid "Jan"
-msgstr ""
+msgstr "Jan"
 
 #: base.py:897
 msgid "Feb"
-msgstr ""
+msgstr "Feb"
 
 #: base.py:897
 msgid "Mar"
-msgstr ""
+msgstr "Mar"
 
 #: base.py:897
 msgid "Apr"
-msgstr ""
+msgstr "Apr"
 
 #: base.py:898 base.py:917 choices.py:31
-msgid "Maj"
-msgstr ""
+msgid "May"
+msgstr "Maj"
 
 #: base.py:898
 msgid "Jun"
-msgstr ""
+msgstr "Jun"
 
 #: base.py:898
 msgid "Jul"
-msgstr ""
+msgstr "Jul"
 
 #: base.py:898
 msgid "Aug"
-msgstr ""
+msgstr "Aug"
 
 #: base.py:899
 msgid "Sep"
-msgstr ""
+msgstr "Sep"
 
 #: base.py:899
-msgid "Okt"
-msgstr ""
+msgid "Oct"
+msgstr "Okt"
 
 #: base.py:899
 msgid "Nov"
-msgstr ""
+msgstr "Nov"
 
 #: base.py:899
 msgid "Dec"
-msgstr ""
+msgstr "Dec"
 
 #: base.py:904
 #, python-format
-msgid "første %(weekday)"
-msgstr ""
+msgid "first %(weekday)s"
+msgstr "første %(weekday)s"
 
 #: base.py:905
 #, python-format
-msgid "anden %(weekday)"
-msgstr ""
+msgid "second %(weekday)s"
+msgstr "anden %(weekday)s"
 
 #: base.py:906
 #, python-format
-msgid "tredje %(weekday)"
-msgstr ""
+msgid "third %(weekday)s"
+msgstr "tredje %(weekday)s"
 
 #: base.py:908
 #, python-format
-msgid "anden sidste %(weekday)"
-msgstr ""
+msgid "second last %(weekday)s"
+msgstr "anden sidste %(weekday)s"
 
 #: base.py:909
 #, python-format
-msgid "tredje sidste %(weekday)"
-msgstr ""
+msgid "third last %(weekday)s"
+msgstr "tredje sidste %(weekday)s"
 
 #: base.py:912 choices.py:17
-msgid "Mandag"
-msgstr ""
+msgid "Monday"
+msgstr "Mandag"
 
 #: base.py:912 choices.py:18
-msgid "Tirsdag"
-msgstr ""
+msgid "Tuesday"
+msgstr "Tirsdag"
 
 #: base.py:912 choices.py:19
-msgid "Onsdag"
-msgstr ""
+msgid "Wednesday"
+msgstr "Onsdag"
 
 #: base.py:913 choices.py:20
-msgid "Torsdag"
-msgstr ""
+msgid "Thursday"
+msgstr "Torsdag"
 
 #: base.py:913 choices.py:21
-msgid "Fredag"
-msgstr ""
+msgid "Friday"
+msgstr "Fredag"
 
 #: base.py:913 choices.py:22
-msgid "Lørdag"
-msgstr ""
+msgid "Saturday"
+msgstr "Lørdag"
 
 #: base.py:913 choices.py:23
-msgid "Søndag"
-msgstr ""
+msgid "Sunday"
+msgstr "Søndag"
 
 #: base.py:916 choices.py:27
-msgid "Januar"
-msgstr ""
+msgid "January"
+msgstr "Januar"
 
 #: base.py:916 choices.py:28
-msgid "Februar"
-msgstr ""
+msgid "February"
+msgstr "Februar"
 
 #: base.py:916 choices.py:29
-msgid "Marts"
-msgstr ""
+msgid "March"
+msgstr "Marts"
 
 #: base.py:916 choices.py:30
 msgid "April"
-msgstr ""
+msgstr "April"
 
 #: base.py:917 choices.py:32
-msgid "Juni"
-msgstr ""
+msgid "June"
+msgstr "Juni"
 
 #: base.py:917 choices.py:33
-msgid "Juli"
-msgstr ""
+msgid "July"
+msgstr "Juli"
 
 #: base.py:917 choices.py:34
 msgid "August"
-msgstr ""
+msgstr "August"
 
 #: base.py:918 choices.py:35
 msgid "September"
-msgstr ""
+msgstr "September"
 
 #: base.py:918 choices.py:36
-msgid "Oktober"
-msgstr ""
+msgid "October"
+msgstr "Oktober"
 
 #: base.py:918 choices.py:37
 msgid "November"
-msgstr ""
+msgstr "November"
 
 #: base.py:918 choices.py:38
 msgid "December"
-msgstr ""
+msgstr "December"
 
 #: base.py:936 base.py:951 base.py:974 base.py:992
 msgid ", "
-msgstr ""
+msgstr ","
 
 #: base.py:942
 #, python-format
-msgid "hver %(number) %(freq)"
-msgstr ""
+msgid "every %(number)s %(freq)s"
+msgstr "hver %(number)s %(freq)s"
 
 #: base.py:953 base.py:977
 #, python-format
-msgid "hver %(items)s"
-msgstr ""
+msgid "each %(items)s"
+msgstr "alle %(items)s"
 
 #: base.py:956 base.py:965 base.py:969
 #, python-format
-msgid "på den %(items)"
-msgstr ""
+msgid "on the %(items)s"
+msgstr "på den %(items)s"
 
 #: base.py:984
-msgid "forekommende en gang"
-msgstr ""
+msgid "occuring once"
+msgstr "forekommende en gang"
 
 #: base.py:986
 #, python-format
-msgid "forekommende %(number) gange"
-msgstr ""
+msgid "occuring %(number)s times"
+msgstr "forekommende %(number)s gange"
 
 #: base.py:989
 #, python-format
-msgid "indtil %(date)s"
-msgstr ""
+msgid "until %(date)s"
+msgstr "indtil %(date)s"
 
 #: choices.py:7
-msgid "Pr. sekund"
-msgstr ""
+msgid "Secondly"
+msgstr "Pr. sekund"
 
 #: choices.py:8
-msgid "Pr. minut"
-msgstr ""
+msgid "Minutely"
+msgstr "Pr. minut"
 
 #: choices.py:9
-msgid "Pr. time"
-msgstr ""
+msgid "Hourly"
+msgstr "Pr. time"
 
 #: choices.py:10
-msgid "Daglig"
-msgstr ""
+msgid "Daily"
+msgstr "Daglig"
 
 #: choices.py:11
-msgid "Ugentlig"
-msgstr ""
+msgid "Weekly"
+msgstr "Ugenligt"
 
 #: choices.py:12
-msgid "Månedlig"
-msgstr ""
+msgid "Monthly"
+msgstr "Månedligt"
 
 #: choices.py:13
-msgid "Årlig"
-msgstr ""
+msgid "Yearly"
+msgstr "Årlig"
 
 #: choices.py:44
-msgid "Inkluderet"
-msgstr ""
+msgid "Inclusion"
+msgstr "Inkluderet"
 
 #: choices.py:45
-msgid "Ekskluderet"
-msgstr ""
+msgid "Exclusion"
+msgstr "Ekskluderet"
 
 #: forms.py:64
-msgid "Ugyldig frekvens."
-msgstr ""
+msgid "Invalid frequency."
+msgstr "Ugyldig frekvens"
 
 #: forms.py:66
 #, python-format
-msgid "Maks regler overskredet. Grænsen er %(limit)"
-msgstr ""
+msgid "Max rules exceeded. The limit is %(limit)s"
+msgstr "Maks antal regler overskrevet. Græsen er %(limit)s"
 
 #: forms.py:68
 #, python-format
-msgid "Maks ekskluderingsregler overskrevet. Græsen er %(limit)"
-msgstr ""
+msgid "Max exclusion rules exceeded. The limit is %(limit)s"
+msgstr "Maks antal eksklusion regler overskrevet. Græsen er %(limit)s"
 
 #: forms.py:70
 #, python-format
-msgid "Maks datoer overskredet. Grænsen er %(limit)"
-msgstr ""
+msgid "Max dates exceeded. The limit is %(limit)s"
+msgstr "Maks datoer overskredet. Grænsen er %(limit)s"
 
 #: forms.py:72
 #, python-format
-msgid "Maks ekskluderings datoer overskrevet. Græsen er %(limit)"
-msgstr ""
+msgid "Max exclusion dates exceeded. The limit is %(limit)s"
+msgstr "Maks eksklusion datoer overskrevet. Grænsen er %(limit)s"
