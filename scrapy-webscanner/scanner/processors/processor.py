@@ -298,6 +298,10 @@ class Processor(object):
         officedocument + '.wordprocessingml.template': 'libreoffice',
         'application/vnd.ms-excel': 'libreoffice',
         'application/vnd.ms-powerpoint': 'libreoffice',
+
+        'application/vnd.lotus-1-2-3': 'libreoffice',
+        'application/lotus123': 'libreoffice',
+        'application/wk3': 'libreoffice'
     }
 
     @classmethod
