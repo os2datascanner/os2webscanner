@@ -48,9 +48,7 @@ msgstr ""
 msgid "Forekommer %(number) gange"
 msgstr ""
 
-#: media/js/recurrence-widget.js:1742
-msgid "Forekommer %(number) gange"
-msgstr ""
+
 
 #: media/js/recurrence-widget.js:1743
 msgid "Dato"
@@ -112,9 +110,7 @@ msgstr ""
 msgid "forekommende %(number) gange"
 msgstr ""
 
-#: media/js/recurrence.js:1001
-msgid "forekommende %(number) gange"
-msgstr ""
+
 
 #: media/js/recurrence.js:1002
 msgid "indtil %(date)"
@@ -148,9 +144,7 @@ msgstr ""
 msgid "sekund"
 msgstr ""
 
-#: media/js/recurrence.js:1010
-msgid "år"
-msgstr ""
+
 
 #: media/js/recurrence.js:1010
 msgid "måneder"
