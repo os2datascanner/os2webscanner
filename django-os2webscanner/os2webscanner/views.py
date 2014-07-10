@@ -431,6 +431,23 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
         return context
 
 
+class ReportDelete(DeleteView, LoginRequiredMixin):
+
+    model = Scan
+    success_url = '/reports/'
+
+    def get_queryset(self):
+        queryset = super(ReportDelete, self).get_queryset()
+        if not self.request.user.is_superuser:
+            try:
+                user_profile = self.request.user.get_profile()
+                organization = user_profile.organization
+            except UserProfile.DoesNotExist:
+                organization = None
+            queryset = queryset.filter(scanner__organization=organization)
+        return queryset
+
+
 class CSVReportDetails(ReportDetails):
     """Display  full report in CSV format."""
 

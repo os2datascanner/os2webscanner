@@ -1,0 +1,16 @@
+{% extends "os2webscanner/base.html" %}
+
+{% block heading %}
+Slet rapport?
+{% endblock %}
+
+{% block body %}
+  <div class="container-fluid main">
+    <p>Ønsker du virkelig at slette?</p>
+    <form action="" method="post">{% csrf_token %}
+      {{ form.as_p }}
+      <input class="btn btn-primary" type="submit" value="Ja" />
+      <a class="btn" href="javascript:history.go(-1)">Nej</a>
+    </form>
+  </div>
+{% endblock %}
