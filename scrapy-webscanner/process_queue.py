@@ -17,11 +17,15 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 from scanner.processors import *
 from scanner.processors.processor import Processor
 
+pid = os.getpid()
+
 queued_processor = Processor.processor_by_type(sys.argv[1])
 
+setup_args = [pid]
 if(len(sys.argv) > 2):
-    setup_args = sys.argv[2:]
-    queued_processor.setup_queue_processing(*setup_args)
+    setup_args.extend(sys.argv[2:])
+
+queued_processor.setup_queue_processing(*setup_args)
 
 try:
     queued_processor.process_queue()

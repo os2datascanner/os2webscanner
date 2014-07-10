@@ -30,6 +30,7 @@ class Processor(object):
     processor_instances = {}
 
     documents_to_process = 10
+    pid = None
 
     @classmethod
     def processor_by_type(cls, processor_type):
@@ -119,9 +120,9 @@ class Processor(object):
             return False
         return True
 
-    def setup_queue_processing(self, *args):
+    def setup_queue_processing(self, pid, *args):
         """Setup the queue processor with additional arguments."""
-        raise NotImplementedError
+        self.pid = pid
 
     def process_queue(self):
         """Process items in the queue in an infinite loop.
@@ -130,7 +131,7 @@ class Processor(object):
         to get the next queue item.
         """
         print "Starting processing queue items of type %s, pid %s" % (
-            self.item_type, os.getpid()
+            self.item_type, self.pid
         )
         sys.stdout.flush()
         executions = 0
@@ -172,9 +173,10 @@ class Processor(object):
                     ).select_for_update(nowait=True).order_by("pk")[0]
 
                     # Change status of the found item
+                    ltime = timezone.localtime(timezone.now())
                     result.status = ConversionQueueItem.PROCESSING
-                    result.process_id = os.getpid()
-                    result.process_start_time = timezone.now()
+                    result.process_id = self.pid
+                    result.process_start_time = ltime
                     result.save()
             except (DatabaseError, IntegrityError) as e:
                 # Database transaction failed, we just try again
@@ -235,6 +237,12 @@ class Processor(object):
                         mime_type = self.magic.from_file(file_path)
                     processor_type = Processor.mimetype_to_processor_type(
                         mime_type)
+
+                    # Disable OCR if requested
+                    if (processor_type == 'ocr' and
+                        not item.url.scan.scanner.do_ocr):
+                        processor_type = None
+
                     if processor_type is not None:
                         new_item = ConversionQueueItem(
                             file=file_path,
@@ -243,6 +251,9 @@ class Processor(object):
                             status=ConversionQueueItem.NEW,
                         )
                         new_item.save()
+                    else:
+                        os.remove(file_path)
+
                 except ValueError:
                     continue
 

@@ -28,6 +28,8 @@ from scanner.processors import *
 
 import signal
 
+# Activate timezone from settings
+timezone.activate(timezone.get_default_timezone())
 
 def signal_handler(signal, frame):
     """Handle being killed."""
