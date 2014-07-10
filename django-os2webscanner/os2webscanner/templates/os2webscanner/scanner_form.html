@@ -4,7 +4,7 @@
 
 {% block extra_head_html %}
 <link href="{% static "recurrence/css/recurrence.css" %}" rel="stylesheet" />
-<script type="text/javascript" src="/admin/jsi18n/"></script>
+<script type="text/javascript" src="/jsi18n/"></script>
 <script type="text/javascript" src="{% static 'recurrence/js/recurrence.js' %}"></script>
 <script type="text/javascript" src="{% static 'recurrence/js/recurrence-widget.js' %}"></script>
 {% endblock %}
@@ -120,6 +120,14 @@
             </div>
           </div>
         </div>
+        <div class="col-sm-12">
+          <div id="{{ form.do_ocr.auto_id }}_container">
+            <div>{{ form.do_ocr.help_text }}</div>
+            <div>
+              {{ form.do_ocr }} {{ form.do_ocr.label_tag }}
+            </div>
+          </div>
+        </div>
         <div class="form-group">
           <div class="col-sm-12">
             <div id="{{ form.regex_rules.auto_id }}_container">
@@ -158,6 +166,12 @@
             </div>
           </div>
         </div>
+        {% if object.pk %}
+        <p>
+          Scanneren vil starte på følgende tidspunkt på de valgte dage:<br />
+          {{ object.get_start_time }}
+        </p>
+        {% endif %}
       </div>
     </div>
     <div class="form-group clearfix">

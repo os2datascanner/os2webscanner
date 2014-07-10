@@ -15,7 +15,7 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 
 from os2webscanner.models import Scanner, Scan
 
-from datetime import datetime
+import datetime
 from dateutil.rrule import *
 from dateutil.relativedelta import relativedelta
 
@@ -25,34 +25,39 @@ def strip_seconds(d):
     return d.replace(second=0, microsecond=0)
 
 
-current_minute = strip_seconds(datetime.now())
-print "Current time %s" % current_minute
+current_qhr = strip_seconds(datetime.datetime.now())
+current_qhr = current_qhr.replace(
+    minute=current_qhr.minute - current_qhr.minute % 15
+)
+
+next_qhr = current_qhr + datetime.timedelta(
+    minutes=15, microseconds=-1
+)
 
 # Loop through all scanners
-for scanner in Scanner.objects.all():
-    # Skip scanners that are not scheduled
-    if scanner.schedule.strip() == "":
+for scanner in Scanner.objects.exclude(schedule=""):
+    # Skip scanners that should not start now
+    start_time = scanner.get_start_time()
+    if start_time < current_qhr.time() or start_time > next_qhr.time():
         continue
-    print "Scanner: %s; schedule: %s" % (scanner, scanner.schedule)
 
     try:
         # Parse the recurrence rule expression
-        rule = rrulestr(scanner.schedule)
+        schedule = scanner.schedule
     except ValueError as e:
         # This shouldn't happen because we should validate in the UI
         reason = "Invalid schedule expression: %s" % e
         print reason
         continue
 
-    # Get the start of the next minute
-    next_minute = strip_seconds(current_minute + relativedelta(minutes=+1))
-
-    # Subtract 1 microsecond, so we don't include jobs starting at the
-    # start of the next minute
-    next_minute = next_minute - relativedelta(microseconds=1)
-
     # Check if it's time to run the scanner
-    if not rule.between(current_minute, next_minute, inc=True):
+    if not schedule.between(
+        current_qhr, next_qhr,
+        # Generate recurrences starting from current quarter 2014/01/01
+        dtstart=datetime.datetime(
+            2014, 1, 1, current_qhr.hour, current_qhr.minute
+        ),
+        inc=True):
         continue
 
     print "Running scanner %s" % scanner

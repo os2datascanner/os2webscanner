@@ -10,6 +10,8 @@ import chardet
 import mimetypes
 import magic
 
+from ..processors.processor import Processor
+
 from os2webscanner.models import Url
 
 
@@ -124,6 +126,10 @@ class ScannerSpider(SitemapSpider):
             data = response.body
 
         # Save the URL item to the database
+        if (Processor.mimetype_to_processor_type(mime_type) == 'ocr' and not
+            self.scanner.scan_object.do_ocr):
+            # Ignore this URL
+            return
         url_object = Url(url=response.request.url, mime_type=mime_type,
                          scan=self.scanner.scan_object)
         url_object.save()

@@ -20,7 +20,7 @@ class CPRRule(Rule):
         return matches
 
 # TODO: Improve
-cpr_regex = regex.compile("\\b(\\d{6})[\\s\-]?(\\d{4})\\b")
+cpr_regex = regex.compile("\\b(\\d{6})[\\s\-/\\.]?(\\d{4})\\b")
 
 
 def date_check(cpr):

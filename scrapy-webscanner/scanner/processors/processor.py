@@ -29,6 +29,8 @@ class Processor(object):
     processors_by_type = {}
     processor_instances = {}
 
+    documents_to_process = 10
+
     @classmethod
     def processor_by_type(cls, processor_type):
         """Return a Processor instance registered for the given type.
@@ -131,12 +133,15 @@ class Processor(object):
             self.item_type, os.getpid()
         )
         sys.stdout.flush()
-        while True:
+        executions = 0
+
+        while executions < self.documents_to_process:
             item = self.get_next_queue_item()
             if item is None:
                 time.sleep(1)
             else:
                 result = self.handle_queue_item(item)
+                executions = executions + 1
                 if not result:
                     item.status = ConversionQueueItem.FAILED
                     item.save()
@@ -293,6 +298,10 @@ class Processor(object):
         officedocument + '.wordprocessingml.template': 'libreoffice',
         'application/vnd.ms-excel': 'libreoffice',
         'application/vnd.ms-powerpoint': 'libreoffice',
+
+        'application/vnd.lotus-1-2-3': 'libreoffice',
+        'application/lotus123': 'libreoffice',
+        'application/wk3': 'libreoffice'
     }
 
     @classmethod

@@ -168,7 +168,21 @@ class ScannerCreate(RestrictedCreateView):
 
     model = Scanner
     fields = ['name', 'schedule', 'whitelisted_names', 'domains',
-              'do_cpr_scan', 'do_name_scan', 'regex_rules']
+              'do_cpr_scan', 'do_name_scan', 'do_ocr', 'regex_rules']
+
+    def get_form(self, form_class):
+        form = super(ScannerCreate, self).get_form(form_class)
+        try:
+            organization = self.request.user.get_profile().organization
+        except UserProfile.DoesNotExist:
+            organization = None
+
+        if not self.request.user.is_superuser:
+            for field_name in ['domains', 'regex_rules']:
+                queryset = form.fields[field_name].queryset
+                queryset = queryset.filter(organization=organization)
+                form.fields[field_name].queryset = queryset
+        return form
 
     def get_success_url(self):
         return '/scanners/%s/created/' % self.object.pk
@@ -180,10 +194,21 @@ class ScannerUpdate(RestrictedUpdateView):
 
     model = Scanner
     fields = ['name', 'schedule', 'whitelisted_names', 'domains',
-              'do_cpr_scan', 'do_name_scan', 'regex_rules']
+              'do_cpr_scan', 'do_name_scan', 'do_ocr', 'regex_rules']
 
     def get_success_url(self):
         return '/scanners/%s/saved/' % self.object.pk
+
+    def get_form(self, form_class):
+        form = super(ScannerUpdate, self).get_form(form_class)
+        scanner = self.get_object()
+
+        for field_name in ['domains', 'regex_rules']:
+            queryset = form.fields[field_name].queryset
+            queryset = queryset.filter(organization=scanner.organization)
+            form.fields[field_name].queryset = queryset
+
+        return form
 
 
 class ScannerDelete(RestrictedDeleteView):
@@ -397,7 +422,8 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
             scan=self.get_object()
         ).order_by('-sensitivity', 'url', 'matched_rule', 'matched_data')
 
-        context['matches'] = all_matches
+        context['matches'] = all_matches[:100]
+        context['no_of_matches'] = len(all_matches)
         context['reports_url'] = settings.SITE_URL + '/reports/'
         return context
 

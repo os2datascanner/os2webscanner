@@ -74,7 +74,7 @@ DATABASES = {
 
 LANGUAGE_CODE = 'da-dk'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'CET'
 
 USE_I18N = True
 
@@ -105,6 +105,5 @@ local_settings_file = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
     'local_settings.py'
 )
-print local_settings_file
 if os.path.exists(local_settings_file):
     import local_settings
