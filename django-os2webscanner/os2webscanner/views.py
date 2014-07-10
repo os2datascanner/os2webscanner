@@ -1,8 +1,11 @@
+# encoding: utf-8
 """Contains Django views."""
+
+import csv
 
 from django import forms
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import View, ListView, TemplateView, DetailView
 from django.views.generic.detail import SingleObjectMixin
@@ -12,7 +15,7 @@ from django.utils.decorators import method_decorator
 from django.forms.models import modelform_factory
 from django.conf import settings
 
-from validate import validate_domain, get_validation_str
+from .validate import validate_domain, get_validation_str
 
 from .models import Scanner, Domain, RegexRule, Scan, Match, UserProfile
 
@@ -398,7 +401,7 @@ class RuleDelete(RestrictedDeleteView):
 # Reports stuff
 class ReportDetails(UpdateView, LoginRequiredMixin):
 
-    """Display a detailed report."""
+    """Display a detailed report summary."""
 
     model = Scan
     template_name = 'os2webscanner/report.html'
@@ -426,6 +429,41 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
         context['no_of_matches'] = len(all_matches)
         context['reports_url'] = settings.SITE_URL + '/reports/'
         return context
+
+
+class CSVReportDetails(ReportDetails):
+    """Display  full report in CSV format."""
+
+    def render_to_response(self, context, **response_kwargs):
+        scan = self.get_object()
+        response = HttpResponse(content_type='text/csv')
+        report_file = '{0}{1}.csv'.format(
+            scan.scanner.organization.name.replace(' ', '_'),
+            scan.id)
+        response[
+            'Content-Disposition'
+        ] = 'attachment; filename={0}'.format(report_file)
+        writer = csv.writer(response)
+        all_matches = Match.objects.filter(scan=scan).order_by(
+            '-sensitivity', 'url', 'matched_rule', 'matched_data'
+        )
+        # CSV utilities
+        e = lambda fields: ([f.encode('utf-8') for f in fields])
+        # Print summary header
+        writer.writerow(e([u'Starttidspunkt', u'Sluttidspunkt', u'Status',
+                        u'Totalt antal matches']))
+        # Print summary
+        writer.writerow(e([str(scan.start_time),
+            str(scan.end_time), scan.get_status_display(),
+            str(len(all_matches))]))
+        # Print match header
+        writer.writerow(e([u'URL', u'Regel', u'Match', u'Følsomhed']))
+        for match in all_matches:
+            writer.writerow(e([match.url.url,
+                             match.get_matched_rule_display(),
+                             match.matched_data.replace('\n', ''),
+                             match.get_sensitivity_display()]))
+        return response
 
 
 class DialogSuccess(TemplateView):
