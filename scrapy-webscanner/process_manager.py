@@ -156,6 +156,8 @@ for p in process_list:
 
 try:
     while True:
+        sys.stdout.flush()
+        sys.stderr.flush()
         for pdata in process_list:
             result = pdata['process_handle'].poll()
             if pdata['process_handle'].poll() is not None:
