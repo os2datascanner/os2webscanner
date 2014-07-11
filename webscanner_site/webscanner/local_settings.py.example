@@ -1,6 +1,5 @@
-import settings
 
-settings.SITE_URL = 'http://jubk.magent-aps.dk:8800'
-settings.STATIC_ROOT = '/var/www/os2webscanner/webscanner_site/static'
-settings.DEFAULT_FROM_EMAIL = 'jubk@magenta-aps.dk'
-settings.ADMIN_EMAIL = 'jubk@magenta-aps.dk'
+SITE_URL = 'http://jubk.magent-aps.dk:8800'
+STATIC_ROOT = '/var/www/os2webscanner/webscanner_site/static'
+DEFAULT_FROM_EMAIL = 'jubk@magenta-aps.dk'
+ADMIN_EMAIL = 'jubk@magenta-aps.dk'
