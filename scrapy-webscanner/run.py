@@ -114,7 +114,6 @@ class ScannerApp:
         scan_object.status = Scan.DONE
         scan_object.pid = None
         scan_object.reason = ""
-        scan_object.end_time = timezone.now()
         scan_object.save()
         # TODO: Check reason for if it was finished, cancelled, or shutdown
         reactor.stop()
@@ -123,7 +122,6 @@ class ScannerApp:
         """Handle spider errors, updating scan status."""
         log.msg("Scan failed: %s" % failure.getErrorMessage(), level=log.ERROR)
         scan_object = Scan.objects.get(pk=self.scan_id)
-        scan_object.end_time = timezone.now()
         scan_object.reason = failure.getErrorMessage()
         scan_object.save()
 

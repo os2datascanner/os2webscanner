@@ -341,6 +341,10 @@ class Scan(models.Model):
 
     def save(self, *args, **kwargs):
         # Pre-save stuff
+        if (self.status in [Scan.DONE, Scan.FAILED] and
+            (self._old_status != self.status)):
+            self.end_time = datetime.datetime.now()
+        # Actual save
         super(Scan, self).save(*args, **kwargs)
         # Post-save stuff
 
