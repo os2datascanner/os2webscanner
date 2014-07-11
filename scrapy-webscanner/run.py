@@ -1,4 +1,19 @@
 #!/usr/bin/env python
+# The contents of this file are subject to the Mozilla Public License
+# Version 2.0 (the "License"); you may not use this file except in
+# compliance with the License. You may obtain a copy of the License at
+#    http://www.mozilla.org/MPL/
+#
+# Software distributed under the License is distributed on an "AS IS"basis,
+# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+# for the specific language governing rights and limitations under the
+# License.
+#
+# OS2Webscanner was developed by Magenta in collaboration with OS2 the
+# Danish community of open source municipalities (http://www.os2web.dk/).
+#
+# The code is currently governed by OS2 the Danish community of open
+# source municipalities ( http://www.os2web.dk/ )
 
 """Run a scan by Scan ID."""
 
@@ -30,6 +45,7 @@ import signal
 
 # Activate timezone from settings
 timezone.activate(timezone.get_default_timezone())
+
 
 def signal_handler(signal, frame):
     """Handle being killed."""
@@ -98,7 +114,6 @@ class ScannerApp:
         scan_object.status = Scan.DONE
         scan_object.pid = None
         scan_object.reason = ""
-        scan_object.end_time = timezone.now()
         scan_object.save()
         # TODO: Check reason for if it was finished, cancelled, or shutdown
         reactor.stop()
@@ -107,7 +122,6 @@ class ScannerApp:
         """Handle spider errors, updating scan status."""
         log.msg("Scan failed: %s" % failure.getErrorMessage(), level=log.ERROR)
         scan_object = Scan.objects.get(pk=self.scan_id)
-        scan_object.end_time = timezone.now()
         scan_object.reason = failure.getErrorMessage()
         scan_object.save()
 

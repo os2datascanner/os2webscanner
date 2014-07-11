@@ -1,4 +1,19 @@
 #!/usr/bin/env python
+# The contents of this file are subject to the Mozilla Public License
+# Version 2.0 (the "License"); you may not use this file except in
+# compliance with the License. You may obtain a copy of the License at
+#    http://www.mozilla.org/MPL/
+#
+# Software distributed under the License is distributed on an "AS IS"basis,
+# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+# for the specific language governing rights and limitations under the
+# License.
+#
+# OS2Webscanner was developed by Magenta in collaboration with OS2 the
+# Danish community of open source municipalities (http://www.os2web.dk/).
+#
+# The code is currently governed by OS2 the Danish community of open
+# source municipalities ( http://www.os2web.dk/ )
 
 """Start up and manage queue processors to ensure they stay running.
 
@@ -19,6 +34,7 @@ sys.path.append(base_dir + "/webscanner_site")
 os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 
 from django.utils import timezone
+from django.db import transaction, IntegrityError, DatabaseError
 
 from os2webscanner.models import ConversionQueueItem, Scan
 
@@ -35,6 +51,7 @@ process_types = ('html', 'libreoffice', 'ocr', 'pdf', 'zip', 'text')
 
 process_map = {}
 process_list = []
+
 
 def stop_process(p):
     """Stop the process."""
@@ -146,12 +163,14 @@ try:
                     pdata['name']
                 )
                 restart_process(pdata)
+
         stuck_processes = ConversionQueueItem.objects.filter(
             status=ConversionQueueItem.PROCESSING,
             process_start_time__lt=(
                 timezone.localtime(timezone.now()) - processing_timeout
             ),
         )
+
         for p in stuck_processes:
             pid = p.process_id
             if pid in process_map:
@@ -162,19 +181,22 @@ try:
                 p.status = ConversionQueueItem.FAILED
                 p.save()
 
-        #TODO: Mark stopped scans as failed
-        #try:
-        #    with transaction.atomic():
-        #        # Get the first unprocessed item of the wanted type
-        #        running_scans = Scan.objects.filter(
-        #            status=Scan.STARTED
-        #        ).select_for_update(nowait=True)
-        #        for scan in running_scans:
-        #            if not running:
-        #                scan.status = Scan.FAILED
-        #                scan.save()
-        #except (DatabaseError, IntegrityError) as e:
-        #    pass
+        try:
+            with transaction.atomic():
+                # Get the first unprocessed item of the wanted type
+                running_scans = Scan.objects.filter(
+                    status=Scan.STARTED
+                ).select_for_update(nowait=True)
+                for scan in running_scans:
+                    if not scan.pid:
+                        continue
+                    try:
+                        os.kill(scan.pid, 0)
+                    except OSError:
+                        scan.status = Scan.FAILED
+                        scan.save()
+        except (DatabaseError, IntegrityError) as e:
+            pass
 
         time.sleep(10)
 except KeyboardInterrupt:

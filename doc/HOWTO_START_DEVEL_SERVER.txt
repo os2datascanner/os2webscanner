@@ -1,0 +1,79 @@
+HOWTO get the system up and running for development
+===================================================
+
+This document explains how to get the source code, set up the database, run the
+tests and boot the development server.  Get the code
+
+git clone platon.magenta-aps.dk:/home/git/os2webscanner
+
+Install Django and Scrapy, including system dependencies
+
+cd os2webscanner/django-webscanner/
+./install.sh
+
+Note: The installation will try to install all needed system packages not
+present on a fresh install of Ubuntu. This part of the installer uses apt-get
+install and has only been tested with Ubuntu.
+
+Once install.sh has succeeded, do
+
+Set up the database
+===================
+
+If you performed the previous step, you've already installed postgresql and
+postgresql-client.
+
+Assuming this done:
+
+sudo su - postgres
+createdb os2webscanner
+createuser os2webscanner
+psql
+
+
+The following commands must be executed IN psql shell.
+
+grant all on database os2webscanner to os2webscanner;
+alter user os2webscanner with password 'os2webscanner'; 
+alter user os2webscanner createdb;
+
+If you choose another password, please change in settings.py. The last "alter
+user" is to enable the test suite to run on PostgreSQL.
+
+Now log out from psql and the postgres user to proceed, returning to where you
+cloned the os2webscanner source dir.  
+
+Test and initialize
+===================
+
+source ../python-env/bin/activate
+python manage.py test
+
+The test should pass. Now do
+
+python manage.py syncdb
+
+and create a user with a password you can remember.
+
+Start the system with
+
+python manage.py runserver 8080
+
+and access the admin system at
+
+http://localhost:8080/admin/
+
+
+Start the scanning processors
+=============================
+
+You need to start the process manager background process in order to get actual
+scans done.
+
+cd /home/os2/os2webscanner
+source python-env/bin/activate  # If not active already
+python scrapy-webscanner/process_manager.py &
+
+
+That's it!
+
