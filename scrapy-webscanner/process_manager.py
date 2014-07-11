@@ -19,6 +19,7 @@ sys.path.append(base_dir + "/webscanner_site")
 os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 
 from django.utils import timezone
+from django.db import transaction, IntegrityError, DatabaseError
 
 from os2webscanner.models import ConversionQueueItem, Scan
 
@@ -146,12 +147,14 @@ try:
                     pdata['name']
                 )
                 restart_process(pdata)
+
         stuck_processes = ConversionQueueItem.objects.filter(
             status=ConversionQueueItem.PROCESSING,
             process_start_time__lt=(
                 timezone.localtime(timezone.now()) - processing_timeout
             ),
         )
+
         for p in stuck_processes:
             pid = p.process_id
             if pid in process_map:
@@ -162,19 +165,22 @@ try:
                 p.status = ConversionQueueItem.FAILED
                 p.save()
 
-        #TODO: Mark stopped scans as failed
-        #try:
-        #    with transaction.atomic():
-        #        # Get the first unprocessed item of the wanted type
-        #        running_scans = Scan.objects.filter(
-        #            status=Scan.STARTED
-        #        ).select_for_update(nowait=True)
-        #        for scan in running_scans:
-        #            if not running:
-        #                scan.status = Scan.FAILED
-        #                scan.save()
-        #except (DatabaseError, IntegrityError) as e:
-        #    pass
+        try:
+            with transaction.atomic():
+                # Get the first unprocessed item of the wanted type
+                running_scans = Scan.objects.filter(
+                    status=Scan.STARTED
+                ).select_for_update(nowait=True)
+                for scan in running_scans:
+                    if not scan.pid:
+                        continue
+                    try:
+                        os.kill(scan.pid, 0)
+                    except OSError:
+                        scan.status = Scan.FAILED
+                        scan.save()
+        except (DatabaseError, IntegrityError) as e:
+            pass
 
         time.sleep(10)
 except KeyboardInterrupt:
