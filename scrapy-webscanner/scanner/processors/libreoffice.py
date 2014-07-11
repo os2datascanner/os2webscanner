@@ -49,8 +49,11 @@ class LibreOfficeProcessor(Processor):
         if not os.path.exists(self.home_dir):
             os.makedirs(self.home_dir)
 
-    def setup_queue_processing(self, *args):
+    def setup_queue_processing(self, pid, *args):
         """Setup the home directory as the first argument."""
+        super(LibreOfficeProcessor, self).setup_queue_processing(
+            pid, *args
+        )
         self.set_home_dir(os.path.join(home_root_dir, args[0]))
 
     def handle_spider_item(self, data, url_object):
