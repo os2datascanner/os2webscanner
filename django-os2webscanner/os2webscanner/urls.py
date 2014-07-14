@@ -76,12 +76,12 @@ urlpatterns = patterns(
         {'template_name': 'logout.html'}, name='logout'),
     url(r'^accounts/password_change/',
         'django.contrib.auth.views.password_change',
-        { 'template_name': 'password_change.html' },
+        {'template_name': 'password_change.html'},
         name='password_change'
     ),
     url(r'^accounts/password_change_done/',
         'django.contrib.auth.views.password_change_done',
-        { 'template_name': 'password_change_done.html' },
+        {'template_name': 'password_change_done.html'},
         name='password_change_done'
     ),
 

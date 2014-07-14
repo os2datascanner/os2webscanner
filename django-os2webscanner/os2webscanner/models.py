@@ -394,6 +394,7 @@ class Url(models.Model):
         """The path to the temporary directory associated with this url"""
         return os.path.join(self.scan.scan_dir, 'url_item_%d' % (self.pk))
 
+
 class Match(models.Model):
 
     """The data associated with a single match in a single URL."""
