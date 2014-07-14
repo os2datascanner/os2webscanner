@@ -152,6 +152,8 @@ class Processor(object):
         executions = 0
 
         while executions < self.documents_to_process:
+            # Prevent memory leak in standalone scripts
+            db.reset_queries()
             item = self.get_next_queue_item()
             if item is None:
                 time.sleep(1)
