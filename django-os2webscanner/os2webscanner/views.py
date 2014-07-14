@@ -169,12 +169,15 @@ class OrgRestrictedMixin(SingleObjectMixin, LoginRequiredMixin):
         """Get queryset filtered by user's organiztion."""
         queryset = super(OrgRestrictedMixin, self).get_queryset()
         if not self.request.user.is_superuser:
+            organization = None
+
             try:
                 user_profile = self.request.user.get_profile()
                 organization = user_profile.organization
             except UserProfile.DoesNotExist:
                 organization = None
-                queryset = queryset.filter(organization=organization)
+
+            queryset = queryset.filter(organization=organization)
         return queryset
 
 
