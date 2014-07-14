@@ -25,6 +25,7 @@ from os2webscanner.models import Scan, Domain
 
 
 class Scanner:
+
     """Represents a scanner which can scan data using configured rules."""
 
     def __init__(self, scan_id):

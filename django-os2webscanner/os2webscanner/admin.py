@@ -31,11 +31,17 @@ map(ar, classes)
 
 
 class ProfileInline(admin.TabularInline):
+
+    """Inline class for user profiles."""
+
     model = UserProfile
     extra = 1
 
 
 class MyUserAdmin(UserAdmin):
+
+    """Custom user admin class."""
+
     inlines = [ProfileInline]
     can_delete = False
 

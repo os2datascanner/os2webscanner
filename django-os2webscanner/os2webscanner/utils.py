@@ -13,6 +13,9 @@
 #
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
+
+"""Utility methods for the OS2Webscanner project."""
+
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.template import loader, Context

@@ -127,6 +127,7 @@ class Domain(models.Model):
 
     @property
     def display_name(self):
+        """The name used when displaying the domain on the web page."""
         return "Domain '%s'" % self.root_url
 
     def exclusion_rule_list(self):
@@ -183,6 +184,7 @@ class RegexRule(models.Model):
 
     @property
     def display_name(self):
+        """The name used when displaying the regexrule on the web page."""
         return "Regel '%s'" % self.name
 
     def get_absolute_url(self):
@@ -223,6 +225,7 @@ class Scanner(models.Model):
     STARTTIME_QUARTERS = 6 * 4
 
     def get_start_time(self):
+        """The time of day the Scanner should be automatically started."""
         added_minutes = 15 * (self.pk % Scanner.STARTTIME_QUARTERS)
         added_hours = int(added_minutes / 60)
         added_minutes -= added_hours * 60
@@ -232,8 +235,13 @@ class Scanner(models.Model):
         )
 
     @classmethod
-    # Convert a given time to the according modulo of the pk
     def modulo_for_starttime(cls, time):
+        """Convert a datetime.time object to the corresponding modulo value.
+
+        The modulo value can be used to search the database for scanners that
+        should be started at the given time by filtering a query with:
+            (Scanner.pk % Scanner.STARTTIME_QUARTERS) == <modulo_value>
+        """
         if(time < cls.FIRST_START_TIME):
             return None
         hours = time.hour - cls.FIRST_START_TIME.hour
@@ -242,15 +250,18 @@ class Scanner(models.Model):
 
     @property
     def display_name(self):
+        """The name used when displaying the scanner on the web page."""
         return "Scanner '%s'" % self.name
 
     @property
     def schedule_description(self):
+        """A lambda for creating schedule description strings."""
         f = lambda s: "Schedule: " + s
         return f
 
     @property
     def has_active_scans(self):
+        """Whether the scanner has active scans."""
         active_scanners = Scan.objects.filter(scanner=self, status__in=(
                         Scan.NEW, Scan.STARTED)).count()
         return active_scanners > 0
@@ -320,14 +331,17 @@ class Scan(models.Model):
 
     @property
     def status_text(self):
-        """Returns a display text for the scan's status. Relies on the
-        restriction that the status must be one of the allowed values."""
+        """A display text for the scan's status.
+
+        Relies on the restriction that the status must be one of the allowed
+        values.
+        """
         text = [t for s, t in Scan.status_choices if self.status == s][0]
         return text
 
     @property
     def scan_dir(self):
-        """The directory associated with this scan"""
+        """The directory associated with this scan."""
         return os.path.join(settings.VAR_DIR, 'scan_%s' % self.pk)
 
     # Reason for failure
@@ -336,7 +350,7 @@ class Scan(models.Model):
     pid = models.IntegerField(null=True, blank=True, verbose_name='Pid')
 
     def get_number_of_failed_conversions(self):
-        """Returns the number conversions that failed during this scan"""
+        """The number conversions that has failed during this scan."""
         return ConversionQueueItem.objects.filter(
             url__scan=self,
             status=ConversionQueueItem.FAILED
@@ -347,6 +361,12 @@ class Scan(models.Model):
         return "SCAN: " + self.scanner.name
 
     def save(self, *args, **kwargs):
+        """Save changes to the scan.
+
+        Sets the end_time for the scan, notifies the associated user by email,
+        deletes any remaining queue items and deletes the temporary directory
+        used by the scan.
+        """
         # Pre-save stuff
         if (self.status in [Scan.DONE, Scan.FAILED] and
             (self._old_status != self.status)):
@@ -373,6 +393,10 @@ class Scan(models.Model):
             self._old_status = self.status
 
     def __init__(self, *args, **kwargs):
+        """Initialize a new scan.
+
+        Stores the old status of the scan for later use.
+        """
         super(Scan, self).__init__(*args, **kwargs)
         self._old_status = self.status
 
@@ -391,7 +415,7 @@ class Url(models.Model):
 
     @property
     def tmp_dir(self):
-        """The path to the temporary directory associated with this url"""
+        """The path to the temporary directory associated with this url."""
         return os.path.join(self.scan.scan_dir, 'url_item_%d' % (self.pk))
 
 
@@ -466,7 +490,7 @@ class ConversionQueueItem(models.Model):
 
     @property
     def tmp_dir(self):
-        """The path to the temporary associated with this queue item"""
+        """The path to the temporary dir associated with this queue item."""
         return os.path.join(
             self.url.scan.scan_dir,
             'queue_item_%d' % (self.pk)

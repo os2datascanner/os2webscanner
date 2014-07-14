@@ -13,6 +13,9 @@
 #
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
+
+"""Setup for package django-os2webscanner."""
+
 import os
 from setuptools import setup
 

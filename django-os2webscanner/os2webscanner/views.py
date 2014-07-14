@@ -41,6 +41,7 @@ class LoginRequiredMixin(View):
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
+        """Check for login and dispatch the view."""
         return super(LoginRequiredMixin, self).dispatch(*args, **kwargs)
 
 
@@ -86,7 +87,7 @@ class DomainList(RestrictedListView):
     template_name = 'os2webscanner/domains.html'
 
     def get_queryset(self):
-
+        """Get queryset, ordered by url followed by primary key."""
         query_set = super(DomainList, self).get_queryset()
 
         return query_set.order_by('url', 'pk')
@@ -128,7 +129,11 @@ class ReportList(RestrictedListView):
 # Create/Update/Delete Views.
 
 class RestrictedCreateView(CreateView, LoginRequiredMixin):
+
+    """Base class for create views that are limited by user organization."""
+
     def get_form_fields(self):
+        """Get the list of fields to use in the form for the view."""
         fields = [f for f in self.fields]
 
         if self.request.user.is_superuser:
@@ -137,12 +142,14 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
         return fields
 
     def get_form(self, form_class):
+        """Get the form for the view."""
         fields = self.get_form_fields()
         form_class = modelform_factory(self.model, fields=fields)
         kwargs = self.get_form_kwargs()
         return form_class(**kwargs)
 
     def form_valid(self, form):
+        """Validate the form."""
         if not self.request.user.is_superuser:
             try:
                 user_profile = self.request.user.get_profile()
@@ -156,7 +163,10 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
 
 class OrgRestrictedMixin(SingleObjectMixin, LoginRequiredMixin):
 
+    """Mixin class for views with organization-restricted queryset."""
+
     def get_queryset(self):
+        """Get queryset filtered by user's organiztion."""
         queryset = super(OrgRestrictedMixin, self).get_queryset()
         if not self.request.user.is_superuser:
             try:
@@ -169,14 +179,23 @@ class OrgRestrictedMixin(SingleObjectMixin, LoginRequiredMixin):
 
 
 class RestrictedUpdateView(UpdateView, OrgRestrictedMixin):
+
+    """Base class for updateviews restricted by organiztion."""
+
     pass
 
 
 class RestrictedDetailView(DetailView, OrgRestrictedMixin):
+
+    """Base class for detailviews restricted by organiztion."""
+
     pass
 
 
 class RestrictedDeleteView(DeleteView, OrgRestrictedMixin):
+
+    """Base class for deleteviews restricted by organiztion."""
+
     pass
 
 
@@ -189,6 +208,12 @@ class ScannerCreate(RestrictedCreateView):
               'do_cpr_scan', 'do_name_scan', 'do_ocr', 'regex_rules']
 
     def get_form(self, form_class):
+        """Get the form for the view.
+
+        Querysets used for choices in the 'domains' and 'regex_rules' fields
+        will be limited by the user's organiztion unless the user is a
+        superuser.
+        """
         form = super(ScannerCreate, self).get_form(form_class)
         try:
             organization = self.request.user.get_profile().organization
@@ -203,6 +228,7 @@ class ScannerCreate(RestrictedCreateView):
         return form
 
     def get_success_url(self):
+        """The URL to redirect to after successful creation."""
         return '/scanners/%s/created/' % self.object.pk
 
 
@@ -215,9 +241,16 @@ class ScannerUpdate(RestrictedUpdateView):
               'do_cpr_scan', 'do_name_scan', 'do_ocr', 'regex_rules']
 
     def get_success_url(self):
+        """The URL to redirect to after successful update."""
         return '/scanners/%s/saved/' % self.object.pk
 
     def get_form(self, form_class):
+        """Get the form for the view.
+
+        Querysets used for choices in the 'domains' and 'regex_rules' fields
+        will be limited by the user's organiztion unless the user is a
+        superuser.
+        """
         form = super(ScannerUpdate, self).get_form(form_class)
         scanner = self.get_object()
 
@@ -238,10 +271,14 @@ class ScannerDelete(RestrictedDeleteView):
 
 
 class ScannerRun(RestrictedDetailView):
+
+    """View that handles starting of a scanner run."""
+
     model = Scanner
     template_name = 'os2webscanner/scanner_run.html'
 
     def get(self, request, *args, **kwargs):
+        """Handle a get request to the view."""
         self.object = self.get_object()
 
         result = self.object.run()
@@ -260,12 +297,21 @@ class DomainCreate(RestrictedCreateView):
     fields = ['url', 'exclusion_rules', 'sitemap']
 
     def get_form_fields(self):
+        """Get the list of form fields.
+
+        The 'validation_status' field will be added to the form if the
+        user is a superuser.
+        """
         fields = super(DomainCreate, self).get_form_fields()
         if self.request.user.is_superuser:
             fields.append('validation_status')
         return fields
 
     def get_form(self, form_class):
+        """Get the form for the view.
+
+        All form widgets will have added the css class 'form-control'.
+        """
         form = super(DomainCreate, self).get_form(form_class)
 
         for fname in form.fields:
@@ -275,6 +321,7 @@ class DomainCreate(RestrictedCreateView):
         return form
 
     def get_success_url(self):
+        """The URL to redirect to after successful creation."""
         return '/domains/%s/created/' % self.object.pk
 
 
@@ -286,6 +333,13 @@ class DomainUpdate(RestrictedUpdateView):
     fields = ['url', 'exclusion_rules', 'sitemap']
 
     def get_form(self, form_class):
+        """Get the form for the view.
+
+        If the user is a superuser the fields  'validation_status' and
+        'organization' will be added to the form.
+        If the user is not a superuser and the domain has not been validated
+        the 'validation_method' field will be added to the form.
+        """
         enabled_fields = [f for f in DomainUpdate.fields]
         if self.request.user.is_superuser:
             enabled_fields.append('validation_status')
@@ -312,6 +366,7 @@ class DomainUpdate(RestrictedUpdateView):
         return form
 
     def form_valid(self, form):
+        """Validate the submitted form."""
         old_obj = Domain.objects.get(pk=self.object.pk)
         if old_obj.url != self.object.url:
             self.object.validation_status = Domain.INVALID
@@ -326,6 +381,7 @@ class DomainUpdate(RestrictedUpdateView):
         return result
 
     def get_context_data(self, **kwargs):
+        """Get the context used when rendering the template."""
         context = super(DomainUpdate, self).get_context_data(**kwargs)
         for value, desc in Domain.validation_method_choices:
             key = 'valid_txt_' + str(value)
@@ -333,6 +389,11 @@ class DomainUpdate(RestrictedUpdateView):
         return context
 
     def get_success_url(self):
+        """The URL to redirect to after successful updating.
+
+        Will redirect the user to the validate view if the form was submitted
+        with the 'save_and_validate' button.
+        """
         url = self.object.get_absolute_url()
         if 'save_and_validate' in self.request.POST:
             return 'validate/'
@@ -341,9 +402,13 @@ class DomainUpdate(RestrictedUpdateView):
 
 
 class DomainValidate(RestrictedDetailView):
+
+    """View that handles validation of a domain."""
+
     model = Domain
 
     def get_context_data(self, **kwargs):
+        """Perform validation and populate the template context."""
         context = super(DomainValidate, self).get_context_data(**kwargs)
         context['validation_status'] = self.object.validation_status
         if not self.object.validation_status:
@@ -374,6 +439,10 @@ class RuleCreate(RestrictedCreateView):
     fields = ['name', 'match_string', 'description', 'sensitivity']
 
     def get_form(self, form_class):
+        """Get the form for the view.
+
+        All form fields will have the css class 'form-control' added.
+        """
         form = super(RuleCreate, self).get_form(form_class)
 
         for fname in form.fields:
@@ -383,6 +452,7 @@ class RuleCreate(RestrictedCreateView):
         return form
 
     def get_success_url(self):
+        """The URL to redirect to after successful creation."""
         return '/rules/%s/created/' % self.object.pk
 
 
@@ -393,6 +463,10 @@ class RuleUpdate(RestrictedUpdateView):
     model = RegexRule
 
     def get_form(self, form_class):
+        """Get the form for the view.
+
+        All form fields will have the css class 'form-control' added.
+        """
         form = super(RuleUpdate, self).get_form(form_class)
 
         for fname in form.fields:
@@ -402,6 +476,7 @@ class RuleUpdate(RestrictedUpdateView):
         return form
 
     def get_success_url(self):
+        """The URL to redirect to after successful update."""
         return '/rules/%s/created/' % self.object.pk
 
 
@@ -423,6 +498,11 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
     context_object_name = "scan"
 
     def get_queryset(self):
+        """Get the queryset for the view.
+
+        If the user is not a superuser the queryset will be limited by the
+        user's organization.
+        """
         queryset = super(ReportDetails, self).get_queryset()
         if not self.request.user.is_superuser:
             try:
@@ -451,10 +531,17 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
 
 class ReportDelete(DeleteView, LoginRequiredMixin):
 
+    """View for deleting a report."""
+
     model = Scan
     success_url = '/reports/'
 
     def get_queryset(self):
+        """Get the queryset for the view.
+
+        If the user is not a superuser the queryset will be limited by the
+        user's organization.
+        """
         queryset = super(ReportDelete, self).get_queryset()
         if not self.request.user.is_superuser:
             try:
@@ -467,9 +554,11 @@ class ReportDelete(DeleteView, LoginRequiredMixin):
 
 
 class CSVReportDetails(ReportDetails):
+
     """Display  full report in CSV format."""
 
     def render_to_response(self, context, **response_kwargs):
+        """Generate a CSV file and return it as the http response."""
         scan = self.get_object()
         response = HttpResponse(content_type='text/csv')
         report_file = '{0}{1}.csv'.format(
@@ -502,6 +591,9 @@ class CSVReportDetails(ReportDetails):
 
 
 class DialogSuccess(TemplateView):
+
+    """View that handles success for iframe-based dialogs."""
+
     template_name = 'os2webscanner/dialogsuccess.html'
 
     type_map = {
@@ -511,6 +603,7 @@ class DialogSuccess(TemplateView):
     }
 
     def get_context_data(self, **kwargs):
+        """Setup context for the template."""
         context = super(DialogSuccess, self).get_context_data(**kwargs)
         model_type = self.args[0]
         pk = self.args[1]
