@@ -17,6 +17,7 @@
 
 from os2webscanner.models import ConversionQueueItem
 from django.db import transaction, IntegrityError, DatabaseError
+from django import db
 from django.utils import timezone
 import time
 import os
