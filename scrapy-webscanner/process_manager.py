@@ -158,6 +158,7 @@ try:
     while True:
         sys.stdout.flush()
         sys.stderr.flush()
+        db.reset_queries()
         for pdata in process_list:
             result = pdata['process_handle'].poll()
             if pdata['process_handle'].poll() is not None:
