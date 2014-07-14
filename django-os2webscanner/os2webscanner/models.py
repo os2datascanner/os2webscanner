@@ -18,6 +18,7 @@
 """Contains Django models for the Webscanner."""
 
 import os
+import shutil
 from subprocess import Popen
 import re
 import datetime
@@ -26,6 +27,7 @@ from django.contrib.auth.models import User
 from recurrence.fields import RecurrenceField
 
 from .utils import notify_user
+from django.conf import settings
 
 
 # Sensitivity values
@@ -152,7 +154,6 @@ class Domain(models.Model):
     @property
     def sitemap_full_path(self):
         """Get the absolute path to the uploaded sitemap.xml file."""
-        from django.conf import settings
         return "%s/%s" % (settings.BASE_DIR, self.sitemap.url)
 
     def get_absolute_url(self):
@@ -330,6 +331,11 @@ class Scan(models.Model):
         text = [t for s, t in Scan.status_choices if self.status == s][0]
         return text
 
+    @property
+    def scan_dir(self):
+        """The directory associated with this scan"""
+        return os.path.join(settings.VAR_DIR, 'scan_%s' % self.pk)
+
     # Reason for failure
     reason = models.CharField(max_length=1024, blank=True, default="",
                               verbose_name='Årsag')
@@ -352,6 +358,10 @@ class Scan(models.Model):
             (self._old_status != self.status)):
             # Send email
             notify_user(self)
+            # remove all files associated with the scan
+            scan_dir = self.scan_dir
+            if os.access(scan_dir, os.W_OK):
+                shutil.rmtree(scan_dir, True)
             self._old_status = self.status
 
     def __init__(self, *args, **kwargs):
@@ -371,6 +381,10 @@ class Url(models.Model):
         """Return the URL."""
         return self.url
 
+    @property
+    def tmp_dir(self):
+        """The path to the temporary directory associated with this url"""
+        return os.path.join(self.scan.scan_dir, 'url_item_%d' % (self.pk))
 
 class Match(models.Model):
 
@@ -440,3 +454,11 @@ class ConversionQueueItem(models.Model):
     def file_path(self):
         """Return the full path to the conversion queue item's file."""
         return self.file
+
+    @property
+    def tmp_dir(self):
+        """The path to the temporary associated with this queue item"""
+        return os.path.join(
+            self.url.scan.scan_dir,
+            'queue_item_%d' % (self.pk)
+        )

@@ -24,11 +24,7 @@ import os
 import mimetypes
 import sys
 import magic
-
-base_dir = os.path.realpath(os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), '..', '..', '..'
-))
-var_dir = os.path.join(base_dir, "var")
+from django.conf import settings
 
 
 class Processor(object):
@@ -70,7 +66,7 @@ class Processor(object):
         Temporary files, as well as configuration files needed by
         processors should go somewhere under this directory.
         """
-        return var_dir
+        return settings.VAR_DIR
 
     def handle_spider_item(self, data, url_object):
         """Process an item from a spider. Must be overridden.
@@ -97,11 +93,7 @@ class Processor(object):
         """
         # Write data to a temporary file
         # Get temporary directory
-        tmp_dir = os.path.join(
-            var_dir,
-            'scan_%d' % (url_object.scan.pk),
-            'url_item_%d' % (url_object.pk)
-        )
+        tmp_dir = url_object.tmp_dir
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
         file_name = os.path.basename(url_object.url)
@@ -216,12 +208,7 @@ class Processor(object):
         self.convert to run the actual conversion. After converting,
         adds all files produced in the conversion directory to the queue.
         """
-        scan_id = item.url.scan.pk
-        tmp_dir = os.path.join(
-            var_dir,
-            'scan_%d' % (scan_id),
-            'queue_item_%d' % (item.pk)
-        )
+        tmp_dir = item.tmp_dir
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
 

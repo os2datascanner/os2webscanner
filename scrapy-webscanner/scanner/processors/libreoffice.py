@@ -21,12 +21,10 @@ import os.path
 import subprocess
 import random
 import hashlib
+from django.conf import settings
 
-base_dir = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), '..', '..', '..'
-)
-
-var_dir = Processor.var_dir()
+base_dir = settings.BASE_DIR
+var_dir = settings.VAR_DIR
 lo_dir = os.path.join(var_dir, "libreoffice")
 home_root_dir = os.path.join(lo_dir, "homedirs")
 

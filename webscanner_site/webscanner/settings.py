@@ -10,7 +10,10 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+PROJECT_DIR = os.path.dirname(BASE_DIR)
+VAR_DIR = os.path.join(PROJECT_DIR, 'var')
+LOGS_DIR = os.path.join(VAR_DIR, 'logs')
 
 # Site URL for calculating absolute URLs in emails.
 SITE_URL = 'http://webscanner.magenta-aps.dk'
