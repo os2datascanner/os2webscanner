@@ -35,6 +35,7 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 
 from django.utils import timezone
 from django.db import transaction, IntegrityError, DatabaseError
+from django import db
 
 from os2webscanner.models import ConversionQueueItem, Scan
 
