@@ -443,6 +443,9 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
         context['matches'] = all_matches[:100]
         context['no_of_matches'] = all_matches.count()
         context['reports_url'] = settings.SITE_URL + '/reports/'
+        context['failed_conversions'] = (
+            self.object.get_number_of_failed_conversions()
+        )
         return context
 
 

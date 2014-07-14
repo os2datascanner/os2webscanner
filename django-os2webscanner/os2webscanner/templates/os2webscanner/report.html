@@ -26,6 +26,12 @@ Rapport &dash; {{scan.scanner.name}}
                 <td>Totalt antal matches:</td>
                 <td>{{ no_of_matches }}</td>
             </tr>
+	    {% if failed_conversions %}
+            <tr>
+                <td>Fejlede dokument-konverteringer under scanningen:</td>
+                <td>{{ failed_conversions }}</td>
+            </tr>
+	    {% endif %}
             </tbody>
         </table>
       </div>

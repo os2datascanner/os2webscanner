@@ -255,12 +255,6 @@ class Scanner(models.Model):
                         Scan.NEW, Scan.STARTED)).count()
         return active_scanners > 0
 
-    def get_absolute_url(self):
-        return '/scanners/'
-
-    def __unicode__(self):
-        return self.name
-
     def run(self, test_only=False):
         """Run a scan with the Scanner.
 
@@ -340,6 +334,13 @@ class Scan(models.Model):
     reason = models.CharField(max_length=1024, blank=True, default="",
                               verbose_name='Årsag')
     pid = models.IntegerField(null=True, blank=True, verbose_name='Pid')
+
+    def get_number_of_failed_conversions(self):
+        """Returns the number conversions that failed during this scan"""
+        return ConversionQueueItem.objects.filter(
+            url__scan=self,
+            status=ConversionQueueItem.FAILED
+        ).count()
 
     def __unicode__(self):
         """Return the name of the scan's scanner."""
