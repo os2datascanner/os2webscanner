@@ -21,8 +21,6 @@ install_dir = os.path.abspath(os.path.join(site_dir, '..'))
 lib_dir = os.path.join(install_dir, lib_path)
 webscanner_dir = os.path.join(install_dir, 'django-os2webscanner')
 
-
-
 sys.path[0:0] = [site_dir, lib_dir, webscanner_dir]
 
 try:
