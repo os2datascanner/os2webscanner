@@ -358,6 +358,13 @@ class Scan(models.Model):
             (self._old_status != self.status)):
             # Send email
             notify_user(self)
+
+            # Delete all pending conversionqueue items
+            ConversionQueueItem.objects.filter(
+                url__scan=self,
+                status=ConversionQueueItem.NEW
+            ).delete()
+
             # remove all files associated with the scan
             scan_dir = self.scan_dir
             if os.access(scan_dir, os.W_OK):
