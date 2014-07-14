@@ -74,6 +74,16 @@ urlpatterns = patterns(
         {'template_name': 'login.html'}, name='login'),
     url(r'^accounts/logout/', 'django.contrib.auth.views.logout',
         {'template_name': 'logout.html'}, name='logout'),
+    url(r'^accounts/password_change/',
+        'django.contrib.auth.views.password_change',
+        { 'template_name': 'password_change.html' },
+        name='password_change'
+    ),
+    url(r'^accounts/password_change_done/',
+        'django.contrib.auth.views.password_change_done',
+        { 'template_name': 'password_change_done.html' },
+        name='password_change_done'
+    ),
 
     # General dialog success handler
     url(r'^(scanners|domains|rules)/(\d+)/(created)/$',
