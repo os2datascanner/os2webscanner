@@ -89,13 +89,13 @@ Regler
 
 {% block heading %} 
 Regler 
-<small class="page-action" style="float:right;">
+<span class="page-action" style="float:right;">
     <button type="button" class="btn btn-default" data-toggle="modal" data-target="#create-rule-modal">
         Tilføj ny 
         <span style="position:relative;top:.15em;" class="glyphicon glyphicon-plus-sign">
         </span>
     </button>
-</small>
+</span>
 
 {% endblock %}
 
@@ -103,7 +103,7 @@ Regler
 <div class="modal iframe" id="create-rule-modal" tabindex="-1" role="dialog"
   aria-labelledby="create-rule-modal-title" aria-hidden="true"
   data-href="/rules/add/">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
 	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
@@ -126,7 +126,7 @@ Regler
 <div class="modal iframe" id="edit-rule-modal" tabindex="-1" role="dialog"
   aria-labelledby="edit-rule-modal-title" aria-hidden="true"
   data-href="/rules/add/">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
 	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">

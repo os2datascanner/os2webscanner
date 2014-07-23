@@ -82,20 +82,20 @@ Domæner
 
 {% block heading %} 
 Domæner 
-<small class="page-action" style="float:right;">
+<span class="page-action" style="float:right;">
     <button type="button" class="btn btn-default" data-toggle="modal" data-target="#create-domain-modal">
         Tilføj nyt 
         <span style="position:relative;top:.15em;" class="glyphicon glyphicon-plus-sign">
         </span>
     </button>
-</small>
+</span>
 {% endblock %}
 
 {% block modal %}
 <div class="modal iframe" id="create-domain-modal" tabindex="-1" role="dialog"
   aria-labelledby="create-domain-modal-title" aria-hidden="true"
   data-href="/domains/add/">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
 	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
@@ -118,7 +118,7 @@ Domæner
 <div class="modal iframe" id="edit-domain-modal" tabindex="-1" role="dialog"
   aria-labelledby="edit-domain-modal-title" aria-hidden="true"
   data-href="/domains/add/">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
 	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">

@@ -51,32 +51,41 @@
       </ul>
   </div>
 {% endif %}
-<form class="form" role="form" method="post">
+<form class="form-horizontal" role="form" method="post">
     {% csrf_token %}
-      <div id="{{ form.name.auto_id }}_container" class="form-group{% if form.name.errors %} has-error{% endif %}">
-          <label class="control-label" for="id_{{ form.name.name }}">{{ form.name.label }}</label>
-          {% if form.name.help_text %}<small>{{ form.name.help_text }}</small>{% endif %}
-	  <input type="text" class="form-control" name="{{ form.name.name }}" id="id_{{ form.name.name }}" {% if form.name.value %}value="{{ form.name.value }}"{% endif %}>
-        {% if 0 %}<div id="{{ form.name.auto_id }}_errors">
-          {{ form.name.errors }}
-        </div>{% endif %}
+      <div id="{{ form.name.auto_id }}_container" class="col-sm-12{% if form.name.errors %} has-error{% endif %}">
+	<div class="form-group">
+          <label class="control-label col-sm-2" for="id_{{ form.name.name }}">{{ form.name.label }}</label>
+	  <div class="col-sm-10">
+	    <input type="text" class="form-control" name="{{ form.name.name }}" id="id_{{ form.name.name }}" {% if form.name.value %}value="{{ form.name.value }}"{% endif %}>
+	    {% if form.name.help_text %}
+	    <p>
+	      <small>{{ form.name.help_text }}</small>
+            </p>
+            {% endif %}
+          </div>
+	</div>
       </div>
     {% if form.organization %}
-      <div id="{{ form.organization.auto_id }}_container" class="form-group{% if form.organization.errors %} has-error{% endif %}">
-          <label class="control-label" for="id_{{ form.organization.name }}">{{ form.organization.label }}</label>
-          {% if form.organization.help_text %}<small>{{ form.organization.help_text }}</small>{% endif %}
-          {% if 0 %}{{ form.organization }}{% endif %}
-	  <select name="{{ form.organization.name }}" id="id_{{ form.organization.name }}" class="form-control">
-	    {% for value, tag in form.organization.field.choices %}
+      <div id="{{ form.organization.auto_id }}_container" class="col-sm-12{% if form.organization.errors %} has-error{% endif %}">
+	<div class="form-group">
+          <label class="control-label col-sm-2" for="id_{{ form.organization.name }}">{{ form.organization.label }}</label>
+	  <div class="col-sm-10">
+	    <select name="{{ form.organization.name }}" id="id_{{ form.organization.name }}" class="form-control">
+	      {% for value, tag in form.organization.field.choices %}
 	      <option value="{{ value }}">{{ tag }}</option>
-	    {% endfor %}
-	  </select>
-        </div>
-        {% if 0 %}<div id="{{ form.organization.auto_id }}_errors">
-          {{ form.organization.errors }}
-        </div>{% endif %}
+	      {% endfor %}
+	    </select>
+            {% if form.organization.help_text %}
+	    <p>
+	      <small>{{ form.organization.help_text }}</small>
+	    </p>
+	    {% endif %}
+	  </div>
+	</div>
       </div>
     {% endif %}
+    <div class="clearfix"></div>
     <ul class="nav nav-tabs" id="scanner-settings-tabs">
       <li class="active"><a href="#domains" data-toggle="tab">Domæner</a></li>
       <li><a href="#rules" data-toggle="tab">Regler</a></li>
@@ -84,59 +93,76 @@
     </ul>
     <div class="tab-content">
       <div class="tab-pane active" id="domains">
-        <div id="{{ form.domains.auto_id }}_container" class="form-group{% if form.domains.errors %} has-error{% endif %}">
-          <label class="control-label" for="id_{{ form.domains.name }}">{{ form.domains.label }}</label>
-          {% if form.domains.help_text %}<small>{{ form.domains.help_text }}</small>{% endif %}
-	  <select name="{{ form.domains.name }}" id="id_{{ form.domains.name }}" class="form-control" multiple>
-	    {% for value, tag in form.domains.field.choices %}
-	      <option value="{{ value }}">{{ tag }}</option>
-	    {% endfor %}
-	  </select>
+        <div id="{{ form.domains.auto_id }}_container" class="col-sm-12{% if form.domains.errors %} has-error{% endif %}">
+	  <div class="form-group">
+            <label class="control-label" for="id_{{ form.domains.name }}">{{ form.domains.label }}</label>
+	    <select name="{{ form.domains.name }}" id="id_{{ form.domains.name }}" class="form-control" multiple>
+	      {% for value, tag in form.domains.field.choices %}
+	        <option value="{{ value }}">{{ tag }}</option>
+	      {% endfor %}
+	    </select>
+            {% if form.domains.help_text %}
+	    <p>
+	      <small>{{ form.domains.help_text }}</small>
+	    </p>
+	    {% endif %}
+          </div>
         </div>
       </div>
       <div class="tab-pane" id="rules">
-          <div id="select_scan_rules_container" class="form-group">
-	    <span style="display:inline;" id="{{ form.do_cpr_scan.auto_id }}_container"{% if form.do_cpr_scan.errors %} class="has-error"{% endif %}>
-              <label class="control-label inline-checkbox" for="id_{{ form.do_cpr_scan.name }}">
-		<input type="checkbox" class="form-control" id="id_{{ form.do_cpr_scan.name }}" name="{{ form.do_cpr_scan.name }}" value="{{ form.do_cpr_scan.name }}" checked>
+          <div id="select_scan_rules_container" class="col-sm-12">
+		<div class="form-group">
+{% if 0 %}	    <span id="{{ form.do_cpr_scan.auto_id }}_container"{% if form.do_cpr_scan.errors %} class="has-error"{% endif %}>
+{% endif %}              <label class="checkbox-inline" for="id_{{ form.do_cpr_scan.name }}">
+		<input type="checkbox" id="id_{{ form.do_cpr_scan.name }}" name="{{ form.do_cpr_scan.name }}" value="{{ form.do_cpr_scan.name }}" checked>
 	        {{ form.do_cpr_scan.label }}
                 {% if form.do_cpr_scan.help_text %}<small>{{ form.do_cpr_scan.help_text }}</small>{% endif %}
 	      </label>
-	    </span>
+{% if 0 %}	    </span>
 	    <span id="{{ form.do_name_scan.auto_id }}_container"{% if form.do_name_scan.errors %} class="has-error"{% endif %}>
-	      <label class="control-label inline-checkbox" for="id_{{ form.do_name_scan.name }}">
-		<input type="checkbox" class="form-control" id="id_{{ form.do_name_scan.name }}" name="{{ form.do_name_scan.name }}" value="{{ form.do_name_scan.name }}" checked>
+{% endif %}	      <label class="checkbox-inline" for="id_{{ form.do_name_scan.name }}">
+		<input type="checkbox" id="id_{{ form.do_name_scan.name }}" name="{{ form.do_name_scan.name }}" value="{{ form.do_name_scan.name }}" checked>
 		{{ form.do_name_scan.label }}
                 {% if form.do_name_scan.help_text %}<small>{{ form.do_name_scan.help_text }}</small>{% endif %}
 	      </label>
-	    </span>
+{% if 0 %}	    </span>
 	    <span id="{{ form.do_ocr.auto_id }}_container"{% if form.do_ocr.errors %} class="has-error"{% endif %}>
-	      <label class="control-label inline-checkbox" for="id_{{ form.do_ocr.name }}">
-		<input type="checkbox" class="form-control" id="id_{{ form.do_ocr.name }}" name="{{ form.do_ocr.name }}" value="{{ form.do_ocr.name }}" checked>
+{% endif %}	      <label class="checkbox-inline" for="id_{{ form.do_ocr.name }}">
+		<input type="checkbox" id="id_{{ form.do_ocr.name }}" name="{{ form.do_ocr.name }}" value="{{ form.do_ocr.name }}" checked>
 		{{ form.do_ocr.label }}
                 {% if form.do_ocr.help_text %}<small>{{ form.do_ocr.help_text }}</small>{% endif %}
 	      </label>
-	    </span>
-          </div>
-            <div id="{{ form.regex_rules.auto_id }}_container">
-              <div>{{ form.regex_rules.label_tag }}</div>
-              <div>{{ form.regex_rules.help_text }}</div>
-              <div>{{ form.regex_rules }}</div>
-              <div id="{{ form.regex_rules.auto_id }}_errors">
-                {{ form.regex_rules.errors }}
-              </div>
+{% if 0 %}	    </span>
+{% endif %}          </div></div>
+            <div id="{{ form.regex_rules.auto_id }}_container" class="col-sm-6{% if form.regex_rules.errors %} has-error{% endif %}">
+	      <div class="form-group">
+              <label class="control-label" for="id_{{ form.regex_rules.name }}">{{ form.regex_rules.label }}</label>
+	      <select name="{{ form.regex_rules.name }}" id="id_{{ form.regex_rules.name }}" class="form-control" multiple>
+	      {% for value, tag in form.regex_rules.field.choices %}
+	        <option value="{{ value }}">{{ tag }}</option>
+	      {% endfor %}
+	      </select>
+              {% if form.regex_rules.help_text %}
+	      <p>
+		<small>{{ form.regex_rules.help_text }}</small>
+	      </p>
+	      {% endif %}
+	      </div>
             </div>
-            <div id="{{ form.whitelisted_names.auto_id }}_container">
-              <div>{{ form.whitelisted_names.label_tag }}</div>
-              <div>{{ form.whitelisted_names.help_text }}</div>
-              <div>{{ form.whitelisted_names }}</div>
-              <div id="{{ form.whitelisted_names.auto_id }}_errors">
-                {{ form.whitelisted_names.errors }}
+            <div id="{{ form.whitelisted_names.auto_id }}_container" class="col-sm-6{% if form.whitelisted_names.errors %} has-error{% endif %}">
+	      <div class="form-group">
+	      <label class="control-label" for="id_{{ form.whitelisted_names.name }}">{{ form.whitelisted_names.label }}</label>
+	      <textarea name="{{ form.whitelisted_names.name }}" id="id_{{ form.whitelisted_names.name }}" class="form-control" rows="3"></textarea>
+	      {% if form.whitelisted_names.help_text %}
+	      <p>
+		<small>{{ form.whitelisted_names.help_text }}</small>
+	      </p>
+	      {% endif %}
               </div>
-            </div>
+	    </div>
       </div>
       <div class="tab-pane" id="interval">
-        <div class="form-group col-sm-12">
+        <div class="col-sm-12 form-group">
           <div id="{{ form.schedule.auto_id }}_container">
             <div>{{ form.schedule.help_text }}</div>
             <div>
@@ -156,13 +182,10 @@
         {% endif %}
       </div>
     </div>
-    <div class="form-group clearfix">
-    <div class="col-sm-12">
-      <br />
+    <div class="col-sm-12"><div class="form-group">
       <button type="submit" class="btn btn-primary" name="save">
         Gem ændringer
       </button>
-    </div>
-  </div>
+  </div></div>
 </form>
 {% endblock %}
