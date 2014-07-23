@@ -54,27 +54,27 @@
     {% csrf_token %}
       <div id="{{ form.name.auto_id }}_container" class="form-group{% if form.name.errors %} has-error{% endif %}">
         {% if form.name.help_text %}<p>{{ form.name.help_text }}</p>{% endif %}
-          <label class="control-label col-sm-2" for="id_{{ form.name.name }}">{{ form.name.label }}</label>
-          <div class="col-sm-10">
-	    <input type="text" class="form-control" name="{{ form.name.name }}" id="id_{{ form.name.name }}" {% if form.name.value %}value="{{ form.name.value }}"{% endif %}>
-	  </div>
+          <label class="control-label" for="id_{{ form.name.name }}">{{ form.name.label }}</label>
+	  <input type="text" class="form-control" name="{{ form.name.name }}" id="id_{{ form.name.name }}" {% if form.name.value %}value="{{ form.name.value }}"{% endif %}>
         {% if 0 %}<div id="{{ form.name.auto_id }}_errors">
           {{ form.name.errors }}
         </div>{% endif %}
       </div>
     {% if form.organization %}
-    <div class="form-group col-sm-12">
-      <div id="{{ form.organization.auto_id }}_container">
-        {% if form.organization.help_text %}<div>{{ form.organization.help_text }}</div>{% endif %}
-        <div>
-          {{ form.organization.label_tag }}
-          {{ form.organization }}
+      <div id="{{ form.organization.auto_id }}_container" class="form-group{% if form.organization.errors %} has-error{% endif %}">
+        {% if form.organization.help_text %}<p>{{ form.organization.help_text }}</p>{% endif %}
+          <label class="control-label" for="id_{{ form.organization.name }}">{{ form.organization.label }}</label>
+          {% if 0 %}{{ form.organization }}{% endif %}
+	  <select name="{{ form.organization.name }}" id="id_{{ form.organization.name }}" class="form-control">
+	    {% for value, tag in form.organization.field.choices %}
+	      <option value="{{ value }}">{{ tag }}</option>
+	    {% endfor %}
+	  </select>
         </div>
-        <div id="{{ form.organization.auto_id }}_errors">
+        {% if 0 %}<div id="{{ form.organization.auto_id }}_errors">
           {{ form.organization.errors }}
-        </div>
+        </div>{% endif %}
       </div>
-    </div>
     {% endif %}
     <ul class="nav nav-tabs" style="margin-bottom:1em;">
       <li class="active"><a href="#domains" data-toggle="tab">Domæner</a></li>
