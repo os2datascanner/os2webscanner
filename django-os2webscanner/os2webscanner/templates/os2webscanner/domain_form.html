@@ -1,8 +1,9 @@
 {% extends 'os2webscanner/base.html' %}
 {% block topnav %}{% endblock %}
+(% block rendertype %}iframe-modal{% endblock %}
 {% block body %}
 {% if 0 %}
-  <form class="form-horizontal" role="form">
+  <form class="form" role="form">
   {% if form.non_field_errors %}
     <ul>
       {% for error in form.non_field_errors %}
@@ -27,7 +28,7 @@
   <div class="scanner_fields">
   </div>
   <div>
-    <form class="form-horizontal" role="form" method="post">
+    <form class="form" role="form" method="post">
       {% csrf_token %}
       <div class="form-group clearfix">
         <div class="col-sm-12">

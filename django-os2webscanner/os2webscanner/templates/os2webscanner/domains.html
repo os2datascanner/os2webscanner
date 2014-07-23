@@ -1,12 +1,13 @@
 {% extends 'os2webscanner/base.html' %}
+{% block rendertype %}regular{% endblock %}
 {%  block title %}
 Domæner
 {% endblock %}
 
 {% block body %}
-
+<div class="container">
      <div class="table-responsive">
-		<table class="table table-striped">
+	<table class="table table-striped">
           <thead>
             <tr>
               <td>
@@ -75,7 +76,8 @@ Domæner
             {% endfor %}
           </tbody>
         </table>
-
+      </div>
+   </div>
 {% endblock %}
 
 {% block heading %} 

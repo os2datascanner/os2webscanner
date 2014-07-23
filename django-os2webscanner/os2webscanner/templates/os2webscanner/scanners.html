@@ -5,8 +5,10 @@ Scannere
 {% block scanners_active %}
 class="active"
 {% endblock %}
+{% block rendertype %}regular{% endblock %}
 
 {% block body %}
+<div class="container">
 <div class="table-responsive">
   <table class="table table-striped">
     <thead>
@@ -90,6 +92,7 @@ class="active"
       {% endfor %}
     </tbody>
   </table>
+</div>
 </div>
 {% endblock %}
 
