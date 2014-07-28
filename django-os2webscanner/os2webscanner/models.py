@@ -215,7 +215,7 @@ class Scanner(models.Model):
     do_name_scan = models.BooleanField(default=True, verbose_name='Navn')
     do_ocr = models.BooleanField(default=True, verbose_name='Scan billeder?')
     do_cpr_modulus11 = models.BooleanField(default=True,
-                                           verbose_name='CPR Modulus-11?')
+                                           verbose_name='Check modulus-11')
     regex_rules = models.ManyToManyField(RegexRule,
                                          blank=True,
                                          null=True,
