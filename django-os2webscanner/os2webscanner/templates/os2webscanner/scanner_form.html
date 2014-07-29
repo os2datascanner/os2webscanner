@@ -73,7 +73,7 @@
 	  <div class="col-sm-10">
 	    <select name="{{ form.organization.name }}" id="id_{{ form.organization.name }}" class="form-control">
 	      {% for value, tag in form.organization.field.choices %}
-	      <option value="{{ value }}">{{ tag }}</option>
+	      <option value="{{ value }}"{% if form.organization.value|add:"0" == value|add:"0" %} selected="selected"{% endif %}>{{ tag }}</option> {# silly type conversion #}
 	      {% endfor %}
 	    </select>
             {% if form.organization.help_text %}
@@ -96,9 +96,9 @@
         <div id="{{ form.domains.auto_id }}_container" class="col-sm-12{% if form.domains.errors %} has-error{% endif %}">
 	  <div class="form-group">
             <label class="control-label" for="id_{{ form.domains.name }}">{{ form.domains.label }}</label>
-	    <select name="{{ form.domains.name }}" id="id_{{ form.domains.name }}" class="form-control" multiple>
+	    <select name="{{ form.domains.name }}" id="id_{{ form.domains.name }}" class="form-control" multiple="multiple">
 	      {% for value, tag in form.domains.field.choices %}
-	        <option value="{{ value }}">{{ tag }}</option>
+	        <option value="{{ value }}"{% for val in form.domains.value %}{% if val == value %} selected="selected"{% endif %}{% endfor %}>{{ tag }}</option>
 	      {% endfor %}
 	    </select>
             {% if form.domains.help_text %}
@@ -114,21 +114,21 @@
 		<div class="form-group">
 {% if 0 %}	    <span id="{{ form.do_cpr_scan.auto_id }}_container"{% if form.do_cpr_scan.errors %} class="has-error"{% endif %}>
 {% endif %}              <label class="checkbox-inline" for="id_{{ form.do_cpr_scan.name }}">
-		<input type="checkbox" id="id_{{ form.do_cpr_scan.name }}" name="{{ form.do_cpr_scan.name }}" value="{{ form.do_cpr_scan.name }}" checked>
+		<input type="checkbox" id="id_{{ form.do_cpr_scan.name }}" name="{{ form.do_cpr_scan.name }}" value="{{ form.do_cpr_scan.name }}"{% if form.do_cpr_scan.value %} checked="checked"{% endif %}>
 	        {{ form.do_cpr_scan.label }}
                 {% if form.do_cpr_scan.help_text %}<small>{{ form.do_cpr_scan.help_text }}</small>{% endif %}
 	      </label>
 {% if 0 %}	    </span>
 	    <span id="{{ form.do_name_scan.auto_id }}_container"{% if form.do_name_scan.errors %} class="has-error"{% endif %}>
 {% endif %}	      <label class="checkbox-inline" for="id_{{ form.do_name_scan.name }}">
-		<input type="checkbox" id="id_{{ form.do_name_scan.name }}" name="{{ form.do_name_scan.name }}" value="{{ form.do_name_scan.name }}" checked>
+		<input type="checkbox" id="id_{{ form.do_name_scan.name }}" name="{{ form.do_name_scan.name }}" value="{{ form.do_name_scan.name }}"{% if form.do_name_scan.value %} checked="checked"{% endif %}>
 		{{ form.do_name_scan.label }}
                 {% if form.do_name_scan.help_text %}<small>{{ form.do_name_scan.help_text }}</small>{% endif %}
 	      </label>
 {% if 0 %}	    </span>
 	    <span id="{{ form.do_ocr.auto_id }}_container"{% if form.do_ocr.errors %} class="has-error"{% endif %}>
 {% endif %}	      <label class="checkbox-inline" for="id_{{ form.do_ocr.name }}">
-		<input type="checkbox" id="id_{{ form.do_ocr.name }}" name="{{ form.do_ocr.name }}" value="{{ form.do_ocr.name }}" checked>
+		<input type="checkbox" id="id_{{ form.do_ocr.name }}" name="{{ form.do_ocr.name }}" value="{{ form.do_ocr.name }}"{% if form.do_ocr.value %} checked="checked"{% endif %}>
 		{{ form.do_ocr.label }}
                 {% if form.do_ocr.help_text %}<small>{{ form.do_ocr.help_text }}</small>{% endif %}
 	      </label>
@@ -137,9 +137,9 @@
             <div id="{{ form.regex_rules.auto_id }}_container" class="col-sm-6{% if form.regex_rules.errors %} has-error{% endif %}">
 	      <div class="form-group">
               <label class="control-label" for="id_{{ form.regex_rules.name }}">{{ form.regex_rules.label }}</label>
-	      <select name="{{ form.regex_rules.name }}" id="id_{{ form.regex_rules.name }}" class="form-control" multiple>
+	      <select name="{{ form.regex_rules.name }}" id="id_{{ form.regex_rules.name }}" class="form-control" multiple="multiple">
 	      {% for value, tag in form.regex_rules.field.choices %}
-	        <option value="{{ value }}">{{ tag }}</option>
+	        <option value="{{ value }}"{% for val in form.regex_rules.value %}{% if val == value %} selected="selected"{% endif %}{% endfor %}>{{ tag }}</option>
 	      {% endfor %}
 	      </select>
               {% if form.regex_rules.help_text %}
@@ -152,7 +152,7 @@
             <div id="{{ form.whitelisted_names.auto_id }}_container" class="col-sm-6{% if form.whitelisted_names.errors %} has-error{% endif %}">
 	      <div class="form-group">
 	      <label class="control-label" for="id_{{ form.whitelisted_names.name }}">{{ form.whitelisted_names.label }}</label>
-	      <textarea name="{{ form.whitelisted_names.name }}" id="id_{{ form.whitelisted_names.name }}" class="form-control" rows="3"></textarea>
+	      <textarea name="{{ form.whitelisted_names.name }}" id="id_{{ form.whitelisted_names.name }}" class="form-control" rows="3">{{ form.whitelisted_names.value }}</textarea>
 	      {% if form.whitelisted_names.help_text %}
 	      <p>
 		<small>{{ form.whitelisted_names.help_text }}</small>
