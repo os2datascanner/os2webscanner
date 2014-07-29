@@ -8,9 +8,9 @@ Login
 <div class="container">
       <form method="post" action="{% url 'django.contrib.auth.views.login' %}">
           {% csrf_token %}
-          <label>Brugernavn:</label>
+          <label>Brugernavn</label>
           {{ form.username }}
-          <label>Password:</label>
+          <label>Password</label>
           {{ form.password }}
       <br>
       <input class="btn btn-primary" type="submit" value="Log ind">
