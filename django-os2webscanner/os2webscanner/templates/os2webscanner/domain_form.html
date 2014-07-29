@@ -1,6 +1,6 @@
 {% extends 'os2webscanner/base.html' %}
 {% block topnav %}{% endblock %}
-(% block rendertype %}iframe-modal{% endblock %}
+{% block rendertype %}iframe-modal{% endblock %}
 {% block body %}
 {% if 0 %}
   <form class="form" role="form">
@@ -25,9 +25,6 @@
   </form>
 {% endif %}
 
-  <div class="scanner_fields">
-  </div>
-  <div>
     <form class="form" role="form" method="post">
       {% csrf_token %}
       <div class="form-group clearfix">
@@ -163,5 +160,4 @@
       </div>
       {% endif %}
     </form>
-  </div>
 {% endblock %}
