@@ -6,19 +6,44 @@ Login
 {% block body %}
 
 <div class="container">
-      <form method="post" action="{% url 'django.contrib.auth.views.login' %}">
+{% if form.non_field_errors %}
+<div class="alert alert-danger" role="alert">
+  <ul style="font-size:1em" class="errorlist">
+    {% for error in form.non_field_errors %}
+      <li>{{ error }}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+{% if form.errors %}
+  <div class="alert alert-danger" role="alert">
+      <p>Følgende felter er ikke udfyldt korrekt:</p>
+      <ul>
+        {% for error in form.errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+  </div>
+{% endif %}
+      <form role="form-horizontal" method="post" action="{% url 'django.contrib.auth.views.login' %}">
           {% csrf_token %}
-          <label>Brugernavn</label>
-          {{ form.username }}
-          <label>Password</label>
-          {{ form.password }}
-      <br>
-      <input class="btn btn-primary" type="submit" value="Log ind">
+	<div class="form-group{% if form.username.errors %} has-error{% endif %}">
+          <label class="control-label" for="id_{{ form.username.name }}">{{ form.username.label }}</label>
+          <input type="text" name="{{ form.username.name }}" class="form-control" id="id_{{ form.username.name }}" {% if form.username.value %}value="{{ form.username.value }}"{% endif %}>
+          {% if form.username.errors %}{{ form.username.errors }}{% endif %}
+	</div>
+	<div class="form-group{% if form.password.errors %} has-error{% endif %}">
+          <label class="control-label" for="id_{{ form.password.name }}">{{ form.password.label }}</label>
+          <input type="password" name="{{ form.password.name }}" class="form-control" id="id_{{ form.password.name }}" {% if form.password.value %}value="{{ form.password.value }}"{% endif %}>
+          {% if form.password.errors %}{{ form.password.errors }}{% endif %}
+	</div>
+	<div class="form-group">
+	  <input class="btn btn-primary" type="submit" value="Log ind">
+	</div>
     </form>
 </div>
-
 {% endblock %}
 
 {% block heading %} 
-OS2 Webscanner Login:
+OS2 Webscanner Login
 {% endblock %}

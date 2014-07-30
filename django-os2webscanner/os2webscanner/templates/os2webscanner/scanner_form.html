@@ -63,6 +63,7 @@
 	      <small>{{ form.name.help_text }}</small>
             </p>
             {% endif %}
+	    {% if form.name.errors %}{{ form.name.errors }}{% endif %}
           </div>
 	</div>
       </div>
@@ -81,6 +82,7 @@
 	      <small>{{ form.organization.help_text }}</small>
 	    </p>
 	    {% endif %}
+	    {% if form.organization.errors %}{{ form.organization.errors }}{% endif %}
 	  </div>
 	</div>
       </div>
@@ -101,11 +103,12 @@
 	        <option value="{{ value }}"{% for val in form.domains.value %}{% if val == value %} selected="selected"{% endif %}{% endfor %}>{{ tag }}</option>
 	      {% endfor %}
 	    </select>
-            {% if form.domains.help_text %}
+            {% if form.domains.errors %}{{ form.domains.errors }}{% endif %}
 	    <p>
 	      <small>{{ form.domains.help_text }}</small>
 	    </p>
 	    {% endif %}
+            {% if form.domains.help_text %}
           </div>
         </div>
       </div>
@@ -147,6 +150,7 @@
 		<small>{{ form.regex_rules.help_text }}</small>
 	      </p>
 	      {% endif %}
+              {% if form.regex_rules.errors %}{{ form.regex_rules.errors }}{% endif %}
 	      </div>
             </div>
             <div id="{{ form.whitelisted_names.auto_id }}_container" class="col-sm-6{% if form.whitelisted_names.errors %} has-error{% endif %}">
@@ -158,6 +162,7 @@
 		<small>{{ form.whitelisted_names.help_text }}</small>
 	      </p>
 	      {% endif %}
+              {% if form.regex_rules.errors %}{{ form.regex_rules.errors }}{% endif %}
               </div>
 	    </div>
       </div>
