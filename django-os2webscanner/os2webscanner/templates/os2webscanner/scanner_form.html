@@ -104,11 +104,11 @@
 	      {% endfor %}
 	    </select>
             {% if form.domains.errors %}{{ form.domains.errors }}{% endif %}
+            {% if form.domains.help_text %}
 	    <p>
 	      <small>{{ form.domains.help_text }}</small>
 	    </p>
 	    {% endif %}
-            {% if form.domains.help_text %}
           </div>
         </div>
       </div>
