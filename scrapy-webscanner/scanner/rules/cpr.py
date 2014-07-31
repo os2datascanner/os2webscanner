@@ -24,18 +24,31 @@ from ..items import MatchItem
 
 
 class CPRRule(Rule):
-
     """Represents a rule which scans for CPR numbers."""
 
     name = 'cpr'
 
+    def __init__(self, do_modulus11):
+        self.do_modulus11 = do_modulus11
+
     def execute(self, text):
         """Execute the CPR rule."""
-        matches = match_cprs(text)
+        matches = match_cprs(text, do_modulus11=self.do_modulus11)
         return matches
 
 # TODO: Improve
 cpr_regex = regex.compile("\\b(\\d{6})[\\s\-/\\.]?(\\d{4})\\b")
+
+# As of 11. January 2011, a total of 18 CPR numbers have been assigned
+# without a valid modulus 11 check digit - all men born 1. January 1965
+# or 1. January 1966.
+# https://cpr.dk/cpr-systemet/opbygning-af-cpr-nummeret/
+cpr_exception_dates = (
+    # 1. January 1965
+    datetime(year=1965, month=1, day=1),
+    # 1. January 1966
+    datetime(year=1966, month=1, day=1)
+)
 
 
 def date_check(cpr):
@@ -43,6 +56,19 @@ def date_check(cpr):
 
     The CPR number is passed as a string of sequential digits with no spaces
     or dashes.
+    """
+    try:
+        _get_birth_date(cpr)
+        return True
+    except ValueError:
+        # Invalid date
+        return False
+
+
+def _get_birth_date(cpr):
+    """Get the birth date as a datetime from the CPR number.
+
+    If the CPR has an invalid birthday, raises ValueError.
     """
     day = int(cpr[0:2])
     month = int(cpr[2:4])
@@ -69,15 +95,48 @@ def date_check(cpr):
         else:
             year += 2000
 
+    return datetime(day=day, month=month, year=year)
+
+
+def _is_modulus11(cpr):
+    """Perform a modulus-11 check on the CPR number.
+
+    This should not be called directly as it does not make any exceptions
+    for numbers for which the modulus-11 check should not be performed."""
+    checksum = int(cpr[0]) * 4 + \
+        int(cpr[1]) * 3 + \
+        int(cpr[2]) * 2 + \
+        int(cpr[3]) * 7 + \
+        int(cpr[4]) * 6 + \
+        int(cpr[5]) * 5 + \
+        int(cpr[6]) * 4 + \
+        int(cpr[7]) * 3 + \
+        int(cpr[8]) * 2 + \
+        int(cpr[9]) * 1
+    return checksum % 11 == 0
+
+
+def modulus11_check(cpr):
+    """Perform a modulus-11 check on a CPR number with exceptions.
+
+    Return True if the number either passes the modulus-11 check OR is one
+    assigned to a person born on one of the exception dates where the
+    modulus-11 check should not be applied."""
     try:
-        datetime(day=day, month=month, year=year)
-        return True
+        birth_date = _get_birth_date(cpr)
     except ValueError:
-        # Invalid date
         return False
 
+    # Return True if the birth dates are one of the exceptions to the
+    # modulus 11 rule.
+    if birth_date in cpr_exception_dates:
+        return True
+    else:
+        # Otherwise, perform the modulus-11 check
+        return _is_modulus11(cpr)
 
-def match_cprs(text, mask_digits=True):
+
+def match_cprs(text, do_modulus11=True, mask_digits=True):
     """Return MatchItem objects for each CPR matched in the given text.
 
     If mask_digits is False, then the matches will contain full CPR numbers.
@@ -87,10 +146,14 @@ def match_cprs(text, mask_digits=True):
     for m in it:
         cpr = m.group(1) + m.group(2)
         valid_date = date_check(cpr)
+        if do_modulus11:
+            valid_modulus11 = modulus11_check(cpr)
+        else:
+            valid_modulus11 = True
         if mask_digits:
             # Mask last 6 digits
             cpr = cpr[0:4] + "XXXXXX"
-        if valid_date:
+        if valid_date and valid_modulus11:
             matches.add(
                 MatchItem(matched_data=cpr, sensitivity=Sensitivity.HIGH))
     return matches

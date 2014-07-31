@@ -1,8 +1,9 @@
 {% extends 'os2webscanner/base.html' %}
 {% block topnav %}{% endblock %}
+{% block rendertype %}iframe-modal{% endblock %}
 {% block body %}
 {% if 0 %}
-  <form class="form-horizontal" role="form">
+  <form class="form" role="form">
   {% if form.non_field_errors %}
     <ul>
       {% for error in form.non_field_errors %}
@@ -24,94 +25,123 @@
   </form>
 {% endif %}
 
-  <div class="scanner_fields">
+{% if form.non_field_errors %}
+  <ul>
+    {% for error in form.non_field_errors %}
+      <li>{{ error }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+{% if form.errors %}
+  <div class="alert alert-danger" role="alert">
+      <p>Følgende felter er ikke udfyldt korrekt:</p>
+      <ul>
+        {% for error in form.errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
   </div>
-  <div>
-    <form class="form-horizontal" role="form" method="post">
-      {% csrf_token %}
-      <div class="form-group clearfix">
-        <div class="col-sm-12">
-          <div id="{{ form.url.auto_id }}_container">
-            <div>{{ form.url.help_text }}</div>
-            <div>
-              {{ form.url.label_tag }}
-              {{ form.url }}
-            </div>
-            <div id="{{ form.url.auto_id }}_errors">
-              {{ form.url.errors }}
-            </div>
-          </div>
+{% endif %}
+<form class="form-horizontal" role="form" method="post">
+  {% csrf_token %}
+  <div id="{{ form.url.auto_id }}_container" class="col-sm-12{% if form.url.errors %} has-error{% endif %}">
+    <div class="form-group">
+      <label class="control-label col-sm-3" for="id_{{ form.url.name }}">{{ form.url.label }}</label>
+      <div class="col-sm-9">
+        <input type="text" class="form-control" name="{{ form.url.name }}" id="id_{{ form.url.name }}" {% if form.url.value %}value="{{ form.url.value }}"{% endif %}>
+        {% if form.url.help_text %}
+        <p>
+          <small>{{ form.url.help_text }}</small>
+        </p>
+        {% endif %}
+        {% if form.url.errors %}{{ form.url.errors }}{% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% if form.organization %}
+    <div id="{{ form.organization.auto_id }}_container" class="col-sm-12{% if form.organization.errors %} has-error{% endif %}">
+      <div class="form-group">
+        <label class="control-label col-sm-3" for="id_{{ form.organization.name }}">{{ form.organization.label }}</label>
+        <div class="col-sm-9">
+          <select name="{{ form.organization.name }}" id="id_{{ form.organization.name }}" class="form-control">
+            {% for value, tag in form.organization.field.choices %}
+            <option value="{{ value }}"{% if form.organization.value|add:"0" == value|add:"0" %} selected="selected"{% endif %}>{{ tag }}</option> {# silly type conversion #}
+            {% endfor %}
+          </select>
+          {% if form.organization.help_text %}
+          <p>
+            <small>{{ form.organization.help_text }}</small>
+          </p>
+          {% endif %}
+          {% if form.organization.errors %}{{ form.organization.errors }}{% endif %}
         </div>
       </div>
-      {% if form.organization %}
-      <div class="form-group clearfix">
-        <div class="col-sm-12">
-          <div id="{{ form.organization.auto_id }}_container">
-            <div>{{ form.organization.help_text }}</div>
-            <div>
-              {{ form.organization.label_tag }}
-              {{ form.organization }}
-            </div>
-            <div id="{{ form.organization.auto_id }}_errors">
-              {{ form.organization.errors }}
-            </div>
-          </div>
+    </div>
+  {% endif %}
+
+  {% if form.validation_status %}
+    <div id="{{ form.validation_status.auto_id }}_container" class="col-sm-12{% if form.validation_status.errors %} has-error{% endif %}">
+      <div class="form-group">
+        <label class="control-label col-sm-3" for="id_{{ form.validation_status.name }}">{{ form.validation_status.label }}</label>
+        <div class="col-sm-9">
+          <select name="{{ form.validation_status.name }}" id="id_{{ form.validation_status.name }}" class="form-control">
+            {% for value, tag in form.validation_status.field.choices %}
+            <option value="{{ value }}"{% if form.validation_status.value|add:"0" == value|add:"0" %} selected="selected"{% endif %}>{{ tag }}</option> {# silly type conversion #}
+            {% endfor %}
+          </select>
+          {% if form.validation_status.help_text %}
+          <p>
+            <small>{{ form.validation_status.help_text }}</small>
+          </p>
+          {% endif %}
+          {% if form.validation_status.errors %}{{ form.validation_status.errors }}{% endif %}
         </div>
       </div>
-      {% endif %}
-      {% if form.validation_status %}
-      <div class="form-group clearfix">
-        <div class="col-sm-12">
-          <div id="{{ form.validation_status.auto_id }}_container">
-            <div>{{ form.organization.help_text }}</div>
-            <div>
-              {{ form.validation_status.label_tag }}
-              {{ form.validation_status }}
-            </div>
-            <div id="{{ form.validation_status.auto_id }}_errors">
-              {{ form.validation_status.errors }}
-            </div>
-          </div>
-        </div>
+    </div>
+  {% endif %}
+
+  <div id="{{ form.exclusion_rules.auto_id }}_container" class="col-sm-12{% if form.exclusion_rules.errors %} has-error{% endif %}">
+    <div class="form-group">
+      <label class="control-label col-sm-3" for="id_{{ form.exclusion_rules.name }}">{{ form.exclusion_rules.label }}</label>
+      <div class="col-sm-9">
+        <textarea class="form-control" name="{{ form.exclusion_rules.name }}" id="id_{{ form.exclusion_rules.name }}" rows="3">{% if form.exclusion_rules.value %}{{ form.exclusion_rules.value }}{% endif %}</textarea>
+        {% if form.exclusion_rules.help_text %}
+          <p>
+            <small>{{ form.exclusion_rules.help_text }}</small>
+          </p>
+        {% endif %}
+        {% if form.exclusion_rules.errors %}{{ form.exclusion_rules.errors }}{% endif %}
       </div>
-      {% endif %}
-      <div class="form-group clearfix">
-          <div class="col-sm-12">
-            <div id="{{ form.exclusion_rules.auto_id }}_container">
-              <div>{{ form.exclusion_rules.label_tag }}</div>
-              <div>{{ form.exclusion_rules.help_text }}</div>
-              <div>{{ form.exclusion_rules }}</div>
-              <div id="{{ form.exclusion_rules.auto_id }}_errors">
-                {{ form.exclusion_rules.errors }}
-              </div>
-            </div>
-          </div>
+    </div>
+  </div>
+
+  <div id="{{ form.sitemap.auto_id }}_container" class="col-sm-12{% if form.sitemap.errors %} has-error{% endif %}">
+    <div class="form-group">
+      <label class="control-label col-sm-3" for="id_{{ form.sitemap.name }}">{{ form.sitemap.label }}</label>
+      <div class="col-sm-9">
+        <span class="btn btn-default btn-block btn-sitemap-upload form-control">
+          Klik her for at uploade sitemap.xml
+	  {{ form.sitemap }}
+        </span>
+        {% if form.sitemap.help_text %}
+	  <p>
+	    <small>{{ form.sitemap.help_text }}</small>
+	  </p>
+	{% endif %}
+        {% if form.sitemap.errors %}{{ form.sitemap.errors }}{% endif %}
       </div>
-      <div class="form-group clearfix">
-        <div class="col-sm-12">
-          <div id="{{ form.sitemap.auto_id }}_container">
-            <div>{{ form.sitemap.label_tag }}</div>
-            <div>{{ form.sitemap.help_text }}</div>
-            <div>
-            <span class="btn btn-default btn-block btn-sitemap-upload form-control">
-              Klik her for at uploade sitemap.xml
-              {{ form.sitemap }}
-            </span>
-            </div>
-            <div id="{{ form.sitemap.auto_id }}_errors">
-              {{ form.sitemap.errors }}
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="form-group clearfix">
-        <div class="col-sm-12">
-          <br />
-          <button type="submit" class="btn btn-primary" name="save">
-            Gem ændringer
-          </button>
-        </div>
-      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-offset-3">
+    <div class="col-sm-12">
+      <button type="submit" class="btn btn-primary" name="save">
+        Gem ændringer
+      </button>
+    </div>
+  </div>
+
       {% if form.validation_method %}
       <div class="form-group col-sm-12 clearfix">
         <div class="alert alert-warning clearfix" role="alert">
@@ -162,5 +192,4 @@
       </div>
       {% endif %}
     </form>
-  </div>
 {% endblock %}

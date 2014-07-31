@@ -1,12 +1,14 @@
 {% extends 'os2webscanner/base.html' %}
-{%  block title %}
+{% block title %}
 Scannere
 {% endblock %}
 {% block scanners_active %}
 class="active"
 {% endblock %}
+{% block rendertype %}regular{% endblock %}
 
 {% block body %}
+<div class="container">
 <div class="table-responsive">
   <table class="table table-striped">
     <thead>
@@ -91,11 +93,12 @@ class="active"
     </tbody>
   </table>
 </div>
+</div>
 {% endblock %}
 
 {% block heading %} 
 Scannere 
-<small class="page-action" style="float:right;">
+<span class="page-action" style="float:right;">
     <button type="button" class="btn btn-default"
         data-toggle="modal" data-target="#create-scanner-modal">
         Tilføj ny 
@@ -104,14 +107,14 @@ Scannere
             class="glyphicon glyphicon-plus-sign">
         </span>
     </button>
-</small>
+</span>
 {% endblock %}
 
 {% block modal %}
 <div class="modal iframe" id="create-scanner-modal" tabindex="-1" role="dialog"
     aria-labelledby="create-scanner-modal-title" aria-hidden="true"
     data-href="/scanners/add/">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
 	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
@@ -143,7 +146,7 @@ Scannere
 <div class="modal iframe" id="edit-scanner-modal" tabindex="-1" role="dialog"
     aria-labelledby="edit-scanner-modal-title" aria-hidden="true"
     data-href="/scanners/add/">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
 	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
@@ -176,7 +179,7 @@ Scannere
 <div class="modal iframe" id="run-scanner-modal" tabindex="-1" role="dialog"
     aria-labelledby="run-scanner-modal-title" aria-hidden="true"
     data-href="/scanners/add/">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
 	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
