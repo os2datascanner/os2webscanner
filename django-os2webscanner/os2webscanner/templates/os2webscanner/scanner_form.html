@@ -13,13 +13,21 @@
 {%block jquery_script %}
 <script type="text/javascript">
     (function ($) {
-        // Toggle the CPR Modulus 11 field when Do CPR scan is checked
         $(document).ready(function () {
+            // Toggle the CPR Modulus 11 field when Do CPR scan is checked
             $("#id_{{ form.do_cpr_scan.name }}").click(function () {
                 $("#id_{{ form.do_cpr_modulus11.name }}").parent("label").toggle();
             });
             {% if not form.do_cpr_scan.value %}
                 $("#id_{{ form.do_cpr_modulus11.name }}").parent("label").toggle();
+            {% endif %}
+
+            // Toggle the Name whitelist field when Name is checked
+            $("#id_{{ form.do_name_scan.name }}").click(function () {
+                $("#{{ form.whitelisted_names.auto_id}}_container").toggle();
+            });
+            {% if not form.do_name_scan.value %}
+                $("#{{ form.whitelisted_names.auto_id}}_container").toggle();
             {% endif %}
         })
     })(jQuery);
@@ -137,12 +145,6 @@
 	        {{ form.do_cpr_scan.label }}
                 {% if form.do_cpr_scan.help_text %}<small>{{ form.do_cpr_scan.help_text }}</small>{% endif %}
 	      </label>
-{% if 0 %}	    <span id="{{ form.do_cpr_modulus11.auto_id }}_container"{% if form.do_cpr_modulus11.errors %} class="has-error"{% endif %}>
-{% endif %}              <label class="checkbox-inline" for="id_{{ form.do_cpr_modulus11.name }}">
-        <input type="checkbox" id="id_{{ form.do_cpr_modulus11.name }}" name="{{ form.do_cpr_modulus11.name }}" value="{{ form.do_cpr_modulus11.name }}"{% if form.do_cpr_modulus11.value %} checked="checked"{% endif %}>
-            {{ form.do_cpr_modulus11.label }}
-            {% if form.do_cpr_modulus11.help_text %}<small>{{ form.do_cpr_modulus11.help_text }}</small>{% endif %}
-        </label>
             {% if 0 %}	    </span>
 	    <span id="{{ form.do_name_scan.auto_id }}_container"{% if form.do_name_scan.errors %} class="has-error"{% endif %}>
 {% endif %}	      <label class="checkbox-inline" for="id_{{ form.do_name_scan.name }}">
@@ -159,6 +161,19 @@
 	      </label>
 {% if 0 %}	    </span>
 {% endif %}          </div></div>
+          <div id="scan_rules_extra_options_container"
+               class="col-sm-12">
+              <div class="form-group">
+              {% if 0 %}	    <span id="{{ form.do_cpr_modulus11.auto_id }}_container"{% if form.do_cpr_modulus11.errors %} class="has-error"{% endif %}>
+              {% endif %}
+                  <label class="checkbox-inline"
+                               for="id_{{ form.do_cpr_modulus11.name }}">
+                  <input type="checkbox" id="id_{{ form.do_cpr_modulus11.name }}" name="{{ form.do_cpr_modulus11.name }}" value="{{ form.do_cpr_modulus11.name }}"{% if form.do_cpr_modulus11.value %} checked="checked"{% endif %}>
+              {{ form.do_cpr_modulus11.label }}
+              {% if form.do_cpr_modulus11.help_text %}<small>{{ form.do_cpr_modulus11.help_text }}</small>{% endif %}
+              </label>
+              </div>
+          </div>
             <div id="{{ form.regex_rules.auto_id }}_container" class="col-sm-6{% if form.regex_rules.errors %} has-error{% endif %}">
 	      <div class="form-group">
               <label class="control-label" for="id_{{ form.regex_rules.name }}">{{ form.regex_rules.label }}</label>
