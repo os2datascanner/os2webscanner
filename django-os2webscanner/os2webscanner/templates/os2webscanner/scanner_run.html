@@ -1,16 +1,18 @@
 {% extends 'os2webscanner/base.html' %}
+{% block rendertype %}iframe-modal{% endblock %}
 {% block topnav %}{% endblock %}
 {% block body %}
 
 {% if success %}
-<div style="runscanner-success">
+<p class="lead">
     Scanneren blev startet! 
-    
+</p>
+<p>
     <a href="/report/{{scan.pk}}/" target="_top">Se rapport</a>
-</div>
+</p>
 {% else %}
-<div style="runscanner-failure">
+<p>
 Scanneren kunne ikke startes, fordi der allerede er en scanning i gang for den.
-</div>
+</p>
 {% endif %}
 {% endblock %}
