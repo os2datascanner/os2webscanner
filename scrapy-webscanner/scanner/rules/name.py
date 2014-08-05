@@ -25,45 +25,36 @@ from rule import Rule
 from os2webscanner.models import Sensitivity
 from ..items import MatchItem
 
-name_regexs = [
-    # Match First Last
-    regex.compile(
-        "\\b(?P<first>\\p{Uppercase}\\p{Lowercase}+)" +
-        "\\s+(?P<last>\\p{Uppercase}\\p{Lowercase}+)\\b",
-        regex.UNICODE),
-    # Match First Middle Last
-    regex.compile(
-        "\\b(?P<first>\\p{Uppercase}\\p{Lowercase}+)" +
-        "(?P<middle>(\\s+\\p{Uppercase}(\\p{Lowercase}+|\\.)))\\s+" +
-        "(?P<last>\\p{Uppercase}\\p{Lowercase}+)\\b",
-        regex.UNICODE),
-    # Match First Middle Middle Last
-    regex.compile(
-        "\\b(?P<first>\\p{Uppercase}\\p{Lowercase}+)" +
-        "(?P<middle>(\\s+\\p{Uppercase}(\\p{Lowercase}+|\\.)){2})\\s+" +
-        "(?P<last>\\p{Uppercase}\\p{Lowercase}+)\\b",
-        regex.UNICODE)]
+# Match whitespace except newlines
+_whitespace = "[^\\S\\n\\r]+"
+
+name_regex = regex.compile(
+    "\\b(?P<first>\\p{Uppercase}\\p{Lowercase}+)" +
+    "(?P<middle>(" + _whitespace +
+    "\\p{Uppercase}(\\p{Lowercase}+|\\.)){0,2})" + _whitespace +
+    "(?P<last>\\p{Uppercase}\\p{Lowercase}+)\\b",
+    regex.UNICODE)
 
 
 def match_name(text):
     """Return possible name matches in the given text."""
     matches = set()
-    for name_regex in name_regexs:
-        it = name_regex.finditer(text, overlapped=True)
-        for m in it:
-            first = m.group("first")
-            try:
-                middle = m.group("middle")
-            except IndexError:
-                middle = ''
-            if middle != '':
-                middle_split = tuple(
-                    regex.split('\s+', middle.lstrip(), regex.UNICODE))
-            else:
-                middle_split = None
-            last = m.group("last")
-            matched_text = m.group(0)
-            matches.add((first, middle_split, last, matched_text))
+
+    it = name_regex.finditer(text, overlapped=False)
+    for m in it:
+        first = m.group("first")
+        try:
+            middle = m.group("middle")
+        except IndexError:
+            middle = ''
+        if middle != '':
+            middle_split = tuple(
+                regex.split('\s+', middle.lstrip(), regex.UNICODE))
+        else:
+            middle_split = None
+        last = m.group("last")
+        matched_text = m.group(0)
+        matches.add((first, middle_split, last, matched_text))
     return matches
 
 
@@ -98,7 +89,6 @@ def load_whitelist(whitelist):
 
 
 class NameRule(Rule):
-
     """Represents a rule which scans for Full Names in text.
 
     The rule loads a list of names from first and last name files and matches
@@ -149,6 +139,8 @@ class NameRule(Rule):
             first_match = first_name in self.first_names
             last_match = last_name in self.last_names
 
+            # Name match is always high sensitivity
+            # and occurs only when first and last name are in the name lists
             # Set sensitivity according to how many of the names were found
             # in the names lists
             if first_match and last_match:
