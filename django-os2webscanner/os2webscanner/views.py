@@ -17,6 +17,7 @@
 """Contains Django views."""
 
 import csv
+import time
 
 from django import forms
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
@@ -622,7 +623,7 @@ class DialogSuccess(TemplateView):
         return context
 
 
-def scan_urls(user, password, urls):
+def scan_urls(username, password, urls):
     """Web service for scanning URLs specified by the caller.
 
     Parameters:
@@ -630,16 +631,26 @@ def scan_urls(user, password, urls):
         * password (string) - login credentials
         * urls  (list of strings) - the URLs to be scanned.
     """
-    if not authenticate(username=user, password=password):
+    user = authenticate(username=username, password=password)
+    if not user:
         raise RuntimeError("Wrong username or password!")
 
     if urls:
         # TODO: Scan the listed URLs and return result to user
-        pass
+        scanner = Scanner()
+        scanner.organization = user.get_profile().organization
+        scanner.name = username + '-' + str(int(time.time()))
+        scanner.do_run_synchronously = True
+        scanner.process_urls = urls
+
+        scanner.save()
+        for domain in scanner.organization.domains.all():
+            scanner.domains.add(domain)
+        scanner.run()
     else:
         # Error handling and stuff?
         pass
-    raise NotImplementedError
+    return "Fandt ikke noget!"
 
 
 def scan_documents(user, password, documents):

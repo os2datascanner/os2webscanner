@@ -22,6 +22,8 @@ import shutil
 from subprocess import Popen
 import re
 import datetime
+import json
+
 from django.db import models
 from django.contrib.auth.models import User
 from recurrence.fields import RecurrenceField
@@ -111,6 +113,7 @@ class Domain(models.Model):
     url = models.CharField(max_length=2048, verbose_name='Url')
     organization = models.ForeignKey(Organization,
                                      null=False,
+                                     related_name='domains',
                                      verbose_name='Organisation')
     validation_status = models.IntegerField(choices=validation_choices,
                                             default=INVALID,
@@ -219,6 +222,23 @@ class Scanner(models.Model):
                                          null=True,
                                          verbose_name='Regex regler')
 
+    # DON'T USE DIRECTLY !!!
+    encoded_process_urls = models.CharField(max_length=262144, null=True, blank=True)
+    do_run_synchronously = models.BooleanField(default=False)
+
+    def _get_process_urls(self):
+        s = self.encoded_process_urls
+        if s:
+            urls = json.loads(s)
+        else:
+            urls = []
+        return urls 
+
+    def _set_process_urls(self, urls):
+        self.encoded_process_urls = json.dumps(urls)
+
+    process_urls = property(_get_process_urls, _set_process_urls)
+    
     # First possible start time
     FIRST_START_TIME = datetime.time(18, 0)
     # Amount of quarter-hours that can be added to the start time
