@@ -42,9 +42,14 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'os2webscanner',
-    'recurrence'
+    'recurrence',
+    'django_xmlrpc',
 )
 
+XMLRPC_METHODS = (
+    ('os2webscanner.views.scan_urls', 'scan_urls'),
+    ('os2webscanner.views.scan_documents', 'scan_documents'),
+)
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

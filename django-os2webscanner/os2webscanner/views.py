@@ -26,6 +26,7 @@ from django.views.generic import View, ListView, TemplateView, DetailView
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate
 from django.utils.decorators import method_decorator
 from django.forms.models import modelform_factory
 from django.conf import settings
@@ -619,3 +620,43 @@ class DialogSuccess(TemplateView):
         context['action'] = "oprettet" if created else "gemt"
         context['reload_url'] = '/' + model_type + '/'
         return context
+
+
+def scan_urls(user, password, urls):
+    """Web service for scanning URLs specified by the caller.
+
+    Parameters:
+        * username (string) - login credentials
+        * password (string) - login credentials
+        * urls  (list of strings) - the URLs to be scanned.
+    """
+    if not authenticate(username=user, password=password):
+        raise RuntimeError("Wrong username or password!")
+
+    if urls:
+        # TODO: Scan the listed URLs and return result to user
+        pass
+    else:
+        # Error handling and stuff?
+        pass
+    raise NotImplementedError
+
+
+def scan_documents(user, password, documents):
+    """Web service for scanning the documents send by the caller.
+
+    Parameters:
+        * username (string) - login credentials
+        * password (string) - login credentials
+        * urls  (list of strings) - the URLs to be scanned.
+    """
+    if not authenticate(username=user, password=password):
+        raise RuntimeError("Wrong username or password!")
+
+    if documents:
+        # TODO: Scan the enclosed documents
+        pass
+    else:
+        # Error handling, etc.
+        pass
+    raise NotImplementedError
