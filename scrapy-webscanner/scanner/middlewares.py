@@ -20,6 +20,7 @@ from scrapy import Request
 from scrapy import log
 from scrapy.contrib.downloadermiddleware.redirect import RedirectMiddleware
 from scrapy.contrib.spidermiddleware.offsite import OffsiteMiddleware
+import scrapy.contrib.spidermiddleware.httperror
 from scrapy.exceptions import IgnoreRequest
 from scrapy.utils.httpobj import urlparse_cached
 
@@ -84,13 +85,7 @@ class NoSubdomainOffsiteMiddleware(OffsiteMiddleware):
 
         Overrides OffsiteMiddleware.
         """
-        allowed_domains = getattr(spider, 'allowed_domains', None)
-        if not allowed_domains:
-            return re.compile('')  # allow all by default
-        regex = r'^(www\.)?(%s)$' % '|'.join(re.escape(d) for d in
-                                             allowed_domains
-                                             if d is not None)
-        return re.compile(regex)
+        return spider.get_host_regex()
 
 
 class OffsiteRedirectMiddleware(RedirectMiddleware,
