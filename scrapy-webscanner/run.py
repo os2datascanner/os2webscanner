@@ -16,6 +16,8 @@
 # source municipalities ( http://www.os2web.dk/ )
 
 """Run a scan by Scan ID."""
+import urllib2
+from urlparse import urlparse
 
 import os
 import sys
@@ -39,7 +41,9 @@ from scrapy.exceptions import DontCloseSpider
 from django.utils import timezone
 
 from scanner.scanner.scanner import Scanner
-from os2webscanner.models import Scan, ConversionQueueItem
+from os2webscanner.models import Scan, ConversionQueueItem, Url, ReferrerUrl
+
+import linkchecker
 
 from scanner.processors import *
 
@@ -110,13 +114,58 @@ class ScannerApp:
         # the script will block here until the spider_closed signal was sent
         reactor.run()
 
-    def handle_closed(self, spider, reason):
-        """Handle the spider being finished, by updating scan status."""
+        if spider.scanner.do_link_check:
+            if spider.scanner.do_external_link_check:
+                self.external_link_check(spider.external_urls)
+            self.associate_referrers(spider.referrers)
+
+        # Update scan status
         scan_object = Scan.objects.get(pk=self.scan_id)
         scan_object.status = Scan.DONE
         scan_object.pid = None
         scan_object.reason = ""
         scan_object.save()
+
+    def external_link_check(self, external_urls):
+        """Perform external link checking."""
+        log.msg("Performing external link check...")
+        for url in external_urls:
+            url_parse = urlparse(url)
+            if url_parse.scheme not in ("http", "https"):
+                # We don't want to allow external URL checking of other
+                # schemes (file:// for example)
+                continue
+            result = linkchecker.check_url(url)
+            if result is not None:
+                broken_url = Url(url=url, scan=self.scan_object,
+                                 status_code=result["status_code"],
+                                 status_message=result["status_message"])
+                broken_url.save()
+
+    def associate_referrers(self, referrers):
+        """Associate referrers with broken URLs."""
+
+        # Dict to cache referrer URL objects
+        referrer_url_objects = {}
+
+        # Iterate through all broken URLs
+        url_objects = Url.objects.filter(scan=self.scan_object).exclude(
+            status_code__isnull=True
+        )
+        for url_object in url_objects:
+            # Associate the referrers with URL objects
+            for referrer in referrers[url_object.url]:
+                # Create or get existing referrer URL object
+                if not referrer in referrer_url_objects:
+                    referrer_url_objects[referrer] = ReferrerUrl(
+                        url=referrer, scan=self.scan_object)
+                    referrer_url_objects[referrer].save()
+                referrer_url_object = referrer_url_objects[referrer]
+                url_object.referrers.add(referrer_url_object)
+            url_object.save()
+
+    def handle_closed(self, spider, reason):
+        """Handle the spider being finished"""
         # TODO: Check reason for if it was finished, cancelled, or shutdown
         reactor.stop()
 

@@ -97,6 +97,90 @@ Rapport &dash; {{scan.scanner.name}}
         </table>
 
       </div>
+
+      {% if broken_urls %}
+        <h2>Broken Links</h2>
+    <div class="table-responsive">
+        <table class="table">
+            <tbody>
+            <tr>
+                <td>Totalt antal broken links:</td>
+                <td>{{ no_of_broken_links }}</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <td>
+                    <strong>
+                        <small>
+                            URL
+                        </small>
+                    </strong>
+                </td>
+                <td>
+                    <strong>
+                        <small>
+                            Status
+                        </small>
+                    </strong>
+                </td>
+                <td>
+                    <strong>
+                        <small>
+                            Referrers
+                        </small>
+                    </strong>
+                </td>
+            </tr>
+            </thead>
+            <tbody>
+            {% for url in broken_urls %}
+            <tr class="danger">
+                <td class="broken-url-url">
+                        <span>
+                            <a href="{{ url.url }}"
+                               name="broken_url{{url.id}}">{{ url.url }}</a>
+                        </span>
+                </td>
+                <td class="broken-url-status">
+                    <span>{{ url.status_message }}</span>
+                </td>
+                <td class="broken-url-referrers">
+                    {% with url.referrers.all as referrers %}
+                        {% for referrer in referrers|slice:":5" %}
+                        <p>
+                            <a href="{{referrer}}">{{ referrer }}</a>
+                        </p>
+                        {% endfor %}
+                        {% if referrers|length > 5 %}
+                            {% if full_report %}
+                                {% for referrer in referrers|slice:"5:" %}
+                                <p>
+                                    <a href="{{referrer}}">{{ referrer }}</a>
+                                </p>
+                                {% endfor %}
+                            {% else %}
+                                <p>
+                                    <a href="full/#broken_url{{url.id}}">
+                                        {{ referrers|length|add:-5 }}
+                                        flere referrers...
+                                    </a>
+                                </p>
+                            {% endif %}
+                        {%  endif %}
+                    {% endwith %}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+    {% endif %}
 {% endblock %}
 
 {% block heading %}

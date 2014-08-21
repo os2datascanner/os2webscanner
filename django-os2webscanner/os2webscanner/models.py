@@ -216,6 +216,11 @@ class Scanner(models.Model):
     do_ocr = models.BooleanField(default=True, verbose_name='Scan billeder?')
     do_cpr_modulus11 = models.BooleanField(default=True,
                                            verbose_name='Check modulus-11')
+    do_link_check = models.BooleanField(default=False,
+                                        verbose_name='Udfør linkcheck')
+    do_external_link_check = models.BooleanField(default=False,
+                                                 verbose_name='Check ' +
+                                                              'externe links')
     regex_rules = models.ManyToManyField(RegexRule,
                                          blank=True,
                                          null=True,
@@ -410,6 +415,12 @@ class Url(models.Model):
     url = models.CharField(max_length=2048, verbose_name='Url')
     mime_type = models.CharField(max_length=256, verbose_name='Mime-type')
     scan = models.ForeignKey(Scan, null=False, verbose_name='Scan')
+    status_code = models.IntegerField(blank=True, null=True,
+                                      verbose_name='Status code')
+    status_message = models.CharField(blank=True, null=True, max_length=256,
+                                      verbose_name='Status ' + 'Message')
+    referrers = models.ManyToManyField("ReferrerUrl", related_name='linked_urls',
+                                    null=True, verbose_name='Referrers')
 
     def __unicode__(self):
         """Return the URL."""
@@ -497,3 +508,15 @@ class ConversionQueueItem(models.Model):
             self.url.scan.scan_dir,
             'queue_item_%d' % (self.pk)
         )
+
+
+class ReferrerUrl(models.Model):
+
+    """A representation of a referrer URL."""
+
+    url = models.CharField(max_length=2048, verbose_name='Url')
+    scan = models.ForeignKey(Scan, null=False, verbose_name='Scan')
+
+    def __unicode__(self):
+        """Return the URL."""
+        return self.url

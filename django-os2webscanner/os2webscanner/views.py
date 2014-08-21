@@ -32,7 +32,7 @@ from django.conf import settings
 
 from .validate import validate_domain, get_validation_str
 
-from .models import Scanner, Domain, RegexRule, Scan, Match, UserProfile
+from .models import Scanner, Domain, RegexRule, Scan, Match, UserProfile, Url
 
 
 class LoginRequiredMixin(View):
@@ -209,6 +209,7 @@ class ScannerCreate(RestrictedCreateView):
     model = Scanner
     fields = ['name', 'schedule', 'whitelisted_names', 'domains',
               'do_cpr_scan', 'do_cpr_modulus11', 'do_name_scan', 'do_ocr',
+              'do_link_check', 'do_external_link_check',
               'regex_rules']
 
     def get_form(self, form_class):
@@ -243,6 +244,7 @@ class ScannerUpdate(RestrictedUpdateView):
     model = Scanner
     fields = ['name', 'schedule', 'whitelisted_names', 'domains',
               'do_cpr_scan', 'do_cpr_modulus11', 'do_name_scan', 'do_ocr',
+              'do_link_check', 'do_external_link_check',
               'regex_rules']
 
     def get_success_url(self):
@@ -501,6 +503,7 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
     model = Scan
     template_name = 'os2webscanner/report.html'
     context_object_name = "scan"
+    full = False
 
     def get_queryset(self):
         """Get the queryset for the view.
@@ -525,6 +528,13 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
             scan=self.get_object()
         ).order_by('-sensitivity', 'url', 'matched_rule', 'matched_data')
 
+        broken_urls = Url.objects.filter(
+            scan=self.get_object()
+        ).exclude(status_code__isnull=True).order_by('url')
+
+        context['full_report'] = self.full
+        context['broken_urls'] = broken_urls
+        context['no_of_broken_links'] = broken_urls.count()
         context['matches'] = all_matches[:100]
         context['no_of_matches'] = all_matches.count()
         context['reports_url'] = settings.SITE_URL + '/reports/'
