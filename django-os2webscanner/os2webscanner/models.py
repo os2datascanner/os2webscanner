@@ -224,7 +224,11 @@ class Scanner(models.Model):
 
     # DON'T USE DIRECTLY !!!
     # Use process_urls property instead.
-    encoded_process_urls = models.CharField(max_length=262144, null=True, blank=True)
+    encoded_process_urls = models.CharField(
+        max_length=262144,
+        null=True,
+        blank=True
+    )
     # Booleans for control of scanners run from web service.
     do_run_synchronously = models.BooleanField(default=False)
     is_visible = models.BooleanField(default=True)
@@ -235,13 +239,13 @@ class Scanner(models.Model):
             urls = json.loads(s)
         else:
             urls = []
-        return urls 
+        return urls
 
     def _set_process_urls(self, urls):
         self.encoded_process_urls = json.dumps(urls)
 
     process_urls = property(_get_process_urls, _set_process_urls)
-    
+
     # First possible start time
     FIRST_START_TIME = datetime.time(18, 0)
     # Amount of quarter-hours that can be added to the start time
@@ -330,7 +334,8 @@ class Scan(models.Model):
 
     """An actual instance of the scanning process done by a scanner."""
 
-    scanner = models.ForeignKey(Scanner, null=False, verbose_name='Scanner')
+    scanner = models.ForeignKey(Scanner, null=False, verbose_name='Scanner',
+                                related_name='scans')
     start_time = models.DateTimeField(blank=True, null=True,
                                       verbose_name='Starttidspunkt')
     end_time = models.DateTimeField(blank=True, null=True,

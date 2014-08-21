@@ -78,6 +78,7 @@ class ScannerList(RestrictedListView):
     template_name = 'os2webscanner/scanners.html'
 
     def get_queryset(self):
+        """Get queryset, don't include non-visible scanners."""
         qs = super(ScannerList, self).get_queryset()
         return qs.filter(is_visible=True)
 
@@ -126,6 +127,7 @@ class ReportList(RestrictedListView):
                 reports = self.model.objects.filter(
                     scanner__organization=None
                 )
+        reports = reports.filter(scanner__is_visible=True)
         return reports.order_by('-start_time')
 
 
@@ -622,4 +624,3 @@ class DialogSuccess(TemplateView):
         context['action'] = "oprettet" if created else "gemt"
         context['reload_url'] = '/' + model_type + '/'
         return context
-

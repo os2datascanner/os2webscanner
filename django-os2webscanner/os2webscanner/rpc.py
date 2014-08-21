@@ -1,12 +1,26 @@
-# Web service functions, to be invoked over XML-RPC
+# The contents of this file are subject to the Mozilla Public License
+# Version 2.0 (the "License"); you may not use this file except in
+# compliance with the License. You may obtain a copy of the License at
+#    http://www.mozilla.org/MPL/
+#
+# Software distributed under the License is distributed on an "AS IS"basis,
+# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+# for the specific language governing rights and limitations under the
+# License.
+#
+# OS2Webscanner was developed by Magenta in collaboration with OS2 the
+# Danish community of open source municipalities (http://www.os2web.dk/).
+
+""" Web service functions, to be invoked over XML-RPC."""
 
 import os
 import time
 import tempfile
 
-from .models import Scanner
-
 from django.contrib.auth import authenticate
+
+from .models import Scanner
+from .utils import generate_report
 
 
 def do_scan(user, urls):
@@ -23,14 +37,16 @@ def do_scan(user, urls):
     scanner.name = user.username + '-' + str(time.time())
     scanner.do_run_synchronously = True
     scanner.process_urls = urls
+    scanner.is_visible = False
 
     scanner.save()
     for domain in scanner.organization.domains.all():
         scanner.domains.add(domain)
     scanner.run()
 
-    # TODO: Figure out how to present result
-    return 0
+    scan = scanner.scans.all()[0]
+    report = generate_report(scan)
+    return unicode(report)
 
 
 def scan_urls(username, password, urls):
@@ -67,7 +83,7 @@ def scan_documents(username, password, binary_documents):
     user = authenticate(username=username, password=password)
     if not user:
         raise RuntimeError("Wrong username or password!")
-    
+
     # Save files on disk
     def writefile(binary_doc):
         handle, filename = tempfile.mkstemp()
