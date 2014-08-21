@@ -9,12 +9,12 @@ XMLRPC_URL = '/xmlrpc/'
 
 wc = WebscannerClient(TEST_URL + XMLRPC_URL)
 
-username = raw_input('User name: ')
+username = "agger" #raw_input('User name: ')
 
-password = getpass()
+password = "agger" # getpass()
 
-url = raw_input('Enter URL: ')
+url = "http://www.magenta.dk" #raw_input('Enter URL: ')
 
-wc.scan_urls(username, password, [url])
+#wc.scan_urls(username, password, [url])
 
-# TODO: Write sample document scanning too.
+wc.scan_documents(username, password, ['/etc/passwd'])

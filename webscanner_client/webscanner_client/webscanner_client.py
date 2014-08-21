@@ -18,4 +18,8 @@ class WebscannerClient(object):
 
     def scan_documents(self, user, password, documents):
         # TODO: Figure out how to send documents to server
-        return self._rpc_srv.scan_documents(user, password, documents)
+        def get_binary(path):
+            with open(path, "rb") as f:
+                return xmlrpclib.Binary(f.read())
+        binary_docs = map(get_binary, documents)
+        return self._rpc_srv.scan_documents(user, password, binary_docs)

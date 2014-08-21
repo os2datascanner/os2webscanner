@@ -47,8 +47,8 @@ INSTALLED_APPS = (
 )
 
 XMLRPC_METHODS = (
-    ('os2webscanner.views.scan_urls', 'scan_urls'),
-    ('os2webscanner.views.scan_documents', 'scan_documents'),
+    ('os2webscanner.rpc.scan_urls', 'scan_urls'),
+    ('os2webscanner.rpc.scan_documents', 'scan_documents'),
 )
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',

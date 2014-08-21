@@ -76,7 +76,7 @@ class UserProfile(models.Model):
                                      verbose_name='Organisation')
     user = models.ForeignKey(User,
                              unique=True,
-                             related_name='user_profile',
+                             related_name='profile',
                              verbose_name='Bruger')
 
     def __unicode__(self):
@@ -223,8 +223,11 @@ class Scanner(models.Model):
                                          verbose_name='Regex regler')
 
     # DON'T USE DIRECTLY !!!
+    # Use process_urls property instead.
     encoded_process_urls = models.CharField(max_length=262144, null=True, blank=True)
+    # Booleans for control of scanners run from web service.
     do_run_synchronously = models.BooleanField(default=False)
+    is_visible = models.BooleanField(default=True)
 
     def _get_process_urls(self):
         s = self.encoded_process_urls

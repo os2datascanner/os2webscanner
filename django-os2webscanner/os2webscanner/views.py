@@ -17,8 +17,6 @@
 """Contains Django views."""
 
 import csv
-import time
-
 from django import forms
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.http import Http404, HttpResponse
@@ -27,7 +25,6 @@ from django.views.generic import View, ListView, TemplateView, DetailView
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate
 from django.utils.decorators import method_decorator
 from django.forms.models import modelform_factory
 from django.conf import settings
@@ -79,6 +76,10 @@ class ScannerList(RestrictedListView):
 
     model = Scanner
     template_name = 'os2webscanner/scanners.html'
+
+    def get_queryset(self):
+        qs = super(ScannerList, self).get_queryset()
+        return qs.filter(is_visible=True)
 
 
 class DomainList(RestrictedListView):
@@ -622,52 +623,3 @@ class DialogSuccess(TemplateView):
         context['reload_url'] = '/' + model_type + '/'
         return context
 
-
-def scan_urls(username, password, urls):
-    """Web service for scanning URLs specified by the caller.
-
-    Parameters:
-        * username (string) - login credentials
-        * password (string) - login credentials
-        * urls  (list of strings) - the URLs to be scanned.
-    """
-    user = authenticate(username=username, password=password)
-    if not user:
-        raise RuntimeError("Wrong username or password!")
-
-    if urls:
-        # TODO: Scan the listed URLs and return result to user
-        scanner = Scanner()
-        scanner.organization = user.get_profile().organization
-        scanner.name = username + '-' + str(int(time.time()))
-        scanner.do_run_synchronously = True
-        scanner.process_urls = urls
-
-        scanner.save()
-        for domain in scanner.organization.domains.all():
-            scanner.domains.add(domain)
-        scanner.run()
-    else:
-        # Error handling and stuff?
-        pass
-    return "Fandt ikke noget!"
-
-
-def scan_documents(user, password, documents):
-    """Web service for scanning the documents send by the caller.
-
-    Parameters:
-        * username (string) - login credentials
-        * password (string) - login credentials
-        * urls  (list of strings) - the URLs to be scanned.
-    """
-    if not authenticate(username=user, password=password):
-        raise RuntimeError("Wrong username or password!")
-
-    if documents:
-        # TODO: Scan the enclosed documents
-        pass
-    else:
-        # Error handling, etc.
-        pass
-    raise NotImplementedError
