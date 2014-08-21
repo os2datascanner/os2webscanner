@@ -67,7 +67,7 @@ urlpatterns = patterns(
     url(r'^report/(?P<pk>[0-9]+)/$', ReportDetails.as_view(),
         name='report'),
     url(r'^report/(?P<pk>[0-9]+)/full/$', ReportDetails.as_view(full=True),
-        name='report'),
+        name='full_report'),
     url(r'^report/(?P<pk>[0-9]+)/csv/$', CSVReportDetails.as_view(),
         name='csvreport'),
     url(r'^report/(?P<pk>[0-9]+)/delete/$', ReportDelete.as_view(),
