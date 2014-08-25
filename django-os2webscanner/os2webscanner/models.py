@@ -520,3 +520,16 @@ class ReferrerUrl(models.Model):
     def __unicode__(self):
         """Return the URL."""
         return self.url
+
+
+class UrlLastModified(models.Model):
+
+    """A representation of a URL and its last-modifed date."""
+
+    url = models.CharField(max_length=2048, verbose_name='Url')
+    last_modified = models.DateTimeField(blank=True, null=True,
+                                    verbose_name='Last-modified')
+
+    def __unicode__(self):
+        """Return the URL and last modified date."""
+        return "<%s %s>" % (self.url, self.last_modified)

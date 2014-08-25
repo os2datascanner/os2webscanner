@@ -8,7 +8,7 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# OS2Webscanner was developed by Magenta in collaboration with OS2 the
+# OS2Webscanner was developed by Magenta n collaboration with OS2 the
 # Danish community of open source municipalities (http://www.os2web.dk/).
 #
 # The code is currently governed by OS2 the Danish community of open
@@ -20,9 +20,13 @@ from scrapy import Request
 from scrapy import log
 from scrapy.contrib.downloadermiddleware.redirect import RedirectMiddleware
 from scrapy.contrib.spidermiddleware.offsite import OffsiteMiddleware
-import scrapy.contrib.spidermiddleware.httperror
 from scrapy.exceptions import IgnoreRequest
 from scrapy.utils.httpobj import urlparse_cached
+from scrapy.utils.url import canonicalize_url
+
+from email.utils import parsedate_tz, mktime_tz
+import datetime
+from os2webscanner.models import UrlLastModified
 
 
 class ExclusionRuleMiddleware(object):
@@ -152,6 +156,8 @@ class LastModifiedCheckMiddleware(object):
         """Process a spider response."""
         # Don't run the check if it's not specified by the spider
         log.msg("process_response %s" % response)
+        if request.meta.get('skip_modified_check', False):
+            return response
         if not getattr(spider, 'do_last_modified_check', False):
             return response
 
@@ -177,12 +183,17 @@ class LastModifiedCheckMiddleware(object):
                 return request.replace(method='GET', dont_filter=True)
             else:
                 # If it's a GET request, process the response
+                # TODO: Store all the links found on the page
+                # (do in the spider to avoid code duplication?)
                 return response
         else:
             # Ignore the response, since the content has not been modified
+            # TODO: Add requests for all the links that we know were on the
+            # page the last time we visited it.
             raise IgnoreRequest
 
     def process_exception(self, request, exception, spider):
+        # TODO: Remove?
         log.msg("process_exception %s %s %s" % (request, exception, spider))
 
     def has_been_modified(self, response):
@@ -195,10 +206,35 @@ class LastModifiedCheckMiddleware(object):
         last_modified_header = response.headers.get("Last-Modified", None)
         log.msg("Last modified header: %s" % last_modified_header)
         if last_modified_header is not None:
-            # TODO: Check against the database
-            is_updated = True
-            # TODO: Update last-modified date in the database
-            return is_updated
+            # Check against the database
+            canonical_url = canonicalize_url(response.url)
+            last_modified = datetime.datetime.fromtimestamp(
+                mktime_tz(parsedate_tz(last_modified_header))
+            )
+            log.msg("Last modified: %s" % last_modified)
+            try:
+                url_last_modified = UrlLastModified.objects.get(
+                    url=canonical_url)
+                log.msg("Comparing header %s against stored %s" % (
+                    last_modified, url_last_modified.last_modified))
+                if last_modified == url_last_modified.last_modified:
+                    log.msg("Has NOT been modified")
+                    return False
+                else:
+                    # Update last-modified date in database
+                    url_last_modified.last_modified = last_modified
+                    url_last_modified.save()
+                    log.msg("HAS been modified")
+                    return True
+            except UrlLastModified.DoesNotExist:
+                log.msg("Does not exist!")
+                url_last_modified = UrlLastModified(
+                    url=canonical_url,
+                    last_modified=last_modified
+                )
+                log.msg("Saving %s!" % url_last_modified)
+                url_last_modified.save()
+                return True
         else:
             # If there is no Last-Modified header, we have to assume it has
             # been modified.
