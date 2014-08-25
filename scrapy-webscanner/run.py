@@ -152,6 +152,9 @@ class ScannerApp:
         )
         for url_object in url_objects:
             # Associate the referrers with URL objects
+            if not hasattr(referrers, url_object.url):
+                # Skip URLs with no referrers (f.x. starting URLs)
+                continue
             for referrer in referrers[url_object.url]:
                 # Create or get existing referrer URL object
                 if not referrer in referrer_url_objects:
