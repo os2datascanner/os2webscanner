@@ -19,6 +19,8 @@ from scrapy import log
 from scrapy.contrib.spiders.sitemap import SitemapSpider
 from scrapy.http import Request, HtmlResponse
 from scrapy.contrib.linkextractors.lxmlhtml import LxmlLinkExtractor
+from scrapy.utils.httpobj import urlparse_cached
+from scrapy.utils.request import request_fingerprint
 
 import re
 import chardet
@@ -27,7 +29,8 @@ import magic
 
 from ..processors.processor import Processor
 
-from os2webscanner.models import Url
+from os2webscanner.models import Url, ReferrerUrl
+from scrapy.utils.response import response_status_message
 
 
 class ScannerSpider(SitemapSpider):
@@ -72,10 +75,12 @@ class ScannerSpider(SitemapSpider):
 
         self.do_last_modified_check = True
         self.do_last_modified_check_head_request = True
+        self.referrers = {}
+        self.external_urls = set()
 
     def start_requests(self):
         """Return requests for all starting URLs AND sitemap URLs."""
-        requests = [Request(url, callback=self.parse)
+        requests = [Request(url, callback=self.parse, errback=self.handle_error)
                     for url in self.start_urls]
         requests.extend(list(SitemapSpider.start_requests(self)))
         return requests
@@ -85,6 +90,18 @@ class ScannerSpider(SitemapSpider):
         r = []
         r.extend(self._extract_requests(response))
         self.scan(response)
+
+        # Store referrer when doing link checks
+        if self.scanner.do_link_check:
+            source_url = response.request.url
+            for request in r:
+                target_url = request.url
+                self.referrers.setdefault(target_url, []).append(source_url)
+
+                # Save external URLs for later checking
+                if self.scanner.do_external_link_check and self.is_offsite(request):
+                    self.external_urls.add(target_url)
+
         return r
 
     def _extract_requests(self, response):
@@ -93,11 +110,47 @@ class ScannerSpider(SitemapSpider):
         if isinstance(response, HtmlResponse):
             links = self.link_extractor.extract_links(response)
             log.msg("Extracted links: %s" % links, level=log.DEBUG)
-            r.extend(Request(x.url, callback=self.parse) for x in links)
+            r.extend(Request(x.url, callback=self.parse,
+                             errback=self.handle_error) for x in links)
         return r
+
+    def is_offsite(self, request):
+        regex = self.get_host_regex()
+        host = urlparse_cached(request).hostname or ''
+        return not bool(regex.search(host))
+
+    def get_host_regex(self):
+        if not self.allowed_domains:
+            return re.compile('')  # allow all by default
+        regex = r'^(www\.)?(%s)$' % '|'.join(re.escape(d) for d in
+                                             self.allowed_domains
+                                             if d is not None)
+        return re.compile(regex)
+
+    def handle_error(self, failure):
+        if not hasattr(failure.value, "response"):
+            # We don't handle things like IgnoreRequests here
+            return
+        response = failure.value.response
+        url = response.request.url
+        status_code = response.status
+        status_message = response_status_message(status_code)
+
+        if "redirect_urls" in response.request.meta:
+            # Set URL to the original URL, not the URL after redirection
+            url = response.request.meta["redirect_urls"][0]
+
+        log.msg("Handle Error: %d %s" % (status_code, url))
+
+        # Add broken URL
+        broken_url = Url(url=url, scan=self.scanner.scan_object,
+                         status_code=status_code,
+                         status_message=status_message)
+        broken_url.save()
 
     def scan(self, response):
         """Scan a response, returning any matches."""
+
         content_type = response.headers.get('content-type')
         if content_type:
             mime_type = parse_content_type(content_type)
