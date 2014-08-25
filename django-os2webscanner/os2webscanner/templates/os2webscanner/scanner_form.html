@@ -146,20 +146,7 @@
       </div>
       <div class="tab-pane" id="rules">
           <div id="select_scan_rules_container" class="col-sm-12">
-		<div class="form-group">
-{% if 0 %}	    <span id="{{ form.do_cpr_scan.auto_id }}_container"{% if form.do_cpr_scan.errors %} class="has-error"{% endif %}>
-{% endif %}              <label class="checkbox-inline" for="id_{{ form.do_cpr_scan.name }}">
-		<input type="checkbox" id="id_{{ form.do_cpr_scan.name }}" name="{{ form.do_cpr_scan.name }}" value="{{ form.do_cpr_scan.name }}"{% if form.do_cpr_scan.value %} checked="checked"{% endif %}>
-	        {{ form.do_cpr_scan.label }}
-                {% if form.do_cpr_scan.help_text %}<small>{{ form.do_cpr_scan.help_text }}</small>{% endif %}
-	      </label>
-            {% if 0 %}	    </span>
-	    <span id="{{ form.do_name_scan.auto_id }}_container"{% if form.do_name_scan.errors %} class="has-error"{% endif %}>
-{% endif %}	      <label class="checkbox-inline" for="id_{{ form.do_name_scan.name }}">
-		<input type="checkbox" id="id_{{ form.do_name_scan.name }}" name="{{ form.do_name_scan.name }}" value="{{ form.do_name_scan.name }}"{% if form.do_name_scan.value %} checked="checked"{% endif %}>
-		{{ form.do_name_scan.label }}
-                {% if form.do_name_scan.help_text %}<small>{{ form.do_name_scan.help_text }}</small>{% endif %}
-	      </label>
+	        <div class="form-group">
 {% if 0 %}	    </span>
 	    <span id="{{ form.do_ocr.auto_id }}_container"{% if form.do_ocr.errors %} class="has-error"{% endif %}>
 {% endif %}	      <label class="checkbox-inline" for="id_{{ form.do_ocr.name }}">
@@ -167,6 +154,24 @@
 		{{ form.do_ocr.label }}
                 {% if form.do_ocr.help_text %}<small>{{ form.do_ocr.help_text }}</small>{% endif %}
 	      </label>
+		</div>
+		<div class="form-group">
+{% if 0 %}	    <span id="{{ form.do_cpr_scan.auto_id }}_container"{% if form.do_cpr_scan.errors %} class="has-error"{% endif %}>
+{% endif %}              <label class="checkbox-inline" for="id_{{ form.do_cpr_scan.name }}">
+		<input type="checkbox" id="id_{{ form.do_cpr_scan.name }}" name="{{ form.do_cpr_scan.name }}" value="{{ form.do_cpr_scan.name }}"{% if form.do_cpr_scan.value %} checked="checked"{% endif %}>
+	        {{ form.do_cpr_scan.label }}
+                {% if form.do_cpr_scan.help_text %}<small>{{ form.do_cpr_scan.help_text }}</small>{% endif %}
+	      </label>
+              {% if 0 %}	    <span id="{{ form.do_cpr_modulus11.auto_id }}_container"{% if form.do_cpr_modulus11.errors %} class="has-error"{% endif %}>
+              {% endif %}
+                  <label class="checkbox-inline"
+                               for="id_{{ form.do_cpr_modulus11.name }}">
+                  <input type="checkbox" id="id_{{ form.do_cpr_modulus11.name }}" name="{{ form.do_cpr_modulus11.name }}" value="{{ form.do_cpr_modulus11.name }}"{% if form.do_cpr_modulus11.value %} checked="checked"{% endif %}>
+              {{ form.do_cpr_modulus11.label }}
+              {% if form.do_cpr_modulus11.help_text %}<small>{{ form.do_cpr_modulus11.help_text }}</small>{% endif %}
+              </label>
+	    </div>
+	    <div class="form-group">
 {% if 0 %}	    </span>
 {% endif %}
             <label class="checkbox-inline" for="id_{{ form.do_link_check.name }}">
@@ -179,18 +184,19 @@
                 {{ form.do_external_link_check.label }}
                 {% if form.do_external_link_check.help_text %}<small>{{ form.do_external_link_check.help_text }}</small>{% endif %}
             </label>
+	    </div>
+	    <div class="form-group">
+            {% if 0 %}	    </span>
+	    <span id="{{ form.do_name_scan.auto_id }}_container"{% if form.do_name_scan.errors %} class="has-error"{% endif %}>
+{% endif %}	      <label class="checkbox-inline" for="id_{{ form.do_name_scan.name }}">
+		<input type="checkbox" id="id_{{ form.do_name_scan.name }}" name="{{ form.do_name_scan.name }}" value="{{ form.do_name_scan.name }}"{% if form.do_name_scan.value %} checked="checked"{% endif %}>
+		{{ form.do_name_scan.label }}
+                {% if form.do_name_scan.help_text %}<small>{{ form.do_name_scan.help_text }}</small>{% endif %}
+	      </label>
           </div></div>
           <div id="scan_rules_extra_options_container"
                class="col-sm-12">
               <div class="form-group">
-              {% if 0 %}	    <span id="{{ form.do_cpr_modulus11.auto_id }}_container"{% if form.do_cpr_modulus11.errors %} class="has-error"{% endif %}>
-              {% endif %}
-                  <label class="checkbox-inline"
-                               for="id_{{ form.do_cpr_modulus11.name }}">
-                  <input type="checkbox" id="id_{{ form.do_cpr_modulus11.name }}" name="{{ form.do_cpr_modulus11.name }}" value="{{ form.do_cpr_modulus11.name }}"{% if form.do_cpr_modulus11.value %} checked="checked"{% endif %}>
-              {{ form.do_cpr_modulus11.label }}
-              {% if form.do_cpr_modulus11.help_text %}<small>{{ form.do_cpr_modulus11.help_text }}</small>{% endif %}
-              </label>
               </div>
           </div>
             <div id="{{ form.regex_rules.auto_id }}_container" class="col-sm-6{% if form.regex_rules.errors %} has-error{% endif %}">
