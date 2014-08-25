@@ -38,6 +38,14 @@ class Scanner:
             validation_status=Domain.VALID
         )
 
+    @property
+    def do_link_check(self):
+        return self.scanner_object.do_link_check
+
+    @property
+    def do_external_link_check(self):
+        return self.scanner_object.do_external_link_check
+
     def _load_rules(self):
         """Load rules based on Scanner settings."""
         rules = []

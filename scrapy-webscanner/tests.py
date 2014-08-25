@@ -29,6 +29,31 @@ import unittest
 from scanner.rules import cpr, name
 import re
 
+import linkchecker
+
+
+class ExternalLinkCheckerTest(unittest.TestCase):
+
+    """Test the external link checker"""
+
+    def test_checker(self):
+        # Google should be OK
+        self.assertIsNone(linkchecker.check_url(
+            "http://www.google.com/"))
+
+        # Test 404 error
+        res = linkchecker.check_url(
+            "http://google.com/asdasdfasdgfr4rter.html")
+        self.assertIsNotNone(res)
+        # Check status code is correct
+        self.assertEquals(res["status_code"], 404)
+
+        # Random domain is not OK
+        self.assertIsNotNone(linkchecker.check_url(
+            "http://asdfasdfasdf324afddsfasdf/"))
+
+        self.assertIsNotNone(linkchecker.check_url("http://www.oooforum.org/"))
+
 
 class NameTest(unittest.TestCase):
 
