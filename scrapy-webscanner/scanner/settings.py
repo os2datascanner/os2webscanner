@@ -41,6 +41,7 @@ SPIDER_MIDDLEWARES = {
 DOWNLOADER_MIDDLEWARES = {
     'scrapy.contrib.downloadermiddleware.redirect.RedirectMiddleware': None,
     'scanner.middlewares.OffsiteRedirectMiddleware': 600,
+    'scanner.middlewares.LastModifiedCheckMiddleware': 1000,
 }
 
 # Set to True in testing to avoid pegging websites, if only testing processing

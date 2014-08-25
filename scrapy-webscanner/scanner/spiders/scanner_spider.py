@@ -70,6 +70,9 @@ class ScannerSpider(SitemapSpider):
             attrs=('href', 'src')
         )
 
+        self.do_last_modified_check = True
+        self.do_last_modified_check_head_request = True
+
     def start_requests(self):
         """Return requests for all starting URLs AND sitemap URLs."""
         requests = [Request(url, callback=self.parse)

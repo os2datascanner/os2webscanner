@@ -123,3 +123,88 @@ class OffsiteRedirectMiddleware(RedirectMiddleware,
                 raise IgnoreRequest
         else:
             return result
+
+
+class LastModifiedCheckMiddleware(object):
+
+    """Check the Last-Modified header to filter responses.
+
+    Only process a response if the content for the URL has been updated as
+    indicated by the Last-Modified header.
+
+    Optionally, change GET requests into HEAD requests (to avoid
+    transferring too much data before we know if a URL has been updated),
+    then check the Last-Modified header before issuing a new request.
+
+    Last-modified dates are stored in the database."""
+
+    def process_request(self, request, spider):
+        """Process a spider request."""
+        # Make the request into a HEAD request instead of a GET request,
+        # if the spider says we should and if we haven't
+        # already checked the last modified date.
+        if (getattr(spider, 'do_last_modified_check', False) and
+                getattr(spider, 'do_last_modified_check_head_request', True)
+                and not request.meta.get('skip_modified_check', False) and
+                request.method != "HEAD"):
+            log.msg("Replacing with HEAD request %s" % request)
+            return request.replace(method='HEAD')
+        else:
+            log.msg("process_request %s" % request)
+            return None
+
+    def process_response(self, request, response, spider):
+        """Process a spider response."""
+        # Don't run the check if it's not specified by the spider
+        log.msg("process_response %s" % response)
+        if not getattr(spider, 'do_last_modified_check', False):
+            return response
+
+        # We only handle HTTP status OK responses
+        # TODO: Is this correct?
+        if response.status != 200:
+            return response
+
+        # Check the Last-Modified header to see if the content has been
+        # updated since the last time we checked it.
+        if self.has_been_modified(response):
+            if request.method == 'HEAD':
+                # Issue a new GET request, since the data was updated
+                log.msg("Issuing a new GET for %s" % request)
+
+                # Skip the modified check, since we just did the check
+                meta = request.meta
+                meta["skip_modified_check"] = True
+
+                # Have to pass dont_filter=True or the request will be
+                # filtered by the duplicates filter (since it was originally
+                # scheduled as a GET request already).
+                return request.replace(method='GET', dont_filter=True)
+            else:
+                # If it's a GET request, process the response
+                return response
+        else:
+            # Ignore the response, since the content has not been modified
+            raise IgnoreRequest
+
+    def process_exception(self, request, exception, spider):
+        log.msg("process_exception %s %s %s" % (request, exception, spider))
+
+    def has_been_modified(self, response):
+        """Return whether the given response has been modified since we
+        last saw it.
+
+        We check against the database here."""
+        # Check the Last-Modified header to see if the content has been
+        # updated since the last time we checked it.
+        last_modified_header = response.headers.get("Last-Modified", None)
+        log.msg("Last modified header: %s" % last_modified_header)
+        if last_modified_header is not None:
+            # TODO: Check against the database
+            is_updated = True
+            # TODO: Update last-modified date in the database
+            return is_updated
+        else:
+            # If there is no Last-Modified header, we have to assume it has
+            # been modified.
+            return True
