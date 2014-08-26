@@ -15,6 +15,8 @@
 # source municipalities ( http://www.os2web.dk/ )
 """Middleware for the scanner."""
 import re
+import datetime
+import pytz
 
 from scrapy import Request
 from scrapy import log
@@ -25,7 +27,7 @@ from scrapy.utils.httpobj import urlparse_cached
 from scrapy.utils.url import canonicalize_url
 
 from email.utils import parsedate_tz, mktime_tz
-import datetime
+import time
 from os2webscanner.models import UrlLastModified
 
 
@@ -124,6 +126,51 @@ class OffsiteRedirectMiddleware(RedirectMiddleware,
             return result
 
 
+class LastModifiedLinkStorageMiddleware(object):
+
+    """Spider middleware to store the links on pages for Last-Modified
+    check."""
+
+    def process_spider_output(self, response, result, spider):
+        if not getattr(spider, "do_last_modified_check", False):
+            return result
+
+        source_url = canonicalize_url(response.request.url)
+        try:
+            url_last_modified = UrlLastModified.objects.get(
+                url=source_url)
+        except UrlLastModified.DoesNotExist:
+            # We never stored the URL for the original request: this
+            # shouldn't happen.
+            return result
+
+        log.msg("Updating links for %s" % url_last_modified)
+
+        # Clear existing links
+        url_last_modified.links.clear()
+
+        log.msg("Spider result: %s" % result)
+
+        # Update links
+        for r in result:
+            if isinstance(r, Request):
+                target_url = canonicalize_url(r.url)
+                # Get or create a URL last modified object
+                try:
+                    link = UrlLastModified.objects.get(url=target_url)
+                except UrlLastModified.DoesNotExist:
+                    # Create new link
+                    link = UrlLastModified(
+                        url=target_url,
+                        last_modified=None
+                    )
+                    link.save()
+                # Add the link to the URL last modified object
+                url_last_modified.links.add(link)
+                log.msg("Added link %s" % link)
+        return result
+
+
 class LastModifiedCheckMiddleware(object):
 
     """Check the Last-Modified header to filter responses.
@@ -136,6 +183,13 @@ class LastModifiedCheckMiddleware(object):
     then check the Last-Modified header before issuing a new request.
 
     Last-modified dates are stored in the database."""
+
+    def __init__(self, crawler):
+        self.crawler = crawler
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(crawler)
 
     def process_request(self, request, spider):
         """Process a spider request."""
@@ -155,7 +209,7 @@ class LastModifiedCheckMiddleware(object):
     def process_response(self, request, response, spider):
         """Process a spider response."""
         # Don't run the check if it's not specified by the spider
-        log.msg("process_response %s" % response)
+        # log.msg("process_response %s" % response)
         if request.meta.get('skip_modified_check', False):
             return response
         if not getattr(spider, 'do_last_modified_check', False):
@@ -183,18 +237,27 @@ class LastModifiedCheckMiddleware(object):
                 return request.replace(method='GET', dont_filter=True)
             else:
                 # If it's a GET request, process the response
-                # TODO: Store all the links found on the page
-                # (do in the spider to avoid code duplication?)
                 return response
         else:
-            # Ignore the response, since the content has not been modified
-            # TODO: Add requests for all the links that we know were on the
+            # Add requests for all the links that we know were on the
             # page the last time we visited it.
-            raise IgnoreRequest
-
-    def process_exception(self, request, exception, spider):
-        # TODO: Remove?
-        log.msg("process_exception %s %s %s" % (request, exception, spider))
+            # log.msg("Has NOT been modified %s" % response)
+            canonical_url = canonicalize_url(response.url)
+            try:
+                url_last_modified = UrlLastModified.objects.get(
+                    url=canonical_url)
+                links = url_last_modified.links.all()
+                for link in links:
+                    # TODO: Callbacks are hard-coded for our scanner spider
+                    req = Request(link.url, callback=spider.parse,
+                                  errback=spider.handle_error)
+                    log.msg("Adding request %s" % req)
+                    self.crawler.engine.crawl(req, spider)
+            except UrlLastModified.DoesNotExist:
+                pass
+            finally:
+                # Ignore the request, since the content has not been modified
+                raise IgnoreRequest
 
     def has_been_modified(self, response):
         """Return whether the given response has been modified since we
@@ -209,22 +272,23 @@ class LastModifiedCheckMiddleware(object):
             # Check against the database
             canonical_url = canonicalize_url(response.url)
             last_modified = datetime.datetime.fromtimestamp(
-                mktime_tz(parsedate_tz(last_modified_header))
+                mktime_tz(parsedate_tz(last_modified_header)), tz=pytz.utc
             )
             log.msg("Last modified: %s" % last_modified)
             try:
                 url_last_modified = UrlLastModified.objects.get(
                     url=canonical_url)
+                stored_last_modified = url_last_modified.last_modified
                 log.msg("Comparing header %s against stored %s" % (
-                    last_modified, url_last_modified.last_modified))
-                if last_modified == url_last_modified.last_modified:
+                    last_modified, stored_last_modified))
+                if last_modified == stored_last_modified:
                     log.msg("Has NOT been modified")
                     return False
                 else:
                     # Update last-modified date in database
                     url_last_modified.last_modified = last_modified
                     url_last_modified.save()
-                    log.msg("HAS been modified")
+                    log.msg("Has been modified")
                     return True
             except UrlLastModified.DoesNotExist:
                 log.msg("Does not exist!")

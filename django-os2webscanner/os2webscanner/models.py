@@ -524,11 +524,13 @@ class ReferrerUrl(models.Model):
 
 class UrlLastModified(models.Model):
 
-    """A representation of a URL and its last-modifed date."""
+    """A representation of a URL, its last-modifed date, and its links."""
 
     url = models.CharField(max_length=2048, verbose_name='Url')
     last_modified = models.DateTimeField(blank=True, null=True,
                                     verbose_name='Last-modified')
+    links = models.ManyToManyField("self", symmetrical=False,
+                                    null=True, verbose_name='Links')
 
     def __unicode__(self):
         """Return the URL and last modified date."""

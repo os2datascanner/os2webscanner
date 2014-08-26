@@ -26,10 +26,11 @@ import re
 import chardet
 import mimetypes
 import magic
+from scrapy.utils.url import canonicalize_url
 
 from ..processors.processor import Processor
 
-from os2webscanner.models import Url, ReferrerUrl
+from os2webscanner.models import Url, ReferrerUrl, UrlLastModified
 from scrapy.utils.response import response_status_message
 
 
@@ -73,8 +74,10 @@ class ScannerSpider(SitemapSpider):
             attrs=('href', 'src')
         )
 
+        # TODO: Read from Scanner settings
         self.do_last_modified_check = True
         self.do_last_modified_check_head_request = True
+
         self.referrers = {}
         self.external_urls = set()
 

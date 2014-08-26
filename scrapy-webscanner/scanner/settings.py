@@ -36,12 +36,13 @@ SPIDER_MIDDLEWARES = {
     'scanner.middlewares.NoSubdomainOffsiteMiddleware': 500,
 
     'scanner.middlewares.ExclusionRuleMiddleware': 1000,
+    'scanner.middlewares.LastModifiedLinkStorageMiddleware': 1100
 }
 
 DOWNLOADER_MIDDLEWARES = {
+    'scanner.middlewares.LastModifiedCheckMiddleware': 550,
     'scrapy.contrib.downloadermiddleware.redirect.RedirectMiddleware': None,
     'scanner.middlewares.OffsiteRedirectMiddleware': 600,
-    'scanner.middlewares.LastModifiedCheckMiddleware': 1000,
 }
 
 # Set to True in testing to avoid pegging websites, if only testing processing
