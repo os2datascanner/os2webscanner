@@ -43,6 +43,8 @@ DOWNLOADER_MIDDLEWARES = {
     'scanner.middlewares.LastModifiedCheckMiddleware': 550,
     'scrapy.contrib.downloadermiddleware.redirect.RedirectMiddleware': None,
     'scanner.middlewares.OffsiteRedirectMiddleware': 600,
+    'scanner.middlewares.OffsiteDownloaderMiddleware': 1000,
+    'scanner.middlewares.ExclusionRuleDownloaderMiddleware': 1100,
 }
 
 # Set to True in testing to avoid pegging websites, if only testing processing

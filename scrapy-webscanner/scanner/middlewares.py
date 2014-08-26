@@ -19,7 +19,7 @@ import datetime
 import pytz
 
 from scrapy import Request
-from scrapy import log
+from scrapy import log, signals
 from scrapy.contrib.downloadermiddleware.redirect import RedirectMiddleware
 from scrapy.contrib.spidermiddleware.offsite import OffsiteMiddleware
 from scrapy.exceptions import IgnoreRequest
@@ -27,7 +27,6 @@ from scrapy.utils.httpobj import urlparse_cached
 from scrapy.utils.url import canonicalize_url
 
 from email.utils import parsedate_tz, mktime_tz
-import time
 from os2webscanner.models import UrlLastModified
 
 
@@ -55,31 +54,7 @@ class ExclusionRuleMiddleware(object):
 
     def should_follow(self, request, spider):
         """Return whether the URL should be followed."""
-        if not hasattr(self, 'exclusion_rules'):
-            self.exclusion_rules = getattr(spider, 'exclusion_rules', None)
-
-        if self.exclusion_rules is None:
-            return True
-
-        # Build a string to match against, containing the path, and if
-        # present, the query and fragment as well.
-        url = urlparse_cached(request)
-        match_against = url.path
-        if url.query != '':
-            match_against += "?" + url.query
-        if url.fragment != '':
-            match_against += "#" + url.fragment
-
-        for rule in self.exclusion_rules:
-            if isinstance(rule, basestring):
-                # Do case-insensitive substring search
-                if match_against.lower().find(rule.lower()) != -1:
-                    return False
-            else:
-                # Do regex search against the URL
-                if rule.search(match_against) is not None:
-                    return False
-        return True
+        return not spider.is_excluded(request)
 
 
 class NoSubdomainOffsiteMiddleware(OffsiteMiddleware):
@@ -92,6 +67,52 @@ class NoSubdomainOffsiteMiddleware(OffsiteMiddleware):
         Overrides OffsiteMiddleware.
         """
         return spider.get_host_regex()
+
+
+class OffsiteDownloaderMiddleware(object):
+    """Offsite middleware which doesn't allow subdomains of allowed_domains."""
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        o = cls()
+        crawler.signals.connect(o.spider_opened, signal=signals.spider_opened)
+        return o
+
+    def process_request(self, request, spider):
+        # log.msg("NoSubdomainOffsite %s" % request)
+        if request.dont_filter or self.should_follow(request, spider):
+            return None
+        else:
+            domain = urlparse_cached(request).hostname
+            log.msg(format="Filtered offsite request to %(domain)r: %(request)s",
+                    level=log.INFO, spider=spider, domain=domain,
+                    request=request)
+            raise IgnoreRequest
+
+    def should_follow(self, request, spider):
+        regex = self.host_regex
+        # hostname can be None for wrong urls (like javascript links)
+        host = urlparse_cached(request).hostname or ''
+        return bool(regex.search(host))
+
+    def get_host_regex(self, spider):
+        return spider.get_host_regex()
+
+    def spider_opened(self, spider):
+        self.host_regex = self.get_host_regex(spider)
+
+
+class ExclusionRuleDownloaderMiddleware(object):
+    """Exclusion rule downloader middleware."""
+
+    def process_request(self, request, spider):
+        if request.dont_filter or self.should_follow(request, spider):
+            return None
+        else:
+            raise IgnoreRequest
+
+    def should_follow(self, request, spider):
+        return not spider.is_excluded(request)
 
 
 class OffsiteRedirectMiddleware(RedirectMiddleware,
@@ -155,6 +176,8 @@ class LastModifiedLinkStorageMiddleware(object):
         for r in result:
             if isinstance(r, Request):
                 target_url = canonicalize_url(r.url)
+                if spider.is_offsite(r) or spider.is_excluded(r):
+                    continue
                 # Get or create a URL last modified object
                 try:
                     link = UrlLastModified.objects.get(url=target_url)

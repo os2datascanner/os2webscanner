@@ -122,6 +122,27 @@ class ScannerSpider(SitemapSpider):
         host = urlparse_cached(request).hostname or ''
         return not bool(regex.search(host))
 
+    def is_excluded(self, request):
+        # Build a string to match against, containing the path, and if
+        # present, the query and fragment as well.
+        url = urlparse_cached(request)
+        match_against = url.path
+        if url.query != '':
+            match_against += "?" + url.query
+        if url.fragment != '':
+            match_against += "#" + url.fragment
+
+        for rule in self.exclusion_rules:
+            if isinstance(rule, basestring):
+                # Do case-insensitive substring search
+                if match_against.lower().find(rule.lower()) != -1:
+                    return True
+            else:
+                # Do regex search against the URL
+                if rule.search(match_against) is not None:
+                    return True
+        return False
+
     def get_host_regex(self):
         if not self.allowed_domains:
             return re.compile('')  # allow all by default
