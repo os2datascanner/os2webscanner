@@ -155,6 +155,11 @@ class LastModifiedLinkStorageMiddleware(object):
     def process_spider_output(self, response, result, spider):
         if not getattr(spider, "do_last_modified_check", False):
             return result
+        last_modified_header = response.headers.get("Last-Modified", None)
+        if last_modified_header is None:
+            # We don't need to store the links, since the page has no
+            # Last-Modified header.
+            return result
 
         source_url = canonicalize_url(response.request.url)
         try:
@@ -165,19 +170,19 @@ class LastModifiedLinkStorageMiddleware(object):
             # shouldn't happen.
             return result
 
-        log.msg("Updating links for %s" % url_last_modified)
+        log.msg("Updating links for %s" % url_last_modified, level=log.DEBUG)
 
         # Clear existing links
         url_last_modified.links.clear()
 
-        log.msg("Spider result: %s" % result)
+        # log.msg("Spider result: %s" % result)
 
         # Update links
         for r in result:
             if isinstance(r, Request):
-                target_url = canonicalize_url(r.url)
                 if spider.is_offsite(r) or spider.is_excluded(r):
                     continue
+                target_url = canonicalize_url(r.url)
                 # Get or create a URL last modified object
                 try:
                     link = UrlLastModified.objects.get(url=target_url)
@@ -190,7 +195,7 @@ class LastModifiedLinkStorageMiddleware(object):
                     link.save()
                 # Add the link to the URL last modified object
                 url_last_modified.links.add(link)
-                log.msg("Added link %s" % link)
+                log.msg("Added link %s" % link, level=log.DEBUG)
         return result
 
 
@@ -209,6 +214,7 @@ class LastModifiedCheckMiddleware(object):
 
     def __init__(self, crawler):
         self.crawler = crawler
+        self.stats = crawler.stats
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -222,11 +228,11 @@ class LastModifiedCheckMiddleware(object):
         if (getattr(spider, 'do_last_modified_check', False) and
                 getattr(spider, 'do_last_modified_check_head_request', True)
                 and not request.meta.get('skip_modified_check', False) and
-                request.method != "HEAD"):
-            log.msg("Replacing with HEAD request %s" % request)
+                request.method != "HEAD" and self.get_stored_last_modified(
+                request.url) is not None):
+            log.msg("Replacing with HEAD request %s" % request, level=log.DEBUG)
             return request.replace(method='HEAD')
         else:
-            log.msg("process_request %s" % request)
             return None
 
     def process_response(self, request, response, spider):
@@ -239,7 +245,6 @@ class LastModifiedCheckMiddleware(object):
             return response
 
         # We only handle HTTP status OK responses
-        # TODO: Is this correct?
         if response.status != 200:
             return response
 
@@ -248,7 +253,7 @@ class LastModifiedCheckMiddleware(object):
         if self.has_been_modified(response):
             if request.method == 'HEAD':
                 # Issue a new GET request, since the data was updated
-                log.msg("Issuing a new GET for %s" % request)
+                log.msg("Issuing a new GET for %s" % request, level=log.DEBUG)
 
                 # Skip the modified check, since we just did the check
                 meta = request.meta
@@ -265,22 +270,33 @@ class LastModifiedCheckMiddleware(object):
             # Add requests for all the links that we know were on the
             # page the last time we visited it.
             # log.msg("Has NOT been modified %s" % response)
-            canonical_url = canonicalize_url(response.url)
-            try:
-                url_last_modified = UrlLastModified.objects.get(
-                    url=canonical_url)
-                links = url_last_modified.links.all()
-                for link in links:
-                    # TODO: Callbacks are hard-coded for our scanner spider
-                    req = Request(link.url, callback=spider.parse,
-                                  errback=spider.handle_error)
-                    log.msg("Adding request %s" % req)
-                    self.crawler.engine.crawl(req, spider)
-            except UrlLastModified.DoesNotExist:
-                pass
-            finally:
-                # Ignore the request, since the content has not been modified
-                raise IgnoreRequest
+            links = self.get_stored_links(response.url)
+            for link in links:
+                req = Request(link.url, callback=request.callback,
+                        errback=request.errback)
+                log.msg("Adding request %s" % req, level=log.DEBUG)
+                self.crawler.engine.crawl(req, spider)
+            # Ignore the request, since the content has not been modified
+            self.stats.inc_value('last_modified_check/pages_skipped')
+            raise IgnoreRequest
+
+    def get_stored_links(self, url):
+        url = canonicalize_url(url)
+        try:
+            url_last_modified = UrlLastModified.objects.get(
+                url=url)
+            return url_last_modified.links.all()
+        except UrlLastModified.DoesNotExist:
+            return []
+
+    def get_stored_last_modified(self, url):
+        url = canonicalize_url(url)
+        try:
+            url_last_modified = UrlLastModified.objects.get(
+                url=url)
+            return url_last_modified.last_modified
+        except UrlLastModified.DoesNotExist:
+            return None
 
     def has_been_modified(self, response):
         """Return whether the given response has been modified since we
@@ -290,36 +306,36 @@ class LastModifiedCheckMiddleware(object):
         # Check the Last-Modified header to see if the content has been
         # updated since the last time we checked it.
         last_modified_header = response.headers.get("Last-Modified", None)
-        log.msg("Last modified header: %s" % last_modified_header)
+        # log.msg("Last modified header: %s" % last_modified_header)
         if last_modified_header is not None:
             # Check against the database
             canonical_url = canonicalize_url(response.url)
             last_modified = datetime.datetime.fromtimestamp(
                 mktime_tz(parsedate_tz(last_modified_header)), tz=pytz.utc
             )
-            log.msg("Last modified: %s" % last_modified)
+            # log.msg("Last modified: %s" % last_modified)
             try:
                 url_last_modified = UrlLastModified.objects.get(
                     url=canonical_url)
                 stored_last_modified = url_last_modified.last_modified
                 log.msg("Comparing header %s against stored %s" % (
-                    last_modified, stored_last_modified))
-                if last_modified == stored_last_modified:
-                    log.msg("Has NOT been modified")
+                    last_modified, stored_last_modified), level=log.DEBUG)
+                if (stored_last_modified is not None
+                        and last_modified == stored_last_modified):
                     return False
                 else:
                     # Update last-modified date in database
                     url_last_modified.last_modified = last_modified
                     url_last_modified.save()
-                    log.msg("Has been modified")
                     return True
             except UrlLastModified.DoesNotExist:
-                log.msg("Does not exist!")
+                log.msg("No stored Last-Modified header found.", level=log.DEBUG)
                 url_last_modified = UrlLastModified(
                     url=canonical_url,
                     last_modified=last_modified
                 )
-                log.msg("Saving %s!" % url_last_modified)
+                log.msg("Saving new last-modified value %s" %
+                        url_last_modified, level=log.DEBUG)
                 url_last_modified.save()
                 return True
         else:
