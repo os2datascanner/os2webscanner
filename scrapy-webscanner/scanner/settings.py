@@ -47,6 +47,8 @@ DOWNLOADER_MIDDLEWARES = {
     'scanner.middlewares.ExclusionRuleDownloaderMiddleware': 1100,
 }
 
+LOG_LEVEL = 'DEBUG'
+
 # Set to True in testing to avoid pegging websites, if only testing processing
 # MUST BE REMOVED IN PRODUCTION!!
 HTTPCACHE_ENABLED = False

@@ -85,7 +85,11 @@ class ScannerSpider(SitemapSpider):
         """Return requests for all starting URLs AND sitemap URLs."""
         requests = [Request(url, callback=self.parse, errback=self.handle_error)
                     for url in self.start_urls]
-        requests.extend(list(SitemapSpider.start_requests(self)))
+        sitemap_requests = list(SitemapSpider.start_requests(self))
+        # Skip the last-modified check when requesting sitemaps
+        for request in sitemap_requests:
+            request.meta["skip_modified_check"] = True
+        requests.extend(sitemap_requests)
         return requests
 
     def parse(self, response):

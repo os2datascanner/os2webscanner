@@ -1,7 +1,8 @@
 CREATE TABLE "os2webscanner_urllastmodified" (
     "id" serial NOT NULL PRIMARY KEY,
     "url" varchar(2048) NOT NULL,
-    "last_modified" timestamp with time zone
+    "last_modified" timestamp with time zone,
+    "scanner_id" integer NOT NULL REFERENCES "os2webscanner_scanner" ("id") DEFERRABLE INITIALLY DEFERRED
 )
 ;
 CREATE TABLE "os2webscanner_urllastmodified_links" (
