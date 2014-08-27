@@ -18,10 +18,10 @@ Login
 {% if form.errors %}
   <div class="alert alert-danger" role="alert">
       <p>Følgende felter er ikke udfyldt korrekt:</p>
-      <ul>
+      <ul style="font-size:1em" class="errorlist">
         {% for error in form.errors %}
-          <li>{{ error }}</li>
-        {% endfor %}
+	  <li>{{ error }}</li>
+	{% endfor %}
       </ul>
   </div>
 {% endif %}
