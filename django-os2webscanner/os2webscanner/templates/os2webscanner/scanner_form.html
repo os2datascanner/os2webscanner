@@ -22,7 +22,7 @@
                 $("#id_{{ form.do_cpr_modulus11.name }}").parent("label").toggle();
             {% endif %}
 
-            // Toggle the CPR Modulus 11 field when Do CPR scan is checked
+            // Toggle the External Links field when Do Link Check scan is checked
             $("#id_{{ form.do_link_check.name }}").click(function () {
                 $("#id_{{ form.do_external_link_check.name }}").parent("label").toggle();
             });
@@ -199,6 +199,18 @@
               <div class="form-group">
               </div>
           </div>
+            <div id="{{ form.whitelisted_names.auto_id }}_container" class="col-sm-6{% if form.whitelisted_names.errors %} has-error{% endif %}">
+	      <div class="form-group">
+	      <label class="control-label" for="id_{{ form.whitelisted_names.name }}">{{ form.whitelisted_names.label }}</label>
+	      <textarea name="{{ form.whitelisted_names.name }}" id="id_{{ form.whitelisted_names.name }}" class="form-control" rows="3">{{ form.whitelisted_names.value }}</textarea>
+	      {% if form.whitelisted_names.help_text %}
+	      <p>
+		<small>{{ form.whitelisted_names.help_text }}</small>
+	      </p>
+	      {% endif %}
+              {% if form.regex_rules.errors %}{{ form.regex_rules.errors }}{% endif %}
+              </div>
+	    </div>
             <div id="{{ form.regex_rules.auto_id }}_container" class="col-sm-6{% if form.regex_rules.errors %} has-error{% endif %}">
 	      <div class="form-group">
               <label class="control-label" for="id_{{ form.regex_rules.name }}">{{ form.regex_rules.label }}</label>
@@ -215,18 +227,6 @@
               {% if form.regex_rules.errors %}{{ form.regex_rules.errors }}{% endif %}
 	      </div>
             </div>
-            <div id="{{ form.whitelisted_names.auto_id }}_container" class="col-sm-6{% if form.whitelisted_names.errors %} has-error{% endif %}">
-	      <div class="form-group">
-	      <label class="control-label" for="id_{{ form.whitelisted_names.name }}">{{ form.whitelisted_names.label }}</label>
-	      <textarea name="{{ form.whitelisted_names.name }}" id="id_{{ form.whitelisted_names.name }}" class="form-control" rows="3">{{ form.whitelisted_names.value }}</textarea>
-	      {% if form.whitelisted_names.help_text %}
-	      <p>
-		<small>{{ form.whitelisted_names.help_text }}</small>
-	      </p>
-	      {% endif %}
-              {% if form.regex_rules.errors %}{{ form.regex_rules.errors }}{% endif %}
-              </div>
-	    </div>
       </div>
       <div class="tab-pane" id="interval">
         <div class="col-sm-12 form-group">

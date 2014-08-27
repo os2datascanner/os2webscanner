@@ -1,25 +1,44 @@
 div.recurrence-widget {
-    float: left;
-    border: 1px solid #ccc;
+    /*float: left;
+    border: 1px solid #ccc;*/
+
+    /* REMOVED TO NOT DISRUPT BOOSTRAP STYLES */
+    margin:0 0 -20px;
 }
 
 div.recurrence-widget div.panel {
-    border-bottom: 1px solid #ddd;
+    /*border-bottom: 1px solid #ddd;*/
 }
 
 div.recurrence-widget select,
 div.recurrence-widget input {
     margin: 0 .5em;
+    display: inline-block;
+    width:auto;
 }
 
 div.recurrence-widget a.recurrence-label {
     display: block;
     cursor: pointer;
-    padding: .5em .75em;
+    color: black;
+    padding: 0 2em 0 10px;
     font-weight: bold;
     white-space: nowrap;
-    padding-right: 3em;
-    color: black;
+    position:relative;
+    overflow:hidden;
+
+    /* REMOVED TO NOT DISRUPT BOOTSTRAP STYLES */
+}
+
+div.recurrence-widget a.recurrence-label:after {
+    position:absolute;
+    content:'';
+    border-width:3px;
+    border-color:black transparent transparent transparent;
+    border-style:solid;
+    top:50%;
+    bottom:50%;
+    right:0;
 }
 
 label[for="interval"] {
@@ -30,43 +49,48 @@ div.recurrence-widget .remove,
 div.recurrence-widget .remove:link,
 div.recurrence-widget .remove:visited {
     float: left;
-    padding: .25em .5em;
+    /*padding: .25em .5em;
     font-size: 1.1em;
     font-weight: bold;
     cursor: pointer;
     text-decoration: none;
     color: #555;
-    line-height: 1.4em;
+    line-height: 1.4em;*/
+
+    /* REMOVED TO NOT DISRUPT BOOTSTRAP STYLES */
 }
 
 div.recurrence-widget .remove:hover {
-    color: #a00;
+    /*color: #a00;*/
 }
 
 div.recurrence-widget .control {
-    padding: .5em 1em .5em .5em;
+    /*padding: .5em 1em .5em .5em;*/
+    padding:15px 0 20px;
 }
 
 div.recurrence-widget .add-button,
 div.recurrence-widget .add-button:link,
 div.recurrence-widget .add-button:visited {
-    color: green;
+    /*color: green;*/
 }
 
 div.recurrence-widget .plus {
-    font-size: 1.2em;
+    /*font-size: 1.2em;
     font-weight: bold;
-    padding-right: .5em;
+    padding-right: .5em;*/
+    position:relative;
+    top:.15em;
 }
 
 div.recurrence-widget .add-button:hover {
-    color: green;
+    /*color: green;*/
 }
 
 div.recurrence-widget .control .add-date {
-    padding-left: 1em;
     margin-left: 1em;
-    border-left: 1px solid #ddd;
+    /*padding-left: 1em;
+    border-left: 1px solid #ddd;*/
 }
 
 div.recurrence-widget .freq {
@@ -80,8 +104,8 @@ div.recurrence-widget .interval {
 
 div.recurrence-widget form {
     overflow: hidden;
-    padding: .5em 2.2em;
-    border-top: 1px solid #ddd;
+    /*padding: .5em 2.2em;
+    border-top: 1px solid #ddd;*/
 }
 
 div.recurrence-widget .form {
