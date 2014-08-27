@@ -15,18 +15,17 @@
 # source municipalities ( http://www.os2web.dk/ )
 """Contains a scanner spider."""
 
-from scrapy import log
-from scrapy.contrib.spiders.sitemap import SitemapSpider
+from scrapy import log, Spider
 from scrapy.http import Request, HtmlResponse
 from scrapy.contrib.linkextractors.lxmlhtml import LxmlLinkExtractor
 from scrapy.utils.httpobj import urlparse_cached
-from scrapy.utils.request import request_fingerprint
 
 import re
 import chardet
 import mimetypes
 import magic
-from scrapy.utils.url import canonicalize_url
+
+from base_spider import BaseScannerSpider
 
 from ..processors.processor import Processor
 
@@ -34,30 +33,21 @@ from os2webscanner.models import Url, ReferrerUrl, UrlLastModified
 from scrapy.utils.response import response_status_message
 
 
-class ScannerSpider(SitemapSpider):
+class ScannerSpider(BaseScannerSpider):
 
     """A spider which uses a scanner to scan all data it comes across."""
 
     name = 'scanner'
     magic = magic.Magic(mime=True)
 
-    def __init__(self, scanner, *a, **kw):
+    def __init__(self, scanner, runner, *a, **kw):
         """Initialize the ScannerSpider with a Scanner object.
 
         The configuration will be loaded from the Scanner.
         """
-        # Create scanner
-        self.scanner = scanner
+        super(ScannerSpider, self).__init__(scanner=scanner, *a, **kw)
 
-        self.exclusion_rules = self.scanner.get_exclusion_rules()
-        self.allowed_domains = self.scanner.get_domains()
-        self.sitemap_urls = self.scanner.get_sitemap_urls()
-
-        # Follow alternate links in sitemaps (links to the same content in
-        # different languages)
-        self.sitemap_alternate_links = True
-
-        SitemapSpider.__init__(self, *a, **kw)
+        self.runner = runner
 
         self.start_urls = []
         # TODO: Starting URLs and domains should be specified separately?
@@ -83,13 +73,19 @@ class ScannerSpider(SitemapSpider):
 
     def start_requests(self):
         """Return requests for all starting URLs AND sitemap URLs."""
-        requests = [Request(url, callback=self.parse, errback=self.handle_error)
-                    for url in self.start_urls]
-        sitemap_requests = list(SitemapSpider.start_requests(self))
-        # Skip the last-modified check when requesting sitemaps
-        for request in sitemap_requests:
-            request.meta["skip_modified_check"] = True
-        requests.extend(sitemap_requests)
+        # Add URLs found in sitemaps
+        sitemap_start_urls = self.runner.get_start_urls_from_sitemap()
+        requests = [
+            Request(url["url"],
+                    callback=self.parse,
+                    errback=self.handle_error,
+                    # Add the lastmod date from the sitemap
+                    meta={"lastmod": url.get("lastmod", None)})
+            for url in sitemap_start_urls
+        ]
+        requests.extend([Request(url, callback=self.parse,
+                                 errback=self.handle_error)
+                         for url in self.start_urls])
         return requests
 
     def parse(self, response):
@@ -120,40 +116,6 @@ class ScannerSpider(SitemapSpider):
             r.extend(Request(x.url, callback=self.parse,
                              errback=self.handle_error) for x in links)
         return r
-
-    def is_offsite(self, request):
-        regex = self.get_host_regex()
-        host = urlparse_cached(request).hostname or ''
-        return not bool(regex.search(host))
-
-    def is_excluded(self, request):
-        # Build a string to match against, containing the path, and if
-        # present, the query and fragment as well.
-        url = urlparse_cached(request)
-        match_against = url.path
-        if url.query != '':
-            match_against += "?" + url.query
-        if url.fragment != '':
-            match_against += "#" + url.fragment
-
-        for rule in self.exclusion_rules:
-            if isinstance(rule, basestring):
-                # Do case-insensitive substring search
-                if match_against.lower().find(rule.lower()) != -1:
-                    return True
-            else:
-                # Do regex search against the URL
-                if rule.search(match_against) is not None:
-                    return True
-        return False
-
-    def get_host_regex(self):
-        if not self.allowed_domains:
-            return re.compile('')  # allow all by default
-        regex = r'^(www\.)?(%s)$' % '|'.join(re.escape(d) for d in
-                                             self.allowed_domains
-                                             if d is not None)
-        return re.compile(regex)
 
     def handle_error(self, failure):
         if not hasattr(failure.value, "response"):

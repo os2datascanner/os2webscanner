@@ -16,6 +16,7 @@
 # source municipalities ( http://www.os2web.dk/ )
 
 """Run a scan by Scan ID."""
+import collections
 import urllib2
 from urlparse import urlparse
 
@@ -30,10 +31,12 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 os.environ["SCRAPY_SETTINGS_MODULE"] = "scanner.settings"
 
 from twisted.internet import reactor
-from scrapy.crawler import Crawler
+from scrapy.crawler import Crawler, CrawlerProcess
 from scrapy import log, signals
 from scrapy.utils.project import get_project_settings
 from scanner.spiders.scanner_spider import ScannerSpider
+from scanner.spiders.sitemap import SitemapURLGathererSpider
+
 from scrapy.exceptions import DontCloseSpider
 
 from django.utils import timezone
@@ -60,6 +63,30 @@ def signal_handler(signal, frame):
 signal.signal(signal.SIGINT | signal.SIGTERM, signal_handler)
 
 
+class OrderedCrawlerProcess(CrawlerProcess):
+    """Override CrawlerProcess to use an ordered dict."""
+
+    def __init__(self, *a, **kw):
+        super(OrderedCrawlerProcess, self).__init__(*a, **kw)
+        self.crawlers = collections.OrderedDict()
+
+    def _start_crawler(self):
+        """Override this method to pop the first crawler instead of last."""
+        if not self.crawlers or self.stopping:
+            return
+
+        name, crawler = self.crawlers.popitem(last=False)
+        self._active_crawler = crawler
+        sflo = log.start_from_crawler(crawler)
+        crawler.configure()
+        crawler.install()
+        crawler.signals.connect(crawler.uninstall, signals.engine_stopped)
+        if sflo:
+            crawler.signals.connect(sflo.stop, signals.engine_stopped)
+        crawler.signals.connect(self._check_done, signals.engine_stopped)
+        crawler.start()
+        return name, crawler
+
 class ScannerApp:
 
     """A scanner application which can be run."""
@@ -84,34 +111,19 @@ class ScannerApp:
         self.scanner = Scanner(self.scan_id)
 
     def run(self):
-        """Run the scanner."""
-        self.run_spider()
-
-    def handle_killed(self):
-        """Handle being killed by updating the scan status."""
-        self.scan_object = Scan.objects.get(pk=self.scan_id)
-        self.scan_object.pid = None
-        self.scan_object.status = Scan.FAILED
-        self.scan_object.reason = "Killed"
-        # TODO: Remove all non-processed conversion queue items.
-        self.scan_object.save()
-
-    def run_spider(self):
-        """Run the scanner spider and block until it finishes."""
-        spider = ScannerSpider(self.scanner)
+        """Run the scanner, blocking until finished."""
         settings = get_project_settings()
-        crawler = Crawler(settings)
-        crawler.signals.connect(self.handle_closed,
-                                signal=signals.spider_closed)
-        crawler.signals.connect(self.handle_error, signal=signals.spider_error)
-        crawler.signals.connect(self.handle_idle, signal=signals.spider_idle)
-        crawler.configure()
-        crawler.crawl(spider)
-        crawler.start()
-        log.start()
-        # the script will block here until the spider_closed signal was sent
-        reactor.run()
 
+        self.crawler_process = OrderedCrawlerProcess(settings)
+
+        self.sitemap_spider = self.setup_sitemap_spider()
+        self.scanner_spider = self.setup_scanner_spider()
+
+        # Run the crawlers and block
+        self.crawler_process.start()
+
+        # Do link check stuff
+        spider = self.scanner_spider
         if spider.scanner.do_link_check:
             if spider.scanner.do_external_link_check:
                 self.external_link_check(spider.external_urls)
@@ -123,6 +135,43 @@ class ScannerApp:
         scan_object.pid = None
         scan_object.reason = ""
         scan_object.save()
+
+
+    def handle_killed(self):
+        """Handle being killed by updating the scan status."""
+        self.scan_object = Scan.objects.get(pk=self.scan_id)
+        self.scan_object.pid = None
+        self.scan_object.status = Scan.FAILED
+        self.scan_object.reason = "Killed"
+        # TODO: Remove all non-processed conversion queue items.
+        self.scan_object.save()
+
+    def setup_sitemap_spider(self):
+        """Setup the sitemap spider."""
+        crawler = self.crawler_process.create_crawler("sitemap")
+        sitemap_spider = SitemapURLGathererSpider(
+            scanner=self.scanner,
+            sitemap_urls=self.scanner.get_sitemap_urls(),
+            sitemap_alternate_links=True
+        )
+        crawler.crawl(sitemap_spider)
+        return sitemap_spider
+
+    def setup_scanner_spider(self):
+        """Setup the scanner spider."""
+
+        crawler = self.crawler_process.create_crawler("scanner")
+        spider = ScannerSpider(self.scanner, self)
+        crawler.signals.connect(self.handle_closed,
+                                signal=signals.spider_closed)
+        crawler.signals.connect(self.handle_error, signal=signals.spider_error)
+        crawler.signals.connect(self.handle_idle, signal=signals.spider_idle)
+        crawler.crawl(spider)
+        return spider
+
+    def get_start_urls_from_sitemap(self):
+        """Return the URLs found by the sitemap spider."""
+        return self.sitemap_spider.get_urls()
 
     def external_link_check(self, external_urls):
         """Perform external link checking."""

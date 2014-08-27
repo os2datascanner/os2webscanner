@@ -14,7 +14,7 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 """Middleware for the scanner."""
-import re
+
 import datetime
 import pytz
 
@@ -259,7 +259,7 @@ class LastModifiedCheckMiddleware(object):
 
         # Check the Last-Modified header to see if the content has been
         # updated since the last time we checked it.
-        if self.has_been_modified(response, spider):
+        if self.has_been_modified(request, response, spider):
             if request.method == 'HEAD':
                 # Issue a new GET request, since the data was updated
                 log.msg("Issuing a new GET for %s" % request, level=log.DEBUG)
@@ -280,8 +280,9 @@ class LastModifiedCheckMiddleware(object):
             # page the last time we visited it.
             links = self.get_stored_links(response.url, spider)
             for link in links:
-                req = Request(link.url, callback=request.callback,
-                        errback=request.errback)
+                req = Request(link.url,
+                              callback=request.callback,
+                              errback=request.errback)
                 log.msg("Adding request %s" % req, level=log.DEBUG)
                 self.crawler.engine.crawl(req, spider)
             # Ignore the request, since the content has not been modified
@@ -317,7 +318,7 @@ class LastModifiedCheckMiddleware(object):
     def get_scanner(self, spider):
         return spider.scanner.scanner_object
 
-    def has_been_modified(self, response, spider):
+    def has_been_modified(self, request, response, spider):
         """Return whether the given response has been modified since we
         last saw it.
 
@@ -325,19 +326,38 @@ class LastModifiedCheckMiddleware(object):
         # Check the Last-Modified header to see if the content has been
         # updated since the last time we checked it.
         last_modified_header = response.headers.get("Last-Modified", None)
+        last_modified_header_date = datetime.datetime.fromtimestamp(
+            mktime_tz(parsedate_tz(last_modified_header)), tz=pytz.utc
+        ) if last_modified_header is not None else None
+
+        # lastmod comes from a sitemap.xml file
+        sitemap_lastmod_date = request.meta.get("lastmod", None)
+        if sitemap_lastmod_date is None:
+            last_modified = last_modified_header_date
+            log.msg("Using header's last-modified date: %s" % last_modified)
+        else:
+            if last_modified_header_date is None:
+                # No Last-Modified header, use the lastmod from the sitemap
+                last_modified = sitemap_lastmod_date
+                log.msg("Using lastmod from sitemap %s" % last_modified)
+            else:
+                # Take the most recent of the two
+                log.msg("Taking most recent of (header) %s and (sitemap) %s" %
+                        (last_modified_header_date, sitemap_lastmod_date))
+                last_modified = max(last_modified_header_date,
+                                    sitemap_lastmod_date)
+                log.msg("Last modified %s" % last_modified)
+
         # log.msg("Last modified header: %s" % last_modified_header)
-        if last_modified_header is not None:
+        if last_modified is not None:
             # Check against the database
             canonical_url = canonicalize_url(response.url)
-            last_modified = datetime.datetime.fromtimestamp(
-                mktime_tz(parsedate_tz(last_modified_header)), tz=pytz.utc
-            )
             try:
                 url_last_modified = UrlLastModified.objects.get(
                     url=canonical_url, scanner=self.get_scanner(spider))
                 stored_last_modified = url_last_modified.last_modified
                 log.msg("Comparing header %s against stored %s" % (
-                    last_modified, stored_last_modified), level=log.DEBUG)
+                    last_modified, stored_last_modified), level=log.INFO)
                 if (stored_last_modified is not None
                         and last_modified == stored_last_modified):
                     return False

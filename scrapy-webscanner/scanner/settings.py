@@ -61,3 +61,7 @@ USER_AGENT = 'OS2Webscanner'
 #   This is the default in Scrapy, but we are explicit here just in case they
 #   ever change it.
 ROBOTSTXT_OBEY = False
+
+WEBSERVICE_ENABLED = False
+
+TELNETCONSOLE_ENABLED = False
