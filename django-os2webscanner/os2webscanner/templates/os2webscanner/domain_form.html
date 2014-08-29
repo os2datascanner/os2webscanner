@@ -1,6 +1,15 @@
 {% extends 'os2webscanner/base.html' %}
 {% block topnav %}{% endblock %}
 {% block rendertype %}iframe-modal{% endblock %}
+{% block jquery_script %}
+<script type="text/javascript">
+(function ($) {
+    $(document).ready(function () {
+        $('#{{form.sitemap.auto_id}}').bootstrapFileInput();
+    });
+})(jQuery);
+</script>
+{% endblock %}
 {% block body %}
 {% if 0 %}
   <form class="form" role="form">
@@ -42,7 +51,7 @@
       </ul>
   </div>
 {% endif %}
-<form class="form-horizontal" role="form" method="post">
+<form class="form-horizontal" role="form" method="post" enctype="multipart/form-data">
   {% csrf_token %}
   <div id="{{ form.url.auto_id }}_container" class="col-sm-12{% if form.url.errors %} has-error{% endif %}">
     <div class="form-group">
@@ -120,10 +129,17 @@
     <div class="form-group">
       <label class="control-label col-sm-3" for="id_{{ form.sitemap.name }}">{{ form.sitemap.label }}</label>
       <div class="col-sm-9">
-        <span class="btn btn-default btn-block btn-sitemap-upload form-control">
-          Klik her for at uploade sitemap.xml
-	  {{ form.sitemap }}
-        </span>
+          {% if form.sitemap.value %}
+              Aktuelt: {{ form.sitemap.value }}
+              <input id="{{ form.sitemap.name }}-clear_id" name="{{ form.sitemap.name }}-clear" type="checkbox"/>
+              <label for="{{ form.sitemap.name }}-clear_id">Fjern</label>
+              <br />
+          {% endif %}
+          <input class="form-control" id="id_{{ form.sitemap.name }}"
+                 name="{{ form.sitemap.name }}"
+                 type="file"
+                 data-filename-placement="inside"
+                 title="Klik her for at uploade sitemap.xml" />
         {% if form.sitemap.help_text %}
 	  <p>
 	    <small>{{ form.sitemap.help_text }}</small>
