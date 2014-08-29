@@ -15,7 +15,8 @@ Login
   </ul>
 </div>
 {% endif %}
-{% if form.errors %}
+{% if form.errors  %}
+{% if not '__all__' in form.errors %}
   <div class="alert alert-danger" role="alert">
       <p>Følgende felter er ikke udfyldt korrekt:</p>
       <ul style="font-size:1em" class="errorlist">
@@ -24,6 +25,7 @@ Login
 	{% endfor %}
       </ul>
   </div>
+{% endif %}
 {% endif %}
       <form role="form-horizontal" method="post" action="{% url 'django.contrib.auth.views.login' %}">
           {% csrf_token %}
