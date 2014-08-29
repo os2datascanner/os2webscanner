@@ -117,6 +117,13 @@ Rapport &dash; {{scan.scanner.name}}
                 <td>
                     <strong>
                         <small>
+                            Referrers
+                        </small>
+                    </strong>
+                </td>
+                <td>
+                    <strong>
+                        <small>
                             URL
                         </small>
                     </strong>
@@ -128,27 +135,11 @@ Rapport &dash; {{scan.scanner.name}}
                         </small>
                     </strong>
                 </td>
-                <td>
-                    <strong>
-                        <small>
-                            Referrers
-                        </small>
-                    </strong>
-                </td>
             </tr>
             </thead>
             <tbody>
             {% for url in broken_urls %}
             <tr class="danger">
-                <td class="broken-url-url">
-                        <span>
-                            <a href="{{ url.url }}"
-                               name="broken_url{{url.id}}">{{ url.url }}</a>
-                        </span>
-                </td>
-                <td class="broken-url-status">
-                    <span>{{ url.status_message }}</span>
-                </td>
                 <td class="broken-url-referrers">
                     {% with url.referrers.all as referrers %}
                         {% for referrer in referrers|slice:":5" %}
@@ -173,6 +164,15 @@ Rapport &dash; {{scan.scanner.name}}
                             {% endif %}
                         {%  endif %}
                     {% endwith %}
+                </td>
+                <td class="broken-url-url">
+                        <span>
+                            <a href="{{ url.url }}"
+                               name="broken_url{{url.id}}">{{ url.url }}</a>
+                        </span>
+                </td>
+                <td class="broken-url-status">
+                    <span>{{ url.status_message }}</span>
                 </td>
             </tr>
             {% endfor %}
