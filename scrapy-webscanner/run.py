@@ -122,12 +122,10 @@ class ScannerApp:
         # Run the crawlers and block
         self.crawler_process.start()
 
-        # Do link check stuff
-        spider = self.scanner_spider
-        if spider.scanner.do_link_check:
-            if spider.scanner.do_external_link_check:
-                self.external_link_check(spider.external_urls)
-            self.associate_referrers(spider.referrers)
+        if (self.scanner.scanner_object.do_link_check
+                and self.scanner.scanner_object.do_external_link_check):
+            # Do external link check
+            self.external_link_check(self.scanner_spider.external_urls)
 
         # Update scan status
         scan_object = Scan.objects.get(pk=self.scan_id)
@@ -188,31 +186,7 @@ class ScannerApp:
                                  status_code=result["status_code"],
                                  status_message=result["status_message"])
                 broken_url.save()
-
-    def associate_referrers(self, referrers):
-        """Associate referrers with broken URLs."""
-
-        # Dict to cache referrer URL objects
-        referrer_url_objects = {}
-
-        # Iterate through all broken URLs
-        url_objects = Url.objects.filter(scan=self.scan_object).exclude(
-            status_code__isnull=True
-        )
-        for url_object in url_objects:
-            # Associate the referrers with URL objects
-            if not hasattr(referrers, url_object.url):
-                # Skip URLs with no referrers (f.x. starting URLs)
-                continue
-            for referrer in referrers[url_object.url]:
-                # Create or get existing referrer URL object
-                if not referrer in referrer_url_objects:
-                    referrer_url_objects[referrer] = ReferrerUrl(
-                        url=referrer, scan=self.scan_object)
-                    referrer_url_objects[referrer].save()
-                referrer_url_object = referrer_url_objects[referrer]
-                url_object.referrers.add(referrer_url_object)
-            url_object.save()
+                self.scanner_spider.associate_broken_url_referrers(broken_url)
 
     def handle_closed(self, spider, reason):
         """Handle the spider being finished"""

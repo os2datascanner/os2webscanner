@@ -282,7 +282,8 @@ class LastModifiedCheckMiddleware(object):
             for link in links:
                 req = Request(link.url,
                               callback=request.callback,
-                              errback=request.errback)
+                              errback=request.errback,
+                              headers={"referer": response.url})
                 log.msg("Adding request %s" % req, level=log.DEBUG)
                 self.crawler.engine.crawl(req, spider)
             # Ignore the request, since the content has not been modified

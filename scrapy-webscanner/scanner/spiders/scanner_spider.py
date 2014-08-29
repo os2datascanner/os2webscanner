@@ -16,6 +16,7 @@
 """Contains a scanner spider."""
 
 from scrapy import log, Spider
+from scrapy.exceptions import IgnoreRequest
 from scrapy.http import Request, HtmlResponse
 from scrapy.contrib.linkextractors.lxmlhtml import LxmlLinkExtractor
 from scrapy.utils.httpobj import urlparse_cached
@@ -69,6 +70,11 @@ class ScannerSpider(BaseScannerSpider):
         self.do_last_modified_check_head_request = True
 
         self.referrers = {}
+        self.broken_url_objects = {}
+
+        # Dict to cache referrer URL objects
+        self.referrer_url_objects = {}
+
         self.external_urls = set()
 
     def start_requests(self):
@@ -90,22 +96,26 @@ class ScannerSpider(BaseScannerSpider):
 
     def parse(self, response):
         """Process a response and follow all links."""
-        r = []
-        r.extend(self._extract_requests(response))
+        requests = self._extract_requests(response)
         self.scan(response)
 
         # Store referrer when doing link checks
         if self.scanner.do_link_check:
             source_url = response.request.url
-            for request in r:
+            for request in requests:
                 target_url = request.url
+                log.msg("Assigning referrer %s -> %s" % (source_url, target_url))
                 self.referrers.setdefault(target_url, []).append(source_url)
-
-                # Save external URLs for later checking
                 if self.scanner.do_external_link_check and self.is_offsite(request):
+                    # Save external URLs for later checking
                     self.external_urls.add(target_url)
-
-        return r
+                else:
+                    # See if the link points to a broken URL
+                    broken_url = self.broken_url_objects.get(target_url, None)
+                    if broken_url is not None:
+                        # Associate links to the broken URL
+                        self.associate_broken_url_referrers(broken_url)
+        return requests
 
     def _extract_requests(self, response):
         """Extract requests from the response."""
@@ -118,17 +128,25 @@ class ScannerSpider(BaseScannerSpider):
         return r
 
     def handle_error(self, failure):
-        if not hasattr(failure.value, "response"):
-            # We don't handle things like IgnoreRequests here
+        if (not self.scanner.do_link_check or
+                isinstance(failure.value, IgnoreRequest)):
             return
-        response = failure.value.response
-        url = response.request.url
-        status_code = response.status
-        status_message = response_status_message(status_code)
+        if hasattr(failure.value, "response"):
+            response = failure.value.response
+            url = response.request.url
+            status_code = response.status
+            status_message = response_status_message(status_code)
 
-        if "redirect_urls" in response.request.meta:
-            # Set URL to the original URL, not the URL after redirection
-            url = response.request.meta["redirect_urls"][0]
+            if "redirect_urls" in response.request.meta:
+                # Set URL to the original URL, not the URL after redirection
+                url = response.request.meta["redirect_urls"][0]
+
+            referer_header = response.request.headers.get("referer", None)
+        else:
+            url = failure.request.url
+            status_code = -1
+            status_message = "%s" % failure.value
+            referer_header = None
 
         log.msg("Handle Error: %d %s" % (status_code, url))
 
@@ -137,6 +155,33 @@ class ScannerSpider(BaseScannerSpider):
                          status_code=status_code,
                          status_message=status_message)
         broken_url.save()
+        self.broken_url_objects[url] = broken_url
+
+        # Associate referer using referer header
+        if referer_header is not None:
+            self.associate_broken_url_referrer(referer_header, broken_url)
+
+        log.msg("Associating referrers to %s" % broken_url)
+        log.msg("Referrers %s" % self.referrers)
+        self.associate_broken_url_referrers(broken_url)
+
+    def associate_broken_url_referrers(self, url_object):
+        for referrer in self.referrers.get(url_object.url, ()):
+            self.associate_broken_url_referrer(referrer, url_object)
+
+    def associate_broken_url_referrer(self, referrer, url_object):
+        """Associate referrer with broken URL."""
+        referrer_url_object = self.get_or_create_referrer(referrer)
+        log.msg("Associating referrer %s" % referrer_url_object)
+        url_object.referrers.add(referrer_url_object)
+
+    def get_or_create_referrer(self, referrer):
+        # Create or get existing referrer URL object
+        if not referrer in self.referrer_url_objects:
+            self.referrer_url_objects[referrer] = ReferrerUrl(
+                url=referrer, scan=self.scanner.scan_object)
+            self.referrer_url_objects[referrer].save()
+        return self.referrer_url_objects[referrer]
 
     def scan(self, response):
         """Scan a response, returning any matches."""
