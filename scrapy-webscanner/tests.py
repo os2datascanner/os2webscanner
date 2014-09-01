@@ -34,9 +34,10 @@ import linkchecker
 
 class ExternalLinkCheckerTest(unittest.TestCase):
 
-    """Test the external link checker"""
+    """Test the external link checker."""
 
     def test_checker(self):
+        """Test the link checker."""
         # Google should be OK
         self.assertIsNone(linkchecker.check_url(
             "http://www.google.com/"))
@@ -51,8 +52,6 @@ class ExternalLinkCheckerTest(unittest.TestCase):
         # Random domain is not OK
         self.assertIsNotNone(linkchecker.check_url(
             "http://asdfasdfasdf324afddsfasdf/"))
-
-        self.assertIsNotNone(linkchecker.check_url("http://www.oooforum.org/"))
 
 
 class NameTest(unittest.TestCase):

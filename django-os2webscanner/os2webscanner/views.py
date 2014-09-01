@@ -210,6 +210,7 @@ class ScannerCreate(RestrictedCreateView):
     fields = ['name', 'schedule', 'whitelisted_names', 'domains',
               'do_cpr_scan', 'do_cpr_modulus11', 'do_name_scan', 'do_ocr',
               'do_link_check', 'do_external_link_check',
+              'do_last_modified_check', 'do_last_modified_check_head_request',
               'regex_rules']
 
     def get_form(self, form_class):
@@ -245,6 +246,7 @@ class ScannerUpdate(RestrictedUpdateView):
     fields = ['name', 'schedule', 'whitelisted_names', 'domains',
               'do_cpr_scan', 'do_cpr_modulus11', 'do_name_scan', 'do_ocr',
               'do_link_check', 'do_external_link_check',
+              'do_last_modified_check', 'do_last_modified_check_head_request',
               'regex_rules']
 
     def get_success_url(self):
