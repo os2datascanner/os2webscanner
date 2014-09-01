@@ -66,9 +66,11 @@ signal.signal(signal.SIGINT | signal.SIGTERM, signal_handler)
 
 
 class OrderedCrawlerProcess(CrawlerProcess):
+
     """Override CrawlerProcess to use an ordered dict."""
 
     def __init__(self, *a, **kw):
+        """Initialize the CrawlerProcess with an OrderedDict of crawlers."""
         super(OrderedCrawlerProcess, self).__init__(*a, **kw)
         self.crawlers = collections.OrderedDict()
 
@@ -159,7 +161,6 @@ class ScannerApp:
 
     def setup_scanner_spider(self):
         """Setup the scanner spider."""
-
         crawler = self.crawler_process.create_crawler("scanner")
         spider = ScannerSpider(self.scanner, self)
         crawler.signals.connect(self.handle_closed,
@@ -189,10 +190,10 @@ class ScannerApp:
                                  status_code=result["status_code"],
                                  status_message=result["status_message"])
                 broken_url.save()
-                self.scanner_spider.associate_broken_url_referrers(broken_url)
+                self.scanner_spider.associate_url_referrers(broken_url)
 
     def handle_closed(self, spider, reason):
-        """Handle the spider being finished"""
+        """Handle the spider being finished."""
         # TODO: Check reason for if it was finished, cancelled, or shutdown
         reactor.stop()
 

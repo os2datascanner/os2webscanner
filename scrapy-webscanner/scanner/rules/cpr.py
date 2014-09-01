@@ -24,11 +24,13 @@ from ..items import MatchItem
 
 
 class CPRRule(Rule):
+
     """Represents a rule which scans for CPR numbers."""
 
     name = 'cpr'
 
     def __init__(self, do_modulus11):
+        """Initialize the CPR Rule."""
         self.do_modulus11 = do_modulus11
 
     def execute(self, text):
@@ -102,7 +104,8 @@ def _is_modulus11(cpr):
     """Perform a modulus-11 check on the CPR number.
 
     This should not be called directly as it does not make any exceptions
-    for numbers for which the modulus-11 check should not be performed."""
+    for numbers for which the modulus-11 check should not be performed.
+    """
     checksum = int(cpr[0]) * 4 + \
         int(cpr[1]) * 3 + \
         int(cpr[2]) * 2 + \
@@ -121,7 +124,8 @@ def modulus11_check(cpr):
 
     Return True if the number either passes the modulus-11 check OR is one
     assigned to a person born on one of the exception dates where the
-    modulus-11 check should not be applied."""
+    modulus-11 check should not be applied.
+    """
     try:
         birth_date = _get_birth_date(cpr)
     except ValueError:

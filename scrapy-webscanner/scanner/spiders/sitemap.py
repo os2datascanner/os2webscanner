@@ -1,3 +1,5 @@
+"""Sitemap spider which gathers URLs contained in sitemap files."""
+
 from scrapy.contrib.spiders import SitemapSpider
 from scrapy.contrib.spiders.sitemap import iterloc
 from scrapy.utils.sitemap import Sitemap, sitemap_urls_from_robots
@@ -13,12 +15,14 @@ import pytz
 
 
 class SitemapURLGathererSpider(BaseScannerSpider, SitemapSpider):
+
     """A sitemap spider that stores URLs found in the sitemaps provided."""
 
     name = 'sitemap_url_gatherer'
 
     def __init__(self, scanner, sitemap_urls, sitemap_alternate_links, *a,
                  **kw):
+        """Initialize the sitemap spider."""
         super(SitemapURLGathererSpider, self).__init__(scanner=scanner, *a,
                                                        **kw)
         self.sitemap_urls = sitemap_urls
@@ -56,7 +60,8 @@ class SitemapURLGathererSpider(BaseScannerSpider, SitemapSpider):
     def get_urls(self):
         """Return a list of URLs found in the sitemap.
 
-        Each URL is a dict containing keys 'url' and 'lastmod'."""
+        Each URL is a dict containing keys 'url' and 'lastmod'.
+        """
         return self.urls
 
 

@@ -70,16 +70,18 @@ class NoSubdomainOffsiteMiddleware(OffsiteMiddleware):
 
 
 class OffsiteDownloaderMiddleware(object):
+
     """Offsite middleware which doesn't allow subdomains of allowed_domains."""
 
     @classmethod
     def from_crawler(cls, crawler):
+        """Connect spider open signal."""
         o = cls()
         crawler.signals.connect(o.spider_opened, signal=signals.spider_opened)
         return o
 
     def process_request(self, request, spider):
-        # log.msg("NoSubdomainOffsite %s" % request)
+        """Process a spider request."""
         if request.dont_filter or self.should_follow(request, spider):
             return None
         else:
@@ -91,28 +93,34 @@ class OffsiteDownloaderMiddleware(object):
             raise IgnoreRequest
 
     def should_follow(self, request, spider):
+        """Return whether the request should be followed."""
         regex = self.host_regex
         # hostname can be None for wrong urls (like javascript links)
         host = urlparse_cached(request).hostname or ''
         return bool(regex.search(host))
 
     def get_host_regex(self, spider):
+        """Return the regex which hosts should be matched against."""
         return spider.get_host_regex()
 
     def spider_opened(self, spider):
+        """Store the spider's host regex."""
         self.host_regex = self.get_host_regex(spider)
 
 
 class ExclusionRuleDownloaderMiddleware(object):
+
     """Exclusion rule downloader middleware."""
 
     def process_request(self, request, spider):
+        """Process a spider request."""
         if request.dont_filter or self.should_follow(request, spider):
             return None
         else:
             raise IgnoreRequest
 
     def should_follow(self, request, spider):
+        """Return whether the request should be followed (not excluded)."""
         return not spider.is_excluded(request)
 
 
@@ -150,10 +158,10 @@ class OffsiteRedirectMiddleware(RedirectMiddleware,
 
 class LastModifiedLinkStorageMiddleware(object):
 
-    """Spider middleware to store the links on pages for Last-Modified
-    check."""
+    """Spider middleware to store links on pages for Last-Modified check."""
 
     def process_spider_output(self, response, result, spider):
+        """Process spider output."""
         if not getattr(spider, "do_last_modified_check", False):
             return result
         last_modified_header = response.headers.get("Last-Modified", None)
@@ -206,6 +214,7 @@ class LastModifiedLinkStorageMiddleware(object):
         return result
 
     def get_scanner(self, spider):
+        """Return the spider's scanner object."""
         return spider.scanner.scanner_object
 
 
@@ -220,14 +229,17 @@ class LastModifiedCheckMiddleware(object):
     transferring too much data before we know if a URL has been updated),
     then check the Last-Modified header before issuing a new request.
 
-    Last-modified dates are stored in the database."""
+    Last-modified dates are stored in the database.
+    """
 
     def __init__(self, crawler):
+        """Initialize the middleware."""
         self.crawler = crawler
         self.stats = crawler.stats
 
     @classmethod
     def from_crawler(cls, crawler):
+        """Instantiate the middleware."""
         return cls(crawler)
 
     def process_request(self, request, spider):
@@ -293,6 +305,7 @@ class LastModifiedCheckMiddleware(object):
             raise IgnoreRequest
 
     def get_stored_links(self, url, spider):
+        """Return the links that have been stored for this URL."""
         url = canonicalize_url(url)
         try:
             url_last_modified = UrlLastModified.objects.get(
@@ -302,6 +315,7 @@ class LastModifiedCheckMiddleware(object):
             return []
 
     def get_stored_last_modified_date(self, url, spider):
+        """Return the last modified date that has been stored for this URL."""
         url_last_modified_object = self.get_stored_last_modified_object(url,
                                                                         spider)
         if url_last_modified_object is not None:
@@ -310,6 +324,7 @@ class LastModifiedCheckMiddleware(object):
             return None
 
     def get_stored_last_modified_object(self, url, spider):
+        """Return the UrlLastModified object for the given URL."""
         url = canonicalize_url(url)
         try:
             url_last_modified = UrlLastModified.objects.get(
@@ -319,13 +334,16 @@ class LastModifiedCheckMiddleware(object):
             return None
 
     def get_scanner(self, spider):
+        """Return the spider's scanner object."""
         return spider.scanner.scanner_object
 
     def has_been_modified(self, request, response, spider):
-        """Return whether the given response has been modified since we
-        last saw it.
+        """Return whether the response was modified since last seen.
 
-        We check against the database here."""
+        We check against the database here.
+        If the response has been modified, we update the database.
+        If there is no stored last modified date, we save one.
+        """
         # Check the Last-Modified header to see if the content has been
         # updated since the last time we checked it.
         last_modified_header = response.headers.get("Last-Modified", None)

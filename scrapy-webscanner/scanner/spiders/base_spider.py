@@ -45,11 +45,13 @@ class BaseScannerSpider(Spider):
         self.allowed_domains = self.scanner.get_domains()
 
     def is_offsite(self, request):
+        """Return whether the request is offsite."""
         regex = self.get_host_regex()
         host = urlparse_cached(request).hostname or ''
         return not bool(regex.search(host))
 
     def is_excluded(self, request):
+        """Return whether the request is excluded (due to exclusion rules)."""
         # Build a string to match against, containing the path, and if
         # present, the query and fragment as well.
         url = urlparse_cached(request)
@@ -71,6 +73,7 @@ class BaseScannerSpider(Spider):
         return False
 
     def get_host_regex(self):
+        """Return a regex for which hosts should be included in the scan."""
         if not self.allowed_domains:
             return re.compile('')  # allow all by default
         domain_regexes = []

@@ -1,3 +1,5 @@
+"""A link checker using urllib2."""
+
 import socket
 import urllib2
 import regex
