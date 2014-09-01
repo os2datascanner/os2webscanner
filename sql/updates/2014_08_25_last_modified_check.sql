@@ -1,3 +1,6 @@
+ALTER TABLE "os2webscanner_scanner" ADD COLUMN "do_last_modified_check" boolean NOT NULL DEFAULT TRUE;
+ALTER TABLE "os2webscanner_scanner" ADD COLUMN "do_last_modified_check_head_request" boolean NOT NULL DEFAULT TRUE;
+
 CREATE TABLE "os2webscanner_urllastmodified" (
     "id" serial NOT NULL PRIMARY KEY,
     "url" varchar(2048) NOT NULL,

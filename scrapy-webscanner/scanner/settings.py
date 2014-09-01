@@ -40,11 +40,11 @@ SPIDER_MIDDLEWARES = {
 }
 
 DOWNLOADER_MIDDLEWARES = {
-    'scanner.middlewares.LastModifiedCheckMiddleware': 550,
     'scrapy.contrib.downloadermiddleware.redirect.RedirectMiddleware': None,
     'scanner.middlewares.OffsiteRedirectMiddleware': 600,
     'scanner.middlewares.OffsiteDownloaderMiddleware': 1000,
     'scanner.middlewares.ExclusionRuleDownloaderMiddleware': 1100,
+    'scanner.middlewares.LastModifiedCheckMiddleware': 1200,
 }
 
 LOG_LEVEL = 'DEBUG'
