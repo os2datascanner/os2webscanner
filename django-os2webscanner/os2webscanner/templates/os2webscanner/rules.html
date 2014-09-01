@@ -75,11 +75,12 @@ Regler
 		      &quot;/rules/{{rule.pk}}&quot;,
 		      &quot;Redigér regel '{{rule.name}}'&quot;
 		  )">
-              	  <span class="glyphicon glyphicon-cog"></span><span class="sr-only">Indstillinger for regel</span>
+              	  <span class="glyphicon glyphicon-cog"></span> <span>Redigér</span>
 				</button>
-                <span>
-                    <a href="/rules/{{rule.pk}}/delete/">Slet regel</a>
-                </span>
+          	<a href="/rules/{{rule.pk}}/delete/" class="btn btn-default btn-xs">
+              	    <span class="glyphicon glyphicon-remove"></span>
+              	    <span>Slet</span>
+          	</a>
               </td>
             </tr>
             {% endfor %}
