@@ -73,7 +73,13 @@ class BaseScannerSpider(Spider):
     def get_host_regex(self):
         if not self.allowed_domains:
             return re.compile('')  # allow all by default
-        regex = r'^(www\.)?(%s)$' % '|'.join(re.escape(d) for d in
-                                             self.allowed_domains
-                                             if d is not None)
+        domain_regexes = []
+        for d in self.allowed_domains:
+            if d is not None:
+                if d.startswith('*.'):
+                    # Allow all subdomains
+                    domain_regexes.append('(.*\.)?' + re.escape(d[2:]))
+                else:
+                    domain_regexes.append(re.escape(d))
+        regex = r'^(www\.)?(%s)$' % '|'.join(domain_regexes)
         return re.compile(regex)
