@@ -113,7 +113,8 @@ class ScannerSpider(BaseScannerSpider):
             for request in requests:
                 target_url = request.url
                 self.referrers.setdefault(target_url, []).append(source_url)
-                if self.scanner.do_external_link_check and self.is_offsite(request):
+                if (self.scanner.do_external_link_check and
+                        self.is_offsite(request)):
                     # Save external URLs for later checking
                     self.external_urls.add(target_url)
                 else:

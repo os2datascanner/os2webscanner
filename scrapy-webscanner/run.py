@@ -89,6 +89,7 @@ class OrderedCrawlerProcess(CrawlerProcess):
         crawler.start()
         return name, crawler
 
+
 class ScannerApp:
 
     """A scanner application which can be run."""
@@ -135,7 +136,6 @@ class ScannerApp:
         scan_object.pid = None
         scan_object.reason = ""
         scan_object.save()
-
 
     def handle_killed(self):
         """Handle being killed by updating the scan status."""

@@ -84,8 +84,9 @@ class OffsiteDownloaderMiddleware(object):
             return None
         else:
             domain = urlparse_cached(request).hostname
-            log.msg(format="Filtered offsite request to %(domain)r: %(request)s",
-                    level=log.INFO, spider=spider, domain=domain,
+            log.msg(format="Filtered offsite request to " +
+                    "%(domain)r: %(request)s",
+                    level=log.DEBUG, spider=spider, domain=domain,
                     request=request)
             raise IgnoreRequest
 

@@ -225,10 +225,8 @@ class Scanner(models.Model):
     do_last_modified_check = models.BooleanField(default=True,
                                                  verbose_name='Check ' +
                                                               'Last-Modified')
-    do_last_modified_check_head_request = models.BooleanField(default=True,
-                                                              verbose_name=
-                                                              'Brug HEAD ' +
-                                                              'request')
+    do_last_modified_check_head_request = \
+        models.BooleanField(default=True, verbose_name='Brug HEAD request')
     regex_rules = models.ManyToManyField(RegexRule,
                                          blank=True,
                                          null=True,
@@ -427,8 +425,9 @@ class Url(models.Model):
                                       verbose_name='Status code')
     status_message = models.CharField(blank=True, null=True, max_length=256,
                                       verbose_name='Status ' + 'Message')
-    referrers = models.ManyToManyField("ReferrerUrl", related_name='linked_urls',
-                                    null=True, verbose_name='Referrers')
+    referrers = models.ManyToManyField("ReferrerUrl",
+                                       related_name='linked_urls',
+                                       null=True, verbose_name='Referrers')
 
     def __unicode__(self):
         """Return the URL."""
