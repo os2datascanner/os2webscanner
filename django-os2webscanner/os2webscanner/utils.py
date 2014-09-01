@@ -51,25 +51,3 @@ def notify_user(scan):
     except Exception as e:
         # TODO: Handle this properly
         raise
-
-
-def generate_report(scan):
-    """Generate reports for web service requests."""
-    template = 'os2webscanner/webservice_report.html'
-    t = loader.get_template(template)
-
-    matches = models.Match.objects.filter(scan=scan).count()
-    critical = models.Match.objects.filter(
-        scan=scan,
-        sensitivity=models.Sensitivity.HIGH
-    ).count()
-
-    c = Context({'scan': scan, 'domain': settings.SITE_URL, 'matches': matches,
-                 'critical': critical})
-
-    try:
-        report = t.render(c)
-    except Exception:
-        report = "Scan failed!"
-
-    return report

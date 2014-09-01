@@ -18,9 +18,9 @@ import time
 import tempfile
 
 from django.contrib.auth import authenticate
+from django.conf import settings
 
 from .models import Scanner
-from .utils import generate_report
 
 
 def do_scan(user, urls):
@@ -45,8 +45,8 @@ def do_scan(user, urls):
     scanner.run()
 
     scan = scanner.scans.all()[0]
-    report = generate_report(scan)
-    return unicode(report)
+    url = scan.get_absolute_url()
+    return "{0}{1}".format(settings.SITE_URL, url)
 
 
 def scan_urls(username, password, urls):
