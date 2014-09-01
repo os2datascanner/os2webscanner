@@ -25,7 +25,7 @@ def check_url(url, method="HEAD"):
         r = urllib2.urlopen(request,
                             timeout=LINK_CHECK_TIMEOUT)
         return None
-    except (urllib2.HTTPError, urllib2.URLError) as e:
+    except (urllib2.HTTPError, urllib2.URLError, socket.timeout) as e:
         log.msg("Error %s" % e, level=log.DEBUG)
         code = getattr(e, "code", 0)
         if code == 405:

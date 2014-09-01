@@ -240,7 +240,8 @@ class LastModifiedCheckMiddleware(object):
                 request.method != "HEAD" and
                 self.get_stored_last_modified_date(request.url, spider) is not
                 None):
-            log.msg("Replacing with HEAD request %s" % request, level=log.DEBUG)
+            log.msg("Replacing with HEAD request %s" % request,
+                    level=log.DEBUG)
             return request.replace(method='HEAD')
         else:
             return None
@@ -335,19 +336,23 @@ class LastModifiedCheckMiddleware(object):
         sitemap_lastmod_date = request.meta.get("lastmod", None)
         if sitemap_lastmod_date is None:
             last_modified = last_modified_header_date
-            log.msg("Using header's last-modified date: %s" % last_modified)
+            log.msg("Using header's last-modified date: %s" % last_modified,
+                    level=log.DEBUG)
         else:
             if last_modified_header_date is None:
                 # No Last-Modified header, use the lastmod from the sitemap
                 last_modified = sitemap_lastmod_date
-                log.msg("Using lastmod from sitemap %s" % last_modified)
+                log.msg("Using lastmod from sitemap %s" % last_modified,
+                        level=log.DEBUG)
             else:
                 # Take the most recent of the two
                 log.msg("Taking most recent of (header) %s and (sitemap) %s" %
-                        (last_modified_header_date, sitemap_lastmod_date))
+                        (last_modified_header_date, sitemap_lastmod_date),
+                        level=log.DEBUG)
                 last_modified = max(last_modified_header_date,
                                     sitemap_lastmod_date)
-                log.msg("Last modified %s" % last_modified)
+                log.msg("Last modified %s" % last_modified,
+                        level=log.DEBUG)
 
         # log.msg("Last modified header: %s" % last_modified_header)
         if last_modified is not None:
@@ -368,7 +373,8 @@ class LastModifiedCheckMiddleware(object):
                     url_last_modified.save()
                     return True
             except UrlLastModified.DoesNotExist:
-                log.msg("No stored Last-Modified header found.", level=log.DEBUG)
+                log.msg("No stored Last-Modified header found.",
+                        level=log.DEBUG)
                 url_last_modified = UrlLastModified(
                     url=canonical_url,
                     last_modified=last_modified,

@@ -52,8 +52,6 @@ class ExternalLinkCheckerTest(unittest.TestCase):
         self.assertIsNotNone(linkchecker.check_url(
             "http://asdfasdfasdf324afddsfasdf/"))
 
-        self.assertIsNotNone(linkchecker.check_url("http://www.oooforum.org/"))
-
 
 class NameTest(unittest.TestCase):
 

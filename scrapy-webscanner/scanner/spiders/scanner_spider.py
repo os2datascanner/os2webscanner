@@ -16,6 +16,7 @@
 """Contains a scanner spider."""
 
 from scrapy import log, Spider
+from scrapy.contrib.spidermiddleware.httperror import HttpError
 from scrapy.exceptions import IgnoreRequest
 from scrapy.http import Request, HtmlResponse
 from scrapy.contrib.linkextractors.lxmlhtml import LxmlLinkExtractor
@@ -111,7 +112,6 @@ class ScannerSpider(BaseScannerSpider):
             source_url = response.request.url
             for request in requests:
                 target_url = request.url
-                log.msg("Assigning referrer %s -> %s" % (source_url, target_url))
                 self.referrers.setdefault(target_url, []).append(source_url)
                 if self.scanner.do_external_link_check and self.is_offsite(request):
                     # Save external URLs for later checking
@@ -129,14 +129,15 @@ class ScannerSpider(BaseScannerSpider):
         r = []
         if isinstance(response, HtmlResponse):
             links = self.link_extractor.extract_links(response)
-            log.msg("Extracted links: %s" % links, level=log.DEBUG)
+            # log.msg("Extracted links: %s" % links, level=log.DEBUG)
             r.extend(Request(x.url, callback=self.parse,
                              errback=self.handle_error) for x in links)
         return r
 
     def handle_error(self, failure):
         if (not self.scanner.do_link_check or
-                isinstance(failure.value, IgnoreRequest)):
+                (isinstance(failure.value, IgnoreRequest) and not isinstance(
+                        failure.value, HttpError))):
             return
         if hasattr(failure.value, "response"):
             response = failure.value.response
@@ -155,7 +156,7 @@ class ScannerSpider(BaseScannerSpider):
             status_message = "%s" % failure.value
             referer_header = None
 
-        log.msg("Handle Error: %d %s" % (status_code, url))
+        log.msg("Handle Error: %s %s" % (status_message, url))
 
         # Add broken URL
         broken_url = Url(url=url, scan=self.scanner.scan_object,
@@ -168,8 +169,6 @@ class ScannerSpider(BaseScannerSpider):
         if referer_header is not None:
             self.associate_broken_url_referrer(referer_header, broken_url)
 
-        log.msg("Associating referrers to %s" % broken_url)
-        log.msg("Referrers %s" % self.referrers)
         self.associate_broken_url_referrers(broken_url)
 
     def associate_broken_url_referrers(self, url_object):
@@ -179,7 +178,7 @@ class ScannerSpider(BaseScannerSpider):
     def associate_broken_url_referrer(self, referrer, url_object):
         """Associate referrer with broken URL."""
         referrer_url_object = self.get_or_create_referrer(referrer)
-        log.msg("Associating referrer %s" % referrer_url_object)
+        # log.msg("Associating referrer %s" % referrer_url_object)
         url_object.referrers.add(referrer_url_object)
 
     def get_or_create_referrer(self, referrer):
