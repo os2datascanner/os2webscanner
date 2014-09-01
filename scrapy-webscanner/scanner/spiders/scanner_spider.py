@@ -56,6 +56,8 @@ class ScannerSpider(BaseScannerSpider):
             if (not url.startswith('http://')
                 and not url.startswith('https://')):
                 url = 'http://%s/' % url
+            # Remove wildcards
+            url = url.replace('*.', '')
             self.start_urls.append(url)
 
         # TODO: Add more tags to extract links from?

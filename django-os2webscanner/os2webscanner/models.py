@@ -146,11 +146,12 @@ class Domain(models.Model):
     @property
     def root_url(self):
         """Return the root url of the domain."""
+        url = self.url.replace('*.', '')
         if (not self.url.startswith('http://') and not
             self.url.startswith('https://')):
-            return 'http://%s/' % self.url
+            return 'http://%s/' % url
         else:
-            return self.url
+            return url
 
     @property
     def sitemap_full_path(self):
