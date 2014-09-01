@@ -30,6 +30,14 @@
                 $("#id_{{ form.do_external_link_check.name }}").parent("label").toggle();
             {% endif %}
 
+            // Toggle the HEAD request field when Check Last-Modified is checked
+            $("#id_{{ form.do_last_modified_check.name }}").click(function () {
+                $("#id_{{ form.do_last_modified_check_head_request.name }}").parent("label").toggle();
+            });
+            {% if not form.do_last_modified_check.value %}
+                $("#id_{{ form.do_last_modified_check_head_request.name }}").parent("label").toggle();
+            {% endif %}
+
             // Toggle the Name whitelist field when Name is checked
             $("#id_{{ form.do_name_scan.name }}").click(function () {
                 $("#{{ form.whitelisted_names.auto_id}}_container").toggle();
@@ -185,6 +193,20 @@
                 {% if form.do_external_link_check.help_text %}<small>{{ form.do_external_link_check.help_text }}</small>{% endif %}
             </label>
 	    </div>
+        <div class="form-group">
+            {% if 0 %}	    </span>
+            {% endif %}
+            <label class="checkbox-inline" for="id_{{ form.do_last_modified_check.name }}">
+              <input type="checkbox" id="id_{{ form.do_last_modified_check.name }}" name="{{ form.do_last_modified_check.name }}" value="{{ form.do_last_modified_check.name }}"{% if form.do_last_modified_check.value %} checked="checked"{% endif %}>
+              {{ form.do_last_modified_check.label }}
+              {% if form.do_last_modified_check.help_text %}<small>{{ form.do_last_modified_check.help_text }}</small>{% endif %}
+            </label>
+            <label class="checkbox-inline" for="id_{{ form.do_last_modified_check_head_request.name }}">
+              <input type="checkbox" id="id_{{ form.do_last_modified_check_head_request.name }}" name="{{ form.do_last_modified_check_head_request.name }}" value="{{ form.do_last_modified_check_head_request.name }}"{% if form.do_last_modified_check_head_request.value %} checked="checked"{% endif %}>
+              {{ form.do_last_modified_check_head_request.label }}
+              {% if form.do_last_modified_check_head_request.help_text %}<small>{{ form.do_last_modified_check_head_request.help_text }}</small>{% endif %}
+            </label>
+        </div>
 	    <div class="form-group">
             {% if 0 %}	    </span>
 	    <span id="{{ form.do_name_scan.auto_id }}_container"{% if form.do_name_scan.errors %} class="has-error"{% endif %}>

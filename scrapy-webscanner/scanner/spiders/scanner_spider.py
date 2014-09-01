@@ -65,8 +65,13 @@ class ScannerSpider(BaseScannerSpider):
         )
 
         # TODO: Read from Scanner settings
-        self.do_last_modified_check = True
-        self.do_last_modified_check_head_request = True
+        scanner_object = self.scanner.scanner_object
+        self.do_last_modified_check = getattr(
+            scanner_object, "do_last_modified_check"
+        )
+        self.do_last_modified_check_head_request = getattr(
+            scanner_object, "do_last_modified_check_head_request"
+        )
 
         self.referrers = {}
         self.external_urls = set()
