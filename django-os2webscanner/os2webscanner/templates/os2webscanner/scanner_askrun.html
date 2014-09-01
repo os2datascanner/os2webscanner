@@ -1,16 +1,18 @@
 {% extends 'os2webscanner/base.html' %}
 {% block topnav %}{% endblock %}
+{% block rendertype %}iframe-modal{% endblock %}
 {% block body %}
 
 {% if not scanner.has_active_scans %}
-<div style="runscanner-success">
-    Er du sikker på, du ønsker at starte skanneren? I givet fald <a
-        href="/scanners/{{scanner.pk}}/run/">Klik her</a>!
-    
-</div>
+<p class="lead">
+  Er du sikker på, at du vil starte scanneren?
+</p>
+<p>
+  <a href="/scanners/{{scanner.pk}}/run/" class="btn btn-primary">Ja, kør!</a>
+</p>
 {% else %}
-<div style="runscanner-failure">
-Scanneren kunne ikke startes, fordi der allerede er en scanning i gang for den.
-</div>
+<p class="lead">
+  Scanneren kunne ikke startes, fordi der allerede er en scanning i gang for den.
+</p>
 {% endif %}
 {% endblock %}

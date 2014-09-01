@@ -1,0 +1,27 @@
+# Activate virtualenv
+source python-env/bin/activate
+
+# Pull latest production code from github
+git pull github master
+
+cd webscanner_site
+
+# Run any sql updates since last release date in sql/updates/
+./manage.py dbshell
+\i [full path to .sql file]
+
+# Collect any static files
+./manage.py collectstatic
+
+# Gracefully restart apache
+sudo service apache2 graceful
+
+cd ..
+
+# Find the PID of and kill the process_manager.py
+ps aux | grep process_manager.py
+kill $PID
+
+# Start the process manager again
+sudo -u www-data ./scrapy-webscanner/start_process_manager.sh &
+

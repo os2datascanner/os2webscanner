@@ -142,7 +142,7 @@ class ScannerSpider(SitemapSpider):
 
         # Save the URL item to the database
         if (Processor.mimetype_to_processor_type(mime_type) == 'ocr' and not
-            self.scanner.scan_object.do_ocr):
+            self.scanner.scanner_object.do_ocr):
             # Ignore this URL
             return
         url_object = Url(url=response.request.url, mime_type=mime_type,
