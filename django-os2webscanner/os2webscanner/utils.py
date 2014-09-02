@@ -20,8 +20,6 @@ from django.conf import settings
 from django.core.mail import EmailMessage
 from django.template import loader, Context
 
-import models
-
 
 def notify_user(scan):
     """Notify user about completed scan - including success and failure."""
@@ -51,3 +49,12 @@ def notify_user(scan):
     except Exception as e:
         # TODO: Handle this properly
         raise
+
+
+def capitalize_first(s):
+    """Capitalizes the first letter of a string, leaving the others alone."""
+    if s is None or len(s) < 1:
+        return u""
+    return s.replace(s[0], s[0].upper(), 1)
+
+import models
