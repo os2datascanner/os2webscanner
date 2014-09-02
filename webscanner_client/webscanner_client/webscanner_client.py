@@ -1,6 +1,4 @@
-import os
 import xmlrpclib
-import urllib2
 
 
 class WebscannerClient(object):
@@ -23,3 +21,6 @@ class WebscannerClient(object):
                 return xmlrpclib.Binary(f.read())
         binary_docs = map(get_binary, documents)
         return self._rpc_srv.scan_documents(user, password, binary_docs)
+
+    def get_status(self, user, password, report_url):
+        return self._rpc_srv.get_status(user, password, report_url)

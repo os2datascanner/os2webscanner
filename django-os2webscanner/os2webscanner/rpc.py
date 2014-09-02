@@ -14,39 +14,16 @@
 """ Web service functions, to be invoked over XML-RPC."""
 
 import os
-import time
+import re
 import tempfile
 
 from django.contrib.auth import authenticate
 from django.conf import settings
 
-from .models import Scanner
+from .utils import do_scan
+from .models import Match, Scan
 
-
-def do_scan(user, urls):
-    """Create a scanner to scan a list of URLs.
-
-    The 'urls' parameter may be either http:// or file:// URLS - we expect the
-    scanner to handle this distinction transparently. The list is assumed to be
-    well-formed and denote existing files/URLs. The consequences of load errors
-    etc. should be in the report.
-    """
-    # TODO: Scan the listed URLs and return result to user
-    scanner = Scanner()
-    scanner.organization = user.get_profile().organization
-    scanner.name = user.username + '-' + str(time.time())
-    scanner.do_run_synchronously = True
-    scanner.process_urls = urls
-    scanner.is_visible = False
-
-    scanner.save()
-    for domain in scanner.organization.domains.all():
-        scanner.domains.add(domain)
-    scanner.run()
-
-    scan = scanner.scans.all()[0]
-    url = scan.get_absolute_url()
-    return "{0}{1}".format(settings.SITE_URL, url)
+from django_xmlrpc.decorators import xmlrpc_func
 
 
 def scan_urls(username, password, urls):
@@ -56,16 +33,19 @@ def scan_urls(username, password, urls):
         * username (string) - login credentials
         * password (string) - login credentials
         * urls  (list of strings) - the URLs to be scanned.
+    Return value:
+        The URL for retrieving the report.
     """
     # First check the user sent us a list
     if not isinstance(urls, list):
         raise RuntimeError("Malformed parameters.")
-    # Authenticate
     user = authenticate(username=username, password=password)
     if not user:
         raise RuntimeError("Wrong username or password!")
+    scan = do_scan(user, urls)
 
-    return do_scan(user, urls)
+    url = scan.get_absolute_url()
+    return "{0}{1}".format(settings.SITE_URL, url)
 
 
 def scan_documents(username, password, binary_documents):
@@ -75,6 +55,8 @@ def scan_documents(username, password, binary_documents):
         * username (string) - login credentials
         * password (string) - login credentials
         * binary_documents  (list of data) - the files to be scanned.
+    Return value:
+        The URL for retrieving the report.
     """
     # First check the user sent us a list
     if not isinstance(binary_documents, list):
@@ -92,8 +74,44 @@ def scan_documents(username, password, binary_documents):
 
     documents = map(writefile, binary_documents)
     file_url = lambda f: 'file://{0}'.format(f)
-    result = do_scan(user, map(file_url, documents))
+    scan = do_scan(user, map(file_url, documents))
     # Assuming scan was synchronous, we can now clean up files
     map(os.remove, documents)
 
+    url = scan.get_absolute_url()
+    return "{0}{1}".format(settings.SITE_URL, url)
+
+
+@xmlrpc_func(returns='list', args=['string', 'string', 'string'])
+def get_status(username, password, report_url):
+    """Web service for retrieving the status of a scan.
+
+    The scan is identified by the report URL returned by the functions
+    scan_urls and scan_documents.
+
+    Parameters:
+        * username
+        * password
+        * report_url - the output of one of the two "scan_" functions.
+    Return value:
+        A list on the form [status, start_time, end_time, number_of_matches].
+    """
+    user = authenticate(username=username, password=password)
+    if not user:
+        raise RuntimeError("Wrong username or password!")
+    match_exp = "(?<=/)[0-9]+(?=/)"
+    try:
+        res = re.search(match_exp, report_url)
+        id = int(res.group(0))
+    except Exception:
+        raise RuntimeError("Malformed URL")
+    try:
+        scan = Scan.objects.get(id=id)
+    except Exception:
+        raise RuntimeError("Report not found")
+
+    count = Match.objects.filter(scan=scan).count()
+    result = (
+        scan.status_text, scan.start_time or '', scan.end_time or '', count
+    )
     return result
