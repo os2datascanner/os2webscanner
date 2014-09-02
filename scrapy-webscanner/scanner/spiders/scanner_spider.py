@@ -56,12 +56,17 @@ class ScannerSpider(SitemapSpider):
         SitemapSpider.__init__(self, *a, **kw)
 
         self.start_urls = []
-        # TODO: Starting URLs and domains should be specified separately?
-        for url in self.allowed_domains:
-            if (not url.startswith('http://')
-                and not url.startswith('https://')):
-                url = 'http://%s/' % url
-            self.start_urls.append(url)
+        if self.scanner.scanner_object.process_urls:
+            # If the scan is run from a web service, use the starting urls
+            # from the scanner.
+            self.start_urls = self.scanner.scanner_object.process_urls
+        else:
+            # Otherwise, use the roots of the domains as starting URLs
+            for url in self.allowed_domains:
+                if (not url.startswith('http://')
+                    and not url.startswith('https://')):
+                    url = 'http://%s/' % url
+                self.start_urls.append(url)
 
         # TODO: Add more tags to extract links from?
         self.link_extractor = LxmlLinkExtractor(
