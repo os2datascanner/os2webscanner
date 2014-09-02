@@ -32,6 +32,9 @@ def notify_user(scan):
     if not to_address:
         to_address = settings.ADMIN_EMAIL
     matches = models.Match.objects.filter(scan=scan).count()
+    matches += models.Url.objects.filter(
+        scan=scan
+    ).exclude(status_code__isnull=True).count()
     critical = models.Match.objects.filter(
         scan=scan,
         sensitivity=models.Sensitivity.HIGH
