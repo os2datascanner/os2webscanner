@@ -17,7 +17,6 @@
 """Contains Django views."""
 
 import csv
-
 from django import forms
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.http import Http404, HttpResponse
@@ -78,6 +77,11 @@ class ScannerList(RestrictedListView):
     model = Scanner
     template_name = 'os2webscanner/scanners.html'
 
+    def get_queryset(self):
+        """Get queryset, don't include non-visible scanners."""
+        qs = super(ScannerList, self).get_queryset()
+        return qs.filter(is_visible=True)
+
 
 class DomainList(RestrictedListView):
 
@@ -123,6 +127,7 @@ class ReportList(RestrictedListView):
                 reports = self.model.objects.filter(
                     scanner__organization=None
                 )
+        reports = reports.filter(scanner__is_visible=True)
         return reports.order_by('-start_time')
 
 
