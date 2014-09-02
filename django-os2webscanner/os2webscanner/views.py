@@ -538,7 +538,8 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
         context['broken_urls'] = broken_urls
         context['no_of_broken_links'] = broken_urls.count()
         context['matches'] = all_matches[:100]
-        context['no_of_matches'] = all_matches.count()
+        context['all_matches'] = all_matches
+        context['no_of_matches'] = all_matches.count() + broken_urls.count()
         context['reports_url'] = settings.SITE_URL + '/reports/'
         context['failed_conversions'] = (
             self.object.get_number_of_failed_conversions()
@@ -585,18 +586,16 @@ class CSVReportDetails(ReportDetails):
             'Content-Disposition'
         ] = 'attachment; filename={0}'.format(report_file)
         writer = csv.writer(response)
-        all_matches = Match.objects.filter(scan=scan).order_by(
-            '-sensitivity', 'url', 'matched_rule', 'matched_data'
-        )
+        all_matches = context['all_matches']
         # CSV utilities
         e = lambda fields: ([f.encode('utf-8') for f in fields])
         # Print summary header
         writer.writerow(e([u'Starttidspunkt', u'Sluttidspunkt', u'Status',
-                        u'Totalt antal matches']))
+                        u'Totalt antal matches', u'Total antal broken links']))
         # Print summary
         writer.writerow(e([str(scan.start_time),
             str(scan.end_time), scan.get_status_display(),
-            str(len(all_matches))]))
+            str(context['no_of_matches']), str(context['no_of_broken_links'])]))
         # Print match header
         writer.writerow(e([u'URL', u'Regel', u'Match', u'Følsomhed']))
         for match in all_matches:
@@ -604,6 +603,14 @@ class CSVReportDetails(ReportDetails):
                              match.get_matched_rule_display(),
                              match.matched_data.replace('\n', ''),
                              match.get_sensitivity_display()]))
+        # Print broken link header
+        broken_urls = context['broken_urls']
+        writer.writerow(e([u'Referrers', u'URL', u'Status']))
+        for url in broken_urls:
+            for referrer in url.referrers.all():
+                writer.writerow(e([referrer.url,
+                               url.url,
+                               url.status_message]))
         return response
 
 

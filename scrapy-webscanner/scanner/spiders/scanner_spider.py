@@ -14,6 +14,8 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 """Contains a scanner spider."""
+from os2webscanner.utils import capitalize_first
+import regex
 
 from scrapy import log, Spider
 from scrapy.contrib.spidermiddleware.httperror import HttpError
@@ -162,6 +164,9 @@ class ScannerSpider(BaseScannerSpider):
             referer_header = None
 
         log.msg("Handle Error: %s %s" % (status_message, url))
+
+        status_message = regex.sub("\[.+\] ", "", status_message)
+        status_message = capitalize_first(status_message)
 
         # Add broken URL
         broken_url = Url(url=url, scan=self.scanner.scan_object,

@@ -2,6 +2,7 @@
 
 import socket
 import urllib2
+from os2webscanner.utils import capitalize_first
 import regex
 from scrapy import log
 
@@ -27,7 +28,8 @@ def check_url(url, method="HEAD"):
         r = urllib2.urlopen(request,
                             timeout=LINK_CHECK_TIMEOUT)
         return None
-    except (urllib2.HTTPError, urllib2.URLError, socket.timeout) as e:
+    except (urllib2.HTTPError, urllib2.URLError, socket.timeout, IOError) \
+            as e:
         log.msg("Error %s" % e, level=log.DEBUG)
         code = getattr(e, "code", 0)
         if code == 405:
@@ -35,10 +37,13 @@ def check_url(url, method="HEAD"):
             result = check_url(url, method="GET")
             return result
 
-        reason = getattr(e, "reason", "")
+        reason = str(getattr(e, "reason", ""))
+        if reason == "":
+            reason = str(e)
 
-        # Strip [Errno: -2] stuff at beginning of URLError reason
-        reason = regex.sub("^\[.+\]", "", unicode(reason))
+        # Strip [Errno: -2] stuff
+        reason = regex.sub("\[.+\] ", "", reason)
+        reason = capitalize_first(reason)
 
         if code != 0:
             reason = "%d %s" % (code, reason)
