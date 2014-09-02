@@ -35,6 +35,16 @@ def scan_urls(username, password, urls):
         * urls  (list of strings) - the URLs to be scanned.
     Return value:
         The URL for retrieving the report.
+
+        By default, the URL will retrieve the report in HTML format.
+        The client may retrieve it in CSV format by suffixing the URL
+        with the string 'csv/'. E.g., if the report URL is
+
+        http://testscanner.magenta-aps.dk/report/96/
+
+        the CSV file is obtained by using the URL
+
+        http://testscanner.magenta-aps.dk/report/96/csv/
     """
     # First check the user sent us a list
     if not isinstance(urls, list):
@@ -57,6 +67,16 @@ def scan_documents(username, password, binary_documents):
         * binary_documents  (list of data) - the files to be scanned.
     Return value:
         The URL for retrieving the report.
+
+        By default, the URL will retrieve the report in HTML format.
+        The client may retrieve it in CSV format by suffixing the URL
+        with the string 'csv/'. E.g., if the report URL is
+
+        http://testscanner.magenta-aps.dk/report/96/
+
+        the CSV file is obtained by using the URL
+
+        http://testscanner.magenta-aps.dk/report/96/csv/
     """
     # First check the user sent us a list
     if not isinstance(binary_documents, list):
