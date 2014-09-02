@@ -24,3 +24,6 @@ class WebscannerClient(object):
 
     def get_status(self, user, password, report_url):
         return self._rpc_srv.get_status(user, password, report_url)
+    
+    def get_report(self, user, password, report_url):
+        return self._rpc_srv.get_report(user, password, report_url)

@@ -24,3 +24,7 @@ report_url = wc.scan_documents(username, password, [filename])
 status = wc.get_status(username, password, report_url)
 
 print "URL: {0}\nStatus: {1}".format(report_url, status[0])
+
+report = wc.get_report(username, password, report_url)
+
+print report

@@ -1,3 +1,4 @@
+# encoding: utf-8
 # The contents of this file are subject to the Mozilla Public License
 # Version 2.0 (the "License"); you may not use this file except in
 # compliance with the License. You may obtain a copy of the License at
@@ -15,6 +16,8 @@
 
 import os
 import re
+import StringIO
+import csv
 import tempfile
 
 from django.contrib.auth import authenticate
@@ -35,16 +38,6 @@ def scan_urls(username, password, urls):
         * urls  (list of strings) - the URLs to be scanned.
     Return value:
         The URL for retrieving the report.
-
-        By default, the URL will retrieve the report in HTML format.
-        The client may retrieve it in CSV format by suffixing the URL
-        with the string 'csv/'. E.g., if the report URL is
-
-        http://testscanner.magenta-aps.dk/report/96/
-
-        the CSV file is obtained by using the URL
-
-        http://testscanner.magenta-aps.dk/report/96/csv/
     """
     # First check the user sent us a list
     if not isinstance(urls, list):
@@ -67,16 +60,6 @@ def scan_documents(username, password, binary_documents):
         * binary_documents  (list of data) - the files to be scanned.
     Return value:
         The URL for retrieving the report.
-
-        By default, the URL will retrieve the report in HTML format.
-        The client may retrieve it in CSV format by suffixing the URL
-        with the string 'csv/'. E.g., if the report URL is
-
-        http://testscanner.magenta-aps.dk/report/96/
-
-        the CSV file is obtained by using the URL
-
-        http://testscanner.magenta-aps.dk/report/96/csv/
     """
     # First check the user sent us a list
     if not isinstance(binary_documents, list):
@@ -135,3 +118,52 @@ def get_status(username, password, report_url):
         scan.status_text, scan.start_time or '', scan.end_time or '', count
     )
     return result
+
+def get_report(username, password, report_url):
+    """Retrieves a report in CSV format, e.g. to parse or to save in a file.
+
+    Parameters:
+        * username
+        * password
+        * report_url - the output of one of the two "scan_" functions.
+
+    Return value:
+        A UTF-encoded string containing the CSV data separated by line breaks.
+    """
+    user = authenticate(username=username, password=password)
+    if not user:
+        raise RuntimeError("Wrong username or password!")
+    match_exp = "(?<=/)[0-9]+(?=/)"
+    try:
+        res = re.search(match_exp, report_url)
+        id = int(res.group(0))
+    except Exception:
+        raise RuntimeError("Malformed URL")
+    try:
+        scan = Scan.objects.get(id=id)
+    except Exception:
+        raise RuntimeError("Report not found")
+    # We now have the scan object
+    output = StringIO.StringIO()
+    writer = csv.writer(output)
+
+    all_matches = Match.objects.filter(scan=scan).order_by(
+        '-sensitivity', 'url', 'matched_rule', 'matched_data'
+    )
+    # CSV utilities
+    e = lambda fields: ([f.encode('utf-8') for f in fields])
+    # Print summary header
+    writer.writerow(e([u'Starttidspunkt', u'Sluttidspunkt', u'Status',
+                    u'Totalt antal matches']))
+    # Print summary
+    writer.writerow(e([str(scan.start_time),
+        str(scan.end_time), scan.get_status_display(),
+        str(len(all_matches))]))
+    # Print match header
+    writer.writerow(e([u'URL', u'Regel', u'Match', u'Følsomhed']))
+    for match in all_matches:
+        writer.writerow(e([match.url.url,
+                         match.get_matched_rule_display(),
+                         match.matched_data.replace('\n', ''),
+                         match.get_sensitivity_display()]))
+    return output.getvalue()

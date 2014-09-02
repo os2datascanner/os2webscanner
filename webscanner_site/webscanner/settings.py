@@ -50,6 +50,7 @@ XMLRPC_METHODS = (
     ('os2webscanner.rpc.scan_urls', 'scan_urls'),
     ('os2webscanner.rpc.scan_documents', 'scan_documents'),
     ('os2webscanner.rpc.get_status', 'get_status'),
+    ('os2webscanner.rpc.get_report', 'get_report'),
 )
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
