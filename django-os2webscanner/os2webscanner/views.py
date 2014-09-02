@@ -596,21 +596,23 @@ class CSVReportDetails(ReportDetails):
         writer.writerow(e([str(scan.start_time),
             str(scan.end_time), scan.get_status_display(),
             str(context['no_of_matches']), str(context['no_of_broken_links'])]))
-        # Print match header
-        writer.writerow(e([u'URL', u'Regel', u'Match', u'Følsomhed']))
-        for match in all_matches:
-            writer.writerow(e([match.url.url,
-                             match.get_matched_rule_display(),
-                             match.matched_data.replace('\n', ''),
-                             match.get_sensitivity_display()]))
-        # Print broken link header
+        if all_matches:
+            # Print match header
+            writer.writerow(e([u'URL', u'Regel', u'Match', u'Følsomhed']))
+            for match in all_matches:
+                writer.writerow(e([match.url.url,
+                                 match.get_matched_rule_display(),
+                                 match.matched_data.replace('\n', ''),
+                                 match.get_sensitivity_display()]))
         broken_urls = context['broken_urls']
-        writer.writerow(e([u'Referrers', u'URL', u'Status']))
-        for url in broken_urls:
-            for referrer in url.referrers.all():
-                writer.writerow(e([referrer.url,
-                               url.url,
-                               url.status_message]))
+        if broken_urls:
+            # Print broken link header
+            writer.writerow(e([u'Referrers', u'URL', u'Status']))
+            for url in broken_urls:
+                for referrer in url.referrers.all():
+                    writer.writerow(e([referrer.url,
+                                   url.url,
+                                   url.status_message]))
         return response
 
 

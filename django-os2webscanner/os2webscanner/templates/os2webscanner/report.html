@@ -41,6 +41,7 @@ Rapport &dash; {{scan.scanner.name}}
       {% endif %}
 	<a href="./csv/">Klik her for at downloade hele rapporten</a>
       </p>
+      {% if matches %}
       <div class="table-responsive">
 		<table class="table table-striped">
           <thead>
@@ -97,6 +98,7 @@ Rapport &dash; {{scan.scanner.name}}
         </table>
 
       </div>
+      {% endif %}
 
       {% if broken_urls %}
         <h2>Broken Links</h2>
