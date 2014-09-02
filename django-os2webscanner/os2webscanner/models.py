@@ -216,7 +216,7 @@ class Scanner(models.Model):
     domains = models.ManyToManyField(Domain, related_name='scanners',
                                      null=False, verbose_name='Domæner')
     do_cpr_scan = models.BooleanField(default=True, verbose_name='CPR')
-    do_name_scan = models.BooleanField(default=True, verbose_name='Navn')
+    do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
     do_ocr = models.BooleanField(default=True, verbose_name='Scan billeder?')
     do_cpr_modulus11 = models.BooleanField(default=True,
                                            verbose_name='Check modulus-11')
