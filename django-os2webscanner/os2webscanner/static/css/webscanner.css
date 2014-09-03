@@ -13,9 +13,15 @@ min-width:3em;
 #scanner-settings-tabs {
 margin: 2em 0 1em;
 }
-#id_regex_rules_container,
-#id_whitelisted_names_container {
-padding-right:30px;
+#select_scan_rules_container div.form-group {
+border-top:1px solid #ddd;
+margin-bottom:7px;
+}
+#select_scan_rules_container div.form-group:first-child {
+border-top-width:0;
+}
+#id_regex_rules_container {
+border-top:1px solid #ddd;
 }
 
 /* DOMAINS */
