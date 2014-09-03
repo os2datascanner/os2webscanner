@@ -647,7 +647,7 @@ recurrence.widget.Panel.prototype = {
             'onclick': function() {
                 panel.remove();
             }
-        }, '&times;');
+        }, '<span class="glyphicon glyphicon-remove"></span> Fjern');
         var label = recurrence.widget.e('a', {
            'class': 'recurrence-label',
            'href': 'javascript:void(0)',

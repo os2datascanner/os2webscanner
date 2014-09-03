@@ -21,7 +21,7 @@ div.recurrence-widget a.recurrence-label {
     display: block;
     cursor: pointer;
     color: black;
-    padding: 0 2em 0 10px;
+    padding: 0;
     font-weight: bold;
     white-space: nowrap;
     position:relative;
@@ -38,7 +38,7 @@ div.recurrence-widget a.recurrence-label:after {
     border-style:solid;
     top:50%;
     bottom:50%;
-    right:0;
+    margin-left:10px;
 }
 
 label[for="interval"] {
@@ -48,7 +48,7 @@ label[for="interval"] {
 div.recurrence-widget .remove,
 div.recurrence-widget .remove:link,
 div.recurrence-widget .remove:visited {
-    float: left;
+    float: right;
     /*padding: .25em .5em;
     font-size: 1.1em;
     font-weight: bold;
