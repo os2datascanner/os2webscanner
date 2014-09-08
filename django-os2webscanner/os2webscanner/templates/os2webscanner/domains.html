@@ -1,12 +1,13 @@
 {% extends 'os2webscanner/base.html' %}
+{% block rendertype %}regular{% endblock %}
 {%  block title %}
 Domæner
 {% endblock %}
 
 {% block body %}
-
+<div class="container">
      <div class="table-responsive">
-		<table class="table table-striped">
+	<table class="table table-striped">
           <thead>
             <tr>
               <td>
@@ -65,35 +66,37 @@ Domæner
 		      &quot;/domains/{{domain.pk}}&quot;,
 		      &quot;Redigér domæne '{{domain.url}}'&quot;
 		  )">
-              	  <span class="glyphicon glyphicon-cog"></span><span class="sr-only">Indstillinger for domæne</span>
+              	  <span class="glyphicon glyphicon-cog"></span> <span>Redigér</span>
 		</button>
-                <span>
-                    <a href="/domains/{{domain.pk}}/delete/">Slet domæne</a>
-                </span>
+                <a href="/domains/{{domain.pk}}/delete/" class="btn btn-default btn-xs">
+                    <span class="glyphicon glyphicon-remove"></span>
+                    <span>Slet </span>
+                </a>
               </td>
             </tr>
             {% endfor %}
           </tbody>
         </table>
-
+      </div>
+   </div>
 {% endblock %}
 
 {% block heading %} 
 Domæner 
-<small class="page-action" style="float:right;">
+<span class="page-action" style="float:right;">
     <button type="button" class="btn btn-default" data-toggle="modal" data-target="#create-domain-modal">
         Tilføj nyt 
         <span style="position:relative;top:.15em;" class="glyphicon glyphicon-plus-sign">
         </span>
     </button>
-</small>
+</span>
 {% endblock %}
 
 {% block modal %}
 <div class="modal iframe" id="create-domain-modal" tabindex="-1" role="dialog"
   aria-labelledby="create-domain-modal-title" aria-hidden="true"
   data-href="/domains/add/">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
 	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
@@ -116,7 +119,7 @@ Domæner
 <div class="modal iframe" id="edit-domain-modal" tabindex="-1" role="dialog"
   aria-labelledby="edit-domain-modal-title" aria-hidden="true"
   data-href="/domains/add/">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
 	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">

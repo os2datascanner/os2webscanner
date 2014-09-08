@@ -42,7 +42,9 @@ class Scanner:
         """Load rules based on Scanner settings."""
         rules = []
         if self.scanner_object.do_cpr_scan:
-            rules.append(CPRRule())
+            rules.append(
+                CPRRule(do_modulus11=self.scanner_object.do_cpr_modulus11)
+            )
         if self.scanner_object.do_name_scan:
             rules.append(
                 NameRule(whitelist=self.scanner_object.whitelisted_names)

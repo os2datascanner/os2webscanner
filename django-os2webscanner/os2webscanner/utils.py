@@ -16,6 +16,8 @@
 
 """Utility methods for the OS2Webscanner project."""
 
+import time
+
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.template import loader, Context
@@ -53,23 +55,26 @@ def notify_user(scan):
         raise
 
 
-def generate_report(scan):
-    """Generate reports for web service requests."""
-    template = 'os2webscanner/webservice_report.html'
-    t = loader.get_template(template)
+def do_scan(user, urls):
+    """Create a scanner to scan a list of URLs.
 
-    matches = models.Match.objects.filter(scan=scan).count()
-    critical = models.Match.objects.filter(
-        scan=scan,
-        sensitivity=models.Sensitivity.HIGH
-    ).count()
+    The 'urls' parameter may be either http:// or file:// URLS - we expect the
+    scanner to handle this distinction transparently. The list is assumed to be
+    well-formed and denote existing files/URLs. The consequences of load errors
+    etc. should be in the report.
+    """
+    # TODO: Scan the listed URLs and return result to user
+    scanner = models.Scanner()
+    scanner.organization = user.get_profile().organization
+    scanner.name = user.username + '-' + str(time.time())
+    scanner.do_run_synchronously = True
+    scanner.process_urls = urls
+    scanner.is_visible = False
 
-    c = Context({'scan': scan, 'domain': settings.SITE_URL, 'matches': matches,
-                 'critical': critical})
+    scanner.save()
+    for domain in scanner.organization.domains.all():
+        scanner.domains.add(domain)
+    scanner.run()
 
-    try:
-        report = t.render(c)
-    except Exception:
-        report = "Scan failed!"
-
-    return report
+    scan = scanner.scans.all()[0]
+    return scan

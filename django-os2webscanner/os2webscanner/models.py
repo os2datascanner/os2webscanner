@@ -215,8 +215,10 @@ class Scanner(models.Model):
     domains = models.ManyToManyField(Domain, related_name='scanners',
                                      null=False, verbose_name='Domæner')
     do_cpr_scan = models.BooleanField(default=True, verbose_name='CPR')
-    do_name_scan = models.BooleanField(default=True, verbose_name='Navn')
-    do_ocr = models.BooleanField(default=True, verbose_name='Scan billeder?')
+    do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
+    do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder?')
+    do_cpr_modulus11 = models.BooleanField(default=True,
+                                           verbose_name='Check modulus-11')
     regex_rules = models.ManyToManyField(RegexRule,
                                          blank=True,
                                          null=True,
@@ -427,6 +429,10 @@ class Scan(models.Model):
         """
         super(Scan, self).__init__(*args, **kwargs)
         self._old_status = self.status
+
+    def get_absolute_url(self):
+        from django.core.urlresolvers import reverse
+        return reverse('report', args=[str(self.id)])
 
 
 class Url(models.Model):

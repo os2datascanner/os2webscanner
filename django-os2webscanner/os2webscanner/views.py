@@ -213,7 +213,8 @@ class ScannerCreate(RestrictedCreateView):
 
     model = Scanner
     fields = ['name', 'schedule', 'whitelisted_names', 'domains',
-              'do_cpr_scan', 'do_name_scan', 'do_ocr', 'regex_rules']
+              'do_cpr_scan', 'do_cpr_modulus11', 'do_name_scan', 'do_ocr',
+              'regex_rules']
 
     def get_form(self, form_class):
         """Get the form for the view.
@@ -246,7 +247,8 @@ class ScannerUpdate(RestrictedUpdateView):
 
     model = Scanner
     fields = ['name', 'schedule', 'whitelisted_names', 'domains',
-              'do_cpr_scan', 'do_name_scan', 'do_ocr', 'regex_rules']
+              'do_cpr_scan', 'do_cpr_modulus11', 'do_name_scan', 'do_ocr',
+              'regex_rules']
 
     def get_success_url(self):
         """The URL to redirect to after successful update."""

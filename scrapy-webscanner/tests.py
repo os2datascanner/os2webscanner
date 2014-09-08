@@ -83,6 +83,15 @@ class CPRTest(unittest.TestCase):
             self.assertFalse(
                 any(m['matched_data'] == invalid_cpr for m in matches))
 
+        # Check that modulus 11 check works
+        self.assertTrue(cpr.modulus11_check("2110625629"))
+        self.assertFalse(cpr.modulus11_check("2110625628"))
+
+        # Check that modulus 11 check PASSES for exception dates even though
+        # they have an invalid check digit.
+        self.assertTrue(cpr.modulus11_check("0101650123"))
+        self.assertTrue(cpr.modulus11_check("0101660123"))
+
 
 def main():
     """Run the unit tests."""
