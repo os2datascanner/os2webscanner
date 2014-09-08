@@ -60,7 +60,9 @@ class ScannerSpider(SitemapSpider):
             # If the scan is run from a web service, use the starting urls
             # from the scanner.
             self.start_urls = self.scanner.scanner_object.process_urls
+            self.crawl = False
         else:
+            self.crawl = True
             # Otherwise, use the roots of the domains as starting URLs
             for url in self.allowed_domains:
                 if (not url.startswith('http://')
@@ -85,7 +87,8 @@ class ScannerSpider(SitemapSpider):
     def parse(self, response):
         """Process a response and follow all links."""
         r = []
-        r.extend(self._extract_requests(response))
+        if self.crawl:
+            r.extend(self._extract_requests(response))
         self.scan(response)
         return r
 
