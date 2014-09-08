@@ -14,26 +14,27 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 """Contains a scanner spider."""
+import mimetypes
+
 from os2webscanner.utils import capitalize_first
 import regex
-
-from scrapy import log, Spider
+from scrapy import log
 from scrapy.contrib.spidermiddleware.httperror import HttpError
 from scrapy.exceptions import IgnoreRequest
 from scrapy.http import Request, HtmlResponse
-from scrapy.contrib.linkextractors.lxmlhtml import LxmlLinkExtractor
-from scrapy.utils.httpobj import urlparse_cached
-
 import re
 import chardet
-import mimetypes
 import magic
+
+
+# Use our monkey-patched link extractor
+from ..linkextractor import LxmlLinkExtractor
 
 from base_spider import BaseScannerSpider
 
 from ..processors.processor import Processor
 
-from os2webscanner.models import Url, ReferrerUrl, UrlLastModified
+from os2webscanner.models import Url, ReferrerUrl
 from scrapy.utils.response import response_status_message
 
 
@@ -69,7 +70,6 @@ class ScannerSpider(BaseScannerSpider):
             url = url.replace('*.', '')
             self.start_urls.append(url)
 
-        # TODO: Add more tags to extract links from?
         self.link_extractor = LxmlLinkExtractor(
             deny_extensions=(),
             tags=('a', 'area', 'frame', 'iframe', 'script'),
