@@ -62,8 +62,6 @@ USER_AGENT = 'OS2Webscanner'
 #   ever change it.
 ROBOTSTXT_OBEY = False
 
-DOWNLOAD_TIMEOUT = 10
-
 WEBSERVICE_ENABLED = False
 
 TELNETCONSOLE_ENABLED = False
