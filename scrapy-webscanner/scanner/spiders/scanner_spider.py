@@ -50,14 +50,22 @@ class ScannerSpider(BaseScannerSpider):
         self.runner = runner
 
         self.start_urls = []
-        # TODO: Starting URLs and domains should be specified separately?
-        for url in self.allowed_domains:
-            if (not url.startswith('http://')
-                and not url.startswith('https://')):
-                url = 'http://%s/' % url
-            # Remove wildcards
-            url = url.replace('*.', '')
-            self.start_urls.append(url)
+
+        if self.scanner.scanner_object.process_urls:
+            # If the scan is run from a web service, use the starting urls
+            # from the scanner.
+            self.start_urls = self.scanner.scanner_object.process_urls
+            self.crawl = False
+        else:
+            self.crawl = True
+            # Otherwise, use the roots of the domains as starting URLs
+            for url in self.allowed_domains:
+                if (not url.startswith('http://')
+                    and not url.startswith('https://')):
+                    url = 'http://%s/' % url
+                # Remove wildcards
+                url = url.replace('*.', '')
+                self.start_urls.append(url)
 
         # TODO: Add more tags to extract links from?
         self.link_extractor = LxmlLinkExtractor(
@@ -93,7 +101,8 @@ class ScannerSpider(BaseScannerSpider):
     def parse(self, response):
         """Process a response and follow all links."""
         r = []
-        r.extend(self._extract_requests(response))
+        if self.crawl:
+            r.extend(self._extract_requests(response))
         self.scan(response)
 
         # Store referrer when doing link checks

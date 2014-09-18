@@ -66,11 +66,12 @@ Domæner
 		      &quot;/domains/{{domain.pk}}&quot;,
 		      &quot;Redigér domæne '{{domain.url}}'&quot;
 		  )">
-              	  <span class="glyphicon glyphicon-cog"></span><span class="sr-only">Indstillinger for domæne</span>
+              	  <span class="glyphicon glyphicon-cog"></span> <span>Redigér</span>
 		</button>
-                <span>
-                    <a href="/domains/{{domain.pk}}/delete/">Slet domæne</a>
-                </span>
+                <a href="/domains/{{domain.pk}}/delete/" class="btn btn-default btn-xs">
+                    <span class="glyphicon glyphicon-remove"></span>
+                    <span>Slet </span>
+                </a>
               </td>
             </tr>
             {% endfor %}
