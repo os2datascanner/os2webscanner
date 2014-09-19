@@ -221,7 +221,7 @@ class Scanner(models.Model):
     do_cpr_modulus11 = models.BooleanField(default=True,
                                            verbose_name='Check modulus-11')
     do_link_check = models.BooleanField(default=False,
-                                        verbose_name='Udfør linkcheck')
+                                        verbose_name='Linkcheck')
     do_external_link_check = models.BooleanField(default=False,
                                                  verbose_name='Check ' +
                                                               'externe links')
