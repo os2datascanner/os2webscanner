@@ -137,7 +137,7 @@
 		<input type="checkbox" id="id_{{ form.do_ocr.name }}" name="{{ form.do_ocr.name }}" value="{{ form.do_ocr.name }}"{% if form.do_ocr.value %} checked="checked"{% endif %}>
 		{{ form.do_ocr.label }}
                 {% if form.do_ocr.help_text %}<small>{{ form.do_ocr.help_text }}</small>{% endif %}
-	      </label>
+            </label><br>
             <label class="checkbox-inline" for="id_{{ form.do_last_modified_check.name }}">
               <input type="checkbox" id="id_{{ form.do_last_modified_check.name }}" name="{{ form.do_last_modified_check.name }}" value="{{ form.do_last_modified_check.name }}"{% if form.do_last_modified_check.value %} checked="checked"{% endif %}>
               {{ form.do_last_modified_check.label }}
@@ -148,12 +148,6 @@
               {{ form.do_last_modified_check_head_request.label }}
               {% if form.do_last_modified_check_head_request.help_text %}<small>{{ form.do_last_modified_check_head_request.help_text }}</small>{% endif %}
             </label>
-                  <label class="checkbox-inline"
-                               for="id_{{ form.do_cpr_modulus11.name }}">
-                  <input type="checkbox" id="id_{{ form.do_cpr_modulus11.name }}" name="{{ form.do_cpr_modulus11.name }}" value="{{ form.do_cpr_modulus11.name }}"{% if form.do_cpr_modulus11.value %} checked="checked"{% endif %}>
-              {{ form.do_cpr_modulus11.label }}
-              {% if form.do_cpr_modulus11.help_text %}<small>{{ form.do_cpr_modulus11.help_text }}</small>{% endif %}
-              </label>
 		</div>
 		<div class="form-group">
              <label class="checkbox-inline" for="id_{{ form.do_cpr_scan.name }}">
@@ -161,6 +155,13 @@
 	        {{ form.do_cpr_scan.label }}
                 {% if form.do_cpr_scan.help_text %}<small>{{ form.do_cpr_scan.help_text }}</small>{% endif %}
 	      </label>
+                  <label class="checkbox-inline"
+                               for="id_{{ form.do_cpr_modulus11.name }}">
+                  <input type="checkbox" id="id_{{ form.do_cpr_modulus11.name }}" name="{{ form.do_cpr_modulus11.name }}" value="{{ form.do_cpr_modulus11.name }}"{% if form.do_cpr_modulus11.value %} checked="checked"{% endif %}>
+              {{ form.do_cpr_modulus11.label }}
+              {% if form.do_cpr_modulus11.help_text %}<small>{{ form.do_cpr_modulus11.help_text }}</small>{% endif %}
+              </label>
+              <br>
             <label class="checkbox-inline" for="id_{{ form.do_link_check.name }}">
                 <input type="checkbox" id="id_{{ form.do_link_check.name }}" name="{{ form.do_link_check.name }}" value="{{ form.do_link_check.name }}"{% if form.do_link_check.value %} checked="checked"{% endif %}>
                 {{ form.do_link_check.label }}
@@ -171,11 +172,21 @@
                 {{ form.do_external_link_check.label }}
                 {% if form.do_external_link_check.help_text %}<small>{{ form.do_external_link_check.help_text }}</small>{% endif %}
             </label>
+            <br>
 	      <label class="checkbox-inline" for="id_{{ form.do_name_scan.name }}">
 		<input type="checkbox" id="id_{{ form.do_name_scan.name }}" name="{{ form.do_name_scan.name }}" value="{{ form.do_name_scan.name }}"{% if form.do_name_scan.value %} checked="checked"{% endif %}>
 		{{ form.do_name_scan.label }}
                 {% if form.do_name_scan.help_text %}<small>{{ form.do_name_scan.help_text }}</small>{% endif %}
 	      </label>
+            <div id="{{ form.whitelisted_names.auto_id }}_container" class="col-sm-12{% if form.whitelisted_names.errors %} has-error{% endif %}">
+	      <label class="control-label" for="id_{{ form.whitelisted_names.name }}">{{ form.whitelisted_names.label }}</label>
+	      <textarea name="{{ form.whitelisted_names.name }}" id="id_{{ form.whitelisted_names.name }}" class="form-control" rows="3">{{ form.whitelisted_names.value }}</textarea>
+	      {% if form.whitelisted_names.help_text %}
+	      <p>
+		<small>{{ form.whitelisted_names.help_text }}</small>
+	      </p>
+	      {% endif %}
+	    </div>
             <div id="{{ form.regex_rules.auto_id }}_container" class="col-sm-12{% if form.regex_rules.errors %} has-error{% endif %}">
               <label class="control-label" for="id_{{ form.regex_rules.name }}">{{ form.regex_rules.label }}</label>
 	      <select name="{{ form.regex_rules.name }}" id="id_{{ form.regex_rules.name }}" class="form-control" multiple="multiple">
@@ -191,19 +202,7 @@
               {% if form.regex_rules.errors %}{{ form.regex_rules.errors }}{% endif %}
             </div>
 	    </div>
-	    <div class="form-group">
-          </div></div>
-            <div id="{{ form.whitelisted_names.auto_id }}_container" class="col-sm-12{% if form.whitelisted_names.errors %} has-error{% endif %}">
-	      <div class="form-group">
-	      <label class="control-label" for="id_{{ form.whitelisted_names.name }}">{{ form.whitelisted_names.label }}</label>
-	      <textarea name="{{ form.whitelisted_names.name }}" id="id_{{ form.whitelisted_names.name }}" class="form-control" rows="3">{{ form.whitelisted_names.value }}</textarea>
-	      {% if form.whitelisted_names.help_text %}
-	      <p>
-		<small>{{ form.whitelisted_names.help_text }}</small>
-	      </p>
-	      {% endif %}
-              </div>
-	    </div>
+          </div>
       </div>
       <div class="tab-pane" id="interval">
         <div class="col-sm-12 form-group">
