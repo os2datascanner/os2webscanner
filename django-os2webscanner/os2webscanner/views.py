@@ -566,12 +566,12 @@ class CSVReportDetails(ReportDetails):
         """Generate a CSV file and return it as the http response."""
         scan = self.get_object()
         response = HttpResponse(content_type='text/csv')
-        report_file = '{0}{1}.csv'.format(
-            scan.scanner.organization.name.replace(' ', '_'),
+        report_file = u'{0}{1}.csv'.format(
+            scan.scanner.organization.name.replace(u' ', u'_'),
             scan.id)
         response[
             'Content-Disposition'
-        ] = 'attachment; filename={0}'.format(report_file)
+        ] = u'attachment; filename={0}'.format(report_file)
         writer = csv.writer(response)
         all_matches = Match.objects.filter(scan=scan).order_by(
             '-sensitivity', 'url', 'matched_rule', 'matched_data'
