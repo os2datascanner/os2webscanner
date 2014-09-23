@@ -26,7 +26,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from recurrence.fields import RecurrenceField
 
-from .utils import notify_user
+from os2webscanner.utils import notify_user
 from django.conf import settings
 
 
@@ -146,11 +146,12 @@ class Domain(models.Model):
     @property
     def root_url(self):
         """Return the root url of the domain."""
+        url = self.url.replace('*.', '')
         if (not self.url.startswith('http://') and not
             self.url.startswith('https://')):
-            return 'http://%s/' % self.url
+            return 'http://%s/' % url
         else:
-            return self.url
+            return url
 
     @property
     def sitemap_full_path(self):
@@ -216,6 +217,16 @@ class Scanner(models.Model):
     do_ocr = models.BooleanField(default=True, verbose_name='Scan billeder?')
     do_cpr_modulus11 = models.BooleanField(default=True,
                                            verbose_name='Check modulus-11')
+    do_link_check = models.BooleanField(default=False,
+                                        verbose_name='Linkcheck')
+    do_external_link_check = models.BooleanField(default=False,
+                                                 verbose_name='Check ' +
+                                                              'externe links')
+    do_last_modified_check = models.BooleanField(default=True,
+                                                 verbose_name='Check ' +
+                                                              'Last-Modified')
+    do_last_modified_check_head_request = \
+        models.BooleanField(default=True, verbose_name='Brug HEAD request')
     regex_rules = models.ManyToManyField(RegexRule,
                                          blank=True,
                                          null=True,
@@ -410,6 +421,13 @@ class Url(models.Model):
     url = models.CharField(max_length=2048, verbose_name='Url')
     mime_type = models.CharField(max_length=256, verbose_name='Mime-type')
     scan = models.ForeignKey(Scan, null=False, verbose_name='Scan')
+    status_code = models.IntegerField(blank=True, null=True,
+                                      verbose_name='Status code')
+    status_message = models.CharField(blank=True, null=True, max_length=256,
+                                      verbose_name='Status ' + 'Message')
+    referrers = models.ManyToManyField("ReferrerUrl",
+                                       related_name='linked_urls',
+                                       null=True, verbose_name='Referrers')
 
     def __unicode__(self):
         """Return the URL."""
@@ -497,3 +515,31 @@ class ConversionQueueItem(models.Model):
             self.url.scan.scan_dir,
             'queue_item_%d' % (self.pk)
         )
+
+
+class ReferrerUrl(models.Model):
+
+    """A representation of a referrer URL."""
+
+    url = models.CharField(max_length=2048, verbose_name='Url')
+    scan = models.ForeignKey(Scan, null=False, verbose_name='Scan')
+
+    def __unicode__(self):
+        """Return the URL."""
+        return self.url
+
+
+class UrlLastModified(models.Model):
+
+    """A representation of a URL, its last-modifed date, and its links."""
+
+    url = models.CharField(max_length=2048, verbose_name='Url')
+    last_modified = models.DateTimeField(blank=True, null=True,
+                                    verbose_name='Last-modified')
+    links = models.ManyToManyField("self", symmetrical=False,
+                                    null=True, verbose_name='Links')
+    scanner = models.ForeignKey(Scanner, null=False, verbose_name='Scanner')
+
+    def __unicode__(self):
+        """Return the URL and last modified date."""
+        return "<%s %s>" % (self.url, self.last_modified)

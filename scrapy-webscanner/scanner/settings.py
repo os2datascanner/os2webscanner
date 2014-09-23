@@ -36,12 +36,18 @@ SPIDER_MIDDLEWARES = {
     'scanner.middlewares.NoSubdomainOffsiteMiddleware': 500,
 
     'scanner.middlewares.ExclusionRuleMiddleware': 1000,
+    'scanner.middlewares.LastModifiedLinkStorageMiddleware': 1100
 }
 
 DOWNLOADER_MIDDLEWARES = {
     'scrapy.contrib.downloadermiddleware.redirect.RedirectMiddleware': None,
     'scanner.middlewares.OffsiteRedirectMiddleware': 600,
+    'scanner.middlewares.OffsiteDownloaderMiddleware': 1000,
+    'scanner.middlewares.ExclusionRuleDownloaderMiddleware': 1100,
+    'scanner.middlewares.LastModifiedCheckMiddleware': 1200,
 }
+
+LOG_LEVEL = 'DEBUG'
 
 # Set to True in testing to avoid pegging websites, if only testing processing
 # MUST BE REMOVED IN PRODUCTION!!
@@ -55,3 +61,9 @@ USER_AGENT = 'OS2Webscanner'
 #   This is the default in Scrapy, but we are explicit here just in case they
 #   ever change it.
 ROBOTSTXT_OBEY = False
+
+DOWNLOAD_TIMEOUT = 10
+
+WEBSERVICE_ENABLED = False
+
+TELNETCONSOLE_ENABLED = False
