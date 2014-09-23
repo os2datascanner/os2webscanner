@@ -1,3 +1,4 @@
+"""Sample testing of the Python webscanner client."""
 from getpass import getpass
 
 from webscanner_client import WebscannerClient
