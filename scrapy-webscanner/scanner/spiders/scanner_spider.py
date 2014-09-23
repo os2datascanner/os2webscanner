@@ -56,15 +56,6 @@ class ScannerSpider(BaseScannerSpider):
 
         self.start_urls = []
 
-        # TODO: Starting URLs and domains should be specified separately?
-        for url in self.allowed_domains:
-            if (not url.startswith('http://')
-                and not url.startswith('https://')):
-                url = 'http://%s/' % url
-            # Remove wildcards
-            url = url.replace('*.', '')
-            self.start_urls.append(url)
-
         if self.scanner.scanner_object.process_urls:
             # If the scan is run from a web service, use the starting urls
             # from the scanner.
@@ -77,6 +68,8 @@ class ScannerSpider(BaseScannerSpider):
                 if (not url.startswith('http://')
                     and not url.startswith('https://')):
                     url = 'http://%s/' % url
+                # Remove wildcards
+                url = url.replace('*.', '')
                 self.start_urls.append(url)
 
 
