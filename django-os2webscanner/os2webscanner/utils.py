@@ -16,6 +16,8 @@
 
 """Utility methods for the OS2Webscanner project."""
 
+import time
+
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.template import loader, Context
@@ -54,6 +56,7 @@ def notify_user(scan):
         raise
 
 
+
 def capitalize_first(s):
     """Capitalizes the first letter of a string, leaving the others alone."""
     if s is None or len(s) < 1:
@@ -61,3 +64,28 @@ def capitalize_first(s):
     return s.replace(s[0], s[0].upper(), 1)
 
 import models
+
+
+def do_scan(user, urls):
+    """Create a scanner to scan a list of URLs.
+
+    The 'urls' parameter may be either http:// or file:// URLS - we expect the
+    scanner to handle this distinction transparently. The list is assumed to be
+    well-formed and denote existing files/URLs. The consequences of load errors
+    etc. should be in the report.
+    """
+    # TODO: Scan the listed URLs and return result to user
+    scanner = models.Scanner()
+    scanner.organization = user.get_profile().organization
+    scanner.name = user.username + '-' + str(time.time())
+    scanner.do_run_synchronously = True
+    scanner.process_urls = urls
+    scanner.is_visible = False
+
+    scanner.save()
+    for domain in scanner.organization.domains.all():
+        scanner.domains.add(domain)
+    scanner.run()
+
+    scan = scanner.scans.all()[0]
+    return scan
