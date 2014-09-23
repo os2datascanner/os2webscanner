@@ -115,13 +115,9 @@ class ScannerSpider(BaseScannerSpider):
 
     def parse(self, response):
         """Process a response and follow all links."""
-<<<<<<< HEAD
-        requests = self._extract_requests(response)
-=======
         r = []
         if self.crawl:
             r.extend(self._extract_requests(response))
->>>>>>> feature/10817_webservice
         self.scan(response)
 
         # Store referrer when doing link checks

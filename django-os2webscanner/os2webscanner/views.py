@@ -600,7 +600,8 @@ class CSVReportDetails(ReportDetails):
         # Print summary
         writer.writerow(e([str(scan.start_time),
             str(scan.end_time), scan.get_status_display(),
-            str(context['no_of_matches']), str(context['no_of_broken_links'])]))
+            str(context['no_of_matches']), str(context['no_of_broken_links'])])
+        )
         if all_matches:
             # Print match header
             writer.writerow(e([u'URL', u'Regel', u'Match', u'Følsomhed']))

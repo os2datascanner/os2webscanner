@@ -89,6 +89,7 @@ def load_whitelist(whitelist):
 
 
 class NameRule(Rule):
+
     """Represents a rule which scans for Full Names in text.
 
     The rule loads a list of names from first and last name files and matches

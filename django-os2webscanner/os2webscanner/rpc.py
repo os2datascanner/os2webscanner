@@ -119,8 +119,9 @@ def get_status(username, password, report_url):
     )
     return result
 
+
 def get_report(username, password, report_url):
-    """Retrieves a report in CSV format, e.g. to parse or to save in a file.
+    """Retrieve a report in CSV format, e.g. to parse or to save in a file.
 
     Parameters:
         * username
