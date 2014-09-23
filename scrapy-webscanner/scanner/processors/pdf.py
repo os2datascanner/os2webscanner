@@ -42,10 +42,18 @@ class PDFProcessor(Processor):
         new_file_path = os.path.join(tmp_dir, os.path.basename(item.file_path))
         if item.file_path != new_file_path:
             shutil.move(item.file_path, tmp_dir)
-        return_code = subprocess.call([
-            "pdftohtml", "-noframes", "-hidden", "-enc", "UTF-8",
-            "-q", new_file_path
-        ])
+
+        extra_options = []
+        if not item.url.scan.scanner.do_ocr:
+            # Ignore images in PDFs if no OCR scanning will be done
+            extra_options.append("-i")
+
+        command = ["pdftohtml"]
+        command.extend(["-noframes", "-hidden", "-enc",
+                        "UTF-8", "-q"])
+        command.extend(extra_options)
+        command.append(new_file_path)
+        return_code = subprocess.call(command)
 
         if return_code != 0:
             return False

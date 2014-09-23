@@ -23,6 +23,7 @@ item for too long.
 """
 
 import os
+import shutil
 import sys
 import subprocess
 import time
@@ -185,6 +186,9 @@ try:
                 restart_process(stuck_process)
             else:
                 p.status = ConversionQueueItem.FAILED
+                # Clean up failed conversion temp dir
+                if os.access(p.tmp_dir, os.W_OK):
+                    shutil.rmtree(p.tmp_dir, True)
                 p.save()
 
         try:
