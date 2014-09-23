@@ -17,7 +17,6 @@
 """Contains Django views."""
 
 import csv
-
 from django import forms
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.http import Http404, HttpResponse
@@ -32,7 +31,7 @@ from django.conf import settings
 
 from .validate import validate_domain, get_validation_str
 
-from .models import Scanner, Domain, RegexRule, Scan, Match, UserProfile
+from .models import Scanner, Domain, RegexRule, Scan, Match, UserProfile, Url
 
 
 class LoginRequiredMixin(View):
@@ -77,6 +76,11 @@ class ScannerList(RestrictedListView):
 
     model = Scanner
     template_name = 'os2webscanner/scanners.html'
+
+    def get_queryset(self):
+        """Get queryset, don't include non-visible scanners."""
+        qs = super(ScannerList, self).get_queryset()
+        return qs.filter(is_visible=True)
 
 
 class DomainList(RestrictedListView):
@@ -123,6 +127,7 @@ class ReportList(RestrictedListView):
                 reports = self.model.objects.filter(
                     scanner__organization=None
                 )
+        reports = reports.filter(scanner__is_visible=True)
         return reports.order_by('-start_time')
 
 
@@ -209,6 +214,8 @@ class ScannerCreate(RestrictedCreateView):
     model = Scanner
     fields = ['name', 'schedule', 'whitelisted_names', 'domains',
               'do_cpr_scan', 'do_cpr_modulus11', 'do_name_scan', 'do_ocr',
+              'do_link_check', 'do_external_link_check',
+              'do_last_modified_check', 'do_last_modified_check_head_request',
               'regex_rules']
 
     def get_form(self, form_class):
@@ -243,6 +250,8 @@ class ScannerUpdate(RestrictedUpdateView):
     model = Scanner
     fields = ['name', 'schedule', 'whitelisted_names', 'domains',
               'do_cpr_scan', 'do_cpr_modulus11', 'do_name_scan', 'do_ocr',
+              'do_link_check', 'do_external_link_check',
+              'do_last_modified_check', 'do_last_modified_check_head_request',
               'regex_rules']
 
     def get_success_url(self):
@@ -501,6 +510,7 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
     model = Scan
     template_name = 'os2webscanner/report.html'
     context_object_name = "scan"
+    full = False
 
     def get_queryset(self):
         """Get the queryset for the view.
@@ -525,8 +535,16 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
             scan=self.get_object()
         ).order_by('-sensitivity', 'url', 'matched_rule', 'matched_data')
 
+        broken_urls = Url.objects.filter(
+            scan=self.get_object()
+        ).exclude(status_code__isnull=True).order_by('url')
+
+        context['full_report'] = self.full
+        context['broken_urls'] = broken_urls
+        context['no_of_broken_links'] = broken_urls.count()
         context['matches'] = all_matches[:100]
-        context['no_of_matches'] = all_matches.count()
+        context['all_matches'] = all_matches
+        context['no_of_matches'] = all_matches.count() + broken_urls.count()
         context['reports_url'] = settings.SITE_URL + '/reports/'
         context['failed_conversions'] = (
             self.object.get_number_of_failed_conversions()
@@ -573,25 +591,34 @@ class CSVReportDetails(ReportDetails):
             'Content-Disposition'
         ] = u'attachment; filename={0}'.format(report_file)
         writer = csv.writer(response)
-        all_matches = Match.objects.filter(scan=scan).order_by(
-            '-sensitivity', 'url', 'matched_rule', 'matched_data'
-        )
+        all_matches = context['all_matches']
         # CSV utilities
         e = lambda fields: ([f.encode('utf-8') for f in fields])
         # Print summary header
         writer.writerow(e([u'Starttidspunkt', u'Sluttidspunkt', u'Status',
-                        u'Totalt antal matches']))
+                        u'Totalt antal matches', u'Total antal broken links']))
         # Print summary
         writer.writerow(e([str(scan.start_time),
             str(scan.end_time), scan.get_status_display(),
-            str(len(all_matches))]))
-        # Print match header
-        writer.writerow(e([u'URL', u'Regel', u'Match', u'Følsomhed']))
-        for match in all_matches:
-            writer.writerow(e([match.url.url,
-                             match.get_matched_rule_display(),
-                             match.matched_data.replace('\n', ''),
-                             match.get_sensitivity_display()]))
+            str(context['no_of_matches']), str(context['no_of_broken_links'])])
+        )
+        if all_matches:
+            # Print match header
+            writer.writerow(e([u'URL', u'Regel', u'Match', u'Følsomhed']))
+            for match in all_matches:
+                writer.writerow(e([match.url.url,
+                                 match.get_matched_rule_display(),
+                                 match.matched_data.replace('\n', ''),
+                                 match.get_sensitivity_display()]))
+        broken_urls = context['broken_urls']
+        if broken_urls:
+            # Print broken link header
+            writer.writerow(e([u'Referrers', u'URL', u'Status']))
+            for url in broken_urls:
+                for referrer in url.referrers.all():
+                    writer.writerow(e([referrer.url,
+                                   url.url,
+                                   url.status_message]))
         return response
 
 

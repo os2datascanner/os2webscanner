@@ -8,3 +8,4 @@ chardet
 python-magic
 python-dateutil
 django-recurrence
+django-xmlrpc

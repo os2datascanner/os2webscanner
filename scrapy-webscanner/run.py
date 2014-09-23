@@ -16,6 +16,9 @@
 # source municipalities ( http://www.os2web.dk/ )
 
 """Run a scan by Scan ID."""
+import collections
+import urllib2
+from urlparse import urlparse
 
 import os
 import sys
@@ -25,19 +28,25 @@ base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(base_dir + "/webscanner_site")
 os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 
+os.umask(0007)
+
 os.environ["SCRAPY_SETTINGS_MODULE"] = "scanner.settings"
 
 from twisted.internet import reactor
-from scrapy.crawler import Crawler
+from scrapy.crawler import Crawler, CrawlerProcess
 from scrapy import log, signals
 from scrapy.utils.project import get_project_settings
 from scanner.spiders.scanner_spider import ScannerSpider
+from scanner.spiders.sitemap import SitemapURLGathererSpider
+
 from scrapy.exceptions import DontCloseSpider
 
 from django.utils import timezone
 
 from scanner.scanner.scanner import Scanner
-from os2webscanner.models import Scan, ConversionQueueItem
+from os2webscanner.models import Scan, ConversionQueueItem, Url, ReferrerUrl
+
+import linkchecker
 
 from scanner.processors import *
 
@@ -54,6 +63,33 @@ def signal_handler(signal, frame):
 
 
 signal.signal(signal.SIGINT | signal.SIGTERM, signal_handler)
+
+
+class OrderedCrawlerProcess(CrawlerProcess):
+
+    """Override CrawlerProcess to use an ordered dict."""
+
+    def __init__(self, *a, **kw):
+        """Initialize the CrawlerProcess with an OrderedDict of crawlers."""
+        super(OrderedCrawlerProcess, self).__init__(*a, **kw)
+        self.crawlers = collections.OrderedDict()
+
+    def _start_crawler(self):
+        """Override this method to pop the first crawler instead of last."""
+        if not self.crawlers or self.stopping:
+            return
+
+        name, crawler = self.crawlers.popitem(last=False)
+        self._active_crawler = crawler
+        sflo = log.start_from_crawler(crawler)
+        crawler.configure()
+        crawler.install()
+        crawler.signals.connect(crawler.uninstall, signals.engine_stopped)
+        if sflo:
+            crawler.signals.connect(sflo.stop, signals.engine_stopped)
+        crawler.signals.connect(self._check_done, signals.engine_stopped)
+        crawler.start()
+        return name, crawler
 
 
 class ScannerApp:
@@ -80,8 +116,28 @@ class ScannerApp:
         self.scanner = Scanner(self.scan_id)
 
     def run(self):
-        """Run the scanner."""
-        self.run_spider()
+        """Run the scanner, blocking until finished."""
+        settings = get_project_settings()
+
+        self.crawler_process = OrderedCrawlerProcess(settings)
+
+        self.sitemap_spider = self.setup_sitemap_spider()
+        self.scanner_spider = self.setup_scanner_spider()
+
+        # Run the crawlers and block
+        self.crawler_process.start()
+
+        if (self.scanner.scanner_object.do_link_check
+                and self.scanner.scanner_object.do_external_link_check):
+            # Do external link check
+            self.external_link_check(self.scanner_spider.external_urls)
+
+        # Update scan status
+        scan_object = Scan.objects.get(pk=self.scan_id)
+        scan_object.status = Scan.DONE
+        scan_object.pid = None
+        scan_object.reason = ""
+        scan_object.save()
 
     def handle_killed(self):
         """Handle being killed by updating the scan status."""
@@ -92,29 +148,52 @@ class ScannerApp:
         # TODO: Remove all non-processed conversion queue items.
         self.scan_object.save()
 
-    def run_spider(self):
-        """Run the scanner spider and block until it finishes."""
-        spider = ScannerSpider(self.scanner)
-        settings = get_project_settings()
-        crawler = Crawler(settings)
+    def setup_sitemap_spider(self):
+        """Setup the sitemap spider."""
+        crawler = self.crawler_process.create_crawler("sitemap")
+        sitemap_spider = SitemapURLGathererSpider(
+            scanner=self.scanner,
+            sitemap_urls=self.scanner.get_sitemap_urls(),
+            sitemap_alternate_links=True
+        )
+        crawler.crawl(sitemap_spider)
+        return sitemap_spider
+
+    def setup_scanner_spider(self):
+        """Setup the scanner spider."""
+        crawler = self.crawler_process.create_crawler("scanner")
+        spider = ScannerSpider(self.scanner, self)
         crawler.signals.connect(self.handle_closed,
                                 signal=signals.spider_closed)
         crawler.signals.connect(self.handle_error, signal=signals.spider_error)
         crawler.signals.connect(self.handle_idle, signal=signals.spider_idle)
-        crawler.configure()
         crawler.crawl(spider)
-        crawler.start()
-        log.start()
-        # the script will block here until the spider_closed signal was sent
-        reactor.run()
+        return spider
+
+    def get_start_urls_from_sitemap(self):
+        """Return the URLs found by the sitemap spider."""
+        return self.sitemap_spider.get_urls()
+
+    def external_link_check(self, external_urls):
+        """Perform external link checking."""
+        print "Link checking %d external URLs..." % len(external_urls)
+        for url in external_urls:
+            url_parse = urlparse(url)
+            if url_parse.scheme not in ("http", "https"):
+                # We don't want to allow external URL checking of other
+                # schemes (file:// for example)
+                continue
+            print "Checking external URL %s" % url
+            result = linkchecker.check_url(url)
+            if result is not None:
+                broken_url = Url(url=url, scan=self.scan_object,
+                                 status_code=result["status_code"],
+                                 status_message=result["status_message"])
+                broken_url.save()
+                self.scanner_spider.associate_url_referrers(broken_url)
 
     def handle_closed(self, spider, reason):
-        """Handle the spider being finished, by updating scan status."""
-        scan_object = Scan.objects.get(pk=self.scan_id)
-        scan_object.status = Scan.DONE
-        scan_object.pid = None
-        scan_object.reason = ""
-        scan_object.save()
+        """Handle the spider being finished."""
         # TODO: Check reason for if it was finished, cancelled, or shutdown
         reactor.stop()
 

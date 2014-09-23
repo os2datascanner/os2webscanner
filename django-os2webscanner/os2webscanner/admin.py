@@ -23,10 +23,11 @@ from django.contrib.auth.admin import UserAdmin
 
 from .models import Organization, UserProfile, Domain, RegexRule, Scanner
 from .models import Scan, Match, Url, ConversionQueueItem
+from .models import ReferrerUrl, UrlLastModified
 
 ar = admin.site.register
 classes = [Organization, Domain, RegexRule, Scanner, Scan, Match,
-           Url, ConversionQueueItem]
+           Url, ConversionQueueItem, ReferrerUrl, UrlLastModified]
 map(ar, classes)
 
 

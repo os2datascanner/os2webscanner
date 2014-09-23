@@ -16,11 +16,18 @@
 """HTML Processors."""
 
 from processor import Processor
-from w3lib.html import remove_tags, replace_entities
+from w3lib.html import replace_entities
 
 from text import TextProcessor
 from scrapy import log
 import os
+
+import regex
+
+# Match all tags but comments
+_html_tag_re = regex.compile('<[a-zA-Z\/].*?>', regex.DOTALL | regex.UNICODE)
+# Match all whitespace except inside comment tags
+_whitespace_re = regex.compile('(?<!\\<\\!--)\\s+(?!-->)', regex.UNICODE)
 
 
 class HTMLProcessor(Processor):
@@ -52,11 +59,18 @@ class HTMLProcessor(Processor):
         processing with TextProcessor.
         """
         log.msg("Process HTML %s" % url_object.url)
+
         # Convert HTML entities to their unicode representation
         entity_replaced_html = replace_entities(data)
-        # Strip tags from the HTML (except comments)
-        no_tags_html = remove_tags(entity_replaced_html, keep=("!--",))
-        return self.text_processor.process(no_tags_html, url_object)
 
+        # Collapse whitespace (including newlines), since extra whitespace is
+        # not significant in HTML (except inside comment tags)
+        collapsed_html = _whitespace_re.sub(' ', entity_replaced_html)
+
+        # Replace tags with <> character to make sure text processor
+        # doesn't match across tag boundaries.
+        replace_tags_text = _html_tag_re.sub('<>', collapsed_html)
+
+        return self.text_processor.process(replace_tags_text, url_object)
 
 Processor.register_processor(HTMLProcessor.item_type, HTMLProcessor)

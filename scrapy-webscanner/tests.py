@@ -29,6 +29,30 @@ import unittest
 from scanner.rules import cpr, name
 import re
 
+import linkchecker
+
+
+class ExternalLinkCheckerTest(unittest.TestCase):
+
+    """Test the external link checker."""
+
+    def test_checker(self):
+        """Test the link checker."""
+        # Google should be OK
+        self.assertIsNone(linkchecker.check_url(
+            "http://www.google.com/"))
+
+        # Test 404 error
+        res = linkchecker.check_url(
+            "http://google.com/asdasdfasdgfr4rter.html")
+        self.assertIsNotNone(res)
+        # Check status code is correct
+        self.assertEquals(res["status_code"], 404)
+
+        # Random domain is not OK
+        self.assertIsNotNone(linkchecker.check_url(
+            "http://asdfasdfasdf324afddsfasdf/"))
+
 
 class NameTest(unittest.TestCase):
 
@@ -40,23 +64,25 @@ class NameTest(unittest.TestCase):
             Jens Jensen
             Jim Smith Jones
             sdfsdsad Asdfsddsfasd
+            Lars L. Larsen
+            Lars Lars Lars Larsen
+            James Thomas Jones Smith
             """
         # whitelist = """
         # Jim Smiths
         # """
-        valid_names = ['Jens Jensen', 'Jensen Jim', 'Jim Smith',
-                       'Jens Jensen Jim', 'Jensen Jim Smith',
-                       'Jens Jensen Jim Smith',
-                       'Smith Jones', 'Jim Smith Jones',
-                       'Jensen Jim Smith Jones']
+        valid_names = ['Jens Jensen', 'Jim Smith Jones',
+                       'Lars L. Larsen', 'Lars Lars Lars Larsen']
         invalid_names = ['sdfsdsad Asdfsddsfasd']
         matches = name.NameRule().execute(text)
         matches = [re.sub('\s+', ' ', m['matched_data']) for m in matches]
         print matches
         for valid_name in valid_names:
-            self.assertTrue(any(m == valid_name for m in matches))
+            self.assertTrue(any(m == valid_name for m in matches),
+                            valid_name + " is valid")
         for invalid_name in invalid_names:
-            self.assertFalse(any(m == invalid_name for m in matches))
+            self.assertFalse(any(m == invalid_name for m in matches),
+                             invalid_name + " is valid")
 
 
 class CPRTest(unittest.TestCase):

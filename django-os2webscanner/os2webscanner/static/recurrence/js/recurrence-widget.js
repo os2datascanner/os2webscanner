@@ -178,7 +178,7 @@ recurrence.widget.Calendar.prototype = {
                     if (this.date.getDate() == number &&
                         this.date.getFullYear() == dt.getFullYear() &&
                         this.date.getMonth() == dt.getMonth())
-                        recurrence.widget.add_class(cell, 'active');
+                        recurrence.widget.add_class(cell, 'bg-success');
                     cell.innerHTML = number;
                     number = number + 1;
                     cell.onclick = function () {
@@ -246,9 +246,9 @@ recurrence.widget.Calendar.prototype = {
                     if (recurrence.widget.has_class(cell, 'day')) {
                         var number = parseInt(cell.innerHTML, 10);
                         if (number == day) {
-                            recurrence.widget.add_class(cell, 'active');
+                            recurrence.widget.add_class(cell, 'bg-success');
                         } else {
-                            recurrence.widget.remove_class(cell, 'active');
+                            recurrence.widget.remove_class(cell, 'bg-success');
                         }
                     }
                 });
@@ -306,7 +306,7 @@ recurrence.widget.DateSelector.prototype = {
             var date_value = '';
         var date_field = recurrence.widget.e(
             'input', {
-                'class': 'date-field', 'size': 10,
+                'class': 'form-control date-field', 'size': 10,
                 'value': date_value,
                 'onchange': function() {dateselector.set_date(this.value);}});
         var calendar_button = recurrence.widget.e(
@@ -480,7 +480,7 @@ recurrence.widget.Widget.prototype = {
         var panels = recurrence.widget.e('div', {'class': 'panels'});
         var control = recurrence.widget.e('div', {'class': 'control'});
         var root = recurrence.widget.e(
-            'div', {'class': this.textarea.className}, [panels, control]);
+            'div', {'class': this.textarea.className}, [control, panels]);
 
         var add_rule = new recurrence.widget.AddButton(
             recurrence.display.labels.add_rule, {
@@ -600,12 +600,14 @@ recurrence.widget.AddButton.prototype = {
         var addbutton = this;
 
         var plus = recurrence.widget.e(
-            'span', {'class': 'plus'}, '+');
+            'span', {'class': 'glyphicon glyphicon-plus-sign'}, '');
+	var space = recurrence.widget.e(
+	    'span', {},  '&nbsp;');
         var label = recurrence.widget.e(
             'span', {'class': 'recurrence-label'}, this.label);
         var root = recurrence.widget.e(
-            'a', {'class': 'add-button', 'href': 'javascript:void(0)'},
-            [plus, label]);
+            'a', {'class': 'btn btn-success add-button', 'href': 'javascript:void(0)'},
+            [label, space, plus]);
 
         root.onclick = function() {
             addbutton.options.onclick();
@@ -639,13 +641,13 @@ recurrence.widget.Panel.prototype = {
         var panel = this;
 
         var remove = recurrence.widget.e('a', {
-            'class': 'remove',
+            'class': 'remove btn btn-xs btn-danger',
             'href': 'javascript:void(0)',
             'title': recurrence.display.labels.remove,
             'onclick': function() {
                 panel.remove();
             }
-        }, '&times;');
+        }, '<span class="glyphicon glyphicon-remove"></span> Fjern');
         var label = recurrence.widget.e('a', {
            'class': 'recurrence-label',
            'href': 'javascript:void(0)',
@@ -657,11 +659,11 @@ recurrence.widget.Panel.prototype = {
            }
         }, '&nbsp;');
         var header = recurrence.widget.e(
-             'div', {'class': 'header'}, [remove, label]);
+             'div', {'class': 'panel-heading'}, [remove, label]);
         var body = recurrence.widget.e(
-            'div', {'class': 'body'});
+            'div', {'class': 'panel-body'});
         var root = recurrence.widget.e(
-            'div', {'class': 'panel'}, [header, body]);
+            'div', {'class': 'panel panel-default'}, [header, body]);
 
         this.elements = {
             'root': root, 'remove': remove, 'label': label,
@@ -739,7 +741,7 @@ recurrence.widget.RuleForm.prototype = {
         // mode
 
         var mode_checkbox = recurrence.widget.e(
-            'input', {'class': 'checkbox inline', 'type': 'checkbox', 'name': 'mode', 'id': 'mode'});
+            'input', {'class': 'checkbox-inline', 'type': 'checkbox', 'name': 'mode', 'id': 'mode'});
         var mode_label = recurrence.widget.e(
             'label', {'class': 'recurrence-label', 'for': 'mode'},
             recurrence.display.labels.exclude_occurrences);
@@ -764,7 +766,7 @@ recurrence.widget.RuleForm.prototype = {
                 return option;
             });
         var freq_select = recurrence.widget.e(
-            'select', {'name': 'freq', 'id': 'freq'}, freq_options);
+            'select', {'name': 'freq', 'id': 'freq', 'class': 'form-control'}, freq_options);
         var freq_label = recurrence.widget.e(
             'label', {'class': 'recurrence-label', 'for': 'freq'},
             recurrence.display.labels.frequency + ':');
@@ -776,7 +778,7 @@ recurrence.widget.RuleForm.prototype = {
 
         var interval_field = recurrence.widget.e(
             'input', {
-            'name': 'interval', 'type': 'text', 'size': 1, 'value': this.rule.interval, 'id': 'interval'});
+            'name': 'interval', 'type': 'text', 'size': 1, 'value': this.rule.interval, 'id': 'interval', 'class': 'form-control'});
         var interval_label1 = recurrence.widget.e(
             'label', {'class': 'recurrence-label', 'for': 'interval'},
             recurrence.display.labels.every);
@@ -794,7 +796,7 @@ recurrence.widget.RuleForm.prototype = {
         else
             until_value = '';
         var until_radio = recurrence.widget.e(
-            'input', {'class': 'radio inline', 'type': 'radio',
+            'input', {'class': 'radio-inline', 'type': 'radio',
                       'name': 'until_count', 'value': 'until', 'id': 'until'});
         var until_date_selector = new recurrence.widget.DateSelector(
             this.rule.until, {
@@ -816,10 +818,10 @@ recurrence.widget.RuleForm.prototype = {
             count_value = 1;
         var count_radio = recurrence.widget.e(
             'input', {
-                'class': 'radio inline', 'type': 'radio',
+                'class': 'radio-inline', 'type': 'radio',
                 'name': 'until_count', 'value': 'count', 'id': 'count'});
         var count_field = recurrence.widget.e(
-            'input', {'name': 'count', 'size': 1, 'value': count_value, 'type': 'text'});
+            'input', {'name': 'count', 'size': 1, 'value': count_value, 'type': 'text', 'class':'form-control'});
         if (this.rule.count && this.rule.count < 2)
             var token = recurrence.string.capitalize(
                 recurrence.display.labels.count);
@@ -841,7 +843,7 @@ recurrence.widget.RuleForm.prototype = {
             [until_container, count_container]);
         var limit_checkbox = recurrence.widget.e(
             'input', {
-                'class': 'checkbox inline', 'type': 'checkbox',
+                'class': 'checkbox-inline', 'type': 'checkbox',
                 'name': 'limit', 'id': 'limit'});
         var limit_label = recurrence.widget.e(
             'label', {'class': 'recurrence-label', 'for': 'limit'},
@@ -1116,14 +1118,14 @@ recurrence.widget.RuleYearlyForm.prototype = {
             for (var x=0; x < 4; x++) {
                 var cell = grid.cell(x, y);
                 if (this.rule.bymonth.indexOf(number + 1) > -1)
-                    recurrence.widget.add_class(cell, 'active');
+                    recurrence.widget.add_class(cell, 'bg-success');
                 cell.value = number + 1;
                 cell.innerHTML = recurrence.display.months_short[number];
                 cell.onclick = function () {
-                    if (recurrence.widget.has_class(this, 'active'))
-                        recurrence.widget.remove_class(this, 'active');
+                    if (recurrence.widget.has_class(this, 'bg-success'))
+                        recurrence.widget.remove_class(this, 'bg-success');
                     else
-                        recurrence.widget.add_class(this, 'active');
+                        recurrence.widget.add_class(this, 'bg-success');
                     form.set_bymonth();
                 };
                 number += 1;
@@ -1134,7 +1136,7 @@ recurrence.widget.RuleYearlyForm.prototype = {
 
         var byday_checkbox = recurrence.widget.e(
             'input', {
-                'class': 'checkbox inline', 'type': 'checkbox',
+                'class': 'checkbox-inline', 'type': 'checkbox',
                 'name': 'byday', 'id': 'byday'});
         var byday_label = recurrence.widget.e(
             'label', {'class': 'recurrence-label', 'for': 'byday'},
@@ -1155,7 +1157,7 @@ recurrence.widget.RuleYearlyForm.prototype = {
                 return option;
             });
         var position_select = recurrence.widget.e(
-            'select', {'name': 'position'}, position_options);
+            'select', {'name': 'position', 'class': 'form-control'}, position_options);
         var weekday_options = recurrence.array.foreach(
             recurrence.display.weekdays, function(weekday, i) {
                 var option = recurrence.widget.e(
@@ -1163,7 +1165,7 @@ recurrence.widget.RuleYearlyForm.prototype = {
                 return option;
             });
         var weekday_select = recurrence.widget.e(
-            'select', {'name': 'weekday'}, weekday_options);
+            'select', {'name': 'weekday', 'class': 'form-control'}, weekday_options);
         var weekday_position_container = recurrence.widget.e(
             'div', {'class': 'section'}, [position_select, weekday_select]);
 
@@ -1232,7 +1234,7 @@ recurrence.widget.RuleYearlyForm.prototype = {
         var bymonth = [];
         recurrence.array.foreach(
             this.elements.grid.cells, function(cell) {
-                if (recurrence.widget.has_class(cell, 'active'))
+                if (recurrence.widget.has_class(cell, 'bg-success'))
                     bymonth.push(cell.value);
             })
         this.rule.bymonth = bymonth;
@@ -1282,16 +1284,16 @@ recurrence.widget.RuleMonthlyForm.prototype = {
                 } else {
                     cell.innerHTML = number;
                     if (this.rule.bymonthday.indexOf(number) > -1)
-                        recurrence.widget.add_class(cell, 'active');
+                        recurrence.widget.add_class(cell, 'bg-success');
                     cell.onclick = function () {
                         if (monthday_grid.disabled)
                             return;
                         var day = parseInt(this.innerHTML, 10) || null;
                         if (day) {
-                            if (recurrence.widget.has_class(this, 'active'))
-                                recurrence.widget.remove_class(this, 'active');
+                            if (recurrence.widget.has_class(this, 'bg-success'))
+                                recurrence.widget.remove_class(this, 'bg-success');
                             else
-                                recurrence.widget.add_class(this, 'active');
+                                recurrence.widget.add_class(this, 'bg-success');
                             form.set_bymonthday();
                         }
                     }
@@ -1303,7 +1305,7 @@ recurrence.widget.RuleMonthlyForm.prototype = {
         monthday_grid_container.appendChild(monthday_grid.elements.root);
         var monthday_radio = recurrence.widget.e(
             'input', {
-                'class': 'radio inline', 'type': 'radio',
+                'class': 'radio-inline', 'type': 'radio',
                 'name': 'monthly', 'value': 'monthday', 'id': 'monthday'});
         var monthday_label = recurrence.widget.e(
             'label', {'class': 'recurrence-label', 'for': 'monthday'},
@@ -1324,7 +1326,7 @@ recurrence.widget.RuleMonthlyForm.prototype = {
                 return option;
             });
         var position_select = recurrence.widget.e(
-            'select', {'name': 'position'}, position_options);
+            'select', {'name': 'position', 'class': 'form-control'}, position_options);
 
         var weekday_options = recurrence.array.foreach(
             recurrence.display.weekdays, function(weekday, i) {
@@ -1333,12 +1335,12 @@ recurrence.widget.RuleMonthlyForm.prototype = {
                 return option;
             });
         var weekday_select = recurrence.widget.e(
-            'select', {'name': 'weekday'}, weekday_options);
+            'select', {'name': 'weekday', 'class': 'form-control'}, weekday_options);
         var weekday_position_container = recurrence.widget.e(
             'div', {'class': 'section'}, [position_select, weekday_select]);
         var weekday_radio = recurrence.widget.e(
             'input', {
-                'class': 'radio inline', 'type': 'radio',
+                'class': 'radio-inline', 'type': 'radio',
                 'name': 'monthly', 'value': 'weekday', 'id': 'weekday'});
         var weekday_label = recurrence.widget.e(
             'label', {'class': 'recurrence-label', 'for': 'weekday'},
@@ -1433,7 +1435,7 @@ recurrence.widget.RuleMonthlyForm.prototype = {
         recurrence.array.foreach(
             this.elements.monthday_grid.cells, function(cell) {
                 var day = parseInt(cell.innerHTML, 10) || null;
-                if (day && recurrence.widget.has_class(cell, 'active'))
+                if (day && recurrence.widget.has_class(cell, 'bg-success'))
                     monthdays.push(day);
             });
         this.rule.bymonthday = monthdays;
@@ -1473,16 +1475,16 @@ recurrence.widget.RuleWeeklyForm.prototype = {
         for (var x=0; x < 7; x++) {
             var cell = weekday_grid.cell(x, 0);
             if (days.indexOf(x) > -1)
-                recurrence.widget.add_class(cell, 'active');
+                recurrence.widget.add_class(cell, 'bg-success');
             cell.value = x;
             cell.innerHTML = recurrence.display.weekdays_short[x];
             cell.onclick = function () {
                 if (weekday_grid.disabled)
                     return;
-                if (recurrence.widget.has_class(this, 'active'))
-                    recurrence.widget.remove_class(this, 'active');
+                if (recurrence.widget.has_class(this, 'bg-success'))
+                    recurrence.widget.remove_class(this, 'bg-success');
                 else
-                    recurrence.widget.add_class(this, 'active');
+                    recurrence.widget.add_class(this, 'bg-success');
                 form.set_byday();
             };
         }
@@ -1504,7 +1506,7 @@ recurrence.widget.RuleWeeklyForm.prototype = {
         var byday = [];
         recurrence.array.foreach(
             this.elements.weekday_grid.cells, function(cell) {
-                if (recurrence.widget.has_class(cell, 'active'))
+                if (recurrence.widget.has_class(cell, 'bg-success'))
                     byday.push(new recurrence.Weekday(cell.value));
             });
         this.rule.byday = byday;
@@ -1568,7 +1570,7 @@ recurrence.widget.DateForm.prototype = {
 
         var mode_checkbox = recurrence.widget.e(
             'input', {
-                'class': 'checkbox inline', 'type': 'checkbox', 'name': 'mode', 'id': 'mode',
+                'class': 'checkbox-inline', 'type': 'checkbox', 'name': 'mode', 'id': 'mode',
                 'onclick': function() {
                     if (this.checked)
                         form.set_mode(recurrence.widget.EXCLUSION);

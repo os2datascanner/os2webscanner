@@ -22,11 +22,13 @@ import shutil
 from subprocess import Popen
 import re
 import datetime
+import json
+
 from django.db import models
 from django.contrib.auth.models import User
 from recurrence.fields import RecurrenceField
 
-from .utils import notify_user
+from os2webscanner.utils import notify_user
 from django.conf import settings
 
 
@@ -74,7 +76,7 @@ class UserProfile(models.Model):
                                      verbose_name='Organisation')
     user = models.ForeignKey(User,
                              unique=True,
-                             related_name='user_profile',
+                             related_name='profile',
                              verbose_name='Bruger')
 
     def __unicode__(self):
@@ -111,6 +113,7 @@ class Domain(models.Model):
     url = models.CharField(max_length=2048, verbose_name='Url')
     organization = models.ForeignKey(Organization,
                                      null=False,
+                                     related_name='domains',
                                      verbose_name='Organisation')
     validation_status = models.IntegerField(choices=validation_choices,
                                             default=INVALID,
@@ -146,11 +149,12 @@ class Domain(models.Model):
     @property
     def root_url(self):
         """Return the root url of the domain."""
+        url = self.url.replace('*.', '')
         if (not self.url.startswith('http://') and not
             self.url.startswith('https://')):
-            return 'http://%s/' % self.url
+            return 'http://%s/' % url
         else:
-            return self.url
+            return url
 
     @property
     def sitemap_full_path(self):
@@ -212,14 +216,48 @@ class Scanner(models.Model):
     domains = models.ManyToManyField(Domain, related_name='scanners',
                                      null=False, verbose_name='Domæner')
     do_cpr_scan = models.BooleanField(default=True, verbose_name='CPR')
-    do_name_scan = models.BooleanField(default=True, verbose_name='Navn')
-    do_ocr = models.BooleanField(default=True, verbose_name='Scan billeder?')
+    do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
+    do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder?')
     do_cpr_modulus11 = models.BooleanField(default=True,
                                            verbose_name='Check modulus-11')
+    do_link_check = models.BooleanField(default=False,
+                                        verbose_name='Linkcheck')
+    do_external_link_check = models.BooleanField(default=False,
+                                                 verbose_name='Check ' +
+                                                              'externe links')
+    do_last_modified_check = models.BooleanField(default=True,
+                                                 verbose_name='Check ' +
+                                                              'Last-Modified')
+    do_last_modified_check_head_request = \
+        models.BooleanField(default=True, verbose_name='Brug HEAD request')
     regex_rules = models.ManyToManyField(RegexRule,
                                          blank=True,
                                          null=True,
                                          verbose_name='Regex regler')
+
+    # DON'T USE DIRECTLY !!!
+    # Use process_urls property instead.
+    encoded_process_urls = models.CharField(
+        max_length=262144,
+        null=True,
+        blank=True
+    )
+    # Booleans for control of scanners run from web service.
+    do_run_synchronously = models.BooleanField(default=False)
+    is_visible = models.BooleanField(default=True)
+
+    def _get_process_urls(self):
+        s = self.encoded_process_urls
+        if s:
+            urls = json.loads(s)
+        else:
+            urls = []
+        return urls
+
+    def _set_process_urls(self, urls):
+        self.encoded_process_urls = json.dumps(urls)
+
+    process_urls = property(_get_process_urls, _set_process_urls)
 
     # First possible start time
     FIRST_START_TIME = datetime.time(18, 0)
@@ -309,7 +347,8 @@ class Scan(models.Model):
 
     """An actual instance of the scanning process done by a scanner."""
 
-    scanner = models.ForeignKey(Scanner, null=False, verbose_name='Scanner')
+    scanner = models.ForeignKey(Scanner, null=False, verbose_name='Scanner',
+                                related_name='scans')
     start_time = models.DateTimeField(blank=True, null=True,
                                       verbose_name='Starttidspunkt')
     end_time = models.DateTimeField(blank=True, null=True,
@@ -402,6 +441,11 @@ class Scan(models.Model):
         super(Scan, self).__init__(*args, **kwargs)
         self._old_status = self.status
 
+    def get_absolute_url(self):
+        """Get the URL for this report - used to format URLs."""
+        from django.core.urlresolvers import reverse
+        return reverse('report', args=[str(self.id)])
+
 
 class Url(models.Model):
 
@@ -410,6 +454,13 @@ class Url(models.Model):
     url = models.CharField(max_length=2048, verbose_name='Url')
     mime_type = models.CharField(max_length=256, verbose_name='Mime-type')
     scan = models.ForeignKey(Scan, null=False, verbose_name='Scan')
+    status_code = models.IntegerField(blank=True, null=True,
+                                      verbose_name='Status code')
+    status_message = models.CharField(blank=True, null=True, max_length=256,
+                                      verbose_name='Status ' + 'Message')
+    referrers = models.ManyToManyField("ReferrerUrl",
+                                       related_name='linked_urls',
+                                       null=True, verbose_name='Referrers')
 
     def __unicode__(self):
         """Return the URL."""
@@ -497,3 +548,31 @@ class ConversionQueueItem(models.Model):
             self.url.scan.scan_dir,
             'queue_item_%d' % (self.pk)
         )
+
+
+class ReferrerUrl(models.Model):
+
+    """A representation of a referrer URL."""
+
+    url = models.CharField(max_length=2048, verbose_name='Url')
+    scan = models.ForeignKey(Scan, null=False, verbose_name='Scan')
+
+    def __unicode__(self):
+        """Return the URL."""
+        return self.url
+
+
+class UrlLastModified(models.Model):
+
+    """A representation of a URL, its last-modifed date, and its links."""
+
+    url = models.CharField(max_length=2048, verbose_name='Url')
+    last_modified = models.DateTimeField(blank=True, null=True,
+                                    verbose_name='Last-modified')
+    links = models.ManyToManyField("self", symmetrical=False,
+                                    null=True, verbose_name='Links')
+    scanner = models.ForeignKey(Scanner, null=False, verbose_name='Scanner')
+
+    def __unicode__(self):
+        """Return the URL and last modified date."""
+        return "<%s %s>" % (self.url, self.last_modified)

@@ -23,6 +23,7 @@ item for too long.
 """
 
 import os
+import shutil
 import sys
 import subprocess
 import time
@@ -32,6 +33,8 @@ from datetime import timedelta
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(base_dir + "/webscanner_site")
 os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
+
+os.umask(0007)
 
 from django.utils import timezone
 from django.db import transaction, IntegrityError, DatabaseError
@@ -183,6 +186,9 @@ try:
                 restart_process(stuck_process)
             else:
                 p.status = ConversionQueueItem.FAILED
+                # Clean up failed conversion temp dir
+                if os.access(p.tmp_dir, os.W_OK):
+                    shutil.rmtree(p.tmp_dir, True)
                 p.save()
 
         try:
