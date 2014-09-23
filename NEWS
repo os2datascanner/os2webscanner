@@ -1,0 +1,16 @@
+* Version 1.1.0, September 23, 2014
+
+New in this version:
+
+ - Better parsing of names to avoid false positives.
+ - Linkchecker functionality included.
+ - Modulus-11 tweaking.
+ - A huge number of minor GUI fixes.
+ - Web service for scanning URLs or documents from other programs etc.
+ - Set proper permissions for scan data. 
+ - Use Last-Modified check to disregard previous scans.
+ - Allow scanning of subdomains.
+ - Disk usage/disk performance improvements.
+ - 10 seconds timeout on PDF files in the link checker.
+
+
