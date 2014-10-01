@@ -195,19 +195,3 @@ You need to start the _process manager_ background process in order to get actua
 ```
 sudo -u www-data -b /home/os2/os2webscanner/scrapy-webscanner/start_process_manager.sh
 ```
-
-## Creating an organization and adding a user to it:
-
-Visit the os2webscanner site that you just created.
-
-Add the following to the site URL: `/admin` to enter the Django admin
-interface.
-
-Login with the user you created (when running `python manage.py syncdb`).
-Add an "Organization", giving it a name, email, and phone number.
-
-Return to the main admin page and click "Brugere".
-Click the username that you would like to add to the organization.
-
-At the bottom of the page, under "User profiles", change the "Organisation"
-to the organization and save.
