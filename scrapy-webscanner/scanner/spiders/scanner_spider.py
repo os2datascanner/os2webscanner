@@ -115,9 +115,10 @@ class ScannerSpider(BaseScannerSpider):
 
     def parse(self, response):
         """Process a response and follow all links."""
-        r = []
         if self.crawl:
-            r.extend(self._extract_requests(response))
+            requests = self._extract_requests(response)
+        else:
+            requests = []
         self.scan(response)
 
         # Store referrer when doing link checks
