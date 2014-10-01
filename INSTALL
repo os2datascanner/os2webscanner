@@ -2,19 +2,33 @@
 
 ## System requirements
 
-We recommend that any server that you wish to use for running this scanner must have at least 4GB RAM, a CPU with 4 cores and at least as much free disk space as used by the web sites you want to scan.
+We recommend that any server that you wish to use for running this scanner must
+have at least 4GB RAM, a CPU with 4 cores and at least as much free disk space
+as used by the web sites you want to scan.
 
 *Note:* The installer is currently only set up to work with Debian-like
 GNU/Linux systems, as it depends on the `apt` package management system.
-Magenta has tested the system on _Ubuntu 12.04 only_, but it should work without problem on all recent Debian-like systems.
+Magenta has tested the system on _Ubuntu 12.04 only_, but it should work
+without problem on all recent Debian-like systems.
 
 If you wish to run the system on a non-Debian-like GNU/Linux system or on
 FreeBSD or OSX, you will have to modify `install.sh` yourself to handle the
-package managers, package names and dependencies in these systems. Also note that the setup of Apache is different on such systems.
+package managers, package names and dependencies in these systems. Also note
+that the setup of Apache is different on such systems.
 
-*Note:* The Apache configuration file delivered with version 1.1.0 of the OS2Webscanner is for Apache <= 2.2  and will *not* work on Apache 2.4. A configuration file for Apache 2.4 will be supplied in future versions. In the meantime, please refer to http://httpd.apache.org/docs/2.4/upgrading.html for instructions on how to upgrade the configuration file for running Apache 2.4. As Apache 2.2 is not available in Ubuntu 14.04, please note that these instructions will _not_ work without modification in Ubuntu 14.04. We do not recommend running a production server on non-LTS versions of Ubuntu.
+*Note:* The Apache configuration file delivered with version 1.1.0 of the
+OS2Webscanner is for Apache <= 2.2  and will *not* work on Apache 2.4.
+A configuration file for Apache 2.4 will be supplied in future versions.
+In the meantime, please refer to
+http://httpd.apache.org/docs/2.4/upgrading.html for instructions on how to
+upgrade the configuration file for running Apache 2.4. As Apache 2.2 is not
+available in Ubuntu 14.04, please note that these instructions will _not_ work
+without modification in Ubuntu 14.04. We do not recommend running a production
+server on non-LTS versions of Ubuntu.
 
-If you wish to run the system om a Windows system, you need to install a C compiler environment, e.g. MinGW or Cygwin.
+If you wish to run the system on a Windows system, you need to install a C
+compiler environment, e.g. MinGW or Cygwin. Running on Windows has not been
+tested.
 
 
 ## Select installation directory
@@ -31,7 +45,8 @@ sudo su - os2
 
 
 Note, you are now logged in as the user `os2`. We assume this in the rest of
-this guide. Also note that this is only a convention - you are free to install the system wherever you want. Paths are not hard coded in the system.
+this guide. Also note that this is only a convention - you are free to install
+the system wherever you want. Paths are not hard coded in the system.
 
 ## Install Git, Apache and WSGI
 
@@ -82,9 +97,9 @@ alter user os2webscanner createdb;
 
 You may (of course) use another database name, database user etc. as you please.
 
-Now log out from psql (`\q`) and the postgres user (by press `Ctrl+D`) to
-proceed, and return to where you cloned the `os2webscanner` source dir
-(e.g. `/home/os2/os2webscanner`).
+Now log out from psql (`\q`) and logout as the postgres user (by pressing
+`Ctrl+D`) to proceed, and return to where you cloned the `os2webscanner`
+source directory (e.g. `/home/os2/os2webscanner`).
 
 Next, change into the `webscanner_site/webscanner` directory:
 
@@ -131,7 +146,7 @@ DATABASES = {
 
 
 ```
-cd /home/os2/os2webscanner/webscanner_site  # The path may depend on where you install the system
+cd /home/os2/os2webscanner/webscanner_site
 source ../python-env/bin/activate
 python manage.py test
 ```
@@ -163,8 +178,11 @@ Now, before activating the site, please _edit_ the Apache configuration.
 
 * If you're using SSL, please supply paths to your certificate files.
 * Change the `ServerName` directive to the FQDN of your own server.
-* If you're not installing to the directory `/home/os2/os2webscanner/`, please change all paths accordingly.
-* If you're _not_ using SSL, please delete the first VirtualHost, specify port 80 for the second one and delete all directives starting with the letters "SSL".
+* If you're not installing to the directory `/home/os2/os2webscanner/`, please
+  change all paths accordingly.
+* If you're _not_ using SSL, please delete the first VirtualHost, specify port
+  80 for the second one and delete all directives starting with the letters
+  "SSL".
 
 If using SSL, you need to enable the extensions `mod_rewrite` and `mod_ssl`:
 
@@ -186,12 +204,36 @@ sudo a2ensite webscanner
 sudo service apache2 restart
 ```
 
-The webscanner should now be available at the URL you specified as ServerName in your VirtualHost, e.g. "https://webscanner.kommune.dk".
+The webscanner should now be available at the URL you specified as ServerName
+in your VirtualHost, e.g. "https://webscanner.kommune.dk".
 
 ## Start the scanning processors
 
-You need to start the _process manager_ background process in order to get actual scans done.
+First, make the logs directory writable by the web server user:
+
+```
+sudo chown -R www-data:os2 /home/os2/os2webscanner/var
+```
+
+Next, start the _process manager_ background process in order to get scans
+which scan non-text files (e.g. PDF files or Office documents) to work.
 
 ```
 sudo -u www-data -b /home/os2/os2webscanner/scrapy-webscanner/start_process_manager.sh
 ```
+
+## Creating an organization and adding a user to it:
+
+Visit your webscanner site URL + `/admin/` to enter the Django admin interface.
+
+Login with the Django superuser you created (when running `python manage.py
+syncdb`). Add an "Organization", giving it a name, email, and phone number
+and save it.
+
+Return to the main admin page and click "Brugere".
+Click the username that you would like to add to the organization.
+
+At the bottom of the page, under "User profiles", change the "Organisation"
+to the organization you created and save.
+
+The web scanner is now ready to be used.
