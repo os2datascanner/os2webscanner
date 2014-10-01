@@ -1,4 +1,4 @@
-django
+django==1.6.7
 pep8==1.2
 psycopg2
 scrapy==0.24.1
