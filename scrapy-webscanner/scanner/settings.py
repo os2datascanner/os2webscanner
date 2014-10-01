@@ -47,7 +47,7 @@ DOWNLOADER_MIDDLEWARES = {
     'scanner.middlewares.LastModifiedCheckMiddleware': 1200,
 }
 
-LOG_LEVEL = 'DEBUG'
+#LOG_LEVEL = 'DEBUG'
 
 # Set to True in testing to avoid pegging websites, if only testing processing
 # MUST BE REMOVED IN PRODUCTION!!
