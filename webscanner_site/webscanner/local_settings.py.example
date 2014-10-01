@@ -1,6 +1,19 @@
+SITE_URL = 'http://webscanner.kommune.dk'
+DEFAULT_FROM_EMAIL = 'your@email'
+STATIC_ROOT = '/home/os2/os2webscanner/webscanner_site/static'
+MEDIA_ROOT = '/home/os2/os2webscanner/webscanner_site/uploads'
+DEFAULT_FROM_EMAIL = 'your@email'
+ADMIN_EMAIL = 'your@email'
 
-SITE_URL = 'http://jubk.magent-aps.dk:8800'
-STATIC_ROOT = '/var/www/os2webscanner/webscanner_site/static'
-MEDIA_ROOT = '/var/www/os2webscanner/webscanner_site/uploads'
-DEFAULT_FROM_EMAIL = 'jubk@magenta-aps.dk'
-ADMIN_EMAIL = 'jubk@magenta-aps.dk'
+# Database
+# https://docs.djangoproject.com/en/1.6/ref/settings/#databases
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'os2webscanner',
+        'USER': 'os2webscanner',
+        'PASSWORD': 'YOUR_PASSWORD',
+        'HOST': '127.0.0.1',
+    }
+}
