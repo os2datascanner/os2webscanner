@@ -72,6 +72,7 @@ class ScannerSpider(BaseScannerSpider):
                 url = url.replace('*.', '')
                 self.start_urls.append(url)
 
+
         self.link_extractor = LxmlLinkExtractor(
             deny_extensions=(),
             tags=('a', 'area', 'frame', 'iframe', 'script'),

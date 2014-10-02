@@ -442,6 +442,7 @@ class Scan(models.Model):
         self._old_status = self.status
 
     def get_absolute_url(self):
+        """Get the URL for this report - used to format URLs."""
         from django.core.urlresolvers import reverse
         return reverse('report', args=[str(self.id)])
 
