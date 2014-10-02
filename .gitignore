@@ -2,6 +2,7 @@
 python-env
 *.komodoproject
 webscanner_site/static
+webscanner_site/uploads
 django-os2webscanner/build
 django-os2webscanner/django.os2webscanner.egg-info
 *.egg-info
