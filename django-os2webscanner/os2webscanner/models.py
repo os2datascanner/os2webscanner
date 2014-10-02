@@ -159,7 +159,7 @@ class Domain(models.Model):
     @property
     def sitemap_full_path(self):
         """Get the absolute path to the uploaded sitemap.xml file."""
-        return "%s/%s" % (settings.BASE_DIR, self.sitemap.url)
+        return "%s/%s" % (settings.MEDIA_ROOT, self.sitemap.url)
 
     def get_absolute_url(self):
         """Get the absolute URL for domains."""
