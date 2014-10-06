@@ -95,6 +95,11 @@
             <li>
             <a href="/accounts/password_change/">Velkommen, {{user.username}}!</a>
             </li>
+            {% if user.is_superuser %}
+            <li>
+            <a href="/orgs_and_domains/">Domæneoversigt</a>
+            </li>
+            {% endif %}
             <li>
             <a href="/accounts/logout">Log ud</a>
             </li>

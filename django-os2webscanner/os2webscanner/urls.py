@@ -18,12 +18,11 @@
 from django.conf.urls import patterns, url
 from django.views.i18n import javascript_catalog
 from django.views.generic import View, ListView, TemplateView, DetailView
-
 from .views import MainPageView, ScannerList, DomainList, RuleList
 from .views import CSVReportDetails, ReportDetails, ReportList, ReportDelete
 from .views import ScannerCreate, ScannerUpdate, ScannerDelete, ScannerRun
 from .views import DomainCreate, DomainUpdate, DomainValidate, DomainDelete
-from .views import RuleCreate, RuleUpdate, RuleDelete
+from .views import RuleCreate, RuleUpdate, RuleDelete, OrganizationList
 from .views import DialogSuccess
 from .models import Scanner
 
@@ -49,6 +48,8 @@ urlpatterns = patterns(
     url(r'^scanners/(?P<pk>\d+)/$', ScannerUpdate.as_view(),
         name='scanner_update'),
     url(r'^domains/$', DomainList.as_view(), name='domains'),
+    url(r'^orgs_and_domains/$', OrganizationList.as_view(),
+        name='orgs_and_domains'),
     url(r'^domains/add/$', DomainCreate.as_view(), name='domain_add'),
     url(r'^domains/(?P<pk>\d+)/validate/$', DomainValidate.as_view(),
         name='domain_validate'),
