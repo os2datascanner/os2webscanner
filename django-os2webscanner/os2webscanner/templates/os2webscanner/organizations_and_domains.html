@@ -1,0 +1,25 @@
+{% extends 'os2webscanner/base.html' %}
+{% block rendertype %}regular{% endblock %}
+{%  block title %}
+Domæner
+{% endblock %}
+
+{% block body %}
+    <div class="container">
+          {% for organization in organization_list %}
+          <h3>{{organization.name}}</h2>
+
+          <ul>
+              {% for domain in organization.domains.all %}
+              <li> {{ domain.url }} </li>
+              {% endfor %}
+          </ul>
+
+          {% endfor %}
+      </div>
+{% endblock %}
+
+{% block heading %} 
+Domæner pr. organisation 
+{% endblock %}
+

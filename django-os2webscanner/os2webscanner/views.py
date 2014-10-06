@@ -24,7 +24,7 @@ from django.shortcuts import render, get_object_or_404
 from django.views.generic import View, ListView, TemplateView, DetailView
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils.decorators import method_decorator
 from django.forms.models import modelform_factory
 from django.conf import settings
@@ -32,6 +32,7 @@ from django.conf import settings
 from .validate import validate_domain, get_validation_str
 
 from .models import Scanner, Domain, RegexRule, Scan, Match, UserProfile, Url
+from .models import Organization
 
 
 class LoginRequiredMixin(View):
@@ -42,6 +43,16 @@ class LoginRequiredMixin(View):
     def dispatch(self, *args, **kwargs):
         """Check for login and dispatch the view."""
         return super(LoginRequiredMixin, self).dispatch(*args, **kwargs)
+
+
+class SuperUserOnlyMixin(View):
+    """Only allows access to super admins."""
+    check_function = user_passes_test(lambda u: u.is_superuser, login_url='/')
+
+    @method_decorator(login_required)
+    @method_decorator(check_function)
+    def dispatch(self, *args, **kwargs):
+        return super(SuperAdminOnlyMixin, self).dispatch(*args, **kwargs)
 
 
 class RestrictedListView(ListView, LoginRequiredMixin):
@@ -68,6 +79,14 @@ class MainPageView(TemplateView, LoginRequiredMixin):
     """Display the main page."""
 
     template_name = 'index.html'
+
+
+class OrganizationList(RestrictedListView):
+
+    """Display a list of organizations, superusers only!"""
+
+    model = Organization
+    template_name = 'os2webscanner/organizations_and_domains.html'
 
 
 class ScannerList(RestrictedListView):
