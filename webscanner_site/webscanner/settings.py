@@ -71,12 +71,18 @@ WSGI_APPLICATION = 'webscanner.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django_postgrespool',
         'NAME': 'os2webscanner',
         'USER': 'os2webscanner',
         'PASSWORD': 'os2webscanner',
         'HOST': '127.0.0.1',
     }
+}
+
+DATABASE_POOL_ARGS = {
+    'max_overflow': 10,
+    'pool_size': 5,
+    'recycle': 300
 }
 
 # Internationalization
