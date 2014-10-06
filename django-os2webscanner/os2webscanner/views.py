@@ -45,16 +45,6 @@ class LoginRequiredMixin(View):
         return super(LoginRequiredMixin, self).dispatch(*args, **kwargs)
 
 
-class SuperUserOnlyMixin(View):
-    """Only allows access to super admins."""
-    check_function = user_passes_test(lambda u: u.is_superuser, login_url='/')
-
-    @method_decorator(login_required)
-    @method_decorator(check_function)
-    def dispatch(self, *args, **kwargs):
-        return super(SuperAdminOnlyMixin, self).dispatch(*args, **kwargs)
-
-
 class RestrictedListView(ListView, LoginRequiredMixin):
 
     """Make sure users only see data that belong to their own organization."""
@@ -87,6 +77,27 @@ class OrganizationList(RestrictedListView):
 
     model = Organization
     template_name = 'os2webscanner/organizations_and_domains.html'
+
+    def get_context_data(self, **kwargs):
+        """Setup context for the template."""
+        context = super(OrganizationList, self).get_context_data(**kwargs)
+        organization_list = context['organization_list']
+        orgs_with_domains = []
+        for org in organization_list:
+            tld_list = []
+
+            tlds = ['.'.join(d.url.split('.')[-2:]) for d in org.domains.all()]
+            for tld in tlds:
+                tld_domains = [d.url for d in org.domains.all() if
+                               d.url.split('.')[-2:] == tld.split('.')]
+                tld_list.append({'tld': tld, 'domains': tld_domains})
+
+            orgs_with_domains.append({'name': org.name, 'domains': tld_list})
+
+        context['orgs_with_domains'] = orgs_with_domains
+        print context
+
+        return context
 
 
 class ScannerList(RestrictedListView):
