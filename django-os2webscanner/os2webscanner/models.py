@@ -33,6 +33,10 @@ from os2webscanner.utils import notify_user
 from django.conf import settings
 
 
+base_dir = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+
+
 # Sensitivity values
 class Sensitivity:
 
@@ -351,16 +355,17 @@ class Scanner(models.Model):
         scan = Scan(scanner=self, status=Scan.NEW)
         scan.save()
         # Get path to run script
-        SCRAPY_WEBSCANNER_DIR = os.path.join(os.path.dirname(os.path.dirname(
-            os.path.dirname(
-                os.path.realpath(__file__)))), "scrapy-webscanner")
+        SCRAPY_WEBSCANNER_DIR = os.path.join(base_dir, "scrapy-webscanner")
 
         if test_only:
             return scan
         try:
             process = Popen([os.path.join(SCRAPY_WEBSCANNER_DIR, "run.sh"),
-                         str(scan.pk)], cwd=SCRAPY_WEBSCANNER_DIR)
+                         str(scan.pk)], cwd=SCRAPY_WEBSCANNER_DIR,
+                            stderr=open(scan.log_file, "a"),
+                            stdout=open(scan.log_file, "a"))
         except Exception as e:
+            print e
             return None
         return scan
 
@@ -417,6 +422,17 @@ class Scan(models.Model):
     def scan_dir(self):
         """The directory associated with this scan."""
         return os.path.join(settings.VAR_DIR, 'scan_%s' % self.pk)
+
+    @property
+    def log_file(self):
+        """Return the scan's log file location.
+
+        Will create the directories if needed.
+        """
+        scan_dir = self.scan_dir
+        if not os.path.exists(scan_dir):
+            os.makedirs(scan_dir)
+        return os.path.join(scan_dir, 'scan_%s.log' % self.pk)
 
     # Reason for failure
     reason = models.CharField(max_length=1024, blank=True, default="",
