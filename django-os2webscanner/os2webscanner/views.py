@@ -86,17 +86,18 @@ class OrganizationList(RestrictedListView):
         for org in organization_list:
             tld_list = []
 
-            tlds = set(['.'.join(d.url.split('.')[-2:]) for d in
-                        org.domains.all()])
+            top_level = lambda d: '.'.join(d.strip('/').split('.')[-2:])
+            tlds = set([top_level(d.url) for d in org.domains.all()])
+
             for tld in tlds:
-                tld_domains = [d.url for d in org.domains.all() if
-                               d.url.split('.')[-2:] == tld.split('.')]
-                tld_list.append({'tld': tld, 'domains': tld_domains})
+                sub_domains = [
+                    d.url for d in org.domains.all() if top_level(d.url) == tld
+                ]
+                tld_list.append({'tld': tld, 'domains': sub_domains})
 
             orgs_with_domains.append({'name': org.name, 'domains': tld_list})
 
         context['orgs_with_domains'] = orgs_with_domains
-        print context
 
         return context
 
