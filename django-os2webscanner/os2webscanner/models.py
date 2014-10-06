@@ -16,6 +16,7 @@
 # source municipalities ( http://www.os2web.dk/ )
 
 """Contains Django models for the Webscanner."""
+from urlparse import urljoin
 
 import os
 import shutil
@@ -160,6 +161,10 @@ class Domain(models.Model):
     def sitemap_full_path(self):
         """Get the absolute path to the uploaded sitemap.xml file."""
         return "%s/%s" % (settings.MEDIA_ROOT, self.sitemap.url)
+
+    def get_sitemap_url(self):
+        """Get the URL of the sitemap.xml file."""
+        return urljoin(self.root_url, "/sitemap.xml")
 
     def get_absolute_url(self):
         """Get the absolute URL for domains."""
