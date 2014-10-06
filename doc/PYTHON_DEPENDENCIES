@@ -1,4 +1,5 @@
 Django==1.6.7
+SQLAlchemy==0.9.7
 Scrapy==0.24.1
 Twisted==14.0.2
 argparse==1.2.1
@@ -7,6 +8,8 @@ characteristic==14.1.0
 chardet==2.2.1
 cryptography==0.6
 cssselect==0.9.1
+django-os2webscanner==0.1
+django-postgrespool==0.3.0
 django-recurrence==1.0.3
 django-xmlrpc==0.1.5
 lxml==3.4.0
