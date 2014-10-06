@@ -45,7 +45,10 @@ class Scanner:
             rules.append(
                 CPRRule(do_modulus11=self.scanner_object.do_cpr_modulus11)
             )
-        if self.scanner_object.do_name_scan:
+        # TODO: Re-enable once we have a more sensible way of doing name scans.
+        # Note, this also disables name scanning for existing scanners.
+        # if self.scanner_object.do_name_scan:
+        if False:
             rules.append(
                 NameRule(whitelist=self.scanner_object.whitelisted_names)
             )
