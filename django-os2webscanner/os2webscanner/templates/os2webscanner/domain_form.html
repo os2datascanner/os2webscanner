@@ -6,6 +6,14 @@
 (function ($) {
     $(document).ready(function () {
         $('#{{form.sitemap.auto_id}}').bootstrapFileInput();
+
+        // Toggle the Sitemap URL field when Download Sitemap is checked
+        $("#id_{{ form.download_sitemap.name }}").click(function () {
+            $("#{{ form.sitemap_url.auto_id }}_container").toggle();
+        });
+        {% if not form.download_sitemap.value %}
+        $("#{{ form.sitemap_url.auto_id }}_container").toggle();
+        {% endif %}
     });
 })(jQuery);
 </script>
@@ -125,30 +133,68 @@
     </div>
   </div>
 
-  <div id="{{ form.sitemap.auto_id }}_container" class="col-sm-12{% if form.sitemap.errors %} has-error{% endif %}">
-    <div class="form-group">
-      <label class="control-label col-sm-3" for="id_{{ form.sitemap.name }}">{{ form.sitemap.label }}</label>
-      <div class="col-sm-9">
-          {% if form.sitemap.value %}
-              Aktuelt: {{ form.sitemap.value }}
-              <input id="{{ form.sitemap.name }}-clear_id" name="{{ form.sitemap.name }}-clear" type="checkbox"/>
-              <label for="{{ form.sitemap.name }}-clear_id">Fjern</label>
-              <br />
-          {% endif %}
-          <input class="form-control" id="id_{{ form.sitemap.name }}"
-                 name="{{ form.sitemap.name }}"
-                 type="file"
-                 data-filename-placement="inside"
-                 title="Klik her for at uploade sitemap.xml" />
-        {% if form.sitemap.help_text %}
-	  <p>
-	    <small>{{ form.sitemap.help_text }}</small>
-	  </p>
-	{% endif %}
-        {% if form.sitemap.errors %}{{ form.sitemap.errors }}{% endif %}
+
+  <div id="{{ form.download_sitemap.auto_id }}_container" class="col-sm-12{% if form.download_sitemap.errors %} has-error{% endif %}">
+      <div class="form-group">
+          <label class="control-label col-sm-3" for="id_{{ form.download_sitemap.name }}">{{ form.download_sitemap.label }}</label>
+          <div class="col-sm-9">
+              <input type="checkbox" class="checkbox" style="margin-top: 4px;"
+                     id="id_{{ form.download_sitemap.name }}"
+                     name="{{ form.download_sitemap.name }}" value="{{ form.download_sitemap.name }}"{% if form.download_sitemap.value %} checked="checked"{% endif %} />
+              {% if form.download_sitemap.help_text %}
+              <p>
+                  <small>{{ form.download_sitemap.help_text }}</small>
+              </p>
+              {% endif %}
+              {% if form.download_sitemap.errors %}{{ form.download_sitemap.errors }}{% endif %}
+          </div>
       </div>
-    </div>
   </div>
+
+    <div id="{{ form.sitemap_url.auto_id }}_container" class="col-sm-12{% if form.sitemap_url.errors %} has-error{% endif %}">
+        <div class="form-group">
+            <label class="control-label col-sm-3" for="id_{{ form.sitemap_url.name }}">{{ form.sitemap_url.label }}</label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control"
+                       name="{{ form.sitemap_url.name }}"
+                       id="id_{{ form.sitemap_url.name }}"
+                       placeholder="/sitemap.xml"
+                {% if form.sitemap_url.value %}value="{{ form.sitemap_url.value }}"{% endif %}>
+                {% if form.sitemap_url.help_text %}
+                <p>
+                    <small>{{ form.sitemap_url.help_text }}</small>
+                </p>
+                {% endif %}
+                {% if form.sitemap_url.errors %}{{ form.sitemap_url.errors }}{% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div id="{{ form.sitemap.auto_id }}_container" class="col-sm-12{% if form.sitemap.errors %} has-error{% endif %}">
+        <div class="form-group">
+            <label class="control-label col-sm-3"
+                   for="id_{{ form.sitemap.name }}">{{ form.sitemap.label}}</label>
+            <div class="col-sm-9">
+                {% if form.sitemap.value %}
+                Aktuelt: {{ form.sitemap.value }}
+                <input id="{{ form.sitemap.name }}-clear_id" name="{{ form.sitemap.name }}-clear" type="checkbox"/>
+                <label for="{{ form.sitemap.name }}-clear_id">Fjern</label>
+                <br />
+                {% endif %}
+                <input class="form-control" id="id_{{ form.sitemap.name }}"
+                       name="{{ form.sitemap.name }}"
+                       type="file"
+                       data-filename-placement="inside"
+                       title="Klik her for at uploade sitemap.xml" />
+                {% if form.sitemap.help_text %}
+                <p>
+                    <small>{{ form.sitemap.help_text }}</small>
+                </p>
+                {% endif %}
+                {% if form.sitemap.errors %}{{ form.sitemap.errors }}{% endif %}
+            </div>
+        </div>
+    </div>
 
   <div class="col-sm-offset-3">
     <div class="col-sm-12">
