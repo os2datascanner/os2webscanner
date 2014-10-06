@@ -76,7 +76,9 @@ class Scanner:
         urls = []
         for domain in self.valid_domains:
             # Do some normalization of the URL to get the sitemap.xml file
-            urls.append(domain.get_sitemap_url())
+            sitemap_url = domain.get_sitemap_url()
+            if sitemap_url:
+                urls.append(sitemap_url)
         return urls
 
     def get_uploaded_sitemap_urls(self):
