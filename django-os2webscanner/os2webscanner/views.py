@@ -606,10 +606,12 @@ class CSVReportDetails(ReportDetails):
             # Print match header
             writer.writerow(e([u'URL', u'Regel', u'Match', u'Følsomhed']))
             for match in all_matches:
-                writer.writerow(e([match.url.url,
-                                 match.get_matched_rule_display(),
-                                 match.matched_data.replace('\n', ''),
-                                 match.get_sensitivity_display()]))
+                writer.writerow(
+                    e([match.url.url,
+                       match.get_matched_rule_display(),
+                       match.matched_data.replace('\n', '').replace('\r', ' '),
+                       match.get_sensitivity_display()])
+                )
         broken_urls = context['broken_urls']
         if broken_urls:
             # Print broken link header
