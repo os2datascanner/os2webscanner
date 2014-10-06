@@ -86,7 +86,8 @@ class OrganizationList(RestrictedListView):
         for org in organization_list:
             tld_list = []
 
-            tlds = ['.'.join(d.url.split('.')[-2:]) for d in org.domains.all()]
+            tlds = set(['.'.join(d.url.split('.')[-2:]) for d in
+                        org.domains.all()])
             for tld in tlds:
                 tld_domains = [d.url for d in org.domains.all() if
                                d.url.split('.')[-2:] == tld.split('.')]
