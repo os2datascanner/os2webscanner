@@ -16,6 +16,7 @@
 # source municipalities ( http://www.os2web.dk/ )
 
 """Contains Django models for the Webscanner."""
+from urlparse import urljoin
 
 import os
 import shutil
@@ -128,6 +129,14 @@ class Domain(models.Model):
                                blank=True,
                                verbose_name='Sitemap')
 
+    sitemap_url = models.CharField(max_length=2048,
+                                   blank=True,
+                                   default="",
+                                   verbose_name='Sitemap URL')
+
+    download_sitemap = models.BooleanField(default=True,
+                                           verbose_name='Download Sitemap')
+
     @property
     def display_name(self):
         """The name used when displaying the domain on the web page."""
@@ -160,6 +169,24 @@ class Domain(models.Model):
     def sitemap_full_path(self):
         """Get the absolute path to the uploaded sitemap.xml file."""
         return "%s/%s" % (settings.BASE_DIR, self.sitemap.url)
+
+    def get_sitemap_url(self):
+        """Get the URL of the sitemap.xml file.
+
+        This will be the URL specified by the user, or if not present, the
+        URL of the default sitemap.xml file.
+        If downloading of the sitemap.xml file is disabled, this will return
+        an empty string.
+        """
+        if not self.download_sitemap:
+            return ''
+        else:
+            if self.sitemap_url != '':
+                # Use user-specified sitemap.xml URL
+                return self.sitemap_url
+            else:
+                # Use default sitemap.xml path
+                return urljoin(self.root_url, "/sitemap.xml")
 
     def get_absolute_url(self):
         """Get the absolute URL for domains."""

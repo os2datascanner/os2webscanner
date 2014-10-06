@@ -68,15 +68,19 @@ class Scanner:
         return exclusion_rules
 
     def get_sitemap_urls(self):
-        """Return a list of sitemap.xml URLs.
-
-        This includes any uploaded sitemap.xml file.
+        """Return a list of sitemap.xml URLs across all the scanner's domains.
         """
         urls = []
         for domain in self.valid_domains:
             # Do some normalization of the URL to get the sitemap.xml file
-            urls.append(urljoin(domain.root_url, "/sitemap.xml"))
-            # Add uploaded sitemap.xml file
+            urls.append(domain.get_sitemap_url())
+        return urls
+
+    def get_uploaded_sitemap_urls(self):
+        """Return a list of uploaded sitemap.xml files for all scanner domains.
+        """
+        urls = []
+        for domain in self.valid_domains:
             if domain.sitemap != '':
                 urls.append('file://' + domain.sitemap_full_path)
         return urls

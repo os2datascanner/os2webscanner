@@ -154,6 +154,7 @@ class ScannerApp:
         sitemap_spider = SitemapURLGathererSpider(
             scanner=self.scanner,
             sitemap_urls=self.scanner.get_sitemap_urls(),
+            uploaded_sitemap_urls=self.scanner.get_uploaded_sitemap_urls(),
             sitemap_alternate_links=True
         )
         crawler.crawl(sitemap_spider)
