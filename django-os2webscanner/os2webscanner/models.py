@@ -134,7 +134,7 @@ class Domain(models.Model):
                                    default="",
                                    verbose_name='Sitemap Url')
 
-    download_sitemap = models.BooleanField(default=False,
+    download_sitemap = models.BooleanField(default=True,
                                            verbose_name='Hent Sitemap fra '
                                                         'serveren')
 
