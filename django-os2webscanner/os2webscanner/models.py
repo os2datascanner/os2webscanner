@@ -222,12 +222,12 @@ class Scanner(models.Model):
                                            verbose_name='Check modulus-11')
     do_cpr_ignore_irrelevant = models.BooleanField(
         default=True,
-        verbose_name='Ignore irrelevant birth dates')
+        verbose_name='Ignorer irrelevante fødselsdatoer')
     do_link_check = models.BooleanField(default=False,
                                         verbose_name='Linkcheck')
     do_external_link_check = models.BooleanField(default=False,
                                                  verbose_name='Check ' +
-                                                              'externe links')
+                                                              'eksterne links')
     do_last_modified_check = models.BooleanField(default=True,
                                                  verbose_name='Check ' +
                                                               'Last-Modified')
