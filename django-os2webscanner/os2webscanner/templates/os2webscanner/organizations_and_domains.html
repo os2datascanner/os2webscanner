@@ -6,14 +6,22 @@ Domæner
 
 {% block body %}
     <div class="container">
-          {% for organization in organization_list %}
+          {% for organization in orgs_with_domains %}
           <h3>{{organization.name}}</h2>
 
-          <ul>
-              {% for domain in organization.domains.all %}
-              <li> {{ domain.url }} </li>
+          <ol>
+              {% for tld in organization.domains %}
+              <li> <b>{{ tld.tld }}</b>
+              
+               <ul>
+                   {% for domain in tld.domains %}
+                   <li>{{ domain }}</li>
+                   {% endfor %}
+               </ul>
+               </li>
+                  
               {% endfor %}
-          </ul>
+          </ol>
 
           {% endfor %}
       </div>
