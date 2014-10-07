@@ -123,8 +123,24 @@
       </div>
     </div>
   </div>
-  
-  <div class="col-sm-offset-3">
+
+ 
+            <div id="{{ form.user_profiles.auto_id }}_container"
+                class="col-sm-12{% if form.user_profiles.errors %} has-error{% endif %}">
+              <label class="control-label" for="id_{{ form.user_profiles.name }}">{{ form.user_profiles.label }}</label>
+	      <select name="{{ form.regex_rules.name }}" id="id_{{ form.user_profiles.name }}" class="form-control" multiple="multiple">
+	      {% for value, tag in form.user_profiles.field.choices %}
+	        <option value="{{ value }}"{% for val in form.user_profiles.value %}{% if val == value %} selected="selected"{% endif %}{% endfor %}>{{ tag }}</option>
+	      {% endfor %}
+	      </select>
+              {% if form.user_profiles.help_text %}
+	      <p>
+		<small>{{ form.user_profiles.help_text }}</small>
+	      </p>
+	      {% endif %}
+              {% if form.user_profiles.errors %}{{ form.user_profiles.errors }}{% endif %}
+        
+        <div class="col-sm-offset-3">
     <div class="col-sm-12">
       <button type="submit" class="btn btn-primary" name="save">
         Gem ændringer
@@ -132,54 +148,6 @@
     </div>
   </div>
 
-      {% if form.validation_method %}
-      <div class="form-group col-sm-12 clearfix">
-        <div class="alert alert-warning clearfix" role="alert">
-          <p>
-            <span class="glyphicon glyphicon-ban-circle"></span>
-            Dette domæne er endnu ikke valideret
-          </p>
-          <div class="panel panel-default">
-            <div class="panel-body">
-              <div class="panel-heading"></div>
-              <div class="col-sm-5">
-                <div class="form-group">
-                  <div id="{{ form.validation_method.auto_id }}_container">
-                    <div>{{ form.validation_method.label_tag }}</div>
-                    <div>{{ form.validation_method.help_text }}</div>
-                    <div>{{ form.validation_method }}</div>
-                    <div id="{{ form.validation_method.auto_id }}_errors">
-                      {{ form.validation_method.errors }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-sm-7">
-                <div class="form-group">
-                  <div class="tab-content">
-                    <p class="form-control-static">
-                      Indsæt følgende
-                    </p>
-                    <div id="validation_method_desc_0" class="tab-pane active schedule-pane" >
-                      <pre style="margin-top:.7em;">{{valid_txt_0|escape}}</pre>
-                    </div>
-                    <div id="validation_method_desc_1" class="tab-pane schedule-pane" >
-                      <pre style="margin-top:.7em;">{{valid_txt_1|escape}}</pre>
-                    </div>
-                    <div id="validation_method_desc_2" class="tab-pane schedule-pane" >
-                      <pre style="margin-top:.7em;">{{valid_txt_2|escape}}</pre>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <button type="submit" name="save_and_validate"
-                class="btn btn-default">
-          Validér nu
-        </button>
-      </div>
-      {% endif %}
     </form>
+
 {% endblock %}

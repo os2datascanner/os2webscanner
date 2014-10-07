@@ -472,6 +472,10 @@ class GroupUpdate(RestrictedUpdateView):
 
     model = Group
 
+    def get_success_url(self):
+        """The URL to redirect to after successful update."""
+        return '/groups/%s/saved/' % self.object.pk
+
 
 class GroupDelete(RestrictedDeleteView):
 
