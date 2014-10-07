@@ -89,6 +89,17 @@ class CPRTest(unittest.TestCase):
 
     """Test the CPR rule."""
 
+    def check_matches(self, matches, valid_matches, invalid_matches):
+        """Check that the matches contains the given valid matches and none
+        of the given invalid matches."""
+        print matches
+        for valid_match in valid_matches:
+            self.assertTrue(
+                any(m['matched_data'] == valid_match for m in matches))
+        for invalid_match in invalid_matches:
+            self.assertFalse(
+                any(m['matched_data'] == invalid_match for m in matches))
+
     def test_matching(self):
         """Test CPR matching in text."""
         text = """
@@ -96,19 +107,32 @@ class CPRTest(unittest.TestCase):
             4110625629
             6113625629
             911062 5629
+            2006359917
+            211062-5629 # in the past
+            200638-5322 # in the future
             """
-        valid_cprs = ['2110625629']
+        valid_cprs = ['2110625629', '2006359917', '2006385322', '2110625629']
         invalid_cprs = ['4110625629', '2113625629', '9110625629']
 
-        matches = cpr.match_cprs(text, mask_digits=False)
+        matches = cpr.match_cprs(text, mask_digits=False,
+                                 ignore_irrelevant=False)
+        self.check_matches(matches, valid_cprs, invalid_cprs)
 
-        for valid_cpr in valid_cprs:
-            self.assertTrue(
-                any(m['matched_data'] == valid_cpr for m in matches))
-        for invalid_cpr in invalid_cprs:
-            self.assertFalse(
-                any(m['matched_data'] == invalid_cpr for m in matches))
+    def test_matching_ignore_irrelevant(self):
+        """Test CPR matching in text."""
+        text = """
+            211062-0155 # current
+            211062-5629 # in the past
+            200638-5322 # in the future
+            """
+        valid_cprs = ['2110620155']
+        invalid_cprs = ['2110625629', '2006385322']
 
+        matches = cpr.match_cprs(text, mask_digits=False,
+                                 ignore_irrelevant=True)
+        self.check_matches(matches, valid_cprs, invalid_cprs)
+
+    def test_modulus11_check(self):
         # Check that modulus 11 check works
         self.assertTrue(cpr.modulus11_check("2110625629"))
         self.assertFalse(cpr.modulus11_check("2110625628"))

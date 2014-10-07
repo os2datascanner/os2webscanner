@@ -43,7 +43,9 @@ class Scanner:
         rules = []
         if self.scanner_object.do_cpr_scan:
             rules.append(
-                CPRRule(do_modulus11=self.scanner_object.do_cpr_modulus11)
+                CPRRule(do_modulus11=self.scanner_object.do_cpr_modulus11,
+                        ignore_irrelevant=
+                        self.scanner_object.do_cpr_ignore_irrelevant)
             )
         # TODO: Re-enable once we have a more sensible way of doing name scans.
         # Note, this also disables name scanning for existing scanners.
