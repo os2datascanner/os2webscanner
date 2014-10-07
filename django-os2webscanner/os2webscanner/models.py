@@ -91,7 +91,8 @@ class Group(models.Model):
     contact_email = models.CharField(max_length=256, verbose_name='Email')
     contact_phone = models.CharField(max_length=256, verbose_name='Telefon')
     user_profiles = models.ManyToManyField(UserProfile, null=True, blank=True,
-                                           verbose_name='Brugere')
+                                           verbose_name='Brugere',
+                                           related_name='groups')
     organization = models.ForeignKey(Organization,
                                      null=False,
                                      related_name='groups',
@@ -142,6 +143,10 @@ class Domain(models.Model):
                                      null=False,
                                      related_name='domains',
                                      verbose_name='Organisation')
+    group = models.ForeignKey(Group,
+                              null=True,
+                              related_name='domains',
+                              verbose_name='Group')
     validation_status = models.IntegerField(choices=validation_choices,
                                             default=INVALID,
                                             verbose_name='Valideringsstatus')
@@ -205,6 +210,8 @@ class RegexRule(models.Model):
                             verbose_name='Navn')
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')
+    group = models.ForeignKey(Group, null=True,
+                              verbose_name='Group')
     match_string = models.CharField(max_length=1024, blank=False,
                                     verbose_name='Udtryk')
 
@@ -235,6 +242,8 @@ class Scanner(models.Model):
                             verbose_name='Navn')
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')
+    group = models.ForeignKey(Group, null=True,
+                                     verbose_name='Group')
     schedule = RecurrenceField(max_length=1024,
                                verbose_name='Planlagt afvikling')
     whitelisted_names = models.TextField(max_length=4096, blank=True,

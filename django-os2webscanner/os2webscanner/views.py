@@ -57,9 +57,18 @@ class RestrictedListView(ListView, LoginRequiredMixin):
         else:
             try:
                 profile = user.get_profile()
-                return self.model.objects.filter(
-                    organization=profile.organization
-                )
+                print profile
+                if profile.organization.do_use_groups and self.model != Group:
+                    print profile.organization
+                    groups = profile.groups.all()
+                    return self.model.objects.filter(
+                        group__in=groups
+                    )
+                else:
+                    print "filter"
+                    return self.model.objects.filter(
+                        organization=profile.organization
+                    )
             except UserProfile.DoesNotExist:
                 return self.model.objects.filter(organization=None)
 
@@ -81,7 +90,9 @@ class ScannerList(RestrictedListView):
     def get_queryset(self):
         """Get queryset, don't include non-visible scanners."""
         qs = super(ScannerList, self).get_queryset()
-        return qs.filter(is_visible=True)
+        # Dismiss scans that are not visible
+        qs = qs.filter(is_visible=True)
+        return qs
 
 
 class DomainList(RestrictedListView):
