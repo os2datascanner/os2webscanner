@@ -58,10 +58,12 @@ class Organization(models.Model):
     name = models.CharField(max_length=256, unique=True, verbose_name='Navn')
     contact_email = models.CharField(max_length=256, verbose_name='Email')
     contact_phone = models.CharField(max_length=256, verbose_name='Telefon')
+    do_use_groups = models.BooleanField(default=False)
 
     def __unicode__(self):
         """Return the name of the organization."""
         return self.name
+
 
 
 class UserProfile(models.Model):
@@ -83,6 +85,25 @@ class UserProfile(models.Model):
         """Return the user's username."""
         return self.user.username
 
+
+class Group(models.Model):
+    """Represents the group or sub-organisation."""
+    name = models.CharField(max_length=256, unique=True, verbose_name='Navn')
+    contact_email = models.CharField(max_length=256, verbose_name='Email')
+    contact_phone = models.CharField(max_length=256, verbose_name='Telefon')
+    user_profiles = models.ManyToManyField(UserProfile, verbose_name='Brugere')
+    organization = models.ForeignKey(Organization, 
+                                     null=False,
+                                     related_name='groups', 
+                                     verbose_name='Organisation')
+
+    def __unicode__(self):
+        """Return the name of the group."""
+        return self.name
+
+    class Meta:
+        """Ordering and other options."""
+        ordering = ['name',]
 
 class Domain(models.Model):
 

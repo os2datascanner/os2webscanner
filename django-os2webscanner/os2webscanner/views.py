@@ -32,6 +32,7 @@ from django.conf import settings
 from .validate import validate_domain, get_validation_str
 
 from .models import Scanner, Domain, RegexRule, Scan, Match, UserProfile, Url
+from .models import Group
 
 
 class LoginRequiredMixin(View):
@@ -95,6 +96,13 @@ class DomainList(RestrictedListView):
         query_set = super(DomainList, self).get_queryset()
 
         return query_set.order_by('url', 'pk')
+
+
+class GroupList(RestrictedListView):
+    """Displays groups for organization."""
+
+    model = Group
+    template_name = 'os2webscanner/groups.html'
 
 
 class RuleList(RestrictedListView):
@@ -444,6 +452,31 @@ class DomainDelete(RestrictedDeleteView):
     model = Domain
     success_url = '/domains/'
 
+
+class GroupCreate(RestrictedCreateView):
+
+    """Create a domain view."""
+
+    model = Group
+
+    def get_success_url(self):
+        """The URL to redirect to after successful creation."""
+        return '/groups/%s/created/' % self.object.pk
+
+
+class GroupUpdate(RestrictedUpdateView):
+
+    """Update a domain view."""
+
+    model = Group
+
+
+class GroupDelete(RestrictedDeleteView):
+
+    """Delete a domain view."""
+
+    model = Domain
+    success_url = '/domains/'
 
 class RuleCreate(RestrictedCreateView):
 
