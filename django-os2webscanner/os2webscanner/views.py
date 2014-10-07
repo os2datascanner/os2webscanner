@@ -461,6 +461,22 @@ class GroupCreate(RestrictedCreateView):
               'organization']
     model = Group
 
+    def get_form(self, form_class):
+        """Get the form for the view.
+
+        Querysets used for choices in the 'domains' and 'regex_rules' fields
+        will be limited by the user's organiztion unless the user is a
+        superuser.
+        """
+        form = super(GroupCreate, self).get_form(form_class)
+
+        field_name = 'user_profiles'
+        queryset = form.fields[field_name].queryset
+        queryset = queryset.filter(organization=0)
+        form.fields[field_name].queryset = queryset
+
+        return form
+
     def get_success_url(self):
         """The URL to redirect to after successful creation."""
         return '/groups/%s/created/' % self.object.pk
@@ -483,9 +499,12 @@ class GroupUpdate(RestrictedUpdateView):
         group = self.get_object()
         field_name = 'user_profiles'
         queryset = form.fields[field_name].queryset
-        queryset = queryset.filter(organization=group.organization)
+        if group.organization:
+            queryset = queryset.filter(organization=group.organization)
+        else:
+            queryset = queryset.filter(organization=0)
         form.fields[field_name].queryset = queryset
-
+        print queryset
         return form
 
     def get_success_url(self):
