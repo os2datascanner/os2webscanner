@@ -220,6 +220,9 @@ class Scanner(models.Model):
     do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder?')
     do_cpr_modulus11 = models.BooleanField(default=True,
                                            verbose_name='Check modulus-11')
+    do_cpr_ignore_irrelevant = models.BooleanField(
+        default=True,
+        verbose_name='Ignore irrelevant birth dates')
     do_link_check = models.BooleanField(default=False,
                                         verbose_name='Linkcheck')
     do_external_link_check = models.BooleanField(default=False,
