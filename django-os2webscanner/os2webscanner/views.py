@@ -472,6 +472,22 @@ class GroupUpdate(RestrictedUpdateView):
 
     model = Group
 
+    def get_form(self, form_class):
+        """Get the form for the view.
+
+        Querysets used for choices in the 'domains' and 'regex_rules' fields
+        will be limited by the user's organiztion unless the user is a
+        superuser.
+        """
+        form = super(GroupUpdate, self).get_form(form_class)
+        group = self.get_object()
+        field_name = 'user_profiles'
+        queryset = form.fields[field_name].queryset
+        queryset = queryset.filter(organization=group.organization)
+        form.fields[field_name].queryset = queryset
+
+        return form
+
     def get_success_url(self):
         """The URL to redirect to after successful update."""
         return '/groups/%s/saved/' % self.object.pk

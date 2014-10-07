@@ -128,7 +128,7 @@
             <div id="{{ form.user_profiles.auto_id }}_container"
                 class="col-sm-12{% if form.user_profiles.errors %} has-error{% endif %}">
               <label class="control-label" for="id_{{ form.user_profiles.name }}">{{ form.user_profiles.label }}</label>
-	      <select name="{{ form.regex_rules.name }}" id="id_{{ form.user_profiles.name }}" class="form-control" multiple="multiple">
+	      <select name="{{ form.user_profiles.name }}" id="id_{{ form.user_profiles.name }}" class="form-control" multiple="multiple">
 	      {% for value, tag in form.user_profiles.field.choices %}
 	        <option value="{{ value }}"{% for val in form.user_profiles.value %}{% if val == value %} selected="selected"{% endif %}{% endfor %}>{{ tag }}</option>
 	      {% endfor %}
