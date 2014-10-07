@@ -457,6 +457,8 @@ class GroupCreate(RestrictedCreateView):
 
     """Create a domain view."""
 
+    fields = ['name', 'contact_email', 'contact_phone', 'user_profiles',
+              'organization']
     model = Group
 
     def get_success_url(self):
@@ -475,8 +477,9 @@ class GroupDelete(RestrictedDeleteView):
 
     """Delete a domain view."""
 
-    model = Domain
-    success_url = '/domains/'
+    model = Group
+    success_url = '/groups/'
+
 
 class RuleCreate(RestrictedCreateView):
 
@@ -664,7 +667,8 @@ class DialogSuccess(TemplateView):
     type_map = {
         'domains': Domain,
         'scanners': Scanner,
-        'rules': RegexRule
+        'rules': RegexRule,
+        'groups': Group,
     }
 
     def get_context_data(self, **kwargs):

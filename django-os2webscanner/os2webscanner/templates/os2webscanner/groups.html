@@ -1,7 +1,7 @@
 {% extends 'os2webscanner/base.html' %}
 {% block rendertype %}regular{% endblock %}
 {%  block title %}
-Domæner
+Grupper
 {% endblock %}
 
 {% block body %}
@@ -34,7 +34,7 @@ Domæner
               <td>
                 <strong>
                   <small>
-                    Handling
+                    Telefon
                   </small>
                 </strong>
               </td>
@@ -43,20 +43,19 @@ Domæner
           <tbody>
           {% for group in group_list %}
             <tr>
-              <td class="group-url">
+              <td class="group-name">
                 <span>
-                    {{group.url}}
+                    {{group.name}}
                 </span>
               </td>
-              <td class="domain-exclusion-rules">
-               <pre>{{group.exclusion_rules}}</pre>
+              <td class="group-organization">
+               <span>{{group.organization}}</span>
               </td>
-              <td class="domain-validation">
-                  {% if group.validation_status %}
-                <span class="glyphicon glyphicon-ok"></span><span class="sr-only">Er valideret</span>
-                {% else %}
-                <span class="glyphicon glyphicon-remove"></span><span class="sr-only">Er ikke valideret</span>
-                {% endif %}
+              <td class="group-contact-email">
+                  <span>{{group.contact_email}}</span>
+              </td>
+              <td class="group-contact-phone">
+                  <span>{{group.contact_phone}}</span>
               </td>
               <td class="group-actions">
                 <button type="button"
@@ -104,7 +103,7 @@ Grupper
 	  &times;
 	</button>
 	<h4 class="modal-title" id="create-group-modal-title">
-	  Opret nyt domæne
+	  Opret ny gruppe
 	</h4>
       </div>
       <div class="modal-body">

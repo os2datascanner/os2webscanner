@@ -97,9 +97,9 @@ urlpatterns = patterns(
     ),
 
     # General dialog success handler
-    url(r'^(scanners|domains|rules)/(\d+)/(created)/$',
+    url(r'^(scanners|domains|rules|groups)/(\d+)/(created)/$',
         DialogSuccess.as_view()),
-    url(r'^(scanners|domains|rules)/(\d+)/(saved)/$',
+    url(r'^(scanners|domains|rules|groups)/(\d+)/(saved)/$',
         DialogSuccess.as_view()),
     url(r'^jsi18n/$', javascript_catalog, js_info_dict)
 )

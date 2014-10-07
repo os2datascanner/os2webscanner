@@ -65,7 +65,6 @@ class Organization(models.Model):
         return self.name
 
 
-
 class UserProfile(models.Model):
 
     """OS2 Web Scanner specific user profile.
@@ -91,10 +90,11 @@ class Group(models.Model):
     name = models.CharField(max_length=256, unique=True, verbose_name='Navn')
     contact_email = models.CharField(max_length=256, verbose_name='Email')
     contact_phone = models.CharField(max_length=256, verbose_name='Telefon')
-    user_profiles = models.ManyToManyField(UserProfile, verbose_name='Brugere')
-    organization = models.ForeignKey(Organization, 
+    user_profiles = models.ManyToManyField(UserProfile, null=True, blank=True,
+                                           verbose_name='Brugere')
+    organization = models.ForeignKey(Organization,
                                      null=False,
-                                     related_name='groups', 
+                                     related_name='groups',
                                      verbose_name='Organisation')
 
     def __unicode__(self):
@@ -103,7 +103,13 @@ class Group(models.Model):
 
     class Meta:
         """Ordering and other options."""
-        ordering = ['name',]
+        ordering = ['name']
+
+    @property
+    def display_name(self):
+        """The name used when displaying the domain on the web page."""
+        return "Group '%s'" % self.__unicode__()
+
 
 class Domain(models.Model):
 
