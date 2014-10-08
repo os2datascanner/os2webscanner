@@ -146,7 +146,7 @@ class Domain(models.Model):
     group = models.ForeignKey(Group,
                               null=True,
                               related_name='domains',
-                              verbose_name='Group')
+                              verbose_name='Gruppe')
     validation_status = models.IntegerField(choices=validation_choices,
                                             default=INVALID,
                                             verbose_name='Valideringsstatus')
@@ -211,7 +211,7 @@ class RegexRule(models.Model):
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')
     group = models.ForeignKey(Group, null=True,
-                              verbose_name='Group')
+                              verbose_name='Gruppe')
     match_string = models.CharField(max_length=1024, blank=False,
                                     verbose_name='Udtryk')
 
@@ -243,7 +243,7 @@ class Scanner(models.Model):
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')
     group = models.ForeignKey(Group, null=True,
-                                     verbose_name='Group')
+                                     verbose_name='Gruppe')
     schedule = RecurrenceField(max_length=1024,
                                verbose_name='Planlagt afvikling')
     whitelisted_names = models.TextField(max_length=4096, blank=True,

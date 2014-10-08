@@ -159,9 +159,13 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
     def get_form_fields(self):
         """Get the list of fields to use in the form for the view."""
         fields = [f for f in self.fields]
+        user = self.request.user
 
-        if self.request.user.is_superuser:
+        if user.is_superuser:
             fields.append('organization')
+        elif user.get_profile().organization.do_use_groups:
+            if len(user.get_profile().groups.all()) > 1:
+                fields.append('group')
 
         return fields
 
@@ -170,7 +174,13 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
         fields = self.get_form_fields()
         form_class = modelform_factory(self.model, fields=fields)
         kwargs = self.get_form_kwargs()
-        return form_class(**kwargs)
+
+        form =  form_class(**kwargs)
+        if 'group' in self.fields:
+            form.fields['group'].queryset = (
+                self.request.user.get_profile().groups.all()
+            )
+        return form
 
     def form_valid(self, form):
         """Validate the form."""
@@ -181,6 +191,9 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
                 raise PermissionDenied
             self.object = form.save(commit=False)
             self.object.organization = user_profile.organization
+            if (user_profile.organization.do_use_groups and
+                len(user_profile.groups.all())):
+                self.object.group = user_profile.groups.all()[0]
 
         return super(RestrictedCreateView, self).form_valid(form)
 
@@ -247,8 +260,10 @@ class ScannerCreate(RestrictedCreateView):
         form = super(ScannerCreate, self).get_form(form_class)
         try:
             organization = self.request.user.get_profile().organization
+            groups = self.request.user.get_profile().groups
         except UserProfile.DoesNotExist:
             organization = None
+            groups = None
 
         if not self.request.user.is_superuser:
             for field_name in ['domains', 'regex_rules']:
@@ -468,9 +483,17 @@ class GroupCreate(RestrictedCreateView):
 
     """Create a domain view."""
 
-    fields = ['name', 'contact_email', 'contact_phone', 'user_profiles',
-              'organization']
+    fields = ['name', 'contact_email', 'contact_phone', 'user_profiles']
     model = Group
+
+    def get_form_fields(self):
+        """Get the list of fields to use in the form for the view."""
+        fields = super(GroupCreate, self).get_form_fields()
+
+        if 'group' in fields:
+            fields.remove('group')
+
+        return fields
 
     def get_form(self, form_class):
         """Get the form for the view.
