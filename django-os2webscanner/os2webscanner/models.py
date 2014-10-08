@@ -421,17 +421,48 @@ class Scan(models.Model):
             # Send email
             notify_user(self)
 
-            # Delete all pending conversionqueue items
-            ConversionQueueItem.objects.filter(
-                url__scan=self,
-                status=ConversionQueueItem.NEW
-            ).delete()
-
-            # remove all files associated with the scan
-            scan_dir = self.scan_dir
-            if os.access(scan_dir, os.W_OK):
-                shutil.rmtree(scan_dir, True)
+            self.cleanup_finished_scan()
             self._old_status = self.status
+
+    def cleanup_finished_scan(self, log=False):
+        """Delete pending conversion queue items and remove the scan dir."""
+        # Delete all pending conversionqueue items
+        pending_items = ConversionQueueItem.objects.filter(
+            url__scan=self,
+            status=ConversionQueueItem.NEW
+        )
+        if log:
+            if pending_items.exists():
+                print "Deleting %d remaining conversion queue items from " \
+                      "finished scan %s" % (
+                    pending_items.count(), self)
+
+        pending_items.delete()
+
+        # remove all files associated with the scan
+        if self.scan_dir_exists():
+            if log:
+                print "Deleting scan directory: %s" % self.scan_dir
+            shutil.rmtree(self.scan_dir, True)
+
+    @classmethod
+    def cleanup_finished_scans(cls, scan_age, log=False):
+        """Cleanup convqueue items from inactive scans older than scan_age ago.
+
+        scan_age should be a timedelta object."""
+        from django.utils import timezone
+        from django.db.models import Q
+        oldest_end_time = timezone.localtime(timezone.now()) - scan_age
+        inactive_scans = Scan.objects.filter(
+            Q(status__in=(Scan.DONE, Scan.FAILED)),
+            Q(end_time__gt=oldest_end_time) | Q(end_time__isnull=True)
+        )
+        for scan in inactive_scans:
+            scan.cleanup_finished_scan(log=log)
+
+    def scan_dir_exists(self):
+        """Return whether the scan's dir exists."""
+        return os.access(self.scan_dir, os.W_OK)
 
     def __init__(self, *args, **kwargs):
         """Initialize a new scan.
