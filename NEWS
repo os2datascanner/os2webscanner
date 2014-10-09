@@ -2,6 +2,9 @@
 
 New in this version:
 
+ - Bug fix: CPR check using wrong digit to validate birth date. The CPR rule
+   was using the 8th digit instead of the 7th digit of the CPR number to
+   validate the birth date of CPR numbers.
  - Periodically delete conversion queue items from finished scans that may
    not have been properly cleaned up when they finished.
  - Ignore and delete images extracted from converted files if their are
