@@ -327,9 +327,16 @@ class Scanner(models.Model):
 
         if test_only:
             return scan
+
+        if not os.path.exists(scan.scan_log_dir):
+            os.makedirs(scan.scan_log_dir)
+        log_file = open(scan.scan_log_file, "a")
+
         try:
             process = Popen([os.path.join(SCRAPY_WEBSCANNER_DIR, "run.sh"),
-                         str(scan.pk)], cwd=SCRAPY_WEBSCANNER_DIR)
+                             str(scan.pk)], cwd=SCRAPY_WEBSCANNER_DIR,
+                            stderr=log_file,
+                            stdout=log_file)
         except Exception as e:
             return None
         return scan
@@ -384,6 +391,16 @@ class Scan(models.Model):
     def scan_dir(self):
         """The directory associated with this scan."""
         return os.path.join(settings.VAR_DIR, 'scan_%s' % self.pk)
+
+    @property
+    def scan_log_dir(self):
+        """Return the path to the scan log dir."""
+        return os.path.join(settings.VAR_DIR, 'logs', 'scans')
+
+    @property
+    def scan_log_file(self):
+        """Return the log file path associated with this scan."""
+        return os.path.join(self.scan_log_dir, 'scan_%s.log' % self.pk)
 
     # Reason for failure
     reason = models.CharField(max_length=1024, blank=True, default="",
