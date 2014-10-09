@@ -79,6 +79,7 @@ class UserProfile(models.Model):
                              unique=True,
                              related_name='profile',
                              verbose_name='Bruger')
+    is_group_admin = models.BooleanField(default=False)
 
     def __unicode__(self):
         """Return the user's username."""
