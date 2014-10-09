@@ -679,13 +679,24 @@ class SystemStatusView(TemplateView, SuperUserRequiredMixin):
             status=ConversionQueueItem.NEW
         )
         total = all.count()
-        totals_by_type = all.values('type').annotate(total=Count('type'))
+        totals_by_type = all.values('type').annotate(total=Count('type')).order_by('-total')
         totals_by_scan = all.values('url__scan__pk').annotate(
             total=Count('url__scan__pk')
-        )
+        ).order_by('-total')
+        totals_by_scan_and_type = all.values('url__scan__pk', 'type').annotate(
+            total=Count('type')
+        ).order_by('-total')
 
         for item in totals_by_scan:
             item['scan'] = Scan.objects.get(pk=item['url__scan__pk'])
+            by_type = []
+            for x in totals_by_scan_and_type:
+                if x['url__scan__pk'] == item['url__scan__pk']:
+                    by_type.append({
+                        'total': x['total'],
+                        'type': x['type']
+                    })
+            item['by_type'] = by_type
 
         def assign_percentages(grouped_totals, total):
             for item in grouped_totals:

@@ -20,7 +20,7 @@ System Status
         <thead>
             <tr>
                 <th>Type</th>
-                <th>Total</th>
+                <th>Number of queue items</th>
             </tr>
         </thead>
     {% for item in total_queue_items_by_type %}
@@ -37,13 +37,26 @@ System Status
         <thead>
         <tr>
             <th>Scan</th>
-            <th>Total</th>
+            <th>Number of queue items</th>
         </tr>
         </thead>
         {% for item in total_queue_items_by_scan %}
         <tr>
             <td>{{item.scan}}</td>
-            <td>{{item.total}} ({{item.percentage}}%)</td>
+            <td>
+                <table class="table">
+                    <tr>
+                        <td><strong>Total</strong></td>
+                        <td><strong>{{item.total}} ({{item.percentage}}%)</strong></td>
+                    </tr>
+                {% for x in item.by_type %}
+                    <tr>
+                        <td>{{x.type}}</td>
+                        <td>{{x.total}}</td>
+                    </tr>
+                {% endfor %}
+                </table>
+            </td>
         </tr>
         {% endfor %}
     </table>
