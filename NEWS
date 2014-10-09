@@ -1,3 +1,13 @@
+* Version 1.1.0.2, <<INSERT DATE HERE>>
+
+New in this version:
+
+ - Periodically delete conversion queue items from finished scans that may
+   not have been properly cleaned up when they finished.
+ - Ignore and delete images extracted from converted files if their are
+   dimensions do not meet minimum dimensions: both width and height must be
+   >= 7 pixels and at least one dimension must be >= 64 pixels.
+
 * Version 1.1.0, September 23, 2014
 
 New in this version:

@@ -440,16 +440,18 @@ class Scan(models.Model):
         pending_items.delete()
 
         # remove all files associated with the scan
-        if self.scan_dir_exists():
+        if self.is_scan_dir_writable():
             if log:
                 print "Deleting scan directory: %s" % self.scan_dir
             shutil.rmtree(self.scan_dir, True)
 
     @classmethod
     def cleanup_finished_scans(cls, scan_age, log=False):
-        """Cleanup convqueue items from inactive scans older than scan_age ago.
+        """Cleanup convqueue items from finished scans.
 
-        scan_age should be a timedelta object."""
+        Only Scans that have ended since scan_age ago are considered.
+        scan_age should be a timedelta object.
+        """
         from django.utils import timezone
         from django.db.models import Q
         oldest_end_time = timezone.localtime(timezone.now()) - scan_age
@@ -460,8 +462,8 @@ class Scan(models.Model):
         for scan in inactive_scans:
             scan.cleanup_finished_scan(log=log)
 
-    def scan_dir_exists(self):
-        """Return whether the scan's dir exists."""
+    def is_scan_dir_writable(self):
+        """Return whether the scan's directory exists and is writable."""
         return os.access(self.scan_dir, os.W_OK)
 
     def __init__(self, *args, **kwargs):
