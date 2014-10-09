@@ -10,6 +10,8 @@ New in this version:
  - Ignore and delete images extracted from converted files if their are
    dimensions do not meet minimum dimensions: both width and height must be
    >= 7 pixels and at least one dimension must be >= 64 pixels.
+ - Scans are logged to separate files in var/logs/scans rather than
+   polluting the web server's error log file.
 
 * Version 1.1.0, September 23, 2014
 
