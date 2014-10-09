@@ -1,0 +1,61 @@
+{% extends 'os2webscanner/base.html' %}
+{% block rendertype %}regular{% endblock %}
+{%  block title %}
+System Status
+{% endblock %}
+
+{% block body %}
+
+<div class="container">
+    <h2>Conversion Queue</h2>
+    <table class="table table-striped">
+        <tr>
+            <td><strong>Total items</strong></td>
+            <td><strong>{{total_queue_items}}</strong></td>
+        </tr>
+    </table>
+
+    {% if total_queue_items_by_type %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+    {% for item in total_queue_items_by_type %}
+        <tr>
+            <td>{{item.type}}</td>
+            <td>{{item.total}} ({{item.percentage}}%)</td>
+        </tr>
+    {% endfor %}
+    </table>
+    {% endif %}
+
+    {% if total_queue_items_by_scan %}
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Scan</th>
+            <th>Total</th>
+        </tr>
+        </thead>
+        {% for item in total_queue_items_by_scan %}
+        <tr>
+            <td>{{item.scan}}</td>
+            <td>{{item.total}} ({{item.percentage}}%)</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block heading %} 
+System Status
+{% endblock %}
+
+{% block system_status_active %}
+class="active"
+{% endblock %}
