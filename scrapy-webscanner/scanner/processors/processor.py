@@ -14,6 +14,7 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 """Processors."""
+import subprocess
 
 from os2webscanner.models import ConversionQueueItem
 from django.db import transaction, IntegrityError, DatabaseError
@@ -27,6 +28,24 @@ import magic
 from django.conf import settings
 
 
+# Minimum width and height an image must have to be scanned
+MIN_OCR_DIMENSION_BOTH = 7
+
+# Minimum width or height (at least one dimension) an image must have to be
+# scanned
+MIN_OCR_DIMENSION_EITHER = 64
+
+
+def get_image_dimensions(file_path):
+    """Return an image's dimensions as a tuple containing width and height.
+
+    Uses the "identify" command from ImageMagick to retrieve the information.
+    """
+    dimensions = subprocess.check_output(["identify", "-format", "%wx%h",
+                                     file_path])
+    return tuple(int(dim.strip()) for dim in dimensions.split("x"))
+
+
 class Processor(object):
 
     """Represents a Processor which can process spider and queue items.
@@ -36,7 +55,7 @@ class Processor(object):
     methods for other processors.
     """
 
-    magic = magic.Magic(mime=True)
+    mime_magic = magic.Magic(mime=True)
 
     processors_by_type = {}
     processor_instances = {}
@@ -230,6 +249,7 @@ class Processor(object):
 
     def add_processed_files(self, item, tmp_dir):
         """Recursively add all files in the temp dir to the queue."""
+        ignored_ocr_count = 0
         for root, dirnames, filenames in os.walk(tmp_dir):
             for fname in filenames:
                 # TODO: How do we decide which types are supported?
@@ -239,7 +259,7 @@ class Processor(object):
                     file_path = os.path.join(root, fname)
                     if mime_type is None:
                         # Guess the mime type from the file contents
-                        mime_type = self.magic.from_file(file_path)
+                        mime_type = self.mime_magic.from_file(file_path)
                     processor_type = Processor.mimetype_to_processor_type(
                         mime_type)
 
@@ -247,6 +267,17 @@ class Processor(object):
                     if (processor_type == 'ocr' and
                         not item.url.scan.scanner.do_ocr):
                         processor_type = None
+
+                    # Ignore and delete images which are smaller than
+                    # the minimum dimensions
+                    if processor_type == 'ocr':
+                        (w, h) = get_image_dimensions(file_path)
+                        if not ((w >= MIN_OCR_DIMENSION_BOTH and
+                                 h >= MIN_OCR_DIMENSION_BOTH)
+                                and (w >= MIN_OCR_DIMENSION_EITHER or
+                                     h >= MIN_OCR_DIMENSION_EITHER)):
+                            ignored_ocr_count += 1
+                            processor_type = None
 
                     if processor_type is not None:
                         new_item = ConversionQueueItem(
@@ -261,6 +292,12 @@ class Processor(object):
 
                 except ValueError:
                     continue
+        if ignored_ocr_count > 0:
+            print "Ignored %d extracted images because the dimensions were" \
+                  "small (width AND height must be >= %d) AND (width OR " \
+                  "height must be >= %d))" % (ignored_ocr_count,
+                                               MIN_OCR_DIMENSION_BOTH,
+                                               MIN_OCR_DIMENSION_EITHER)
 
     @classmethod
     def register_processor(cls, processor_type, processor):
