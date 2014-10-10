@@ -21,6 +21,7 @@ Starts up multiple instances of each processor.
 Restarts processors if they die or if they get stuck processing a single
 item for too long.
 """
+import django
 
 import os
 import shutil
@@ -140,28 +141,30 @@ def exit_handler(signum=None, frame=None):
 
 signal.signal(signal.SIGTERM | signal.SIGINT | signal.SIGQUIT, exit_handler)
 
-# Delete all inactive scan's queue items to start with
-Scan.cleanup_finished_scans(timedelta(days=10000), log=True)
 
-for ptype in process_types:
-    for i in range(processes_per_type):
-        name = '%s%d' % (ptype, i)
-        program = [
-            'python',
-            os.path.join(base_dir, 'scrapy-webscanner', 'process_queue.py'),
-            ptype
-        ]
-        # Libreoffice takes the homedir name as second arg
-        if "libreoffice" == ptype:
-            program.append(name)
-        p = {'program_args': program, 'name': name}
-        process_map[name] = p
-        process_list.append(p)
+def main():
+    """Main function."""
+    # Delete all inactive scan's queue items to start with
+    Scan.cleanup_finished_scans(timedelta(days=10000), log=True)
 
-for p in process_list:
-    start_process(p)
+    for ptype in process_types:
+        for i in range(processes_per_type):
+            name = '%s%d' % (ptype, i)
+            program = [
+                'python',
+                os.path.join(base_dir, 'scrapy-webscanner', 'process_queue.py'),
+                ptype
+            ]
+            # Libreoffice takes the homedir name as second arg
+            if "libreoffice" == ptype:
+                program.append(name)
+            p = {'program_args': program, 'name': name}
+            process_map[name] = p
+            process_list.append(p)
 
-try:
+    for p in process_list:
+        start_process(p)
+
     while True:
         sys.stdout.flush()
         sys.stderr.flush()
@@ -215,5 +218,10 @@ try:
         Scan.cleanup_finished_scans(timedelta(minutes=1), log=True)
 
         time.sleep(10)
+
+try:
+    main()
 except KeyboardInterrupt:
     pass
+except django.db.utils.InternalError as e:
+    print e

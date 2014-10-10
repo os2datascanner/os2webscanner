@@ -14,6 +14,7 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 """Processors."""
+import random
 import subprocess
 
 from os2webscanner.models import ConversionQueueItem
@@ -195,11 +196,22 @@ class Processor(object):
         while result is None:
             try:
                 with transaction.atomic():
-                    # Get the first unprocessed item of the wanted type
-                    result = ConversionQueueItem.objects.filter(
+                    new_items_queryset = ConversionQueueItem.objects.filter(
                         type=self.item_type,
                         status=ConversionQueueItem.NEW
-                    ).select_for_update(nowait=True).order_by("pk")[0]
+                    )
+
+                    # Get scans with pending items of the wanted type
+                    scans = new_items_queryset.values('url__scan').distinct()
+
+                    # Pick a random scan
+                    random_scan_pk = random.choice(scans)['url__scan']
+
+                    # Get the first unprocessed item of the wanted type and
+                    # from a random scan
+                    result = new_items_queryset.filter(
+                        url__scan=random_scan_pk).select_for_update(
+                        nowait=True)[0]
 
                     # Change status of the found item
                     ltime = timezone.localtime(timezone.now())
