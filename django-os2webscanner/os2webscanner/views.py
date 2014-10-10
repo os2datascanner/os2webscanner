@@ -22,8 +22,8 @@ from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.http import Http404, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import View, ListView, TemplateView, DetailView
-from django.views.generic.detail import SingleObjectMixin
-from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.views.generic.edit import ModelFormMixin, DeleteView
+from django.views.generic.edit import CreateView, UpdateView
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.forms.models import modelform_factory
@@ -58,15 +58,18 @@ class RestrictedListView(ListView, LoginRequiredMixin):
             try:
                 profile = user.get_profile()
                 if profile.organization.do_use_groups:
-                    if profil.is_local_admin or self.model == Group:
+                    if profile.is_group_admin or self.model == Group:
                         return self.model.objects.filter(
                             organization=profile.organization
                         )
-                else:
-                    groups = profile.groups.all()
-                    return self.model.objects.filter(
-                        group__in=groups
-                    )
+                    else:
+                        groups = profile.groups.all()
+                        print groups
+                        qs = self.model.objects.filter(
+                            group__in=groups
+                        )
+                        print qs
+                        return qs
             except UserProfile.DoesNotExist:
                 return self.model.objects.filter(organization=None)
 
@@ -138,14 +141,14 @@ class ReportList(RestrictedListView):
             try:
                 profile = user.get_profile()
                 # TODO: Filter by group here if relevant.
-                if (profile.is_local_admin or not
+                if (profile.is_group_admin or not
                     profile.organization.do_use_groups):
                     reports = self.model.objects.filter(
                         scanner__organization=profile.organization
                     )
                 else:
                     reports = self.model.objects.filter(
-                        scanner__group__in=profile.groups
+                        scanner__group__in=profile.groups.all()
                     )
             except UserProfile.DoesNotExist:
                 reports = self.model.objects.filter(
@@ -181,7 +184,7 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
         form_class = modelform_factory(self.model, fields=fields)
         kwargs = self.get_form_kwargs()
 
-        form =  form_class(**kwargs)
+        form = form_class(**kwargs)
         if 'group' in self.fields:
             form.fields['group'].queryset = (
                 self.request.user.get_profile().groups.all()
@@ -198,14 +201,14 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
             self.object = form.save(commit=False)
             self.object.organization = user_profile.organization
             if (user_profile.organization.do_use_groups and not
-                user_profile.local_admin and
+                user_profile.is_group_admin and
                 len(user_profile.groups.all())):
                 self.object.group = user_profile.groups.all()[0]
 
         return super(RestrictedCreateView, self).form_valid(form)
 
 
-class OrgRestrictedMixin(SingleObjectMixin, LoginRequiredMixin):
+class OrgRestrictedMixin(ModelFormMixin, LoginRequiredMixin):
 
     """Mixin class for views with organization-restricted queryset."""
 
@@ -213,13 +216,16 @@ class OrgRestrictedMixin(SingleObjectMixin, LoginRequiredMixin):
         """Get the list of fields to use in the form for the view."""
         fields = [f for f in self.fields]
         user = self.request.user
-
+        profile = user.get_profile()
+        do_add_group = False
         if user.is_superuser:
             fields.append('organization')
+            do_add_group = True
+        elif profile.organization.do_use_groups:
+            if profile.is_group_admin or len(profile.groups.all()) > 1:
+                do_add_group = True
+        if do_add_group and self.model != Group:
             fields.append('group')
-        elif user.get_profile().organization.do_use_groups:
-            if len(user.get_profile().groups.all()) > 1:
-                fields.append('group')
         return fields
 
     def get_form(self, form_class):
@@ -228,15 +234,20 @@ class OrgRestrictedMixin(SingleObjectMixin, LoginRequiredMixin):
         form_class = modelform_factory(self.model, fields=fields)
         kwargs = self.get_form_kwargs()
 
-        form =  form_class(**kwargs)
+        form = form_class(**kwargs)
         if 'group' in self.fields:
-            form.fields['group'].queryset = (
-                self.request.user.get_profile().groups.all()
-            )
+            if self.request.user.is_superuser:
+                form.fields['group'].queryset = (
+                    self.object.organization.groups.all()
+                )
+            else:
+                form.fields['group'].queryset = (
+                    self.request.user.get_profile().groups.all()
+                )
         return form
 
     def get_queryset(self):
-        """Get queryset filtered by user's organiztion."""
+        """Get queryset filtered by user's organization."""
         queryset = super(OrgRestrictedMixin, self).get_queryset()
         if not self.request.user.is_superuser:
             organization = None
@@ -244,13 +255,13 @@ class OrgRestrictedMixin(SingleObjectMixin, LoginRequiredMixin):
             try:
                 user_profile = self.request.user.get_profile()
                 organization = user_profile.organization
-                groups = profile.groups.all()
+                groups = user_profile.groups.all()
             except UserProfile.DoesNotExist:
                 organization = None
                 groups = []
 
             if (user_profile.organization.do_use_groups and not
-                user_profile.is_local_admin):
+                user_profile.is_group_admin):
                 queryset = queryset.filter(group__in=groups)
             else:
                 queryset = queryset.filter(organization=organization)
@@ -307,7 +318,10 @@ class ScannerCreate(RestrictedCreateView):
         if not self.request.user.is_superuser:
             for field_name in ['domains', 'regex_rules']:
                 queryset = form.fields[field_name].queryset
-                queryset = queryset.filter(organization=organization)
+                if self.request.user.get_profile().is_group_admin:
+                    queryset = queryset.filter(organization=organization)
+                else:
+                    queryset = queryset.filter(group__in=groups)
                 form.fields[field_name].queryset = queryset
         return form
 
@@ -345,7 +359,10 @@ class ScannerUpdate(RestrictedUpdateView):
 
         for field_name in ['domains', 'regex_rules']:
             queryset = form.fields[field_name].queryset
-            queryset = queryset.filter(organization=scanner.organization)
+            if scanner.organization.do_use_groups:
+                queryset = queryset.filter(group=scanner.group)
+            else:
+                queryset = queryset.filter(organization=scanner.organization)
             form.fields[field_name].queryset = queryset
         return form
 
@@ -353,7 +370,6 @@ class ScannerUpdate(RestrictedUpdateView):
 class ScannerDelete(RestrictedDeleteView):
 
     """Delete a scanner view."""
-
 
     model = Scanner
     success_url = '/scanners/'
@@ -424,11 +440,14 @@ class DomainUpdate(RestrictedUpdateView):
     def get_form_fields(self):
         """Get the list of form fields."""
         fields = super(DomainUpdate, self).get_form_fields()
-        
+
         if self.request.user.is_superuser:
-            enabled_fields.append('validation_status')
+            fields.append('validation_status')
         elif not self.object.validation_status:
-            enabled_fields.append('validation_method')
+            fields.append('validation_method')
+
+        self.fields = fields
+        return fields
 
     def get_form(self, form_class):
         """Get the form for the view.
@@ -557,6 +576,7 @@ class GroupUpdate(RestrictedUpdateView):
     """Update a domain view."""
 
     model = Group
+    fields = ['name', 'contact_email', 'contact_phone', 'user_profiles']
 
     def get_form(self, form_class):
         """Get the form for the view.
@@ -587,6 +607,7 @@ class GroupDelete(RestrictedDeleteView):
     """Delete a domain view."""
 
     model = Group
+    fields = ['name', 'contact_email', 'contact_phone', 'user_profiles']
     success_url = '/groups/'
 
 
@@ -620,6 +641,7 @@ class RuleUpdate(RestrictedUpdateView):
     """Update a rule view."""
 
     model = RegexRule
+    fields = ['name', 'match_string', 'description', 'sensitivity']
 
     def get_form(self, form_class):
         """Get the form for the view.
@@ -644,6 +666,7 @@ class RuleDelete(RestrictedDeleteView):
     """Delete a rule view."""
 
     model = RegexRule
+    fields = ['name', 'match_string', 'description', 'sensitivity']
     success_url = '/rules/'
 
 
