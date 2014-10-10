@@ -2,9 +2,7 @@
 
 New in this version:
 
- - Bug fix: sometimes periodically deleting conversion queue items from
-   finished scans causes process_manager.py to die with an
-   InternalError exception.
+ - Bug fix: Catch InternalError exception in process_manager.py.
  - Conversion queue items of a given type are now picked randomly from among
    the active scans to avoid one scan hogging the queue.
 

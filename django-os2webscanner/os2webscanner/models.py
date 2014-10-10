@@ -16,7 +16,6 @@
 # source municipalities ( http://www.os2web.dk/ )
 
 """Contains Django models for the Webscanner."""
-import django
 
 import os
 import shutil
@@ -470,18 +469,15 @@ class Scan(models.Model):
         Only Scans that have ended since scan_age ago are considered.
         scan_age should be a timedelta object.
         """
-        try:
-            from django.utils import timezone
-            from django.db.models import Q
-            oldest_end_time = timezone.localtime(timezone.now()) - scan_age
-            inactive_scans = Scan.objects.filter(
-                Q(status__in=(Scan.DONE, Scan.FAILED)),
-                Q(end_time__gt=oldest_end_time) | Q(end_time__isnull=True)
-            )
-            for scan in inactive_scans:
-                scan.cleanup_finished_scan(log=log)
-        except django.db.utils.InternalError as e:
-            print e
+        from django.utils import timezone
+        from django.db.models import Q
+        oldest_end_time = timezone.localtime(timezone.now()) - scan_age
+        inactive_scans = Scan.objects.filter(
+            Q(status__in=(Scan.DONE, Scan.FAILED)),
+            Q(end_time__gt=oldest_end_time) | Q(end_time__isnull=True)
+        )
+        for scan in inactive_scans:
+            scan.cleanup_finished_scan(log=log)
 
     def is_scan_dir_writable(self):
         """Return whether the scan's directory exists and is writable."""
