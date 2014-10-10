@@ -219,7 +219,7 @@ class Processor(object):
                     result.process_id = self.pid
                     result.process_start_time = ltime
                     result.save()
-            except (DatabaseError, IntegrityError, IndexError) as e:
+            except (DatabaseError, IntegrityError) as e:
                 # Database transaction failed, we just try again
                 print "".join([
                     "Transaction failed while getting queue item of type ",
