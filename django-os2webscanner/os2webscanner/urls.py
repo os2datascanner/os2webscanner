@@ -26,6 +26,7 @@ from .views import DomainCreate, DomainUpdate, DomainValidate, DomainDelete
 from .views import GroupList, GroupCreate, GroupUpdate, GroupDelete
 from .views import RuleCreate, RuleUpdate, RuleDelete
 from .views import DialogSuccess
+from .views import SystemStatusView
 from .models import Scanner
 
 
@@ -101,5 +102,7 @@ urlpatterns = patterns(
         DialogSuccess.as_view()),
     url(r'^(scanners|domains|rules|groups)/(\d+)/(saved)/$',
         DialogSuccess.as_view()),
-    url(r'^jsi18n/$', javascript_catalog, js_info_dict)
+    url(r'^jsi18n/$', javascript_catalog, js_info_dict),
+
+    url(r'^system/status/?$', SystemStatusView.as_view()),
 )

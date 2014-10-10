@@ -96,6 +96,11 @@
               Rapporter
             </a>
             </li>
+            {% if user.is_superuser %}
+            <li {% block system_status_active %}{% endblock %}>
+                <a href="/system/status/">System Status</a>
+            </li>
+            {% endif %}
             {% if user.is_authenticated %}
             <li>
             <a href="/accounts/password_change/">Velkommen, {{user.username}}!</a>

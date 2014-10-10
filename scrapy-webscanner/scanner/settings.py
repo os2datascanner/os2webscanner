@@ -23,6 +23,8 @@
 # http://doc.scrapy.org/en/latest/topics/settings.html
 #
 
+import os
+
 BOT_NAME = 'scanner'
 
 SPIDER_MODULES = ['scanner.spiders']
@@ -47,11 +49,7 @@ DOWNLOADER_MIDDLEWARES = {
     'scanner.middlewares.LastModifiedCheckMiddleware': 1200,
 }
 
-#LOG_LEVEL = 'DEBUG'
-
-# Set to True in testing to avoid pegging websites, if only testing processing
-# MUST BE REMOVED IN PRODUCTION!!
-HTTPCACHE_ENABLED = False
+LOG_LEVEL = 'ERROR'
 
 # Crawl responsibly by identifying yourself (and your website) on the
 # user-agent
@@ -65,3 +63,10 @@ ROBOTSTXT_OBEY = False
 WEBSERVICE_ENABLED = False
 
 TELNETCONSOLE_ENABLED = False
+
+local_settings_file = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    'local_settings.py'
+)
+if os.path.exists(local_settings_file):
+    from local_settings import *

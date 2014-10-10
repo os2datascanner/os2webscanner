@@ -7,3 +7,4 @@ django-os2webscanner/build
 django-os2webscanner/django.os2webscanner.egg-info
 *.egg-info
 /webscanner_site/webscanner/local_settings.py
+/scrapy-webscanner/scanner/local_settings.py
