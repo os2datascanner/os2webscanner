@@ -1,3 +1,11 @@
+* Version 1.1.0.3, October 10, 2014
+
+New in this version:
+
+ - Bug fix: Catch InternalError exception in process_manager.py.
+ - Conversion queue items of a given type are now picked randomly from among
+   the active scans to avoid one scan hogging the queue.
+
 * Version 1.1.0.2, October 10, 2014
 
 New in this version:
