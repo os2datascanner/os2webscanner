@@ -80,6 +80,11 @@
           <li {% block scanners_active %}{% endblock %}>
             <a href="/scanners/">Scannere</a>
           </li>
+          {% if user.is_superuser or user.get_profile.is_local_admin %}
+          <li {% block groups_active %}{% endblock %}>
+            <a href="/groups/">Grupper</a>
+          </li>
+          {% endif %}
           <li {% block domains_active %}{% endblock %}>
             <a href="/domains/">Domæner</a>
           </li>
@@ -91,6 +96,11 @@
               Rapporter
             </a>
             </li>
+            {% if user.is_superuser %}
+            <li {% block system_status_active %}{% endblock %}>
+                <a href="/system/status/">System Status</a>
+            </li>
+            {% endif %}
             {% if user.is_authenticated %}
             <li>
             <a href="/accounts/password_change/">Velkommen, {{user.username}}!</a>

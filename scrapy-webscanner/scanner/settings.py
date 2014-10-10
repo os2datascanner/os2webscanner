@@ -48,15 +48,7 @@ DOWNLOADER_MIDDLEWARES = {
     'scanner.middlewares.LastModifiedCheckMiddleware': 1200,
 }
 
-<<<<<<< HEAD
-#LOG_LEVEL = 'DEBUG'
-
-# Set to True in testing to avoid pegging websites, if only testing processing
-# MUST BE REMOVED IN PRODUCTION!!
-HTTPCACHE_ENABLED = False
-=======
 LOG_LEVEL = 'ERROR'
->>>>>>> feature/11199_scrapy_log_to_file
 
 # Crawl responsibly by identifying yourself (and your website) on the
 # user-agent

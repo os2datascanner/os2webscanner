@@ -22,8 +22,10 @@ from .views import MainPageView, ScannerList, DomainList, RuleList
 from .views import CSVReportDetails, ReportDetails, ReportList, ReportDelete
 from .views import ScannerCreate, ScannerUpdate, ScannerDelete, ScannerRun
 from .views import DomainCreate, DomainUpdate, DomainValidate, DomainDelete
+from .views import GroupList, GroupCreate, GroupUpdate, GroupDelete
 from .views import RuleCreate, RuleUpdate, RuleDelete, OrganizationList
 from .views import DialogSuccess
+from .views import SystemStatusView
 from .models import Scanner
 
 
@@ -64,6 +66,13 @@ urlpatterns = patterns(
         name='rule_update'),
     url(r'^rules/(?P<pk>\d+)/delete/$', RuleDelete.as_view(),
         name='rule_delete'),
+    url(r'^groups/$', GroupList.as_view(), name='groups'),
+    url(r'^groups/add/$', GroupCreate.as_view(), name='group_add'),
+    url(r'^(groups)/(\d+)/(success)/$', DialogSuccess.as_view()),
+    url(r'^groups/(?P<pk>\d+)/$', GroupUpdate.as_view(),
+        name='group_update'),
+    url(r'^groups/(?P<pk>\d+)/delete/$', GroupDelete.as_view(),
+        name='group_delete'),
     url(r'^reports/$', ReportList.as_view(), name='reports'),
     url(r'^report/(?P<pk>[0-9]+)/$', ReportDetails.as_view(),
         name='report'),
@@ -90,9 +99,11 @@ urlpatterns = patterns(
     ),
 
     # General dialog success handler
-    url(r'^(scanners|domains|rules)/(\d+)/(created)/$',
+    url(r'^(scanners|domains|rules|groups)/(\d+)/(created)/$',
         DialogSuccess.as_view()),
-    url(r'^(scanners|domains|rules)/(\d+)/(saved)/$',
+    url(r'^(scanners|domains|rules|groups)/(\d+)/(saved)/$',
         DialogSuccess.as_view()),
-    url(r'^jsi18n/$', javascript_catalog, js_info_dict)
+    url(r'^jsi18n/$', javascript_catalog, js_info_dict),
+
+    url(r'^system/status/?$', SystemStatusView.as_view()),
 )

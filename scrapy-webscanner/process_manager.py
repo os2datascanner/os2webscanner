@@ -21,6 +21,7 @@ Starts up multiple instances of each processor.
 Restarts processors if they die or if they get stuck processing a single
 item for too long.
 """
+import django
 
 import os
 import shutil
@@ -140,25 +141,30 @@ def exit_handler(signum=None, frame=None):
 
 signal.signal(signal.SIGTERM | signal.SIGINT | signal.SIGQUIT, exit_handler)
 
-for ptype in process_types:
-    for i in range(processes_per_type):
-        name = '%s%d' % (ptype, i)
-        program = [
-            'python',
-            os.path.join(base_dir, 'scrapy-webscanner', 'process_queue.py'),
-            ptype
-        ]
-        # Libreoffice takes the homedir name as second arg
-        if "libreoffice" == ptype:
-            program.append(name)
-        p = {'program_args': program, 'name': name}
-        process_map[name] = p
-        process_list.append(p)
 
-for p in process_list:
-    start_process(p)
+def main():
+    """Main function."""
+    # Delete all inactive scan's queue items to start with
+    Scan.cleanup_finished_scans(timedelta(days=10000), log=True)
 
-try:
+    for ptype in process_types:
+        for i in range(processes_per_type):
+            name = '%s%d' % (ptype, i)
+            program = [
+                'python',
+                os.path.join(base_dir, 'scrapy-webscanner', 'process_queue.py'),
+                ptype
+            ]
+            # Libreoffice takes the homedir name as second arg
+            if "libreoffice" == ptype:
+                program.append(name)
+            p = {'program_args': program, 'name': name}
+            process_map[name] = p
+            process_list.append(p)
+
+    for p in process_list:
+        start_process(p)
+
     while True:
         sys.stdout.flush()
         sys.stderr.flush()
@@ -193,7 +199,6 @@ try:
 
         try:
             with transaction.atomic():
-                # Get the first unprocessed item of the wanted type
                 running_scans = Scan.objects.filter(
                     status=Scan.STARTED
                 ).select_for_update(nowait=True)
@@ -201,6 +206,7 @@ try:
                     if not scan.pid:
                         continue
                     try:
+                        # Check if process is still running
                         os.kill(scan.pid, 0)
                     except OSError:
                         scan.status = Scan.FAILED
@@ -208,6 +214,14 @@ try:
         except (DatabaseError, IntegrityError) as e:
             pass
 
+        # Cleanup finished scans from the last minute
+        Scan.cleanup_finished_scans(timedelta(minutes=1), log=True)
+
         time.sleep(10)
+
+try:
+    main()
 except KeyboardInterrupt:
     pass
+except django.db.utils.InternalError as e:
+    print e

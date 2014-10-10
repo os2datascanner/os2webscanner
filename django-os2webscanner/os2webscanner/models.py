@@ -63,6 +63,7 @@ class Organization(models.Model):
     name = models.CharField(max_length=256, unique=True, verbose_name='Navn')
     contact_email = models.CharField(max_length=256, verbose_name='Email')
     contact_phone = models.CharField(max_length=256, verbose_name='Telefon')
+    do_use_groups = models.BooleanField(default=False)
 
     def __unicode__(self):
         """Return the name of the organization."""
@@ -83,10 +84,38 @@ class UserProfile(models.Model):
                              unique=True,
                              related_name='profile',
                              verbose_name='Bruger')
+    is_group_admin = models.BooleanField(default=False)
 
     def __unicode__(self):
         """Return the user's username."""
         return self.user.username
+
+
+class Group(models.Model):
+    """Represents the group or sub-organisation."""
+    name = models.CharField(max_length=256, unique=True, verbose_name='Navn')
+    contact_email = models.CharField(max_length=256, verbose_name='Email')
+    contact_phone = models.CharField(max_length=256, verbose_name='Telefon')
+    user_profiles = models.ManyToManyField(UserProfile, null=True, blank=True,
+                                           verbose_name='Brugere',
+                                           related_name='groups')
+    organization = models.ForeignKey(Organization,
+                                     null=False,
+                                     related_name='groups',
+                                     verbose_name='Organisation')
+
+    def __unicode__(self):
+        """Return the name of the group."""
+        return self.name
+
+    class Meta:
+        """Ordering and other options."""
+        ordering = ['name']
+
+    @property
+    def display_name(self):
+        """The name used when displaying the domain on the web page."""
+        return "Group '%s'" % self.__unicode__()
 
 
 class Domain(models.Model):
@@ -120,6 +149,10 @@ class Domain(models.Model):
                                      null=False,
                                      related_name='domains',
                                      verbose_name='Organisation')
+    group = models.ForeignKey(Group,
+                              null=True,
+                              related_name='domains',
+                              verbose_name='Gruppe')
     validation_status = models.IntegerField(choices=validation_choices,
                                             default=INVALID,
                                             verbose_name='Valideringsstatus')
@@ -210,6 +243,8 @@ class RegexRule(models.Model):
                             verbose_name='Navn')
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')
+    group = models.ForeignKey(Group, null=True,
+                              verbose_name='Gruppe')
     match_string = models.CharField(max_length=1024, blank=False,
                                     verbose_name='Udtryk')
 
@@ -240,6 +275,8 @@ class Scanner(models.Model):
                             verbose_name='Navn')
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')
+    group = models.ForeignKey(Group, null=True,
+                                     verbose_name='Gruppe')
     schedule = RecurrenceField(max_length=1024,
                                verbose_name='Planlagt afvikling')
     whitelisted_names = models.TextField(max_length=4096, blank=True,
@@ -362,11 +399,16 @@ class Scanner(models.Model):
 
         if test_only:
             return scan
+
+        if not os.path.exists(scan.scan_log_dir):
+            os.makedirs(scan.scan_log_dir)
+        log_file = open(scan.scan_log_file, "a")
+
         try:
             process = Popen([os.path.join(SCRAPY_WEBSCANNER_DIR, "run.sh"),
-                         str(scan.pk)], cwd=SCRAPY_WEBSCANNER_DIR,
-                            stderr=open(scan.log_file, "a"),
-                            stdout=open(scan.log_file, "a"))
+                             str(scan.pk)], cwd=SCRAPY_WEBSCANNER_DIR,
+                            stderr=log_file,
+                            stdout=log_file)
         except Exception as e:
             print e
             return None
@@ -427,15 +469,14 @@ class Scan(models.Model):
         return os.path.join(settings.VAR_DIR, 'scan_%s' % self.pk)
 
     @property
-    def log_file(self):
-        """Return the scan's log file location.
+    def scan_log_dir(self):
+        """Return the path to the scan log dir."""
+        return os.path.join(settings.VAR_DIR, 'logs', 'scans')
 
-        Will create the directories if needed.
-        """
-        scan_dir = self.scan_dir
-        if not os.path.exists(scan_dir):
-            os.makedirs(scan_dir)
-        return os.path.join(scan_dir, 'scan_%s.log' % self.pk)
+    @property
+    def scan_log_file(self):
+        """Return the log file path associated with this scan."""
+        return os.path.join(self.scan_log_dir, 'scan_%s.log' % self.pk)
 
     # Reason for failure
     reason = models.CharField(max_length=1024, blank=True, default="",
@@ -473,17 +514,50 @@ class Scan(models.Model):
             # Send email
             notify_user(self)
 
-            # Delete all pending conversionqueue items
-            ConversionQueueItem.objects.filter(
-                url__scan=self,
-                status=ConversionQueueItem.NEW
-            ).delete()
-
-            # remove all files associated with the scan
-            scan_dir = self.scan_dir
-            if os.access(scan_dir, os.W_OK):
-                shutil.rmtree(scan_dir, True)
+            self.cleanup_finished_scan()
             self._old_status = self.status
+
+    def cleanup_finished_scan(self, log=False):
+        """Delete pending conversion queue items and remove the scan dir."""
+        # Delete all pending conversionqueue items
+        pending_items = ConversionQueueItem.objects.filter(
+            url__scan=self,
+            status=ConversionQueueItem.NEW
+        )
+        if log:
+            if pending_items.exists():
+                print "Deleting %d remaining conversion queue items from " \
+                      "finished scan %s" % (
+                    pending_items.count(), self)
+
+        pending_items.delete()
+
+        # remove all files associated with the scan
+        if self.is_scan_dir_writable():
+            if log:
+                print "Deleting scan directory: %s" % self.scan_dir
+            shutil.rmtree(self.scan_dir, True)
+
+    @classmethod
+    def cleanup_finished_scans(cls, scan_age, log=False):
+        """Cleanup convqueue items from finished scans.
+
+        Only Scans that have ended since scan_age ago are considered.
+        scan_age should be a timedelta object.
+        """
+        from django.utils import timezone
+        from django.db.models import Q
+        oldest_end_time = timezone.localtime(timezone.now()) - scan_age
+        inactive_scans = Scan.objects.filter(
+            Q(status__in=(Scan.DONE, Scan.FAILED)),
+            Q(end_time__gt=oldest_end_time) | Q(end_time__isnull=True)
+        )
+        for scan in inactive_scans:
+            scan.cleanup_finished_scan(log=log)
+
+    def is_scan_dir_writable(self):
+        """Return whether the scan's directory exists and is writable."""
+        return os.access(self.scan_dir, os.W_OK)
 
     def __init__(self, *args, **kwargs):
         """Initialize a new scan.
