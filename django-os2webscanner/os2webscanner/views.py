@@ -232,13 +232,14 @@ class OrgRestrictedMixin(ModelFormMixin, LoginRequiredMixin):
         """Get the list of fields to use in the form for the view."""
         fields = [f for f in self.fields]
         user = self.request.user
-        profile = user.get_profile()
+        organization = self.object.organization
         do_add_group = False
         if user.is_superuser:
             fields.append('organization')
-            do_add_group = True
-        elif profile.organization.do_use_groups:
-            if profile.is_group_admin or len(profile.groups.all()) > 1:
+        if organization.do_use_groups:
+            if (user.is_superuser or
+                user.get_profile().is_group_admin or
+                len(user.get_profile().groups.all()) > 1):
                 do_add_group = True
         if do_add_group and self.model != Group:
             fields.append('group')
@@ -326,7 +327,7 @@ class ScannerCreate(RestrictedCreateView):
         form = super(ScannerCreate, self).get_form(form_class)
         try:
             organization = self.request.user.get_profile().organization
-            groups = self.request.user.get_profile().groups
+            groups = self.request.user.get_profile().groups.all()
         except UserProfile.DoesNotExist:
             organization = None
             groups = None
@@ -848,7 +849,9 @@ class SystemStatusView(TemplateView, SuperUserRequiredMixin):
             status=ConversionQueueItem.NEW
         )
         total = all.count()
-        totals_by_type = all.values('type').annotate(total=Count('type')).order_by('-total')
+        totals_by_type = all.values('type').annotate(
+            total=Count('type')
+        ).order_by('-total')
         totals_by_scan = all.values('url__scan__pk').annotate(
             total=Count('url__scan__pk')
         ).order_by('-total')
