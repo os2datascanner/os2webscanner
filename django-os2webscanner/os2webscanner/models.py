@@ -275,7 +275,7 @@ class Scanner(models.Model):
                             verbose_name='Navn')
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')
-    group = models.ForeignKey(Group, null=True,
+    group = models.ForeignKey(Group, null=True, blank=True,
                                      verbose_name='Gruppe')
     schedule = RecurrenceField(max_length=1024,
                                verbose_name='Planlagt afvikling')

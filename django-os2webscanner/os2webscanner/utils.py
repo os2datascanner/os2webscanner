@@ -30,7 +30,10 @@ def notify_user(scan):
     t = loader.get_template(template)
 
     subject = "Scanning afsluttet: {0}".format(scan.status_text)
-    to_address = scan.scanner.organization.contact_email
+    if scan.scanner.organization.do_use_groups and scan.scanner.group:
+        to_address = scan.scanner.group.contact_email
+    else:
+        to_address = scan.scanner.organization.contact_email
     if not to_address:
         to_address = settings.ADMIN_EMAIL
     matches = models.Match.objects.filter(scan=scan).count()
