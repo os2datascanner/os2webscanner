@@ -17,6 +17,15 @@ Rapporter
                   </small>
                 </strong>
               </td>
+              {% if user.is_superuser %}
+              <td>
+                <strong>
+                  <small>
+                    Organisation
+                  </small>
+                </strong>
+              </td>
+              {% endif %}
               <td>
                 <strong>
                   <small>
@@ -47,6 +56,13 @@ Rapporter
                     {{ scan.scanner.name }}
                 </span>
               </td>
+              {% if user.is_superuser %}
+              <td class="report-domain">
+                <span>
+                    {{ scan.scanner.organization }}
+                </span>
+              </td>
+              {% endif %}
               <td class="report-scandate">
                   <span>{{ scan.start_time }}</span>
               </td>

@@ -17,6 +17,15 @@ Domæner
                   </small>
                 </strong>
               </td>
+              {% if user.is_superuser %}
+              <td>
+                <strong>
+                  <small>
+                    Organisation
+                  </small>
+                </strong>
+              </td>
+              {% endif %}
               <td>
                 <strong>
                   <small>
@@ -48,6 +57,13 @@ Domæner
                     {{domain.url}}
                 </span>
               </td>
+              {% if user.is_superuser %}
+              <td class="domain-organization">
+                <span>
+                    {{domain.organization}}
+                </span>
+              </td>
+              {% endif %}
               <td class="domain-exclusion-rules">
                <pre>{{domain.exclusion_rules}}</pre>
               </td>
