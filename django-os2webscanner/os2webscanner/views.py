@@ -33,9 +33,7 @@ from django.conf import settings
 from .validate import validate_domain, get_validation_str
 
 from .models import Scanner, Domain, RegexRule, Scan, Match, UserProfile, Url
-from .models import Organization
-from .models import Group
-from .models import ConversionQueueItem
+from .models import Organization, ConversionQueueItem, Group
 
 
 class LoginRequiredMixin(View):

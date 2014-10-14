@@ -50,8 +50,6 @@ urlpatterns = patterns(
     url(r'^scanners/(?P<pk>\d+)/$', ScannerUpdate.as_view(),
         name='scanner_update'),
     url(r'^domains/$', DomainList.as_view(), name='domains'),
-    url(r'^orgs_and_domains/$', OrganizationList.as_view(),
-        name='orgs_and_domains'),
     url(r'^domains/add/$', DomainCreate.as_view(), name='domain_add'),
     url(r'^domains/(?P<pk>\d+)/validate/$', DomainValidate.as_view(),
         name='domain_validate'),
@@ -106,4 +104,6 @@ urlpatterns = patterns(
     url(r'^jsi18n/$', javascript_catalog, js_info_dict),
 
     url(r'^system/status/?$', SystemStatusView.as_view()),
+    url(r'^system/orgs_and_domains/$', OrganizationList.as_view(),
+        name='orgs_and_domains'),
 )
