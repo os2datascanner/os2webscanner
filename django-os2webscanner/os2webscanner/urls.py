@@ -24,6 +24,7 @@ from .views import ScannerCreate, ScannerUpdate, ScannerDelete, ScannerRun
 from .views import DomainCreate, DomainUpdate, DomainValidate, DomainDelete
 from .views import RuleCreate, RuleUpdate, RuleDelete, OrganizationList
 from .views import DialogSuccess
+from .views import SystemStatusView
 from .models import Scanner
 
 
@@ -94,5 +95,7 @@ urlpatterns = patterns(
         DialogSuccess.as_view()),
     url(r'^(scanners|domains|rules)/(\d+)/(saved)/$',
         DialogSuccess.as_view()),
-    url(r'^jsi18n/$', javascript_catalog, js_info_dict)
+    url(r'^jsi18n/$', javascript_catalog, js_info_dict),
+
+    url(r'^system/status/?$', SystemStatusView.as_view()),
 )
