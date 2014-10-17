@@ -679,7 +679,9 @@ class SystemStatusView(TemplateView, SuperUserRequiredMixin):
             status=ConversionQueueItem.NEW
         )
         total = all.count()
-        totals_by_type = all.values('type').annotate(total=Count('type')).order_by('-total')
+        totals_by_type = all.values('type').annotate(
+            total=Count('type')
+        ).order_by('-total')
         totals_by_scan = all.values('url__scan__pk').annotate(
             total=Count('url__scan__pk')
         ).order_by('-total')

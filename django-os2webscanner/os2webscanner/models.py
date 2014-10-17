@@ -626,3 +626,13 @@ class UrlLastModified(models.Model):
     def __unicode__(self):
         """Return the URL and last modified date."""
         return "<%s %s>" % (self.url, self.last_modified)
+
+
+class SummaryReportConfiguration(models.Model):
+
+    """The necessary configuration for summary reports."""
+
+    schedule = RecurrenceField(max_length=1024,
+                               verbose_name='Planlagt afvikling')
+    recipients = models.ManyToManyField(User, null=True, blank=True)
+    scanners = models.ManyToManyField(Scanner, null=True, blank=True)
