@@ -210,6 +210,9 @@ def main():
                         os.kill(scan.pid, 0)
                     except OSError:
                         scan.status = Scan.FAILED
+                        print (
+                            "CONVERSION ERROR - Scan {0}: file <{1}> type <{2}>, URL: {3}".format(item.url.scan.id, item.file, item.type, item.url.url)
+                        )
                         scan.save()
         except (DatabaseError, IntegrityError) as e:
             pass
