@@ -127,8 +127,8 @@ class ScannerApp:
         # Run the crawlers and block
         self.crawler_process.start()
 
-        if (self.scanner.scanner_object.do_link_check
-                and self.scanner.scanner_object.do_external_link_check):
+        if (self.scanner.scan_object.do_link_check
+                and self.scanner.scan_object.do_external_link_check):
             # Do external link check
             self.external_link_check(self.scanner_spider.external_urls)
 
