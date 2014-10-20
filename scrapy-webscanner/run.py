@@ -144,6 +144,7 @@ class ScannerApp:
         self.scan_object = Scan.objects.get(pk=self.scan_id)
         self.scan_object.pid = None
         self.scan_object.status = Scan.FAILED
+        log.error("Killed")
         self.scan_object.reason = "Killed"
         # TODO: Remove all non-processed conversion queue items.
         self.scan_object.save()
