@@ -277,7 +277,7 @@ class Processor(object):
 
                     # Disable OCR if requested
                     if (processor_type == 'ocr' and
-                        not item.url.scan.scanner.do_ocr):
+                        not item.url.scan.do_ocr):
                         processor_type = None
 
                     # Ignore and delete images which are smaller than

@@ -318,8 +318,7 @@ class Scanner(models.Model):
         if self.has_active_scans:
             return None
         # Create a new Scan
-        scan = Scan(scanner=self, status=Scan.NEW)
-        scan.save()
+        scan = Scan.create(self)
         # Get path to run script
         SCRAPY_WEBSCANNER_DIR = os.path.join(os.path.dirname(os.path.dirname(
             os.path.dirname(
@@ -360,6 +359,58 @@ class Scan(models.Model):
                                       verbose_name='Starttidspunkt')
     end_time = models.DateTimeField(blank=True, null=True,
                                     verbose_name='Sluttidspunkt')
+
+    # Begin setup copied from scanner
+
+    whitelisted_names = models.TextField(max_length=4096, blank=True,
+                                         default="",
+                                         verbose_name='Godkendte navne')
+    domains = models.ManyToManyField(Domain,
+                                     null=True,
+                                     verbose_name='Domæner')
+    do_cpr_scan = models.BooleanField(default=True, verbose_name='CPR')
+    do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
+    do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder?')
+    do_cpr_modulus11 = models.BooleanField(default=True,
+                                           verbose_name='Check modulus-11')
+    do_link_check = models.BooleanField(default=False,
+                                        verbose_name='Linkcheck')
+    do_external_link_check = models.BooleanField(default=False,
+                                                 verbose_name='Check ' +
+                                                              'externe links')
+    do_last_modified_check = models.BooleanField(default=True,
+                                                 verbose_name='Check ' +
+                                                              'Last-Modified')
+    do_last_modified_check_head_request = \
+        models.BooleanField(default=True, verbose_name='Brug HEAD request')
+    regex_rules = models.ManyToManyField(RegexRule,
+                                         blank=True,
+                                         null=True,
+                                         verbose_name='Regex regler')
+    # END setup copied from scanner
+
+    # Create method - copies fields from scanner
+    @classmethod
+    def create(scan_cls, scanner):
+        """ Create and copy fields from scanner. """
+        scan = scan_cls(whitelisted_names=scanner.whitelisted_names, 
+                        do_cpr_scan=scanner.do_cpr_scan, 
+                        do_name_scan=scanner.do_name_scan,
+                        do_ocr=scanner.do_ocr, 
+                        do_cpr_modulus11=scanner.do_cpr_modulus11,
+                        do_link_check=scanner.do_link_check,
+                        do_external_link_check=scanner.do_external_link_check,
+                        do_last_modified_check=scanner.do_last_modified_check,
+                        do_last_modified_check_head_request=
+                        scanner.do_last_modified_check_head_request)
+        # 
+        scan.status = Scan.NEW
+        scan.scanner = scanner
+        scan.save()
+        scan.domains.add(*scanner.domains.all())
+        scan.regex_rules.add(*scanner.regex_rules.all())
+
+        return scan
 
     # Scan status
     NEW = "NEW"
