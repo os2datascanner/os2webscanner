@@ -127,8 +127,8 @@ class ScannerApp:
         # Run the crawlers and block
         self.crawler_process.start()
 
-        if (self.scanner.scanner_object.do_link_check
-                and self.scanner.scanner_object.do_external_link_check):
+        if (self.scanner.scan_object.do_link_check
+                and self.scanner.scan_object.do_external_link_check):
             # Do external link check
             self.external_link_check(self.scanner_spider.external_urls)
 
@@ -144,6 +144,8 @@ class ScannerApp:
         self.scan_object = Scan.objects.get(pk=self.scan_id)
         self.scan_object.pid = None
         self.scan_object.status = Scan.FAILED
+        self.scan.log_occurrence("SCANNER FAILED: Killed")
+        log.error("Killed")
         self.scan_object.reason = "Killed"
         # TODO: Remove all non-processed conversion queue items.
         self.scan_object.save()

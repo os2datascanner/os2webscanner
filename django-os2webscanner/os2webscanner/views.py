@@ -424,6 +424,30 @@ class ScannerDelete(RestrictedDeleteView):
     success_url = '/scanners/'
 
 
+class ScannerAskRun(RestrictedDetailView):
+
+    """Prompt for starting scan, validate first."""
+    model = Scanner
+
+    def get_context_data(self, **kwargs):
+        """Check that user is allowed to run this scanner."""
+        context = super(ScannerAskRun, self).get_context_data(**kwargs)
+
+        if self.object.has_active_scans:
+            ok = False
+            error_message = Scanner.ALREADY_RUNNING
+        elif not self.object.has_valid_domains:
+            ok = False
+            error_message = Scanner.NO_VALID_DOMAINS
+        else:
+            ok = True
+        context['ok'] = ok
+        if not ok:
+            context['error_message'] = error_message
+
+        return context
+
+
 class ScannerRun(RestrictedDetailView):
 
     """View that handles starting of a scanner run."""
@@ -437,8 +461,11 @@ class ScannerRun(RestrictedDetailView):
 
         result = self.object.run()
         context = self.get_context_data(object=self.object)
-        context['success'] = not result is None
-        context['scan'] = result
+        context['success'] = isinstance(result, Scan)
+        if not context['success']:
+            context['error_message'] = result
+        else:
+            context['scan'] = result
 
         return self.render_to_response(context)
 
@@ -794,6 +821,23 @@ class ReportDelete(DeleteView, LoginRequiredMixin):
             queryset = queryset.filter(scanner__organization=organization)
         return queryset
 
+
+class ScanReportLog(ReportDetails):
+
+    """Display ordinary log file for debugging purposes."""
+
+    def render_to_response(self, context, **response_kwargs):
+        """Render log file."""
+        scan = self.get_object()
+        response = HttpResponse(content_type="text/plain")
+        log_file = "scan{0}_log.txt".format(scan.id)
+        response[
+            'Content-Disposition'
+        ] = u'attachment; filename={0}'.format(log_file)
+
+        with open(scan.scan_log_file, "r") as f:
+            response.write(f.read())
+        return response
 
 class CSVReportDetails(ReportDetails):
 

@@ -175,6 +175,10 @@ class Processor(object):
                 executions = executions + 1
                 if not result:
                     item.status = ConversionQueueItem.FAILED
+                    lm = "CONVERSION ERROR: file <{0}>, type <{1}>, URL: {2}"
+                    item.url.scan.log_occurrence(
+                        lm.format(item.file, item.type, item.url.url) 
+                    )
                     item.save()
                 else:
                     item.delete()
@@ -277,7 +281,7 @@ class Processor(object):
 
                     # Disable OCR if requested
                     if (processor_type == 'ocr' and
-                        not item.url.scan.scanner.do_ocr):
+                        not item.url.scan.do_ocr):
                         processor_type = None
 
                     # Ignore and delete images which are smaller than

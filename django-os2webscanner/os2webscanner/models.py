@@ -380,6 +380,16 @@ class Scanner(models.Model):
                         Scan.NEW, Scan.STARTED)).count()
         return active_scanners > 0
 
+    @property
+    def has_valid_domains(self):
+        return len([d for d in self.domains.all() if d.validation_status]) > 0
+
+    # Run error messages
+    ALREADY_RUNNING = ("Scanneren kunne ikke startes," +
+                        " fordi der allerede er en scanning i gang for den.")
+    NO_VALID_DOMAINS = ("Scanneren kunne ikke startes," +
+                         " fordi den ikke har nogen gyldige domæner.")
+
     def run(self, test_only=False):
         """Run a scan with the Scanner.
 
@@ -390,10 +400,13 @@ class Scanner(models.Model):
         run one.
         """
         if self.has_active_scans:
-            return None
+            return Scanner.ALREADY_RUNNING
+
+        if not self.has_valid_domains:
+            return Scanner.NO_VALID_DOMAINS
+
         # Create a new Scan
-        scan = Scan(scanner=self, status=Scan.NEW)
-        scan.save()
+        scan = Scan.create(self)
         # Get path to run script
         SCRAPY_WEBSCANNER_DIR = os.path.join(base_dir, "scrapy-webscanner")
 
@@ -437,6 +450,58 @@ class Scan(models.Model):
     end_time = models.DateTimeField(blank=True, null=True,
                                     verbose_name='Sluttidspunkt')
 
+    # Begin setup copied from scanner
+
+    whitelisted_names = models.TextField(max_length=4096, blank=True,
+                                         default="",
+                                         verbose_name='Godkendte navne')
+    domains = models.ManyToManyField(Domain,
+                                     null=True,
+                                     verbose_name='Domæner')
+    do_cpr_scan = models.BooleanField(default=True, verbose_name='CPR')
+    do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
+    do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder?')
+    do_cpr_modulus11 = models.BooleanField(default=True,
+                                           verbose_name='Check modulus-11')
+    do_link_check = models.BooleanField(default=False,
+                                        verbose_name='Linkcheck')
+    do_external_link_check = models.BooleanField(default=False,
+                                                 verbose_name='Check ' +
+                                                              'externe links')
+    do_last_modified_check = models.BooleanField(default=True,
+                                                 verbose_name='Check ' +
+                                                              'Last-Modified')
+    do_last_modified_check_head_request = \
+        models.BooleanField(default=True, verbose_name='Brug HEAD request')
+    regex_rules = models.ManyToManyField(RegexRule,
+                                         blank=True,
+                                         null=True,
+                                         verbose_name='Regex regler')
+    # END setup copied from scanner
+
+    # Create method - copies fields from scanner
+    @classmethod
+    def create(scan_cls, scanner):
+        """ Create and copy fields from scanner. """
+        scan = scan_cls(whitelisted_names=scanner.whitelisted_names, 
+                        do_cpr_scan=scanner.do_cpr_scan, 
+                        do_name_scan=scanner.do_name_scan,
+                        do_ocr=scanner.do_ocr, 
+                        do_cpr_modulus11=scanner.do_cpr_modulus11,
+                        do_link_check=scanner.do_link_check,
+                        do_external_link_check=scanner.do_external_link_check,
+                        do_last_modified_check=scanner.do_last_modified_check,
+                        do_last_modified_check_head_request=
+                        scanner.do_last_modified_check_head_request)
+        # 
+        scan.status = Scan.NEW
+        scan.scanner = scanner
+        scan.save()
+        scan.domains.add(*scanner.domains.all())
+        scan.regex_rules.add(*scanner.regex_rules.all())
+
+        return scan
+
     # Scan status
     NEW = "NEW"
     STARTED = "STARTED"
@@ -477,6 +542,25 @@ class Scan(models.Model):
     def scan_log_file(self):
         """Return the log file path associated with this scan."""
         return os.path.join(self.scan_log_dir, 'scan_%s.log' % self.pk)
+
+
+    # Occurrence log - mainly for the scanner to notify when something FAILS.
+    def log_occurrence(self, string):
+        with open(self.occurrence_log_file, "a") as f:
+            f.write("{0}\n".format(string))
+
+    @property
+    def occurrence_log(self):
+        try:
+            with open(self.occurrence_log_file, "r") as f:
+                return f.read()
+        except IOError:
+            return ""
+
+    @property
+    def occurrence_log_file(self):
+        """Return the file path to this scan's occurrence log."""
+        return os.path.join(self.scan_log_dir, 'occurrence_%s.log' % self.pk)
 
     # Reason for failure
     reason = models.CharField(max_length=1024, blank=True, default="",

@@ -21,6 +21,7 @@ from django.views.generic import View, ListView, TemplateView, DetailView
 from .views import MainPageView, ScannerList, DomainList, RuleList
 from .views import CSVReportDetails, ReportDetails, ReportList, ReportDelete
 from .views import ScannerCreate, ScannerUpdate, ScannerDelete, ScannerRun
+from .views import ScannerAskRun, ScanReportLog
 from .views import DomainCreate, DomainUpdate, DomainValidate, DomainDelete
 from .views import GroupList, GroupCreate, GroupUpdate, GroupDelete
 from .views import RuleCreate, RuleUpdate, RuleDelete, OrganizationList
@@ -44,8 +45,9 @@ urlpatterns = patterns(
     url(r'^scanners/(?P<pk>\d+)/run/$', ScannerRun.as_view(),
         name='scanner_run'),
     url(r'^scanners/(?P<pk>\d+)/askrun/$',
-        DetailView.as_view(template_name='os2webscanner/scanner_askrun.html',
-                           model=Scanner),
+        ScannerAskRun.as_view(
+            template_name='os2webscanner/scanner_askrun.html',
+            model=Scanner),
         name='scanner_askrun'),
     url(r'^scanners/(?P<pk>\d+)/$', ScannerUpdate.as_view(),
         name='scanner_update'),
@@ -78,6 +80,8 @@ urlpatterns = patterns(
         name='full_report'),
     url(r'^report/(?P<pk>[0-9]+)/csv/$', CSVReportDetails.as_view(),
         name='csvreport'),
+    url(r'^report/(?P<pk>[0-9]+)/log/$', ScanReportLog.as_view(),
+        name='logreport'),
     url(r'^report/(?P<pk>[0-9]+)/delete/$', ReportDelete.as_view(),
         name='report_delete'),
     # Login/logout stuff

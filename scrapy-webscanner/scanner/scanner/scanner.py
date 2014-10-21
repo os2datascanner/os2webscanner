@@ -32,16 +32,15 @@ class Scanner:
         """Load the scanner settings from the given scan ID."""
         # Get scan object from DB
         self.scan_object = Scan.objects.get(pk=scan_id)
-        self.scanner_object = self.scan_object.scanner
         self.rules = self._load_rules()
-        self.valid_domains = self.scanner_object.domains.filter(
+        self.valid_domains = self.scan_object.domains.filter(
             validation_status=Domain.VALID
         )
 
     def _load_rules(self):
         """Load rules based on Scanner settings."""
         rules = []
-        if self.scanner_object.do_cpr_scan:
+        if self.scan_object.do_cpr_scan:
             rules.append(
                 CPRRule(do_modulus11=self.scanner_object.do_cpr_modulus11,
                         ignore_irrelevant=
@@ -52,10 +51,10 @@ class Scanner:
         # if self.scanner_object.do_name_scan:
         if False:
             rules.append(
-                NameRule(whitelist=self.scanner_object.whitelisted_names)
+                NameRule(whitelist=self.scan_object.whitelisted_names)
             )
         # Add Regex Rules
-        for rule in self.scanner_object.regex_rules.all():
+        for rule in self.scan_object.regex_rules.all():
             rules.append(
                 RegexRule(
                     name=rule.name,
