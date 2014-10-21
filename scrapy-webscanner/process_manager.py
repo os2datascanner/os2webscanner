@@ -192,8 +192,12 @@ def main():
                 restart_process(stuck_process)
             else:
                 p.status = ConversionQueueItem.FAILED
-                print (
-                    "CONVERSION ERROR - Scan {0}: file <{1}> type <{2}>, URL: {3}".format(item.url.scan.id, item.file, item.type, item.url.url)
+                p.url.scan.log_occurrence(
+                    "CONVERSION ERROR: file <{0}> type <{1}>, URL: {2}".format(
+                        p.file,
+                        p.type,
+                        p.url.url
+                    )
                 )
                 # Clean up failed conversion temp dir
                 if os.access(p.tmp_dir, os.W_OK):
@@ -213,8 +217,8 @@ def main():
                         os.kill(scan.pid, 0)
                     except OSError:
                         scan.status = Scan.FAILED
-                        print (
-                            "SCAN FAILED - Scan {0}: Process died".format(scan.id)
+                        scan.log_occurrence(
+                            "SCAN FAILED: Process died"
                         )
                         scan.save()
         except (DatabaseError, IntegrityError) as e:

@@ -22,11 +22,11 @@ from django.views.generic import View, ListView, TemplateView, DetailView
 from .views import MainPageView, ScannerList, DomainList, RuleList
 from .views import CSVReportDetails, ReportDetails, ReportList, ReportDelete
 from .views import ScannerCreate, ScannerUpdate, ScannerDelete, ScannerRun
+from .views import ScannerAskRun, ScanReportLog
 from .views import DomainCreate, DomainUpdate, DomainValidate, DomainDelete
 from .views import RuleCreate, RuleUpdate, RuleDelete
 from .views import DialogSuccess
 from .views import SystemStatusView
-from .views import ScannerAskRun
 from .models import Scanner
 
 
@@ -73,6 +73,8 @@ urlpatterns = patterns(
         name='full_report'),
     url(r'^report/(?P<pk>[0-9]+)/csv/$', CSVReportDetails.as_view(),
         name='csvreport'),
+    url(r'^report/(?P<pk>[0-9]+)/log/$', ScanReportLog.as_view(),
+        name='logreport'),
     url(r'^report/(?P<pk>[0-9]+)/delete/$', ReportDelete.as_view(),
         name='report_delete'),
     # Login/logout stuff

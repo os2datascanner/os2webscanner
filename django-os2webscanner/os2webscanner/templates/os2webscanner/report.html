@@ -183,6 +183,16 @@ Rapport &dash; {{scan.scanner.name}}
 
     </div>
     {% endif %}
+      
+    {% if failed_conversions or scan.status == "FAILED" %}
+      <h2>Fejl-log</a></h2>
+      <pre>
+      
+      {{ scan.occurrence_log }}
+      
+      </pre>
+      <a href="/report/{{scan.id}}/log/">Se fuld log</a>
+      {% endif %}
 {% endblock %}
 
 {% block heading %}

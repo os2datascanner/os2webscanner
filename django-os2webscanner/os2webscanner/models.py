@@ -416,6 +416,25 @@ class Scan(models.Model):
         """Return the log file path associated with this scan."""
         return os.path.join(self.scan_log_dir, 'scan_%s.log' % self.pk)
 
+
+    # Occurrence log - mainly for the scanner to notify when something FAILS.
+    def log_occurrence(self, string):
+        with open(self.occurrence_log_file, "a") as f:
+            f.write("{0}\n".format(string))
+
+    @property
+    def occurrence_log(self):
+        try:
+            with open(self.occurrence_log_file, "r") as f:
+                return f.read()
+        except IOError:
+            return ""
+
+    @property
+    def occurrence_log_file(self):
+        """Return the file path to this scan's occurrence log."""
+        return os.path.join(self.scan_log_dir, 'occurrence_%s.log' % self.pk)
+
     # Reason for failure
     reason = models.CharField(max_length=1024, blank=True, default="",
                               verbose_name='Årsag')

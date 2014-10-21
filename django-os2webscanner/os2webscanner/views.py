@@ -619,6 +619,23 @@ class ReportDelete(DeleteView, LoginRequiredMixin):
         return queryset
 
 
+class ScanReportLog(ReportDetails):
+
+    """Display ordinary log file for debugging purposes."""
+
+    def render_to_response(self, context, **response_kwargs):
+        """Render log file."""
+        scan = self.get_object()
+        response = HttpResponse(content_type="text/plain")
+        log_file = "scan{0}_log.txt".format(scan.id)
+        response[
+            'Content-Disposition'
+        ] = u'attachment; filename={0}'.format(log_file)
+
+        with open(scan.scan_log_file, "r") as f:
+            response.write(f.read())
+        return response
+
 class CSVReportDetails(ReportDetails):
 
     """Display  full report in CSV format."""

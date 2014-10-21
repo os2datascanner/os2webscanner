@@ -175,8 +175,10 @@ class Processor(object):
                 executions = executions + 1
                 if not result:
                     item.status = ConversionQueueItem.FAILED
-                    print ("CONVERSION ERROR - Scan {0}: file <{1}>, type <{2}>, URL: {3}".format(item.url.scan.id, item.file, item.type, item.url.url)
-                          )
+                    lm = "CONVERSION ERROR: file <{0}>, type <{1}>, URL: {2}"
+                    item.url.scan.log_occurrence(
+                        lm.format(item.file, item.type, item.url.url) 
+                    )
                     item.save()
                 else:
                     item.delete()
