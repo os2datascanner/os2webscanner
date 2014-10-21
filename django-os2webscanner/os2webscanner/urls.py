@@ -26,6 +26,7 @@ from .views import DomainCreate, DomainUpdate, DomainValidate, DomainDelete
 from .views import RuleCreate, RuleUpdate, RuleDelete
 from .views import DialogSuccess
 from .views import SystemStatusView
+from .views import ScannerAskRun
 from .models import Scanner
 
 
@@ -44,8 +45,9 @@ urlpatterns = patterns(
     url(r'^scanners/(?P<pk>\d+)/run/$', ScannerRun.as_view(),
         name='scanner_run'),
     url(r'^scanners/(?P<pk>\d+)/askrun/$',
-        DetailView.as_view(template_name='os2webscanner/scanner_askrun.html',
-                           model=Scanner),
+        ScannerAskRun.as_view(
+            template_name='os2webscanner/scanner_askrun.html',
+            model=Scanner),
         name='scanner_askrun'),
     url(r'^scanners/(?P<pk>\d+)/$', ScannerUpdate.as_view(),
         name='scanner_update'),

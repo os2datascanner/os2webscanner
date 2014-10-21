@@ -300,6 +300,30 @@ class ScannerDelete(RestrictedDeleteView):
     success_url = '/scanners/'
 
 
+class ScannerAskRun(RestrictedDetailView):
+
+    """Prompt for starting scan, validate first."""
+    model = Scanner
+
+    def get_context_data(self, **kwargs):
+        """Check that user is allowed to run this scanner."""
+        context = super(ScannerAskRun, self).get_context_data(**kwargs)
+
+        if self.object.has_active_scans:
+            ok = False
+            error_message = Scanner.ALREADY_RUNNING
+        elif not self.object.has_valid_domains:
+            ok = False
+            error_message = Scanner.NO_VALID_DOMAINS
+        else:
+            ok = True
+        context['ok'] = ok
+        if not ok:
+            context['error_message'] = error_message
+
+        return context
+
+
 class ScannerRun(RestrictedDetailView):
 
     """View that handles starting of a scanner run."""
@@ -313,8 +337,11 @@ class ScannerRun(RestrictedDetailView):
 
         result = self.object.run()
         context = self.get_context_data(object=self.object)
-        context['success'] = not result is None
-        context['scan'] = result
+        context['success'] = isinstance(result, Scan)
+        if not context['success']:
+            context['error_message'] = result
+        else:
+            context['scan'] = result
 
         return self.render_to_response(context)
 
@@ -679,7 +706,9 @@ class SystemStatusView(TemplateView, SuperUserRequiredMixin):
             status=ConversionQueueItem.NEW
         )
         total = all.count()
-        totals_by_type = all.values('type').annotate(total=Count('type')).order_by('-total')
+        totals_by_type = all.values(
+            'type'
+        ).annotate(total=Count('type')).order_by('-total')
         totals_by_scan = all.values('url__scan__pk').annotate(
             total=Count('url__scan__pk')
         ).order_by('-total')

@@ -306,6 +306,16 @@ class Scanner(models.Model):
                         Scan.NEW, Scan.STARTED)).count()
         return active_scanners > 0
 
+    @property
+    def has_valid_domains(self):
+        return len([d for d in self.domains.all() if d.validation_status]) > 0
+
+    # Run error messages
+    ALREADY_RUNNING = ("Scanneren kunne ikke startes," +
+                        " fordi der allerede er en scanning i gang for den.")
+    NO_VALID_DOMAINS = ("Scanneren kunne ikke startes," +
+                         " fordi den ikke har nogen gyldige domæner.")
+
     def run(self, test_only=False):
         """Run a scan with the Scanner.
 
@@ -316,7 +326,11 @@ class Scanner(models.Model):
         run one.
         """
         if self.has_active_scans:
-            return None
+            return Scanner.ALREADY_RUNNING
+
+        if not self.has_valid_domains:
+            return Scanner.NO_VALID_DOMAINS
+
         # Create a new Scan
         scan = Scan(scanner=self, status=Scan.NEW)
         scan.save()
