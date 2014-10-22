@@ -647,7 +647,8 @@ class DialogSuccess(TemplateView):
     type_map = {
         'domains': Domain,
         'scanners': Scanner,
-        'rules': RegexRule
+        'rules': RegexRule,
+        'summaries': Summary,
     }
 
     def get_context_data(self, **kwargs):
@@ -722,13 +723,52 @@ class SummaryList(RestrictedListView):
 class SummaryCreate(RestrictedCreateView):
 
     model = Summary
-    fields = ['name', 'schedule', 'last_run', 'recipients', 'scanners']
+    fields = ['name', 'description', 'schedule', 'last_run', 'recipients',
+              'scanners']
+
+    def get_form(self, form_class):
+        form = super(SummaryCreate, self).get_form(form_class)
+
+        field_names = ['recipients', 'scanners']
+        for field_name in field_names:
+            queryset = form.fields[field_name].queryset
+            queryset = queryset.filter(organization=0)
+            form.fields[field_name].queryset = queryset
+
+        return form
+
+    def get_success_url(self):
+        """The URL to redirect to after successful creation."""
+        return '/summaries/{0}/created/'.format(self.object.id)
 
 
 class SummaryUpdate(RestrictedUpdateView):
 
     model = Summary
-    fields = ['name', 'schedule', 'last_run', 'recipients', 'scanners']
+    fields = ['name', 'description', 'schedule', 'last_run', 'recipients',
+              'scanners']
+    success_url = '/summaries/'
+
+    def get_form(self, form_class):
+        """Get the form for the view. Querysets for selecting the field
+        'recipients' must be limited by the summary's organization - i.e.,
+        there must be an organization set on the object."""
+
+        form = super(SummaryUpdate, self).get_form(form_class)
+        summary = self.get_object()
+        # Limit recipients to organization 
+        queryset = form.fields['recipients'].queryset
+        if summary.organization:
+            queryset = queryset.filter(organization=summary.organization)
+        else: 
+            queryset = queryset.filter(organization=0)
+        form.fields['recipients'].queryset = queryset
+        # Only display visible scanners
+        queryset = form.fields['scanners'].queryset
+        queryset = queryset.filter(is_visible=True)
+        print queryset
+        form.fields['scanners'].queryset = queryset
+        return form
 
 
 class SummaryDelete(RestrictedDeleteView):

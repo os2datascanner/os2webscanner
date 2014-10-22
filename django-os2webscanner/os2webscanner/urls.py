@@ -76,10 +76,10 @@ urlpatterns = patterns(
         name='report_delete'),
     url(r'^summaries/$', SummaryList.as_view(), name='summaries'),
     url(r'^summaries/add/$', SummaryCreate.as_view(), name='summary_add'),
-    url(r'^summaries/(?P<pk>\d+)/$', SummaryUpdate.as_view(),
+    url(r'^summary/(?P<pk>\d+)/$', SummaryUpdate.as_view(),
         name='summary_update'),
-    url(r'^summaries/(?P<pk>\d+)/delete/$', SummaryDelete.as_view(),
-        name='rule_delete'),
+    url(r'^summary/(?P<pk>\d+)/delete/$', SummaryDelete.as_view(),
+        name='summary_delete'),
     # Login/logout stuff
     url(r'^accounts/login/', 'django.contrib.auth.views.login',
         {'template_name': 'login.html'}, name='login'),
@@ -97,7 +97,7 @@ urlpatterns = patterns(
     ),
 
     # General dialog success handler
-    url(r'^(scanners|domains|rules)/(\d+)/(created)/$',
+    url(r'^(scanners|domains|rules|summaries)/(\d+)/(created)/$',
         DialogSuccess.as_view()),
     url(r'^(scanners|domains|rules)/(\d+)/(saved)/$',
         DialogSuccess.as_view()),

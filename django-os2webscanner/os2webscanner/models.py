@@ -685,11 +685,20 @@ class Summary(models.Model):
 
     name = models.CharField(max_length=256, unique=True, null=False,
                             verbose_name='Navn')
+    description = models.TextField(verbose_name='Beskrivelse', null=True,
+                                   blank=True)
     schedule = RecurrenceField(max_length=1024,
                                verbose_name='Planlagt afvikling')
     last_run = models.DateTimeField(blank=True, null=True,
                                       verbose_name='Sidste kørsel')
-    recipients = models.ManyToManyField(User, null=True, blank=True)
+    recipients = models.ManyToManyField(UserProfile, null=True, blank=True)
     scanners = models.ManyToManyField(Scanner, null=True, blank=True)
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')
+
+    def __unicode__(self):
+        return self.name
+
+    @property
+    def display_name(self):
+        return self.name
