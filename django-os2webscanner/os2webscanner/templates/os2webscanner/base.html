@@ -91,6 +91,11 @@
               Rapporter
             </a>
             </li>
+          <li {% block summaries_active %}{% endblock %}>
+            <a href="/summaries/">
+              Opsummering
+            </a>
+            </li>
             {% if user.is_superuser %}
             <li {% block system_status_active %}{% endblock %}>
                 <a href="/system/status/">System Status</a>

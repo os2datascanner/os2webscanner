@@ -679,11 +679,17 @@ class UrlLastModified(models.Model):
         return "<%s %s>" % (self.url, self.last_modified)
 
 
-class SummaryReportConfiguration(models.Model):
+class Summary(models.Model):
 
     """The necessary configuration for summary reports."""
 
+    name = models.CharField(max_length=256, unique=True, null=False,
+                            verbose_name='Navn')
     schedule = RecurrenceField(max_length=1024,
                                verbose_name='Planlagt afvikling')
+    last_run = models.DateTimeField(blank=True, null=True,
+                                      verbose_name='Sidste kørsel')
     recipients = models.ManyToManyField(User, null=True, blank=True)
     scanners = models.ManyToManyField(Scanner, null=True, blank=True)
+    organization = models.ForeignKey(Organization, null=False,
+                                     verbose_name='Organisation')

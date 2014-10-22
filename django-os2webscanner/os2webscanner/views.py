@@ -33,7 +33,7 @@ from django.conf import settings
 from .validate import validate_domain, get_validation_str
 
 from .models import Scanner, Domain, RegexRule, Scan, Match, UserProfile, Url
-from .models import ConversionQueueItem
+from .models import ConversionQueueItem, Summary
 
 
 class LoginRequiredMixin(View):
@@ -712,3 +712,26 @@ class SystemStatusView(TemplateView, SuperUserRequiredMixin):
         context['total_queue_items_by_type'] = totals_by_type
         context['total_queue_items_by_scan'] = totals_by_scan
         return context
+
+
+class SummaryList(RestrictedListView):
+
+    model = Summary
+    template_name = 'os2webscanner/summaries.html'
+
+class SummaryCreate(RestrictedCreateView):
+
+    model = Summary
+    fields = ['name', 'schedule', 'last_run', 'recipients', 'scanners']
+
+
+class SummaryUpdate(RestrictedUpdateView):
+
+    model = Summary
+    fields = ['name', 'schedule', 'last_run', 'recipients', 'scanners']
+
+
+class SummaryDelete(RestrictedDeleteView):
+
+    model = Summary
+    success_url = '/summaries/'
