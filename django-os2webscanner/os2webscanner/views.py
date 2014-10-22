@@ -720,6 +720,7 @@ class SummaryList(RestrictedListView):
     model = Summary
     template_name = 'os2webscanner/summaries.html'
 
+
 class SummaryCreate(RestrictedCreateView):
 
     model = Summary
@@ -756,11 +757,11 @@ class SummaryUpdate(RestrictedUpdateView):
 
         form = super(SummaryUpdate, self).get_form(form_class)
         summary = self.get_object()
-        # Limit recipients to organization 
+        # Limit recipients to organization
         queryset = form.fields['recipients'].queryset
         if summary.organization:
             queryset = queryset.filter(organization=summary.organization)
-        else: 
+        else:
             queryset = queryset.filter(organization=0)
         form.fields['recipients'].queryset = queryset
         # Only display visible scanners

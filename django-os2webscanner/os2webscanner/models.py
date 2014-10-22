@@ -393,17 +393,19 @@ class Scan(models.Model):
     @classmethod
     def create(scan_cls, scanner):
         """ Create and copy fields from scanner. """
-        scan = scan_cls(whitelisted_names=scanner.whitelisted_names, 
-                        do_cpr_scan=scanner.do_cpr_scan, 
-                        do_name_scan=scanner.do_name_scan,
-                        do_ocr=scanner.do_ocr, 
-                        do_cpr_modulus11=scanner.do_cpr_modulus11,
-                        do_link_check=scanner.do_link_check,
-                        do_external_link_check=scanner.do_external_link_check,
-                        do_last_modified_check=scanner.do_last_modified_check,
-                        do_last_modified_check_head_request=
-                        scanner.do_last_modified_check_head_request)
-        # 
+        scan = scan_cls(
+            whitelisted_names=scanner.whitelisted_names,
+            do_cpr_scan=scanner.do_cpr_scan,
+            do_name_scan=scanner.do_name_scan,
+            do_ocr=scanner.do_ocr,
+            do_cpr_modulus11=scanner.do_cpr_modulus11,
+            do_link_check=scanner.do_link_check,
+            do_external_link_check=scanner.do_external_link_check,
+            do_last_modified_check=scanner.do_last_modified_check,
+            do_last_modified_check_head_request=scanner.
+            do_last_modified_check_head_request
+        )
+        #
         scan.status = Scan.NEW
         scan.scanner = scanner
         scan.save()
