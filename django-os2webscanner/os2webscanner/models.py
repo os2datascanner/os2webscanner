@@ -467,9 +467,24 @@ class Scan(models.Model):
             status=ConversionQueueItem.FAILED
         ).count()
 
+    @property
+    def no_of_matches(self):
+        return self.matches.count()
+
+    @property
+    def no_of_critical_matches(self):
+        return self.matches.filter(sensitivity=Sensitivity.HIGH).count()
+
+    @property
+    def no_of_broken_links(self):
+        return self.urls.exclude(status_code__isnull=True).count()
+
     def __unicode__(self):
         """Return the name of the scan's scanner."""
-        return "SCAN: " + self.scanner.name
+        try:
+            return "SCAN: " + self.scanner.name
+        except:
+            return "ORPHANED SCAN: " + str(self.id)
 
     def save(self, *args, **kwargs):
         """Save changes to the scan.
@@ -556,7 +571,8 @@ class Url(models.Model):
 
     url = models.CharField(max_length=2048, verbose_name='Url')
     mime_type = models.CharField(max_length=256, verbose_name='Mime-type')
-    scan = models.ForeignKey(Scan, null=False, verbose_name='Scan')
+    scan = models.ForeignKey(Scan, null=False, verbose_name='Scan',
+                             related_name='urls')
     status_code = models.IntegerField(blank=True, null=True,
                                       verbose_name='Status code')
     status_message = models.CharField(blank=True, null=True, max_length=256,
@@ -580,7 +596,8 @@ class Match(models.Model):
     """The data associated with a single match in a single URL."""
 
     url = models.ForeignKey(Url, null=False, verbose_name='Url')
-    scan = models.ForeignKey(Scan, null=False, verbose_name='Scan')
+    scan = models.ForeignKey(Scan, null=False, verbose_name='Scan',
+                             related_name='matches')
     matched_data = models.CharField(max_length=1024, verbose_name='Data match')
     matched_rule = models.CharField(max_length=256, verbose_name='Regel match')
     sensitivity = models.IntegerField(choices=Sensitivity.choices,
@@ -704,3 +721,6 @@ class Summary(models.Model):
     @property
     def display_name(self):
         return self.name
+
+    class Meta:
+        ordering = ['name', ]

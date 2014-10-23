@@ -17,10 +17,14 @@
 """Utility methods for the OS2Webscanner project."""
 
 import time
+import datetime
+
 
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.template import loader, Context
+
+import models
 
 
 def notify_user(scan):
@@ -62,8 +66,6 @@ def capitalize_first(s):
         return u""
     return s.replace(s[0], s[0].upper(), 1)
 
-import models
-
 
 def do_scan(user, urls):
     """Create a scanner to scan a list of URLs.
@@ -88,3 +90,28 @@ def do_scan(user, urls):
 
     scan = scanner.scans.all()[0]
     return scan
+
+
+def scans_for_summary_report(summary, from_date=None, to_date=None):
+    """Gather date for a summary report for a web page or an email."""
+
+    # Calculate date period if not already given.
+    # This would normally be called from cron with from_date = to_date = None.
+    if not from_date:
+        scd = summary.schedule
+        # To initialize to a certain base
+        scd.dtstart = datetime.datetime.utcfromtimestamp(0)
+        from_date = scd.before(datetime.datetime.today() -
+                               datetime.timedelta(days=1))
+
+    if not to_date:
+        to_date = datetime.datetime.today()
+
+    relevant_scans = models.Scan.objects.filter(
+        scanner__in=summary.scanners.all(),
+        scanner__organization=summary.organization,
+        start_time__gte=from_date,
+        start_time__lt=to_date
+    )
+
+    return (relevant_scans, from_date, to_date)

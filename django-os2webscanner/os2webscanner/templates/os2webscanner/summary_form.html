@@ -118,7 +118,7 @@
 
 
 
- 
+            {% if summary.pk %} 
             <div id="{{ form.recipients.auto_id }}_container"
                 class="col-sm-12{% if form.recipients.errors %} has-error{% endif %}">
               <label class="control-label" for="id_{{ form.recipients.name }}">{{ form.recipients.label }}</label>
@@ -151,6 +151,7 @@
               {% if form.scanners.errors %}{{ form.scanners.errors }}{% endif %}
           </div> 
 
+        {% endif %}
       <div class="tab-pane" id="interval">
         <div class="col-sm-12 form-group">
           <div id="{{ form.schedule.auto_id }}_container">

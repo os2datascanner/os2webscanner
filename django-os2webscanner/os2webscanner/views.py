@@ -34,6 +34,7 @@ from .validate import validate_domain, get_validation_str
 
 from .models import Scanner, Domain, RegexRule, Scan, Match, UserProfile, Url
 from .models import ConversionQueueItem, Summary
+from .utils import scans_for_summary_report
 
 
 class LoginRequiredMixin(View):
@@ -748,7 +749,6 @@ class SummaryUpdate(RestrictedUpdateView):
     model = Summary
     fields = ['name', 'description', 'schedule', 'last_run', 'recipients',
               'scanners']
-    success_url = '/summaries/'
 
     def get_form(self, form_class):
         """Get the form for the view. Querysets for selecting the field
@@ -767,12 +767,35 @@ class SummaryUpdate(RestrictedUpdateView):
         # Only display visible scanners
         queryset = form.fields['scanners'].queryset
         queryset = queryset.filter(is_visible=True)
-        print queryset
         form.fields['scanners'].queryset = queryset
+
         return form
+
+    def get_success_url(self):
+        """The URL to redirect to after successful update."""
+        return '/summaries/%s/saved/' % self.object.pk
 
 
 class SummaryDelete(RestrictedDeleteView):
 
     model = Summary
     success_url = '/summaries/'
+
+
+class SummaryReport(RestrictedDetailView):
+
+    model = Summary
+    template_name = 'os2webscanner/summary_report.html'
+
+    def get_context_data(self, **kwargs):
+        """Setup context for the template."""
+        context = super(SummaryReport, self).get_context_data(**kwargs)
+
+        summary = self.object
+        scan_list, from_date, to_date = scans_for_summary_report(summary)
+
+        context['scans'] = scan_list
+        context['from_date'] = from_date
+        context['to_date'] = to_date
+
+        return context

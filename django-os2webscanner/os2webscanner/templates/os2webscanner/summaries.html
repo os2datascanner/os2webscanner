@@ -57,11 +57,20 @@ Opsummeringsrapporter
               </td>
               <td class="summary-actions">
                 <a class="btn btn-sm btn-default"
-                   href="/summary/{{summary.pk}}">
-                   <span class="glyphicon glyphicon-tasks"></span> Vis opsummeringsrapport</a>
-          <a href="/summary/{{summary.pk}}/delete/" class="btn btn-default btn-sm">
+		  onclick="os2web.iframeDialog(
+		      &quot;#edit-summary-modal&quot;,
+		      &quot;/summary/{{summary.pk}}&quot;,
+		      &quot;Redigér opsummeringsrapport '{{summary.name}}'&quot;
+		  )"
+                  title="Redigér opsummeringsrapport">
+                   <span class="glyphicon glyphicon-cog"></span></a>
+          <a href="/summary/{{summary.pk}}/report/" class="btn btn-default btn-sm"
+              title="Læs rapport">
+              <span class="glyphicon glyphicon-book"></span>
+          </a>
+          <a href="/summary/{{summary.pk}}/delete/" class="btn btn-default btn-sm"
+              title="Slet opsummeringsrapport">
               <span class="glyphicon glyphicon-remove"></span>
-              <span>Slet rapport</span>
           </a>
               </td>
             </tr>
