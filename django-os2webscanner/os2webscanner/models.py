@@ -823,6 +823,8 @@ class Summary(models.Model):
     scanners = models.ManyToManyField(Scanner, null=True, blank=True)
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')
+    group = models.ForeignKey(Group, null=True, blank=True,
+                                     verbose_name='Gruppe')
 
     def __unicode__(self):
         return self.name
