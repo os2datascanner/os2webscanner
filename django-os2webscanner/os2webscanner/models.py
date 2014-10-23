@@ -483,17 +483,19 @@ class Scan(models.Model):
     @classmethod
     def create(scan_cls, scanner):
         """ Create and copy fields from scanner. """
-        scan = scan_cls(whitelisted_names=scanner.whitelisted_names, 
-                        do_cpr_scan=scanner.do_cpr_scan, 
-                        do_name_scan=scanner.do_name_scan,
-                        do_ocr=scanner.do_ocr, 
-                        do_cpr_modulus11=scanner.do_cpr_modulus11,
-                        do_link_check=scanner.do_link_check,
-                        do_external_link_check=scanner.do_external_link_check,
-                        do_last_modified_check=scanner.do_last_modified_check,
-                        do_last_modified_check_head_request=
-                        scanner.do_last_modified_check_head_request)
-        # 
+        scan = scan_cls(
+            whitelisted_names=scanner.whitelisted_names,
+            do_cpr_scan=scanner.do_cpr_scan,
+            do_name_scan=scanner.do_name_scan,
+            do_ocr=scanner.do_ocr,
+            do_cpr_modulus11=scanner.do_cpr_modulus11,
+            do_link_check=scanner.do_link_check,
+            do_external_link_check=scanner.do_external_link_check,
+            do_last_modified_check=scanner.do_last_modified_check,
+            do_last_modified_check_head_request=scanner.
+            do_last_modified_check_head_request
+        )
+        #
         scan.status = Scan.NEW
         scan.scanner = scanner
         scan.save()
@@ -574,9 +576,24 @@ class Scan(models.Model):
             status=ConversionQueueItem.FAILED
         ).count()
 
+    @property
+    def no_of_matches(self):
+        return self.matches.count()
+
+    @property
+    def no_of_critical_matches(self):
+        return self.matches.filter(sensitivity=Sensitivity.HIGH).count()
+
+    @property
+    def no_of_broken_links(self):
+        return self.urls.exclude(status_code__isnull=True).count()
+
     def __unicode__(self):
         """Return the name of the scan's scanner."""
-        return "SCAN: " + self.scanner.name
+        try:
+            return "SCAN: " + self.scanner.name
+        except:
+            return "ORPHANED SCAN: " + str(self.id)
 
     def save(self, *args, **kwargs):
         """Save changes to the scan.
@@ -663,7 +680,8 @@ class Url(models.Model):
 
     url = models.CharField(max_length=2048, verbose_name='Url')
     mime_type = models.CharField(max_length=256, verbose_name='Mime-type')
-    scan = models.ForeignKey(Scan, null=False, verbose_name='Scan')
+    scan = models.ForeignKey(Scan, null=False, verbose_name='Scan',
+                             related_name='urls')
     status_code = models.IntegerField(blank=True, null=True,
                                       verbose_name='Status code')
     status_message = models.CharField(blank=True, null=True, max_length=256,
@@ -687,7 +705,8 @@ class Match(models.Model):
     """The data associated with a single match in a single URL."""
 
     url = models.ForeignKey(Url, null=False, verbose_name='Url')
-    scan = models.ForeignKey(Scan, null=False, verbose_name='Scan')
+    scan = models.ForeignKey(Scan, null=False, verbose_name='Scan',
+                             related_name='matches')
     matched_data = models.CharField(max_length=1024, verbose_name='Data match')
     matched_rule = models.CharField(max_length=256, verbose_name='Regel match')
     sensitivity = models.IntegerField(choices=Sensitivity.choices,
@@ -786,3 +805,31 @@ class UrlLastModified(models.Model):
     def __unicode__(self):
         """Return the URL and last modified date."""
         return "<%s %s>" % (self.url, self.last_modified)
+
+
+class Summary(models.Model):
+
+    """The necessary configuration for summary reports."""
+
+    name = models.CharField(max_length=256, unique=True, null=False,
+                            verbose_name='Navn')
+    description = models.TextField(verbose_name='Beskrivelse', null=True,
+                                   blank=True)
+    schedule = RecurrenceField(max_length=1024,
+                               verbose_name='Planlagt afvikling')
+    last_run = models.DateTimeField(blank=True, null=True,
+                                      verbose_name='Sidste kørsel')
+    recipients = models.ManyToManyField(UserProfile, null=True, blank=True)
+    scanners = models.ManyToManyField(Scanner, null=True, blank=True)
+    organization = models.ForeignKey(Organization, null=False,
+                                     verbose_name='Organisation')
+
+    def __unicode__(self):
+        return self.name
+
+    @property
+    def display_name(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name', ]
