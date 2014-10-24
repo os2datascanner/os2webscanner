@@ -131,7 +131,7 @@ def send_summary_report(summary, from_date=None, to_date=None):
     c = Context({'scans': relevant_scans,
                  'from_date': from_date,
                  'to_date': to_date,
-                 'summary': summary, 
+                 'summary': summary,
                  'site_url': url})
     template = 'os2webscanner/email/summary_report.html'
 
@@ -142,7 +142,7 @@ def send_summary_report(summary, from_date=None, to_date=None):
                     p.user.email]
     if not to_addresses:
         to_addresses = ['carstena@magenta.dk', ]
- 
+
     to_addresses = ['carstena@magenta.dk', ]
     try:
         body = t.render(c)
@@ -169,7 +169,6 @@ def dispatch_pending_summaries():
         # If today's a schedule day, "before" will give us 00:00 AM on the very
         # same day.
         maybe_today = schedule.before(today)
-    
+
         if today.date() == maybe_today.date():
             send_summary_report(summary)
-
