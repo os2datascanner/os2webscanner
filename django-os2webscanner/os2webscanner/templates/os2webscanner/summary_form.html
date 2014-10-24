@@ -149,8 +149,13 @@
 	      </p>
 	      {% endif %}
               {% if form.scanners.errors %}{{ form.scanners.errors }}{% endif %}
-          </div> 
 
+	      <label class="checkbox-inline" for="id_{{ form.do_email_recipients.name }}">
+		{{ form.do_email_recipients.label }}
+		<input type="checkbox" id="id_{{ form.do_email_recipients.name }}" name="{{ form.do_email_recipients.name }}" value="{{ form.do_email_recipients.name }}"{% if form.do_email_recipients.value %} checked="checked"{% endif %}>
+                {% if form.do_email_recipients.help_text %}<small>{{ form.do_email_recipients.help_text }}</small>{% endif %}
+            </label><br>
+          </div> 
         {% endif %}
       <div class="tab-pane" id="interval">
         <div class="col-sm-12 form-group">

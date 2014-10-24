@@ -154,3 +154,22 @@ def send_summary_report(summary, from_date=None, to_date=None):
     except Exception as e:
         # TODO: Handle this properly
         raise
+
+
+def dispatch_pending_summaries():
+    """Find out if any summaries need to be sent out, do it if so."""
+    summaries = models.Summary.objects.filter(do_email_recipients=True)
+
+    for summary in summaries:
+        # TODO: Check if this summary must be sent today, according to its
+        # schedule.
+        schedule = summary.schedule
+        schedule.dtstart = datetime.datetime.utcfromtimestamp(0)
+        today = datetime.datetime.today()
+        # If today's a schedule day, "before" will give us 00:00 AM on the very
+        # same day.
+        maybe_today = schedule.before(today)
+    
+        if today.date() == maybe_today.date():
+            send_summary_report(summary)
+

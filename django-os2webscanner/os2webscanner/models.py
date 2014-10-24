@@ -28,7 +28,6 @@ from django.db import models
 from django.contrib.auth.models import User
 from recurrence.fields import RecurrenceField
 
-from os2webscanner.utils import notify_user
 from django.conf import settings
 
 
@@ -504,6 +503,7 @@ class Scan(models.Model):
         if (self.status in [Scan.DONE, Scan.FAILED] and
             (self._old_status != self.status)):
             # Send email
+            from os2webscanner.utils import notify_user
             notify_user(self)
 
             self.cleanup_finished_scan()
@@ -714,6 +714,8 @@ class Summary(models.Model):
     scanners = models.ManyToManyField(Scanner, null=True, blank=True)
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')
+    do_email_recipients = models.BooleanField(default=False,
+                                              verbose_name="Udsend mails")
 
     def __unicode__(self):
         return self.name

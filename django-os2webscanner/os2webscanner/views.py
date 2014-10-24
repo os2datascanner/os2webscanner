@@ -748,7 +748,7 @@ class SummaryUpdate(RestrictedUpdateView):
 
     model = Summary
     fields = ['name', 'description', 'schedule', 'last_run', 'recipients',
-              'scanners']
+              'scanners', 'do_email_recipients']
 
     def get_form(self, form_class):
         """Get the form for the view. Querysets for selecting the field
