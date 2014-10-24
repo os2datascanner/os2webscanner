@@ -139,9 +139,10 @@ def send_summary_report(summary, from_date=None, to_date=None):
     to_addresses = [p.user.email for p in summary.recipients.all() if
                     p.user.email]
     if not to_addresses:
+        # TODO: In the end, of course, when no email addresses are found no
+        # mail should be sent. This is just for debugging.
         to_addresses = ['carstena@magenta.dk', ]
 
-    to_addresses = ['carstena@magenta.dk', ]
     try:
         body = t.render(c)
         message = EmailMessage(subject, body, settings.ADMIN_EMAIL,
