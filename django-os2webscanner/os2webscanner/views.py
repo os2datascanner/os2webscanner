@@ -718,17 +718,22 @@ class SystemStatusView(TemplateView, SuperUserRequiredMixin):
 
 class SummaryList(RestrictedListView):
 
+    """Displays list of summaries."""
+
     model = Summary
     template_name = 'os2webscanner/summaries.html'
 
 
 class SummaryCreate(RestrictedCreateView):
 
+    """Create new summary."""
+
     model = Summary
     fields = ['name', 'description', 'schedule', 'last_run', 'recipients',
               'scanners']
 
     def get_form(self, form_class):
+        """Set up fields and return form."""
         form = super(SummaryCreate, self).get_form(form_class)
 
         field_names = ['recipients', 'scanners']
@@ -746,15 +751,19 @@ class SummaryCreate(RestrictedCreateView):
 
 class SummaryUpdate(RestrictedUpdateView):
 
+    """Edit summary."""
+
     model = Summary
     fields = ['name', 'description', 'schedule', 'last_run', 'recipients',
               'scanners', 'do_email_recipients']
 
     def get_form(self, form_class):
-        """Get the form for the view. Querysets for selecting the field
-        'recipients' must be limited by the summary's organization - i.e.,
-        there must be an organization set on the object."""
+        """Get the form for the view.
 
+        Querysets for selecting the field 'recipients' must be limited by the
+        summary's organization - i.e., there must be an organization set on
+        the object.
+        """
         form = super(SummaryUpdate, self).get_form(form_class)
         summary = self.get_object()
         # Limit recipients to organization
@@ -778,11 +787,15 @@ class SummaryUpdate(RestrictedUpdateView):
 
 class SummaryDelete(RestrictedDeleteView):
 
+    """Delete summary."""
+
     model = Summary
     success_url = '/summaries/'
 
 
 class SummaryReport(RestrictedDetailView):
+
+    """Display report for summary."""
 
     model = Summary
     template_name = 'os2webscanner/summary_report.html'

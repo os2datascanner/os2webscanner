@@ -94,7 +94,6 @@ def do_scan(user, urls):
 
 def scans_for_summary_report(summary, from_date=None, to_date=None):
     """Gather date for a summary report for a web page or an email."""
-
     # Calculate date period if not already given.
     # This would normally be called from cron with from_date = to_date = None.
     if not from_date:
@@ -119,7 +118,6 @@ def scans_for_summary_report(summary, from_date=None, to_date=None):
 
 def send_summary_report(summary, from_date=None, to_date=None):
     """Send the actual summary report by email."""
-
     relevant_scans, from_date, to_date = scans_for_summary_report(
         summary,
         from_date,
