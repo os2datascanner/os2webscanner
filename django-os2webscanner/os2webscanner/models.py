@@ -577,14 +577,17 @@ class Scan(models.Model):
 
     @property
     def no_of_matches(self):
+        """Return the number of matches for this scan."""
         return self.matches.count()
 
     @property
     def no_of_critical_matches(self):
+        """Return the number of *critical* matches, <= no_of_matches."""
         return self.matches.filter(sensitivity=Sensitivity.HIGH).count()
 
     @property
     def no_of_broken_links(self):
+        """Return the number of broken links for this scan."""
         return self.urls.exclude(status_code__isnull=True).count()
 
     def __unicode__(self):
@@ -829,10 +832,12 @@ class Summary(models.Model):
                                               verbose_name="Udsend mails")
 
     def __unicode__(self):
+        """Return the name as a text representation of this summary object."""
         return self.name
 
     @property
     def display_name(self):
+        """Display name = name."""
         return self.name
 
     class Meta:

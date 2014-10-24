@@ -97,7 +97,6 @@ def do_scan(user, urls):
 
 def scans_for_summary_report(summary, from_date=None, to_date=None):
     """Gather date for a summary report for a web page or an email."""
-
     # Calculate date period if not already given.
     # This would normally be called from cron with from_date = to_date = None.
     if not from_date:
@@ -122,7 +121,6 @@ def scans_for_summary_report(summary, from_date=None, to_date=None):
 
 def send_summary_report(summary, from_date=None, to_date=None):
     """Send the actual summary report by email."""
-
     relevant_scans, from_date, to_date = scans_for_summary_report(
         summary,
         from_date,
@@ -134,7 +132,7 @@ def send_summary_report(summary, from_date=None, to_date=None):
     c = Context({'scans': relevant_scans,
                  'from_date': from_date,
                  'to_date': to_date,
-                 'summary': summary, 
+                 'summary': summary,
                  'site_url': url})
     template = 'os2webscanner/email/summary_report.html'
 
@@ -144,9 +142,10 @@ def send_summary_report(summary, from_date=None, to_date=None):
     to_addresses = [p.user.email for p in summary.recipients.all() if
                     p.user.email]
     if not to_addresses:
+        # TODO: In the end, of course, when no email addresses are found no
+        # mail should be sent. This is just for debugging.
         to_addresses = ['carstena@magenta.dk', ]
- 
-    to_addresses = ['carstena@magenta.dk', ]
+
     try:
         body = t.render(c)
         message = EmailMessage(subject, body, settings.ADMIN_EMAIL,
@@ -172,7 +171,6 @@ def dispatch_pending_summaries():
         # If today's a schedule day, "before" will give us 00:00 AM on the very
         # same day.
         maybe_today = schedule.before(today)
-    
+
         if today.date() == maybe_today.date():
             send_summary_report(summary)
-
