@@ -80,7 +80,7 @@ Rapport &dash; {{scan.scanner.name}}
               <tr class="{{ match.get_sensitivity_class }}">
                   <td class="match-url">
                     <span>
-                        <a href="{{ match.url.url }}">{{ match.url.url }}</a>
+                        <a href="{{ match.url.url }}" target="_NEW">{{ match.url.url }}</a>
                     </span>
                   </td>
                   <td class="match-rule">
@@ -146,14 +146,14 @@ Rapport &dash; {{scan.scanner.name}}
                     {% with url.referrers.all as referrers %}
                         {% for referrer in referrers|slice:":5" %}
                         <p>
-                            <a href="{{referrer}}">{{ referrer }}</a>
+                            <a href="{{referrer}}" target="_NEW">{{ referrer }}</a>
                         </p>
                         {% endfor %}
                         {% if referrers|length > 5 %}
                             {% if full_report %}
                                 {% for referrer in referrers|slice:"5:" %}
                                 <p>
-                                    <a href="{{referrer}}">{{ referrer }}</a>
+                                    <a href="{{referrer}}" target="_NEW">{{ referrer }}</a>
                                 </p>
                                 {% endfor %}
                             {% else %}
@@ -169,7 +169,7 @@ Rapport &dash; {{scan.scanner.name}}
                 </td>
                 <td class="broken-url-url">
                         <span>
-                            <a href="{{ url.url }}"
+                            <a href="{{ url.url }}" target="_NEW"
                                name="broken_url{{url.id}}">{{ url.url }}</a>
                         </span>
                 </td>
