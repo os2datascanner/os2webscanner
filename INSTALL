@@ -222,6 +222,22 @@ which scan non-text files (e.g. PDF files or Office documents) to work.
 sudo -u www-data -b /home/os2/os2webscanner/scrapy-webscanner/start_process_manager.sh
 ```
 
+## Setting up scheduled scans
+
+To setup scheduled scans, you need to add an entry to the user www-data's
+crontab:
+
+```
+sudo crontab -u www-data -e
+```
+
+Add the following line below the commented lines (beginning with '#'), and
+then save the file:
+
+```
+*/15 * * * *    /home/os2/os2webscanner/scrapy-webscanner/cron.sh
+```
+
 ## Creating an organization and adding a user to it:
 
 Visit your webscanner site URL + `/admin/` to enter the Django admin interface.
