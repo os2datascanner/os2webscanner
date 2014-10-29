@@ -30,9 +30,11 @@ def notify_user(scan):
     t = loader.get_template(template)
 
     subject = "Scanning afsluttet: {0}".format(scan.status_text)
-    to_address = scan.scanner.organization.contact_email
-    if not to_address:
-        to_address = settings.ADMIN_EMAIL
+    to_addresses = [p.user.email for p in scan.scanner.recipients.all() if
+                  p.user.email]
+    print to_addresses
+    if not to_addresses:
+        to_addresses = [settings.ADMIN_EMAIL, ]
     matches = models.Match.objects.filter(scan=scan).count()
     matches += models.Url.objects.filter(
         scan=scan
@@ -48,9 +50,9 @@ def notify_user(scan):
     try:
         body = t.render(c)
         message = EmailMessage(subject, body, settings.ADMIN_EMAIL,
-                               [to_address, ])
+                               to_addresses)
         message.send()
-        print "Mail sendt til", to_address
+        print "Mail sendt til", ",".join(to_addresses)
     except Exception as e:
         # TODO: Handle this properly
         raise

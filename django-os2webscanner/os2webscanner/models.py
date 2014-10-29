@@ -234,6 +234,7 @@ class Scanner(models.Model):
                                          blank=True,
                                          null=True,
                                          verbose_name='Regex regler')
+    recipients = models.ManyToManyField(UserProfile, null=True, blank=True)
 
     # DON'T USE DIRECTLY !!!
     # Use process_urls property instead.
