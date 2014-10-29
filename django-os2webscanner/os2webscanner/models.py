@@ -317,7 +317,7 @@ class Scanner(models.Model):
     NO_VALID_DOMAINS = ("Scanneren kunne ikke startes," +
                          " fordi den ikke har nogen gyldige domæner.")
 
-    def run(self, test_only=False):
+    def run(self, test_only=False, user=None):
         """Run a scan with the Scanner.
 
         Return the Scan object if we started the scanner.
@@ -334,6 +334,9 @@ class Scanner(models.Model):
 
         # Create a new Scan
         scan = Scan.create(self)
+        # Add user as recipient on scan
+        if user:
+            scan.recipients.add(user.get_profile())
         # Get path to run script
         SCRAPY_WEBSCANNER_DIR = os.path.join(os.path.dirname(os.path.dirname(
             os.path.dirname(
@@ -402,28 +405,32 @@ class Scan(models.Model):
                                          blank=True,
                                          null=True,
                                          verbose_name='Regex regler')
+    recipients = models.ManyToManyField(UserProfile, null=True, blank=True)
     # END setup copied from scanner
 
     # Create method - copies fields from scanner
     @classmethod
     def create(scan_cls, scanner):
         """ Create and copy fields from scanner. """
-        scan = scan_cls(whitelisted_names=scanner.whitelisted_names, 
-                        do_cpr_scan=scanner.do_cpr_scan, 
-                        do_name_scan=scanner.do_name_scan,
-                        do_ocr=scanner.do_ocr, 
-                        do_cpr_modulus11=scanner.do_cpr_modulus11,
-                        do_link_check=scanner.do_link_check,
-                        do_external_link_check=scanner.do_external_link_check,
-                        do_last_modified_check=scanner.do_last_modified_check,
-                        do_last_modified_check_head_request=
-                        scanner.do_last_modified_check_head_request)
-        # 
+        scan = scan_cls(
+            whitelisted_names=scanner.whitelisted_names,
+            do_cpr_scan=scanner.do_cpr_scan,
+            do_name_scan=scanner.do_name_scan,
+            do_ocr=scanner.do_ocr,
+            do_cpr_modulus11=scanner.do_cpr_modulus11,
+            do_link_check=scanner.do_link_check,
+            do_external_link_check=scanner.do_external_link_check,
+            do_last_modified_check=scanner.do_last_modified_check,
+            do_last_modified_check_head_request=scanner.
+            do_last_modified_check_head_request
+        )
+        #
         scan.status = Scan.NEW
         scan.scanner = scanner
         scan.save()
         scan.domains.add(*scanner.domains.all())
         scan.regex_rules.add(*scanner.regex_rules.all())
+        scan.recipients.add(*scanner.recipients.all())
 
         return scan
 
@@ -467,7 +474,6 @@ class Scan(models.Model):
     def scan_log_file(self):
         """Return the log file path associated with this scan."""
         return os.path.join(self.scan_log_dir, 'scan_%s.log' % self.pk)
-
 
     # Occurrence log - mainly for the scanner to notify when something FAILS.
     def log_occurrence(self, string):

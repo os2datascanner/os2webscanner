@@ -30,8 +30,8 @@ def notify_user(scan):
     t = loader.get_template(template)
 
     subject = "Scanning afsluttet: {0}".format(scan.status_text)
-    to_addresses = [p.user.email for p in scan.scanner.recipients.all() if
-                  p.user.email]
+    to_addresses = [p.user.email for p in scan.recipients.all() if
+                    p.user.email]
     print to_addresses
     if not to_addresses:
         to_addresses = [settings.ADMIN_EMAIL, ]
@@ -86,7 +86,7 @@ def do_scan(user, urls):
     scanner.save()
     for domain in scanner.organization.domains.all():
         scanner.domains.add(domain)
-    scanner.run()
+    scanner.run(user=user)
 
     scan = scanner.scans.all()[0]
     return scan

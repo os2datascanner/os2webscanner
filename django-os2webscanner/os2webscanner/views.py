@@ -335,7 +335,7 @@ class ScannerRun(RestrictedDetailView):
         """Handle a get request to the view."""
         self.object = self.get_object()
 
-        result = self.object.run()
+        result = self.object.run(user=request.user)
         context = self.get_context_data(object=self.object)
         context['success'] = isinstance(result, Scan)
         if not context['success']:
@@ -635,6 +635,7 @@ class ScanReportLog(ReportDetails):
         with open(scan.scan_log_file, "r") as f:
             response.write(f.read())
         return response
+
 
 class CSVReportDetails(ReportDetails):
 
