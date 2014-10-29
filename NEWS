@@ -1,3 +1,12 @@
+* Version 1.1.0.4; October 29, 2014
+
+  - Performance improvement: When the number of OCR items per scan reaches a
+    certain limit, non-OCR conversions are paused to allow the number of OCR
+    items to fall to a reasonable level before being resumed again. For large
+    scans with OCR enabled, this is necessary because so many OCR items are
+    extracted from PDFs or Office documents that it exhausts the number of
+    available inodes on the filesystem.
+
 * Version 1.1.0.3, October 10, 2014
 
 New in this version:

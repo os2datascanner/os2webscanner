@@ -217,6 +217,8 @@ def main():
         # Cleanup finished scans from the last minute
         Scan.cleanup_finished_scans(timedelta(minutes=1), log=True)
 
+        Scan.pause_non_ocr_conversions_on_scans_with_too_many_ocr_items()
+
         time.sleep(10)
 
 try:
