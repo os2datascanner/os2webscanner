@@ -232,7 +232,7 @@ class ScannerCreate(RestrictedCreateView):
               'do_cpr_scan', 'do_cpr_modulus11', 'do_name_scan', 'do_ocr',
               'do_link_check', 'do_external_link_check',
               'do_last_modified_check', 'do_last_modified_check_head_request',
-              'regex_rules']
+              'regex_rules', 'recipients']
 
     def get_form(self, form_class):
         """Get the form for the view.
@@ -248,7 +248,7 @@ class ScannerCreate(RestrictedCreateView):
             organization = None
 
         if not self.request.user.is_superuser:
-            for field_name in ['domains', 'regex_rules']:
+            for field_name in ['domains', 'regex_rules', 'recipient']:
                 queryset = form.fields[field_name].queryset
                 queryset = queryset.filter(organization=organization)
                 form.fields[field_name].queryset = queryset
@@ -268,7 +268,7 @@ class ScannerUpdate(RestrictedUpdateView):
               'do_cpr_scan', 'do_cpr_modulus11', 'do_name_scan', 'do_ocr',
               'do_link_check', 'do_external_link_check',
               'do_last_modified_check', 'do_last_modified_check_head_request',
-              'regex_rules']
+              'regex_rules', 'recipients']
 
     def get_success_url(self):
         """The URL to redirect to after successful update."""
@@ -284,7 +284,7 @@ class ScannerUpdate(RestrictedUpdateView):
         form = super(ScannerUpdate, self).get_form(form_class)
         scanner = self.get_object()
 
-        for field_name in ['domains', 'regex_rules']:
+        for field_name in ['domains', 'regex_rules', 'recipients']:
             queryset = form.fields[field_name].queryset
             queryset = queryset.filter(organization=scanner.organization)
             form.fields[field_name].queryset = queryset
@@ -679,7 +679,9 @@ class SystemStatusView(TemplateView, SuperUserRequiredMixin):
             status=ConversionQueueItem.NEW
         )
         total = all.count()
-        totals_by_type = all.values('type').annotate(total=Count('type')).order_by('-total')
+        totals_by_type = all.values('type').annotate(
+            total=Count('type')
+        ).order_by('-total')
         totals_by_scan = all.values('url__scan__pk').annotate(
             total=Count('url__scan__pk')
         ).order_by('-total')
