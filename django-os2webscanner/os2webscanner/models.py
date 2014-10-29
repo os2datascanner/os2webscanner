@@ -307,6 +307,7 @@ class Scanner(models.Model):
                                          blank=True,
                                          null=True,
                                          verbose_name='Regex regler')
+    recipients = models.ManyToManyField(UserProfile, null=True, blank=True)
 
     # DON'T USE DIRECTLY !!!
     # Use process_urls property instead.
@@ -389,7 +390,7 @@ class Scanner(models.Model):
     NO_VALID_DOMAINS = ("Scanneren kunne ikke startes," +
                          " fordi den ikke har nogen gyldige domæner.")
 
-    def run(self, test_only=False):
+    def run(self, test_only=False, user=None):
         """Run a scan with the Scanner.
 
         Return the Scan object if we started the scanner.
@@ -406,6 +407,9 @@ class Scanner(models.Model):
 
         # Create a new Scan
         scan = Scan.create(self)
+        # Add user as recipient on scan
+        if user:
+            scan.recipients.add(user.get_profile())
         # Get path to run script
         SCRAPY_WEBSCANNER_DIR = os.path.join(base_dir, "scrapy-webscanner")
 
@@ -476,6 +480,7 @@ class Scan(models.Model):
                                          blank=True,
                                          null=True,
                                          verbose_name='Regex regler')
+    recipients = models.ManyToManyField(UserProfile, null=True, blank=True)
     # END setup copied from scanner
 
     # Create method - copies fields from scanner
@@ -500,6 +505,7 @@ class Scan(models.Model):
         scan.save()
         scan.domains.add(*scanner.domains.all())
         scan.regex_rules.add(*scanner.regex_rules.all())
+        scan.recipients.add(*scanner.recipients.all())
 
         return scan
 
@@ -543,7 +549,6 @@ class Scan(models.Model):
     def scan_log_file(self):
         """Return the log file path associated with this scan."""
         return os.path.join(self.scan_log_dir, 'scan_%s.log' % self.pk)
-
 
     # Occurrence log - mainly for the scanner to notify when something FAILS.
     def log_occurrence(self, string):
