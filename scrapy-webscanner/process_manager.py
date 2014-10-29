@@ -40,10 +40,12 @@ os.umask(0007)
 from django.utils import timezone
 from django.db import transaction, IntegrityError, DatabaseError
 from django import db
+from django.conf import settings
 
 from os2webscanner.models import ConversionQueueItem, Scan
 
-var_dir = os.path.join(base_dir, "var")
+var_dir = settings.VAR_DIR
+
 log_dir = os.path.join(var_dir, "logs")
 
 if not os.path.exists(log_dir):
