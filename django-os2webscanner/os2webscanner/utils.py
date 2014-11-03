@@ -34,9 +34,8 @@ def notify_user(scan):
     t = loader.get_template(template)
 
     subject = "Scanning afsluttet: {0}".format(scan.status_text)
-    to_addresses = [p.user.email for p in scan.recipients.all() if
+    to_addresses = [p.user.email for p in scan.scanner.recipients.all() if
                     p.user.email]
-    print to_addresses
     if not to_addresses:
         to_addresses = [settings.ADMIN_EMAIL, ]
     matches = models.Match.objects.filter(scan=scan).count()
