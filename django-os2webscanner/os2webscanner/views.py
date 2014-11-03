@@ -315,7 +315,7 @@ class ScannerCreate(RestrictedCreateView):
               'do_cpr_scan', 'do_cpr_modulus11', 'do_name_scan', 'do_ocr',
               'do_link_check', 'do_external_link_check',
               'do_last_modified_check', 'do_last_modified_check_head_request',
-              'regex_rules']
+              'regex_rules', 'recipients']
 
     def get_form(self, form_class):
         """Get the form for the view.
@@ -333,7 +333,7 @@ class ScannerCreate(RestrictedCreateView):
             groups = None
 
         if not self.request.user.is_superuser:
-            for field_name in ['domains', 'regex_rules']:
+            for field_name in ['domains', 'regex_rules', 'recipient']:
                 queryset = form.fields[field_name].queryset
                 if self.request.user.get_profile().is_group_admin:
                     queryset = queryset.filter(organization=organization)
@@ -356,7 +356,7 @@ class ScannerUpdate(RestrictedUpdateView):
               'do_cpr_scan', 'do_cpr_modulus11', 'do_name_scan', 'do_ocr',
               'do_link_check', 'do_external_link_check',
               'do_last_modified_check', 'do_last_modified_check_head_request',
-              'regex_rules']
+              'regex_rules', 'recipients']
 
     def get_success_url(self):
         """The URL to redirect to after successful update."""
@@ -374,7 +374,7 @@ class ScannerUpdate(RestrictedUpdateView):
 
         scanner = self.get_object()
 
-        for field_name in ['domains', 'regex_rules']:
+        for field_name in ['domains', 'regex_rules', 'recipients']:
             queryset = form.fields[field_name].queryset
             if scanner.organization.do_use_groups:
                 queryset = queryset.filter(group=scanner.group)
