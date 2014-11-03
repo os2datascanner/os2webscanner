@@ -201,6 +201,13 @@ class Processor(object):
                         status=ConversionQueueItem.NEW
                     )
 
+                    if self.item_type != "ocr":
+                        # If this is not an OCR processor, include only scans
+                        # where non-OCR conversions are not paused
+                        new_items_queryset = new_items_queryset.filter(
+                            url__scan__pause_non_ocr_conversions=False
+                        )
+
                     # Get scans with pending items of the wanted type
                     scans = new_items_queryset.values('url__scan').distinct()
 
