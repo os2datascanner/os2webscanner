@@ -187,9 +187,9 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
 
         if user.is_superuser:
             fields.append('organization')
-            fields.append('group')
         elif user.get_profile().organization.do_use_groups:
-            if len(user.get_profile().groups.all()) > 1:
+            if (user.get_profile().is_group_admin or
+                len(user.get_profile().groups.all()) > 1):
                 fields.append('group')
 
         return fields
@@ -331,11 +331,11 @@ class ScannerCreate(RestrictedCreateView):
         except UserProfile.DoesNotExist:
             organization = None
             groups = None
-
         if not self.request.user.is_superuser:
-            for field_name in ['domains', 'regex_rules', 'recipient']:
+            for field_name in ['domains', 'regex_rules', 'recipients']:
                 queryset = form.fields[field_name].queryset
-                if self.request.user.get_profile().is_group_admin:
+                if (self.request.user.get_profile().is_group_admin or
+                    field_name=='recipients'):
                     queryset = queryset.filter(organization=organization)
                 else:
                     queryset = queryset.filter(group__in=groups)
