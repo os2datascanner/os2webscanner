@@ -6,6 +6,7 @@
     scans with OCR enabled, this is necessary because so many OCR items are
     extracted from PDFs or Office documents that it exhausts the number of
     available inodes on the filesystem.
+  - Connnection pooling is removed due to database problems.
 
 * Version 1.1.0.3, October 10, 2014
 
