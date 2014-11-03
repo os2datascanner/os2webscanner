@@ -827,8 +827,10 @@ class Summary(models.Model):
                                verbose_name='Planlagt afvikling')
     last_run = models.DateTimeField(blank=True, null=True,
                                       verbose_name='Sidste kørsel')
-    recipients = models.ManyToManyField(UserProfile, null=True, blank=True)
-    scanners = models.ManyToManyField(Scanner, null=True, blank=True)
+    recipients = models.ManyToManyField(UserProfile, null=True, blank=True, 
+                                        verbose_name="Modtagere")
+    scanners = models.ManyToManyField(Scanner, null=True, blank=True,
+                                      verbose_name="Scannere")
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')
     group = models.ForeignKey(Group, null=True, blank=True,
