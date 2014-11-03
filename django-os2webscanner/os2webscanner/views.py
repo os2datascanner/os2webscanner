@@ -374,10 +374,14 @@ class ScannerUpdate(RestrictedUpdateView):
 
         scanner = self.get_object()
 
-        for field_name in ['domains', 'regex_rules', 'recipients']:
+        for field_name in ['domains', 'regex_rules']:
             queryset = form.fields[field_name].queryset
             if scanner.organization.do_use_groups:
-                queryset = queryset.filter(group=scanner.group)
+                # TODO: This is not very elegant!
+                if field_name == 'recipients':
+                    queryset = queryset.filter(groups__in=scanner.group)
+                else:
+                    queryset = queryset.filter(group=scanner.group)
             else:
                 queryset = queryset.filter(organization=scanner.organization)
             form.fields[field_name].queryset = queryset
