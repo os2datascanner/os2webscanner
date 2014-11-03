@@ -189,15 +189,6 @@
                         {% if form.do_external_link_check.help_text %}<small>{{ form.do_external_link_check.help_text }}</small>{% endif %}
                     </label>
                     <br>
-                    <div id="{{ form.whitelisted_names.auto_id }}_container" class="col-sm-12{% if form.whitelisted_names.errors %} has-error{% endif %}">
-                        <label class="control-label" for="id_{{ form.whitelisted_names.name }}">{{ form.whitelisted_names.label }}</label>
-                        <textarea name="{{ form.whitelisted_names.name }}" id="id_{{ form.whitelisted_names.name }}" class="form-control" rows="3">{{ form.whitelisted_names.value }}</textarea>
-                        {% if form.whitelisted_names.help_text %}
-                        <p>
-                        <small>{{ form.whitelisted_names.help_text }}</small>
-                        </p>
-                        {% endif %}
-                    </div>
                     <div id="{{ form.regex_rules.auto_id }}_container" class="col-sm-12{% if form.regex_rules.errors %} has-error{% endif %}">
                         <label class="control-label" for="id_{{ form.regex_rules.name }}">{{ form.regex_rules.label }}</label>
                         <select name="{{ form.regex_rules.name }}" id="id_{{ form.regex_rules.name }}" class="form-control" multiple="multiple">
