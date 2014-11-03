@@ -232,10 +232,17 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
         kwargs = self.get_form_kwargs()
 
         form = form_class(**kwargs)
-        if 'group' in self.fields:
-            form.fields['group'].queryset = (
-                self.request.user.get_profile().groups.all()
-            )
+        user = self.request.user
+        if 'group' in fields:
+            if user.get_profile().is_group_admin:
+                queryset = (
+                    user.get_profile().organization.groups.all()
+                )
+            else:
+                form.fields['group'].queryset = (
+                    user.get_profile().groups.all()
+                )
+            form.fields['group'].queryset = queryset
         return form
 
     def form_valid(self, form):
@@ -281,16 +288,17 @@ class OrgRestrictedMixin(ModelFormMixin, LoginRequiredMixin):
         fields = self.get_form_fields()
         form_class = modelform_factory(self.model, fields=fields)
         kwargs = self.get_form_kwargs()
-
+        
         form = form_class(**kwargs)
-        if 'group' in self.fields:
-            if self.request.user.is_superuser:
+        user = self.request.user
+        if 'group' in fields:
+            if user.is_superuser or user.get_profile().is_group_admin:
                 form.fields['group'].queryset = (
                     self.object.organization.groups.all()
                 )
             else:
                 form.fields['group'].queryset = (
-                    self.request.user.get_profile().groups.all()
+                    user.get_profile().groups.all()
                 )
         return form
 
