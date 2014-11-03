@@ -189,11 +189,6 @@
                         {% if form.do_external_link_check.help_text %}<small>{{ form.do_external_link_check.help_text }}</small>{% endif %}
                     </label>
                     <br>
-                    <label class="checkbox-inline" for="id_{{ form.do_name_scan.name }}">
-                        <input type="checkbox" id="id_{{ form.do_name_scan.name }}" name="{{ form.do_name_scan.name }}" value="{{ form.do_name_scan.name }}"{% if form.do_name_scan.value %} checked="checked"{% endif %}>
-                        {{ form.do_name_scan.label }}
-                        {% if form.do_name_scan.help_text %}<small>{{ form.do_name_scan.help_text }}</small>{% endif %}
-                    </label>
                     <div id="{{ form.whitelisted_names.auto_id }}_container" class="col-sm-12{% if form.whitelisted_names.errors %} has-error{% endif %}">
                         <label class="control-label" for="id_{{ form.whitelisted_names.name }}">{{ form.whitelisted_names.label }}</label>
                         <textarea name="{{ form.whitelisted_names.name }}" id="id_{{ form.whitelisted_names.name }}" class="form-control" rows="3">{{ form.whitelisted_names.value }}</textarea>
