@@ -1036,8 +1036,15 @@ class SummaryUpdate(RestrictedUpdateView):
         else:
             queryset = queryset.filter(organization=0)
         form.fields['recipients'].queryset = queryset
-        # Only display visible scanners
+
+        # Limit scanners to organization
         queryset = form.fields['scanners'].queryset
+        if summary.organization:
+            queryset = queryset.filter(organization=summary.organization)
+        else:
+            queryset = queryset.filter(organization=0)
+
+       # Only display visible scanners
         queryset = queryset.filter(is_visible=True)
         form.fields['scanners'].queryset = queryset
 
