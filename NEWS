@@ -1,3 +1,10 @@
+* Version 1.1.0.5; November 4, 2014
+
+  - Bug fix: Failed conversion items did not get their temporary directories
+    removed.
+  - Better error handling in processing of conversion items if an
+    image's dimensions cannot be determined.
+
 * Version 1.1.0.4; October 29, 2014
 
   - Performance improvement: When the number of OCR items per scan reaches a
