@@ -81,6 +81,8 @@ class RestrictedListView(ListView, LoginRequiredMixin):
                     else:
                         groups = profile.groups.all()
                         qs = self.model.objects.filter(
+                            organization=profile.organization
+                        ).filter(
                             Q(group__in=groups) | Q(group__isnull=True)
                         )
                         return qs
