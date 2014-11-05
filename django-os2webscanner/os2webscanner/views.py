@@ -19,6 +19,7 @@
 import csv
 from django import forms
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
+from django.db.models import Count
 from django.http import Http404, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import View, ListView, TemplateView, DetailView
@@ -32,6 +33,7 @@ from django.conf import settings
 from .validate import validate_domain, get_validation_str
 
 from .models import Scanner, Domain, RegexRule, Scan, Match, UserProfile, Url
+from .models import ConversionQueueItem
 
 
 class LoginRequiredMixin(View):
@@ -42,6 +44,20 @@ class LoginRequiredMixin(View):
     def dispatch(self, *args, **kwargs):
         """Check for login and dispatch the view."""
         return super(LoginRequiredMixin, self).dispatch(*args, **kwargs)
+
+
+class SuperUserRequiredMixin(LoginRequiredMixin):
+
+    """Include to require login and superuser."""
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        """Check for login and superuser and dispatch the view."""
+        user = self.request.user
+        if user.is_superuser:
+            return super(LoginRequiredMixin, self).dispatch(*args, **kwargs)
+        else:
+            raise PermissionDenied
 
 
 class RestrictedListView(ListView, LoginRequiredMixin):
@@ -647,4 +663,50 @@ class DialogSuccess(TemplateView):
         context['item_description'] = item.display_name
         context['action'] = "oprettet" if created else "gemt"
         context['reload_url'] = '/' + model_type + '/'
+        return context
+
+
+class SystemStatusView(TemplateView, SuperUserRequiredMixin):
+
+    """Display the system status for superusers."""
+
+    template_name = 'os2webscanner/system_status.html'
+
+    def get_context_data(self, **kwargs):
+        """Setup context for the template."""
+        context = super(SystemStatusView, self).get_context_data(**kwargs)
+        all = ConversionQueueItem.objects.filter(
+            status=ConversionQueueItem.NEW
+        )
+        total = all.count()
+        totals_by_type = all.values('type').annotate(total=Count('type')).order_by('-total')
+        totals_by_scan = all.values('url__scan__pk').annotate(
+            total=Count('url__scan__pk')
+        ).order_by('-total')
+        totals_by_scan_and_type = all.values('url__scan__pk', 'type').annotate(
+            total=Count('type')
+        ).order_by('-total')
+
+        for item in totals_by_scan:
+            item['scan'] = Scan.objects.get(pk=item['url__scan__pk'])
+            by_type = []
+            for x in totals_by_scan_and_type:
+                if x['url__scan__pk'] == item['url__scan__pk']:
+                    by_type.append({
+                        'total': x['total'],
+                        'type': x['type']
+                    })
+            item['by_type'] = by_type
+
+        def assign_percentages(grouped_totals, total):
+            for item in grouped_totals:
+                item['percentage'] = "%.1f" % (float(item['total']) / total
+                                               * 100.)
+
+        assign_percentages(totals_by_type, total)
+        assign_percentages(totals_by_scan, total)
+
+        context['total_queue_items'] = total
+        context['total_queue_items_by_type'] = totals_by_type
+        context['total_queue_items_by_scan'] = totals_by_scan
         return context

@@ -16,6 +16,7 @@
 # source municipalities ( http://www.os2web.dk/ )
 
 """Contains Django models for the Webscanner."""
+from django.db.models.aggregates import Count
 
 import os
 import shutil
@@ -327,9 +328,16 @@ class Scanner(models.Model):
 
         if test_only:
             return scan
+
+        if not os.path.exists(scan.scan_log_dir):
+            os.makedirs(scan.scan_log_dir)
+        log_file = open(scan.scan_log_file, "a")
+
         try:
             process = Popen([os.path.join(SCRAPY_WEBSCANNER_DIR, "run.sh"),
-                         str(scan.pk)], cwd=SCRAPY_WEBSCANNER_DIR)
+                             str(scan.pk)], cwd=SCRAPY_WEBSCANNER_DIR,
+                            stderr=log_file,
+                            stdout=log_file)
         except Exception as e:
             return None
         return scan
@@ -370,6 +378,10 @@ class Scan(models.Model):
     status = models.CharField(max_length=10, choices=status_choices,
                               default=NEW)
 
+    pause_non_ocr_conversions = models.BooleanField(default=False,
+                                                    verbose_name='Pause ' +
+                                                    'non-OCR conversions')
+
     @property
     def status_text(self):
         """A display text for the scan's status.
@@ -384,6 +396,16 @@ class Scan(models.Model):
     def scan_dir(self):
         """The directory associated with this scan."""
         return os.path.join(settings.VAR_DIR, 'scan_%s' % self.pk)
+
+    @property
+    def scan_log_dir(self):
+        """Return the path to the scan log dir."""
+        return os.path.join(settings.VAR_DIR, 'logs', 'scans')
+
+    @property
+    def scan_log_file(self):
+        """Return the log file path associated with this scan."""
+        return os.path.join(self.scan_log_dir, 'scan_%s.log' % self.pk)
 
     # Reason for failure
     reason = models.CharField(max_length=1024, blank=True, default="",
@@ -421,17 +443,91 @@ class Scan(models.Model):
             # Send email
             notify_user(self)
 
-            # Delete all pending conversionqueue items
-            ConversionQueueItem.objects.filter(
-                url__scan=self,
-                status=ConversionQueueItem.NEW
-            ).delete()
-
-            # remove all files associated with the scan
-            scan_dir = self.scan_dir
-            if os.access(scan_dir, os.W_OK):
-                shutil.rmtree(scan_dir, True)
+            self.cleanup_finished_scan()
             self._old_status = self.status
+
+    def cleanup_finished_scan(self, log=False):
+        """Delete pending conversion queue items and remove the scan dir."""
+        # Delete all pending conversionqueue items
+        pending_items = ConversionQueueItem.objects.filter(
+            url__scan=self,
+            status=ConversionQueueItem.NEW
+        )
+        if log:
+            if pending_items.exists():
+                print "Deleting %d remaining conversion queue items from " \
+                      "finished scan %s" % (
+                    pending_items.count(), self)
+
+        pending_items.delete()
+
+        # remove all files associated with the scan
+        if self.is_scan_dir_writable():
+            if log:
+                print "Deleting scan directory: %s" % self.scan_dir
+            shutil.rmtree(self.scan_dir, True)
+
+    @classmethod
+    def cleanup_finished_scans(cls, scan_age, log=False):
+        """Cleanup convqueue items from finished scans.
+
+        Only Scans that have ended since scan_age ago are considered.
+        scan_age should be a timedelta object.
+        """
+        from django.utils import timezone
+        from django.db.models import Q
+        oldest_end_time = timezone.localtime(timezone.now()) - scan_age
+        inactive_scans = Scan.objects.filter(
+            Q(status__in=(Scan.DONE, Scan.FAILED)),
+            Q(end_time__gt=oldest_end_time) | Q(end_time__isnull=True)
+        )
+        for scan in inactive_scans:
+            scan.cleanup_finished_scan(log=log)
+
+    @classmethod
+    def pause_non_ocr_conversions_on_scans_with_too_many_ocr_items(cls):
+        """Pause non-OCR conversions on scans with too many OCR items.
+
+        When the number of OCR items per scan reaches a
+        certain threshold (PAUSE_NON_OCR_ITEMS_THRESHOLD), non-OCR conversions
+        are paused to allow the number of
+        OCR items to fall to a reasonable level. For large scans with OCR
+        enabled, this is necessary because so many OCR items are extracted
+        from PDFs or Office documents that it exhausts the number of
+        available inodes on the filesystem.
+
+        When the number of OCR items falls below the lower threshold
+        (RESUME_NON_OCR_ITEMS_THRESHOLD), non-OCR conversions are resumed.
+        """
+        ocr_items_by_scan = ConversionQueueItem.objects.filter(
+            status=ConversionQueueItem.NEW,
+            type="ocr"
+        ).values("url__scan").annotate(total=Count("url__scan"))
+        for items in ocr_items_by_scan:
+            scan = Scan.objects.get(pk=items["url__scan"])
+            num_ocr_items = items["total"]
+            if (not scan.pause_non_ocr_conversions and
+                    num_ocr_items > settings.PAUSE_NON_OCR_ITEMS_THRESHOLD):
+                print "Pausing non-OCR conversions for scan <%s> (%d) " \
+                      "because it has %d OCR items which is over the " \
+                      "threshold of %d" % \
+                      (scan, scan.pk, num_ocr_items,
+                       settings.PAUSE_NON_OCR_ITEMS_THRESHOLD)
+                scan.pause_non_ocr_conversions = True
+                scan.save()
+            elif (scan.pause_non_ocr_conversions and
+                  num_ocr_items < settings.RESUME_NON_OCR_ITEMS_THRESHOLD):
+                print "Resuming non-OCR conversions for scan <%s> (%d) " \
+                      "because it has %d OCR items which is under the " \
+                      "threshold of %d" % \
+                      (scan, scan.pk, num_ocr_items,
+                       settings.RESUME_NON_OCR_ITEMS_THRESHOLD)
+                scan.pause_non_ocr_conversions = False
+                scan.save()
+
+    def is_scan_dir_writable(self):
+        """Return whether the scan's directory exists and is writable."""
+        return os.access(self.scan_dir, os.W_OK)
 
     def __init__(self, *args, **kwargs):
         """Initialize a new scan.
@@ -548,6 +644,11 @@ class ConversionQueueItem(models.Model):
             self.url.scan.scan_dir,
             'queue_item_%d' % (self.pk)
         )
+
+    def delete_tmp_dir(self):
+        """Delete the item's temp dir if it is writable."""
+        if os.access(self.tmp_dir, os.W_OK):
+            shutil.rmtree(self.tmp_dir, True)
 
 
 class ReferrerUrl(models.Model):

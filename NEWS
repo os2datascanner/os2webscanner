@@ -1,3 +1,45 @@
+* Version 1.1.0.5; November 4, 2014
+
+  - Bug fix: Failed conversion items did not get their temporary directories
+    removed.
+  - Better error handling in processing of conversion items if an
+    image's dimensions cannot be determined.
+
+* Version 1.1.0.4; October 29, 2014
+
+  - Performance improvement: When the number of OCR items per scan reaches a
+    certain limit, non-OCR conversions are paused to allow the number of OCR
+    items to fall to a reasonable level before being resumed again. For large
+    scans with OCR enabled, this is necessary because so many OCR items are
+    extracted from PDFs or Office documents that it exhausts the number of
+    available inodes on the filesystem.
+  - Connnection pooling is removed due to database problems.
+
+* Version 1.1.0.3, October 10, 2014
+
+New in this version:
+
+ - Bug fix: Catch InternalError exception in process_manager.py.
+ - Conversion queue items of a given type are now picked randomly from among
+   the active scans to avoid one scan hogging the queue.
+
+* Version 1.1.0.2, October 10, 2014
+
+New in this version:
+
+ - Bug fix: CPR check using wrong digit to validate birth date. The CPR rule
+   was using the 8th digit instead of the 7th digit of the CPR number to
+   validate the birth date of CPR numbers.
+ - Periodically delete conversion queue items from finished scans that may
+   not have been properly cleaned up when they finished.
+ - Ignore and delete images extracted from converted files if their are
+   dimensions do not meet minimum dimensions: both width and height must be
+   >= 7 pixels and at least one dimension must be >= 64 pixels.
+ - Scans are logged to separate files in var/logs/scans rather than
+   polluting the web server's error log file.
+ - Pool PostgreSQL connections to avoid too heavy load on the database server.
+ - System status page for superusers.
+
 * Version 1.1.0, September 23, 2014
 
 New in this version:

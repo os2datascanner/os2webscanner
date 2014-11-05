@@ -76,7 +76,7 @@ def _get_birth_date(cpr):
     month = int(cpr[2:4])
     year = int(cpr[4:6])
 
-    year_check = int(cpr[7])
+    year_check = int(cpr[6])
 
     # Convert 2-digit year to 4-digit:
     if year_check >= 0 and year_check <= 3:

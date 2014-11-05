@@ -21,6 +21,7 @@ Starts up multiple instances of each processor.
 Restarts processors if they die or if they get stuck processing a single
 item for too long.
 """
+import django
 
 import os
 import shutil
@@ -39,10 +40,12 @@ os.umask(0007)
 from django.utils import timezone
 from django.db import transaction, IntegrityError, DatabaseError
 from django import db
+from django.conf import settings
 
 from os2webscanner.models import ConversionQueueItem, Scan
 
-var_dir = os.path.join(base_dir, "var")
+var_dir = settings.VAR_DIR
+
 log_dir = os.path.join(var_dir, "logs")
 
 if not os.path.exists(log_dir):
@@ -75,10 +78,15 @@ def stop_process(p):
     if pid in process_map:
         del process_map[pid]
     # Set any ongoing queue-items for this process id to failed
-    ConversionQueueItem.objects.filter(
+    ongoing_items = ConversionQueueItem.objects.filter(
         status=ConversionQueueItem.PROCESSING,
         process_id=pid
-    ).update(
+    )
+    # Remove the temp directories for the failed queue items
+    for item in ongoing_items:
+        # TODO: Log to occurrence log
+        item.delete_tmp_dir()
+    ongoing_items.update(
         status=ConversionQueueItem.FAILED
     )
 
@@ -140,25 +148,30 @@ def exit_handler(signum=None, frame=None):
 
 signal.signal(signal.SIGTERM | signal.SIGINT | signal.SIGQUIT, exit_handler)
 
-for ptype in process_types:
-    for i in range(processes_per_type):
-        name = '%s%d' % (ptype, i)
-        program = [
-            'python',
-            os.path.join(base_dir, 'scrapy-webscanner', 'process_queue.py'),
-            ptype
-        ]
-        # Libreoffice takes the homedir name as second arg
-        if "libreoffice" == ptype:
-            program.append(name)
-        p = {'program_args': program, 'name': name}
-        process_map[name] = p
-        process_list.append(p)
 
-for p in process_list:
-    start_process(p)
+def main():
+    """Main function."""
+    # Delete all inactive scan's queue items to start with
+    Scan.cleanup_finished_scans(timedelta(days=10000), log=True)
 
-try:
+    for ptype in process_types:
+        for i in range(processes_per_type):
+            name = '%s%d' % (ptype, i)
+            program = [
+                'python',
+                os.path.join(base_dir, 'scrapy-webscanner', 'process_queue.py'),
+                ptype
+            ]
+            # Libreoffice takes the homedir name as second arg
+            if "libreoffice" == ptype:
+                program.append(name)
+            p = {'program_args': program, 'name': name}
+            process_map[name] = p
+            process_list.append(p)
+
+    for p in process_list:
+        start_process(p)
+
     while True:
         sys.stdout.flush()
         sys.stderr.flush()
@@ -186,14 +199,12 @@ try:
                 restart_process(stuck_process)
             else:
                 p.status = ConversionQueueItem.FAILED
-                # Clean up failed conversion temp dir
-                if os.access(p.tmp_dir, os.W_OK):
-                    shutil.rmtree(p.tmp_dir, True)
                 p.save()
+                # Clean up failed conversion temp dir
+                p.delete_tmp_dir()
 
         try:
             with transaction.atomic():
-                # Get the first unprocessed item of the wanted type
                 running_scans = Scan.objects.filter(
                     status=Scan.STARTED
                 ).select_for_update(nowait=True)
@@ -201,6 +212,7 @@ try:
                     if not scan.pid:
                         continue
                     try:
+                        # Check if process is still running
                         os.kill(scan.pid, 0)
                     except OSError:
                         scan.status = Scan.FAILED
@@ -208,6 +220,16 @@ try:
         except (DatabaseError, IntegrityError) as e:
             pass
 
+        # Cleanup finished scans from the last minute
+        Scan.cleanup_finished_scans(timedelta(minutes=1), log=True)
+
+        Scan.pause_non_ocr_conversions_on_scans_with_too_many_ocr_items()
+
         time.sleep(10)
+
+try:
+    main()
 except KeyboardInterrupt:
     pass
+except django.db.utils.InternalError as e:
+    print e
