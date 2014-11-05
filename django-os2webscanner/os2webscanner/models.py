@@ -17,6 +17,7 @@
 
 """Contains Django models for the Webscanner."""
 from urlparse import urljoin
+from django.db.models.aggregates import Count
 
 import os
 import shutil
@@ -525,6 +526,10 @@ class Scan(models.Model):
     status = models.CharField(max_length=10, choices=status_choices,
                               default=NEW)
 
+    pause_non_ocr_conversions = models.BooleanField(default=False,
+                                                    verbose_name='Pause ' +
+                                                    'non-OCR conversions')
+
     @property
     def status_text(self):
         """A display text for the scan's status.
@@ -664,6 +669,47 @@ class Scan(models.Model):
         for scan in inactive_scans:
             scan.cleanup_finished_scan(log=log)
 
+    @classmethod
+    def pause_non_ocr_conversions_on_scans_with_too_many_ocr_items(cls):
+        """Pause non-OCR conversions on scans with too many OCR items.
+
+        When the number of OCR items per scan reaches a
+        certain threshold (PAUSE_NON_OCR_ITEMS_THRESHOLD), non-OCR conversions
+        are paused to allow the number of
+        OCR items to fall to a reasonable level. For large scans with OCR
+        enabled, this is necessary because so many OCR items are extracted
+        from PDFs or Office documents that it exhausts the number of
+        available inodes on the filesystem.
+
+        When the number of OCR items falls below the lower threshold
+        (RESUME_NON_OCR_ITEMS_THRESHOLD), non-OCR conversions are resumed.
+        """
+        ocr_items_by_scan = ConversionQueueItem.objects.filter(
+            status=ConversionQueueItem.NEW,
+            type="ocr"
+        ).values("url__scan").annotate(total=Count("url__scan"))
+        for items in ocr_items_by_scan:
+            scan = Scan.objects.get(pk=items["url__scan"])
+            num_ocr_items = items["total"]
+            if (not scan.pause_non_ocr_conversions and
+                    num_ocr_items > settings.PAUSE_NON_OCR_ITEMS_THRESHOLD):
+                print "Pausing non-OCR conversions for scan <%s> (%d) " \
+                      "because it has %d OCR items which is over the " \
+                      "threshold of %d" % \
+                      (scan, scan.pk, num_ocr_items,
+                       settings.PAUSE_NON_OCR_ITEMS_THRESHOLD)
+                scan.pause_non_ocr_conversions = True
+                scan.save()
+            elif (scan.pause_non_ocr_conversions and
+                  num_ocr_items < settings.RESUME_NON_OCR_ITEMS_THRESHOLD):
+                print "Resuming non-OCR conversions for scan <%s> (%d) " \
+                      "because it has %d OCR items which is under the " \
+                      "threshold of %d" % \
+                      (scan, scan.pk, num_ocr_items,
+                       settings.RESUME_NON_OCR_ITEMS_THRESHOLD)
+                scan.pause_non_ocr_conversions = False
+                scan.save()
+
     def is_scan_dir_writable(self):
         """Return whether the scan's directory exists and is writable."""
         return os.access(self.scan_dir, os.W_OK)
@@ -785,6 +831,11 @@ class ConversionQueueItem(models.Model):
             self.url.scan.scan_dir,
             'queue_item_%d' % (self.pk)
         )
+
+    def delete_tmp_dir(self):
+        """Delete the item's temp dir if it is writable."""
+        if os.access(self.tmp_dir, os.W_OK):
+            shutil.rmtree(self.tmp_dir, True)
 
 
 class ReferrerUrl(models.Model):

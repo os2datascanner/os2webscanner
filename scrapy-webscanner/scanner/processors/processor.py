@@ -41,9 +41,14 @@ def get_image_dimensions(file_path):
     """Return an image's dimensions as a tuple containing width and height.
 
     Uses the "identify" command from ImageMagick to retrieve the information.
+    If there is a problem getting the information, returns None.
     """
-    dimensions = subprocess.check_output(["identify", "-format", "%wx%h",
-                                     file_path])
+    try:
+        dimensions = subprocess.check_output(["identify", "-format", "%wx%h",
+                                              file_path])
+    except subprocess.CalledProcessError as e:
+        print e
+        return None
     return tuple(int(dim.strip()) for dim in dimensions.split("x"))
 
 
@@ -180,6 +185,7 @@ class Processor(object):
                         lm.format(item.file, item.type, item.url.url) 
                     )
                     item.save()
+                    item.delete_tmp_dir()
                 else:
                     item.delete()
                 print "%s (%s): %s" % (
@@ -204,6 +210,13 @@ class Processor(object):
                         type=self.item_type,
                         status=ConversionQueueItem.NEW
                     )
+
+                    if self.item_type != "ocr":
+                        # If this is not an OCR processor, include only scans
+                        # where non-OCR conversions are not paused
+                        new_items_queryset = new_items_queryset.filter(
+                            url__scan__pause_non_ocr_conversions=False
+                        )
 
                     # Get scans with pending items of the wanted type
                     scans = new_items_queryset.values('url__scan').distinct()
@@ -287,13 +300,15 @@ class Processor(object):
                     # Ignore and delete images which are smaller than
                     # the minimum dimensions
                     if processor_type == 'ocr':
-                        (w, h) = get_image_dimensions(file_path)
-                        if not ((w >= MIN_OCR_DIMENSION_BOTH and
-                                 h >= MIN_OCR_DIMENSION_BOTH)
-                                and (w >= MIN_OCR_DIMENSION_EITHER or
-                                     h >= MIN_OCR_DIMENSION_EITHER)):
-                            ignored_ocr_count += 1
-                            processor_type = None
+                        dimensions = get_image_dimensions(file_path)
+                        if dimensions is not None:
+                            (w, h) = dimensions
+                            if not ((w >= MIN_OCR_DIMENSION_BOTH and
+                                     h >= MIN_OCR_DIMENSION_BOTH)
+                                    and (w >= MIN_OCR_DIMENSION_EITHER or
+                                         h >= MIN_OCR_DIMENSION_EITHER)):
+                                ignored_ocr_count += 1
+                                processor_type = None
 
                     if processor_type is not None:
                         new_item = ConversionQueueItem(

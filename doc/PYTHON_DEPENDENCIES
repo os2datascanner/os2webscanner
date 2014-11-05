@@ -8,7 +8,6 @@ characteristic==14.1.0
 chardet==2.2.1
 cryptography==0.6
 cssselect==0.9.1
-django-os2webscanner==0.1
 django-postgrespool==0.3.0
 django-recurrence==1.0.3
 django-xmlrpc==0.1.5
