@@ -286,7 +286,7 @@ class OrgRestrictedMixin(ModelFormMixin, LoginRequiredMixin):
         fields = self.get_form_fields()
         form_class = modelform_factory(self.model, fields=fields)
         kwargs = self.get_form_kwargs()
-        
+
         form = form_class(**kwargs)
         user = self.request.user
         if 'group' in fields:
@@ -376,7 +376,7 @@ class ScannerCreate(RestrictedCreateView):
                 queryset = form.fields[field_name].queryset
                 queryset = queryset.filter(organization=organization)
                 if (self.request.user.get_profile().is_group_admin or
-                    field_name=='recipients'):
+                    field_name == 'recipients'):
                     # Already filtered by organization, nothing more to do.
                     pass
                 else:
