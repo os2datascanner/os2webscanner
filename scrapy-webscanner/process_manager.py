@@ -199,13 +199,20 @@ def main():
                 restart_process(stuck_process)
             else:
                 p.status = ConversionQueueItem.FAILED
-                p.url.scan.log_occurrence(
-                    "CONVERSION ERROR: file <{0}> type <{1}>, URL: {2}".format(
-                        p.file,
-                        p.type,
-                        p.url.url
+                try:
+                    p.url.scan.log_occurrence(
+                        "CONVERSION ERROR: file <{0}> type <{1}>, URL: {2}".format(
+                            p.file,
+                            p.type,
+                            p.url.url
+                        )
                     )
-                )
+                except:
+                    p.url.scan.log_occurrence(
+                        "CONVERSION ERROR: url <{0}>".format(
+                            p.url.url,
+                        )
+                    )
                 # Clean up failed conversion temp dir
                 if os.access(p.tmp_dir, os.W_OK):
                     shutil.rmtree(p.tmp_dir, True)
