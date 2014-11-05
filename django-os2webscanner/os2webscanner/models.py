@@ -645,6 +645,11 @@ class ConversionQueueItem(models.Model):
             'queue_item_%d' % (self.pk)
         )
 
+    def delete_tmp_dir(self):
+        """Delete the item's temp dir if it is writable."""
+        if os.access(self.tmp_dir, os.W_OK):
+            shutil.rmtree(self.tmp_dir, True)
+
 
 class ReferrerUrl(models.Model):
 
