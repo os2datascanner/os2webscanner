@@ -146,6 +146,7 @@ class Domain(models.Model):
                                      verbose_name='Organisation')
     group = models.ForeignKey(Group,
                               null=True,
+                              blank=True,
                               related_name='domains',
                               verbose_name='Gruppe')
     validation_status = models.IntegerField(choices=validation_choices,
@@ -211,7 +212,7 @@ class RegexRule(models.Model):
                             verbose_name='Navn')
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')
-    group = models.ForeignKey(Group, null=True,
+    group = models.ForeignKey(Group, null=True, blank=True,
                               verbose_name='Gruppe')
     match_string = models.CharField(max_length=1024, blank=False,
                                     verbose_name='Udtryk')
