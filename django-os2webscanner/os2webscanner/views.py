@@ -19,7 +19,7 @@
 import csv
 from django import forms
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import View, ListView, TemplateView, DetailView
@@ -80,11 +80,9 @@ class RestrictedListView(ListView, LoginRequiredMixin):
                         )
                     else:
                         groups = profile.groups.all()
-                        print groups
                         qs = self.model.objects.filter(
-                            group__in=groups
+                            Q(group__in=groups) | Q(group__isnull=True)
                         )
-                        print qs
                         return qs
             except UserProfile.DoesNotExist:
                 return self.model.objects.filter(organization=None)
@@ -318,7 +316,9 @@ class OrgRestrictedMixin(ModelFormMixin, LoginRequiredMixin):
 
             if (user_profile.organization.do_use_groups and not
                 user_profile.is_group_admin):
-                queryset = queryset.filter(group__in=groups)
+                queryset = queryset.filter(
+                    Q(group__in=groups) | Q(group__isnull=True)
+                )
             else:
                 queryset = queryset.filter(organization=organization)
         return queryset
@@ -374,11 +374,15 @@ class ScannerCreate(RestrictedCreateView):
         if not self.request.user.is_superuser:
             for field_name in ['domains', 'regex_rules', 'recipients']:
                 queryset = form.fields[field_name].queryset
+                queryset = queryset.filter(organization=organization)
                 if (self.request.user.get_profile().is_group_admin or
                     field_name=='recipients'):
-                    queryset = queryset.filter(organization=organization)
+                    # Already filtered by organization, nothing more to do.
+                    pass
                 else:
-                    queryset = queryset.filter(group__in=groups)
+                    queryset = queryset.filter(
+                        Q(group__in=groups) | Q(group__isnull=True)
+                    )
                 form.fields[field_name].queryset = queryset
         return form
 
@@ -422,9 +426,13 @@ class ScannerUpdate(RestrictedUpdateView):
             if scanner.organization.do_use_groups:
                 # TODO: This is not very elegant!
                 if field_name == 'recipients':
-                    queryset = queryset.filter(groups__in=scanner.group)
+                    queryset = queryset.filter(
+                        Q(groups__in=scanner.group) | Q(groups__isnull=True)
+                    )
                 else:
-                    queryset = queryset.filter(group=scanner.group)
+                    queryset = queryset.filter(
+                        Q(group=scanner.group) | Q(group__isnull=True)
+                    )
             form.fields[field_name].queryset = queryset
         return form
 
