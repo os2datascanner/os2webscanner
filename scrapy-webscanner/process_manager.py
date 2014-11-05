@@ -78,10 +78,15 @@ def stop_process(p):
     if pid in process_map:
         del process_map[pid]
     # Set any ongoing queue-items for this process id to failed
-    ConversionQueueItem.objects.filter(
+    ongoing_items = ConversionQueueItem.objects.filter(
         status=ConversionQueueItem.PROCESSING,
         process_id=pid
-    ).update(
+    )
+    # Remove the temp directories for the failed queue items
+    for item in ongoing_items:
+        # TODO: Log to occurrence log
+        item.delete_tmp_dir()
+    ongoing_items.update(
         status=ConversionQueueItem.FAILED
     )
 
@@ -205,6 +210,8 @@ def main():
                 if os.access(p.tmp_dir, os.W_OK):
                     shutil.rmtree(p.tmp_dir, True)
                 p.save()
+                # Clean up failed conversion temp dir
+                p.delete_tmp_dir()
 
         try:
             with transaction.atomic():
