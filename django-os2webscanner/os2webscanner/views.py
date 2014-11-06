@@ -373,6 +373,13 @@ class ScannerCreate(RestrictedCreateView):
         except UserProfile.DoesNotExist:
             organization = None
             groups = None
+        # Exclude recipients with no email address
+        form.fields[
+            'recipients'
+        ].queryset = form.fields[
+            'recipients'
+        ].queryset.exclude(user__email="")
+
         if not self.request.user.is_superuser:
             for field_name in ['domains', 'regex_rules', 'recipients']:
                 queryset = form.fields[field_name].queryset
@@ -421,7 +428,14 @@ class ScannerUpdate(RestrictedUpdateView):
 
         scanner = self.get_object()
 
-        for field_name in ['domains', 'regex_rules']:
+        # Exclude recipients with no email address
+        form.fields[
+            'recipients'
+        ].queryset = form.fields[
+            'recipients'
+        ].queryset.exclude(user__email="")
+
+        for field_name in ['domains', 'regex_rules', 'recipients']:
             queryset = form.fields[field_name].queryset
             queryset = queryset.filter(organization=scanner.organization)
 
