@@ -71,7 +71,7 @@ WSGI_APPLICATION = 'webscanner.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django_postgrespool',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'os2webscanner',
         'USER': 'os2webscanner',
         'PASSWORD': 'os2webscanner',
@@ -116,6 +116,21 @@ ADMIN_EMAIL = 'carstena@magenta.dk'
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = 25
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+
+# The threshold for number of OCR conversion queue items per scan above which
+# non-OCR conversion will be paused. The reason to have this feature is that
+# for large scans with OCR enabled, so many OCR items are extracted from
+# PDFs or Office documents that it exhausts the number of available inodes
+# on the filesystem. Pausing non-OCR conversions allows the OCR processors a
+# chance to process their queue items to below a reasonable level.
+PAUSE_NON_OCR_ITEMS_THRESHOLD = 2000
+
+# The threshold for number of OCR conversion queue items per scan below which
+# non-OCR conversion will be resumed. This must be a lower number than
+# PAUSE_NON_OCR_ITEMS_THRESHOLD.
+RESUME_NON_OCR_ITEMS_THRESHOLD = PAUSE_NON_OCR_ITEMS_THRESHOLD - 1000
+
 
 local_settings_file = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),

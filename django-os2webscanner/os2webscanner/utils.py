@@ -17,10 +17,14 @@
 """Utility methods for the OS2Webscanner project."""
 
 import time
+import datetime
+
 
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.template import loader, Context
+
+import models
 
 
 def notify_user(scan):
@@ -62,8 +66,6 @@ def capitalize_first(s):
         return u""
     return s.replace(s[0], s[0].upper(), 1)
 
-import models
-
 
 def do_scan(user, urls):
     """Create a scanner to scan a list of URLs.
@@ -88,3 +90,84 @@ def do_scan(user, urls):
 
     scan = scanner.scans.all()[0]
     return scan
+
+
+def scans_for_summary_report(summary, from_date=None, to_date=None):
+    """Gather date for a summary report for a web page or an email."""
+    # Calculate date period if not already given.
+    # This would normally be called from cron with from_date = to_date = None.
+    if not from_date:
+        scd = summary.schedule
+        # To initialize to a certain base
+        scd.dtstart = datetime.datetime.utcfromtimestamp(0)
+        from_date = scd.before(datetime.datetime.today() -
+                               datetime.timedelta(days=1))
+
+    if not to_date:
+        to_date = datetime.datetime.today()
+
+    relevant_scans = models.Scan.objects.filter(
+        scanner__in=summary.scanners.all(),
+        scanner__organization=summary.organization,
+        start_time__gte=from_date,
+        start_time__lt=to_date
+    ).order_by('id')
+
+    return (relevant_scans, from_date, to_date)
+
+
+def send_summary_report(summary, from_date=None, to_date=None):
+    """Send the actual summary report by email."""
+    relevant_scans, from_date, to_date = scans_for_summary_report(
+        summary,
+        from_date,
+        to_date
+    )
+
+    url = settings.SITE_URL
+
+    c = Context({'scans': relevant_scans,
+                 'from_date': from_date,
+                 'to_date': to_date,
+                 'summary': summary,
+                 'site_url': url})
+    template = 'os2webscanner/email/summary_report.html'
+
+    t = loader.get_template(template)
+
+    subject = "Opsummering fra webscanneren: {0}".format(summary.name)
+    to_addresses = [p.user.email for p in summary.recipients.all() if
+                    p.user.email]
+    if not to_addresses:
+        # TODO: In the end, of course, when no email addresses are found no
+        # mail should be sent. This is just for debugging.
+        to_addresses = ['carstena@magenta.dk', ]
+
+    try:
+        body = t.render(c)
+        message = EmailMessage(subject, body, settings.ADMIN_EMAIL,
+                               to_addresses)
+        message.content_subtype = "html"
+        message.send()
+        print "Mail sendt til", ",".join(to_addresses)
+    except Exception as e:
+        # TODO: Handle this properly
+        raise
+
+
+def dispatch_pending_summaries():
+    """Find out if any summaries need to be sent out, do it if so."""
+    summaries = models.Summary.objects.filter(do_email_recipients=True)
+
+    for summary in summaries:
+        # TODO: Check if this summary must be sent today, according to its
+        # schedule.
+        schedule = summary.schedule
+        schedule.dtstart = datetime.datetime.utcfromtimestamp(0)
+        today = datetime.datetime.today()
+        # If today's a schedule day, "before" will give us 00:00 AM on the very
+        # same day.
+        maybe_today = schedule.before(today)
+
+        if today.date() == maybe_today.date():
+            send_summary_report(summary)

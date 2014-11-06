@@ -215,7 +215,7 @@ class LastModifiedLinkStorageMiddleware(object):
 
     def get_scanner(self, spider):
         """Return the spider's scanner object."""
-        return spider.scanner.scanner_object
+        return spider.scanner.scan_object
 
 
 class LastModifiedCheckMiddleware(object):
@@ -335,7 +335,7 @@ class LastModifiedCheckMiddleware(object):
 
     def get_scanner(self, spider):
         """Return the spider's scanner object."""
-        return spider.scanner.scanner_object
+        return spider.scanner.scan_object
 
     def has_been_modified(self, request, response, spider):
         """Return whether the response was modified since last seen.

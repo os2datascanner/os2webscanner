@@ -33,7 +33,8 @@ from django.conf import settings
 from .validate import validate_domain, get_validation_str
 
 from .models import Scanner, Domain, RegexRule, Scan, Match, UserProfile, Url
-from .models import ConversionQueueItem
+from .models import ConversionQueueItem, Summary
+from .utils import scans_for_summary_report
 
 
 class LoginRequiredMixin(View):
@@ -647,7 +648,8 @@ class DialogSuccess(TemplateView):
     type_map = {
         'domains': Domain,
         'scanners': Scanner,
-        'rules': RegexRule
+        'rules': RegexRule,
+        'summaries': Summary,
     }
 
     def get_context_data(self, **kwargs):
@@ -679,7 +681,9 @@ class SystemStatusView(TemplateView, SuperUserRequiredMixin):
             status=ConversionQueueItem.NEW
         )
         total = all.count()
-        totals_by_type = all.values('type').annotate(total=Count('type')).order_by('-total')
+        totals_by_type = all.values('type').annotate(
+            total=Count('type')
+        ).order_by('-total')
         totals_by_scan = all.values('url__scan__pk').annotate(
             total=Count('url__scan__pk')
         ).order_by('-total')
@@ -709,4 +713,109 @@ class SystemStatusView(TemplateView, SuperUserRequiredMixin):
         context['total_queue_items'] = total
         context['total_queue_items_by_type'] = totals_by_type
         context['total_queue_items_by_scan'] = totals_by_scan
+        return context
+
+
+class SummaryList(RestrictedListView):
+
+    """Displays list of summaries."""
+
+    model = Summary
+    template_name = 'os2webscanner/summaries.html'
+
+
+class SummaryCreate(RestrictedCreateView):
+
+    """Create new summary."""
+
+    model = Summary
+    fields = ['name', 'description', 'schedule', 'last_run', 'recipients',
+              'scanners']
+
+    def get_form(self, form_class):
+        """Set up fields and return form."""
+        form = super(SummaryCreate, self).get_form(form_class)
+
+        field_names = ['recipients', 'scanners']
+        for field_name in field_names:
+            queryset = form.fields[field_name].queryset
+            queryset = queryset.filter(organization=0)
+            form.fields[field_name].queryset = queryset
+
+        return form
+
+    def get_success_url(self):
+        """The URL to redirect to after successful creation."""
+        return '/summaries/{0}/created/'.format(self.object.id)
+
+
+class SummaryUpdate(RestrictedUpdateView):
+
+    """Edit summary."""
+
+    model = Summary
+    fields = ['name', 'description', 'schedule', 'last_run', 'recipients',
+              'scanners', 'do_email_recipients']
+
+    def get_form(self, form_class):
+        """Get the form for the view.
+
+        Querysets for selecting the field 'recipients' must be limited by the
+        summary's organization - i.e., there must be an organization set on
+        the object.
+        """
+        form = super(SummaryUpdate, self).get_form(form_class)
+        summary = self.get_object()
+        # Limit recipients to organization
+        queryset = form.fields['recipients'].queryset
+        if summary.organization:
+            queryset = queryset.filter(organization=summary.organization)
+        else:
+            queryset = queryset.filter(organization=0)
+        form.fields['recipients'].queryset = queryset
+
+        # Limit scanners to organization
+        queryset = form.fields['scanners'].queryset
+        if summary.organization:
+            queryset = queryset.filter(organization=summary.organization)
+        else:
+            queryset = queryset.filter(organization=0)
+
+       # Only display visible scanners
+        queryset = queryset.filter(is_visible=True)
+        form.fields['scanners'].queryset = queryset
+
+        return form
+
+    def get_success_url(self):
+        """The URL to redirect to after successful update."""
+        return '/summaries/%s/saved/' % self.object.pk
+
+
+class SummaryDelete(RestrictedDeleteView):
+
+    """Delete summary."""
+
+    model = Summary
+    success_url = '/summaries/'
+
+
+class SummaryReport(RestrictedDetailView):
+
+    """Display report for summary."""
+
+    model = Summary
+    template_name = 'os2webscanner/summary_report.html'
+
+    def get_context_data(self, **kwargs):
+        """Setup context for the template."""
+        context = super(SummaryReport, self).get_context_data(**kwargs)
+
+        summary = self.object
+        scan_list, from_date, to_date = scans_for_summary_report(summary)
+
+        context['scans'] = scan_list
+        context['from_date'] = from_date
+        context['to_date'] = to_date
+
         return context

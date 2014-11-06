@@ -1,0 +1,37 @@
+
+<div class="container">
+    <h2>Opsummeringsrapport for perioden {{from_date|date:'d/m/Y'}} til
+        {{to_date|date:'d/m/Y'}}</h2>
+    {% if scans %}
+    <table class="table table-striped">
+        <tr>
+            <td><strong>Nr</strong></td>
+            <td><strong>Scanner</strong></td>
+            <td><strong>Start</strong></td>
+            <td><strong>Slut</strong></td>
+            <td><strong>Status</strong></td>
+            <td><strong>Matches</strong></td>
+            <td><strong>Kritiske matches</strong></td>
+            <td><strong>Brudte links</strong></td>
+        </tr>
+        </tr>
+        </tr>
+        {% for scan in scans %}
+        <tr>
+            <td><a href="{{site_url}}/report/{{scan.id}}/">{{scan.id}}</a></td>
+            <td>{{scan.scanner.name}}</td>
+            <td>{{scan.start_time}}</td>
+            <td>{{scan.end_time}}</td>
+            <td>{{scan.get_status_display}}</td>
+            <td>{{scan.no_of_matches}}</td>
+            <td>{{scan.no_of_critical_matches}}</td>
+            <td>{{scan.no_of_broken_links}}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    Ingen kørsler at vise.
+    {% endif %}
+
+</div>
+

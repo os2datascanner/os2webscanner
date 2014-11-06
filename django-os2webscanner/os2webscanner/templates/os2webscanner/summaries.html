@@ -1,0 +1,148 @@
+{% extends 'os2webscanner/base.html' %}
+{% block rendertype %}regular{% endblock %}
+{%  block title %}
+Opsummeringsrapporter
+{% endblock %}
+
+{% block body %}
+<div class="container">
+      <div class="table-responsive">
+		<table class="table table-striped">
+          <thead>
+            <tr>
+              <td>
+                <strong>
+                  <small>
+                    Navn
+                  </small>
+                </strong>
+              </td>
+              <td>
+                <strong>
+                  <small>
+                    Sidste kørsel
+                  </small>
+                </strong>
+              </td>
+              <td>
+                <strong>
+                  <small>
+                    Modtagere
+                  </small>
+                </strong>
+              </td>
+              <td>
+                <strong>
+                  <small>
+                    Handling
+                  </small>
+                </strong>
+              </td></tr>
+          </thead>
+          <tbody>
+          {% for summary in summary_list %}
+            <tr>
+              <td class="summary-name">
+                <span>
+                    {{ summary.name }}
+                </span>
+              </td>
+              <td class="summary-lastrun">
+                  <span>{{ summary.lastrun }}</span>
+              </td>
+              <td class="summary-recipients">
+                  <span>{% for profile in  summary.recipients.all %}
+                      {% if profile.user.email %}{{profile.user.email}}{% else %}{{profile.user.username}}{% endif %}
+                      {% if not forloop.last %}, {% endif %}{% endfor %}</span>
+              </td>
+              <td class="summary-actions">
+                <a class="btn btn-sm btn-default"
+		  onclick="os2web.iframeDialog(
+		      &quot;#edit-summary-modal&quot;,
+		      &quot;/summary/{{summary.pk}}&quot;,
+		      &quot;Redigér opsummeringsrapport '{{summary.name}}'&quot;
+		  )"
+                  title="Redigér opsummeringsrapport">
+                   <span class="glyphicon glyphicon-cog"></span></a>
+          <a href="/summary/{{summary.pk}}/report/" class="btn btn-default btn-sm"
+              title="Læs rapport">
+              <span class="glyphicon glyphicon-book"></span>
+          </a>
+          <a href="/summary/{{summary.pk}}/delete/" class="btn btn-default btn-sm"
+              title="Slet opsummeringsrapport">
+              <span class="glyphicon glyphicon-remove"></span>
+          </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        
+      </div>
+</div>
+{% endblock %}
+
+{% block heading %} 
+Opsummeringsrapporter 
+<span class="page-action" style="float:right;">
+    <button type="button" class="btn btn-default" data-toggle="modal"
+        data-target="#create-summary-modal">
+        Tilføj ny 
+        <span style="position:relative;top:.15em;" class="glyphicon glyphicon-plus-sign">
+        </span>
+    </button>
+</span>
+{% endblock %}
+
+{% block modal %}
+<div class="modal iframe" id="create-summary-modal" tabindex="-1" role="dialog"
+  aria-labelledby="create-summary-modal-title" aria-hidden="true"
+  data-href="/summaries/add/">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+	  &times;
+	</button>
+	<h4 class="modal-title" id="create-summary-modal-title">
+	  Opret ny opsummeringsrapport
+	</h4>
+      </div>
+      <div class="modal-body">
+	<iframe src="about:blank" frameborder="0"
+	  width="550" height="650"></iframe>
+      </div>
+      <div class="modal-footer">
+	<div class="btn-group"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal iframe" id="edit-summary-modal" tabindex="-1" role="dialog"
+  aria-labelledby="edit-summary-modal-title" aria-hidden="true"
+  data-href="/summaries/add/">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+	  &times;
+	</button>
+	<h4 class="modal-title" id="edit-summary-modal-title">
+	  Opret ny opsummeringsrapport
+	</h4>
+      </div>
+      <div class="modal-body">
+	<iframe src="about:blank" frameborder="0"
+	  width="550" height="650"></iframe>
+      </div>
+      <div class="modal-footer">
+	<div class="btn-group"></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block summaries_active %}
+class="active"
+{% endblock %}

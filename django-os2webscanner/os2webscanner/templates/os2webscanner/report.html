@@ -36,17 +36,59 @@ Rapport &dash; {{scan.scanner.name}}
             </tbody>
         </table>
       </div>
-      <p> {% if no_of_matches > 100 %}
-      Kun de første 100 resultater vises.
-      {% endif %}
-	<a href="./csv/">Klik her for at downloade hele rapporten</a>
-      </p>
-      {% if matches %}
-      <div class="table-responsive">
-		<table class="table table-striped">
-          <thead>
-            <tr>
-              <td>
+      <p> 
+      <h3>Indstillinger</h3>
+
+      <table class = "table">
+          <tbody>
+          <tr>
+              <td>Scan Billeder? {{scan.do_ocr}}</td> 
+              <td>Check Last-Modified {{scan.do_last_modified_check}}</td> 
+              <td>Brug HEAD request
+                  {{scan.do_last_modified_check_head_request}}</td>
+          </tr>
+          <tr>
+              <td>CPR {{scan.do_cpr_scan}}</td>
+              <td>Check modulus-11 {{scan.do_cpr_modulus11}} </td>
+          </tr>
+          <tr>
+            <td>Navne {{scan.do_name_scan}}</td>
+            <td>Links {{scan.do_link_check }}</td>
+            <td>Eksterne links {{scan.do_external_link_check}}</td>
+        </tr>
+
+        <tr>
+                <td> 
+                    <h3>Domæner</h3>
+                    {% for domain in scan.domains.all %}
+                    {{domain.url}}<br>
+                    {% endfor %}
+                </td>
+                {% if scan.regex_rules.all %}
+                <td>
+                    <h3>Regex-regler</h3>
+                    {% for rule in scan.regex_rules.all %}
+                    {{rule.name}}<br>
+                    {% endfor %}
+                </td>
+                {% endif %}
+            </tr>
+            </tbody>
+        </table>
+
+{% if no_of_matches > 100 %}  <p> 
+  Kun de første 100 resultater vises.
+  </p>
+  {% endif %}
+
+    <a href="./csv/">Klik her for at downloade hele rapporten</a>
+  {% if matches %}
+  <h2>Resultater</h2>
+  <div class="table-responsive">
+            <table class="table table-striped">
+      <thead>
+        <tr>
+          <td>
                 <strong>
                   <small>
                     URL
