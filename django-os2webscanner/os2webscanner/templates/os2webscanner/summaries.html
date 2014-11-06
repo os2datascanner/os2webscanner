@@ -17,6 +17,15 @@ Opsummeringsrapporter
                   </small>
                 </strong>
               </td>
+              {% if user.is_superuser %}
+              <td>
+                  <strong>
+                      <small>
+                          Organisation
+                      </small>
+                  </strong>
+              </td>
+              {% endif %}
               <td>
                 <strong>
                   <small>
@@ -47,6 +56,13 @@ Opsummeringsrapporter
                     {{ summary.name }}
                 </span>
               </td>
+              {% if user.is_superuser %}
+              <td class="summary-organization">
+                  <span>
+                      {{summary.organization}}
+                  </span>
+              </td>
+              {% endif %}
               <td class="summary-lastrun">
                   <span>{{ summary.lastrun }}</span>
               </td>
