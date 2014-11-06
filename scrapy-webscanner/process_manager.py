@@ -40,10 +40,12 @@ os.umask(0007)
 from django.utils import timezone
 from django.db import transaction, IntegrityError, DatabaseError
 from django import db
+from django.conf import settings
 
 from os2webscanner.models import ConversionQueueItem, Scan
 
-var_dir = os.path.join(base_dir, "var")
+var_dir = settings.VAR_DIR
+
 log_dir = os.path.join(var_dir, "logs")
 
 if not os.path.exists(log_dir):
@@ -76,10 +78,15 @@ def stop_process(p):
     if pid in process_map:
         del process_map[pid]
     # Set any ongoing queue-items for this process id to failed
-    ConversionQueueItem.objects.filter(
+    ongoing_items = ConversionQueueItem.objects.filter(
         status=ConversionQueueItem.PROCESSING,
         process_id=pid
-    ).update(
+    )
+    # Remove the temp directories for the failed queue items
+    for item in ongoing_items:
+        # TODO: Log to occurrence log
+        item.delete_tmp_dir()
+    ongoing_items.update(
         status=ConversionQueueItem.FAILED
     )
 
@@ -192,10 +199,9 @@ def main():
                 restart_process(stuck_process)
             else:
                 p.status = ConversionQueueItem.FAILED
-                # Clean up failed conversion temp dir
-                if os.access(p.tmp_dir, os.W_OK):
-                    shutil.rmtree(p.tmp_dir, True)
                 p.save()
+                # Clean up failed conversion temp dir
+                p.delete_tmp_dir()
 
         try:
             with transaction.atomic():
@@ -216,6 +222,8 @@ def main():
 
         # Cleanup finished scans from the last minute
         Scan.cleanup_finished_scans(timedelta(minutes=1), log=True)
+
+        Scan.pause_non_ocr_conversions_on_scans_with_too_many_ocr_items()
 
         time.sleep(10)
 
