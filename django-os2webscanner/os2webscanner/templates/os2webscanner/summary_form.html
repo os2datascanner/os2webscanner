@@ -10,6 +10,18 @@
 <script type="text/javascript" src="/jsi18n/"></script>
 <script type="text/javascript" src="{% static 'recurrence/js/recurrence.js' %}"></script>
 <script type="text/javascript" src="{% static 'recurrence/js/recurrence-widget.js' %}"></script>
+  <!-- BEGIN Admin scripts and CSS to render filter_horizontal -->
+  <script type="text/javascript" src="/admin/jsi18n/"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}admin/js/core.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}admin/js/jquery.min.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}admin/js/jquery.init.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}admin/js/SelectFilter2.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}admin/js/SelectBox.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}admin/css/widgets.css"/>
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}admin/css/base.css"/>
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}admin/css/forms.css"/>
+  <!-- END   Admin scripts and CSS to render filter_horizontal -->
 {% endblock %}
 
 {% block jquery_script %}
@@ -180,4 +192,10 @@
 
     </form>
 
+<script type="text/javascript">
+    addEvent(window, "load", function(e) { SelectFilter.init("id_recipients",
+                "modtagere", 0, "{{ STATIC_URL }}admin/"); });
+    addEvent(window, "load", function(e) { SelectFilter.init("id_recipients",
+                "modtagere", 0, "{{ STATIC_URL }}admin/"); });
+</script>
 {% endblock %}
