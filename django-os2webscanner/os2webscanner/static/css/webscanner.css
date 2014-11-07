@@ -87,3 +87,9 @@ margin-top:-20px;
 div.failed-conversions {
 margin-bottom:20px;
 }
+
+/* filter_horizontal WIDGET */
+.selector-available h2, .selector-chosen h2 {
+    border: 1px solid #CCC;
+    font-size: inherit;
+}
