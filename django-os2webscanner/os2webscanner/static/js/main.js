@@ -15,6 +15,15 @@ os2web = window.os2web || {};
         $this.tab('show');
     });
 
+    // Resize iframe according to content height
+    $('.modal-body iframe').on('load',function(){
+      var $this = $(this);
+      $this.height($this.contents().find('body').height());
+      $this.contents().on('click','.nav-tabs a',function(){
+        $this.height($this.contents().find('body').height());
+      });
+    });
+
     $.extend(os2web, {
         iframeDialog: function(id_or_elem, url, title) {
             $elem = $(id_or_elem);
