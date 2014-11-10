@@ -710,7 +710,6 @@ class GroupUpdate(RestrictedUpdateView):
         else:
             queryset = queryset.filter(organization=0)
         form.fields[field_name].queryset = queryset
-        print queryset
         return form
 
     def get_success_url(self):
