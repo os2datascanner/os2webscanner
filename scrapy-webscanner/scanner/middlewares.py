@@ -174,7 +174,7 @@ class LastModifiedLinkStorageMiddleware(object):
         try:
             url_last_modified = UrlLastModified.objects.get(
                 url=source_url,
-                scanner=self.get_scanner(spider)
+                scanner=self.get_scanner_object(spider)
             )
         except UrlLastModified.DoesNotExist:
             # We never stored the URL for the original request: this
@@ -198,14 +198,14 @@ class LastModifiedLinkStorageMiddleware(object):
                 try:
                     link = UrlLastModified.objects.get(
                         url=target_url,
-                        scanner=self.get_scanner(spider)
+                        scanner=self.get_scanner_object(spider)
                     )
                 except UrlLastModified.DoesNotExist:
                     # Create new link
                     link = UrlLastModified(
                         url=target_url,
                         last_modified=None,
-                        scanner=self.get_scanner(spider)
+                        scanner=self.get_scanner_object(spider)
                     )
                     link.save()
                 # Add the link to the URL last modified object
@@ -213,9 +213,9 @@ class LastModifiedLinkStorageMiddleware(object):
                 log.msg("Added link %s" % link, level=log.DEBUG)
         return result
 
-    def get_scanner(self, spider):
+    def get_scanner_object(self, spider):
         """Return the spider's scanner object."""
-        return spider.scanner.scan_object
+        return spider.scanner.scan_object.scanner
 
 
 class LastModifiedCheckMiddleware(object):
@@ -274,6 +274,8 @@ class LastModifiedCheckMiddleware(object):
         # Check the Last-Modified header to see if the content has been
         # updated since the last time we checked it.
         if self.has_been_modified(request, response, spider):
+            log.msg("Page has been modified since Last-Modified %s" % response,
+                    level=log.DEBUG)
             if request.method == 'HEAD':
                 # Issue a new GET request, since the data was updated
                 log.msg("Issuing a new GET for %s" % request, level=log.DEBUG)
@@ -309,7 +311,7 @@ class LastModifiedCheckMiddleware(object):
         url = canonicalize_url(url)
         try:
             url_last_modified = UrlLastModified.objects.get(
-                url=url, scanner=self.get_scanner(spider))
+                url=url, scanner=self.get_scanner_object(spider))
             return url_last_modified.links.all()
         except UrlLastModified.DoesNotExist:
             return []
@@ -328,14 +330,14 @@ class LastModifiedCheckMiddleware(object):
         url = canonicalize_url(url)
         try:
             url_last_modified = UrlLastModified.objects.get(
-                url=url, scanner=self.get_scanner(spider))
+                url=url, scanner=self.get_scanner_object(spider))
             return url_last_modified
         except UrlLastModified.DoesNotExist:
             return None
 
-    def get_scanner(self, spider):
+    def get_scanner_object(self, spider):
         """Return the spider's scanner object."""
-        return spider.scanner.scan_object
+        return spider.scanner.scan_object.scanner
 
     def has_been_modified(self, request, response, spider):
         """Return whether the response was modified since last seen.
@@ -379,7 +381,9 @@ class LastModifiedCheckMiddleware(object):
             canonical_url = canonicalize_url(response.url)
             try:
                 url_last_modified = UrlLastModified.objects.get(
-                    url=canonical_url, scanner=self.get_scanner(spider))
+                    url=canonical_url,
+                    scanner=self.get_scanner_object(spider)
+                )
                 stored_last_modified = url_last_modified.last_modified
                 log.msg("Comparing header %s against stored %s" % (
                     last_modified, stored_last_modified), level=log.INFO)
@@ -397,7 +401,7 @@ class LastModifiedCheckMiddleware(object):
                 url_last_modified = UrlLastModified(
                     url=canonical_url,
                     last_modified=last_modified,
-                    scanner=self.get_scanner(spider)
+                    scanner=self.get_scanner_object(spider)
                 )
                 log.msg("Saving new last-modified value %s" %
                         url_last_modified, level=log.DEBUG)
