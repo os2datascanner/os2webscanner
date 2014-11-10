@@ -23,9 +23,9 @@ from django.db.models import Count
 from django.http import Http404, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import View, ListView, TemplateView, DetailView
-from django.views.generic.detail import SingleObjectMixin
-from django.views.generic.edit import CreateView, UpdateView, DeleteView
-from django.contrib.auth.decorators import login_required
+from django.views.generic.edit import ModelFormMixin, DeleteView
+from django.views.generic.edit import CreateView, UpdateView
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils.decorators import method_decorator
 from django.forms.models import modelform_factory
 from django.conf import settings
@@ -33,7 +33,8 @@ from django.conf import settings
 from .validate import validate_domain, get_validation_str
 
 from .models import Scanner, Domain, RegexRule, Scan, Match, UserProfile, Url
-from .models import ConversionQueueItem
+from .models import Organization, ConversionQueueItem, Group, Summary
+from .utils import scans_for_summary_report
 
 
 class LoginRequiredMixin(View):
@@ -72,9 +73,19 @@ class RestrictedListView(ListView, LoginRequiredMixin):
         else:
             try:
                 profile = user.get_profile()
-                return self.model.objects.filter(
-                    organization=profile.organization
-                )
+                if profile.organization.do_use_groups:
+                    if profile.is_group_admin or self.model == Group:
+                        return self.model.objects.filter(
+                            organization=profile.organization
+                        )
+                    else:
+                        groups = profile.groups.all()
+                        print groups
+                        qs = self.model.objects.filter(
+                            group__in=groups
+                        )
+                        print qs
+                        return qs
             except UserProfile.DoesNotExist:
                 return self.model.objects.filter(organization=None)
 
@@ -84,6 +95,37 @@ class MainPageView(TemplateView, LoginRequiredMixin):
     """Display the main page."""
 
     template_name = 'index.html'
+
+
+class OrganizationList(RestrictedListView):
+
+    """Display a list of organizations, superusers only!"""
+
+    model = Organization
+    template_name = 'os2webscanner/organizations_and_domains.html'
+
+    def get_context_data(self, **kwargs):
+        """Setup context for the template."""
+        context = super(OrganizationList, self).get_context_data(**kwargs)
+        organization_list = context['organization_list']
+        orgs_with_domains = []
+        for org in organization_list:
+            tld_list = []
+
+            top_level = lambda d: '.'.join(d.strip('/').split('.')[-2:])
+            tlds = set([top_level(d.url) for d in org.domains.all()])
+
+            for tld in tlds:
+                sub_domains = [
+                    d.url for d in org.domains.all() if top_level(d.url) == tld
+                ]
+                tld_list.append({'tld': tld, 'domains': sub_domains})
+
+            orgs_with_domains.append({'name': org.name, 'domains': tld_list})
+
+        context['orgs_with_domains'] = orgs_with_domains
+
+        return context
 
 
 class ScannerList(RestrictedListView):
@@ -96,7 +138,9 @@ class ScannerList(RestrictedListView):
     def get_queryset(self):
         """Get queryset, don't include non-visible scanners."""
         qs = super(ScannerList, self).get_queryset()
-        return qs.filter(is_visible=True)
+        # Dismiss scans that are not visible
+        qs = qs.filter(is_visible=True)
+        return qs
 
 
 class DomainList(RestrictedListView):
@@ -111,6 +155,13 @@ class DomainList(RestrictedListView):
         query_set = super(DomainList, self).get_queryset()
 
         return query_set.order_by('url', 'pk')
+
+
+class GroupList(RestrictedListView):
+    """Displays groups for organization."""
+
+    model = Group
+    template_name = 'os2webscanner/groups.html'
 
 
 class RuleList(RestrictedListView):
@@ -136,9 +187,16 @@ class ReportList(RestrictedListView):
         else:
             try:
                 profile = user.get_profile()
-                reports = self.model.objects.filter(
-                    scanner__organization=profile.organization
-                )
+                # TODO: Filter by group here if relevant.
+                if (profile.is_group_admin or not
+                    profile.organization.do_use_groups):
+                    reports = self.model.objects.filter(
+                        scanner__organization=profile.organization
+                    )
+                else:
+                    reports = self.model.objects.filter(
+                        scanner__group__in=profile.groups.all()
+                    )
             except UserProfile.DoesNotExist:
                 reports = self.model.objects.filter(
                     scanner__organization=None
@@ -156,9 +214,14 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
     def get_form_fields(self):
         """Get the list of fields to use in the form for the view."""
         fields = [f for f in self.fields]
+        user = self.request.user
 
-        if self.request.user.is_superuser:
+        if user.is_superuser:
             fields.append('organization')
+        elif user.get_profile().organization.do_use_groups:
+            if (user.get_profile().is_group_admin or
+                len(user.get_profile().groups.all()) > 1):
+                fields.append('group')
 
         return fields
 
@@ -167,7 +230,20 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
         fields = self.get_form_fields()
         form_class = modelform_factory(self.model, fields=fields)
         kwargs = self.get_form_kwargs()
-        return form_class(**kwargs)
+
+        form = form_class(**kwargs)
+        user = self.request.user
+        if 'group' in fields:
+            if user.get_profile().is_group_admin:
+                queryset = (
+                    user.get_profile().organization.groups.all()
+                )
+            else:
+                form.fields['group'].queryset = (
+                    user.get_profile().groups.all()
+                )
+            form.fields['group'].queryset = queryset
+        return form
 
     def form_valid(self, form):
         """Validate the form."""
@@ -178,16 +254,56 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
                 raise PermissionDenied
             self.object = form.save(commit=False)
             self.object.organization = user_profile.organization
+            if (user_profile.organization.do_use_groups and not
+                user_profile.is_group_admin and
+                len(user_profile.groups.all())):
+                self.object.group = user_profile.groups.all()[0]
 
         return super(RestrictedCreateView, self).form_valid(form)
 
 
-class OrgRestrictedMixin(SingleObjectMixin, LoginRequiredMixin):
+class OrgRestrictedMixin(ModelFormMixin, LoginRequiredMixin):
 
     """Mixin class for views with organization-restricted queryset."""
 
+    def get_form_fields(self):
+        """Get the list of fields to use in the form for the view."""
+        fields = [f for f in self.fields]
+        user = self.request.user
+        organization = self.object.organization
+        do_add_group = False
+        if user.is_superuser:
+            fields.append('organization')
+        if organization.do_use_groups:
+            if (user.is_superuser or
+                user.get_profile().is_group_admin or
+                len(user.get_profile().groups.all()) > 1):
+                do_add_group = True
+        if do_add_group and self.model != Group:
+            fields.append('group')
+        return fields
+
+    def get_form(self, form_class):
+        """Get the form for the view."""
+        fields = self.get_form_fields()
+        form_class = modelform_factory(self.model, fields=fields)
+        kwargs = self.get_form_kwargs()
+        
+        form = form_class(**kwargs)
+        user = self.request.user
+        if 'group' in fields:
+            if user.is_superuser or user.get_profile().is_group_admin:
+                form.fields['group'].queryset = (
+                    self.object.organization.groups.all()
+                )
+            else:
+                form.fields['group'].queryset = (
+                    user.get_profile().groups.all()
+                )
+        return form
+
     def get_queryset(self):
-        """Get queryset filtered by user's organiztion."""
+        """Get queryset filtered by user's organization."""
         queryset = super(OrgRestrictedMixin, self).get_queryset()
         if not self.request.user.is_superuser:
             organization = None
@@ -195,10 +311,16 @@ class OrgRestrictedMixin(SingleObjectMixin, LoginRequiredMixin):
             try:
                 user_profile = self.request.user.get_profile()
                 organization = user_profile.organization
+                groups = user_profile.groups.all()
             except UserProfile.DoesNotExist:
                 organization = None
+                groups = []
 
-            queryset = queryset.filter(organization=organization)
+            if (user_profile.organization.do_use_groups and not
+                user_profile.is_group_admin):
+                queryset = queryset.filter(group__in=groups)
+            else:
+                queryset = queryset.filter(organization=organization)
         return queryset
 
 
@@ -229,7 +351,8 @@ class ScannerCreate(RestrictedCreateView):
 
     model = Scanner
     fields = ['name', 'schedule', 'whitelisted_names', 'domains',
-              'do_cpr_scan', 'do_cpr_modulus11', 'do_name_scan', 'do_ocr',
+              'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
+              'do_name_scan', 'do_ocr',
               'do_link_check', 'do_external_link_check',
               'do_last_modified_check', 'do_last_modified_check_head_request',
               'regex_rules', 'recipients']
@@ -244,8 +367,11 @@ class ScannerCreate(RestrictedCreateView):
         form = super(ScannerCreate, self).get_form(form_class)
         try:
             organization = self.request.user.get_profile().organization
+            groups = self.request.user.get_profile().groups.all()
         except UserProfile.DoesNotExist:
             organization = None
+            groups = None
+
         # Exclude recipients with no email address
         form.fields[
             'recipients'
@@ -256,7 +382,11 @@ class ScannerCreate(RestrictedCreateView):
         if not self.request.user.is_superuser:
             for field_name in ['domains', 'regex_rules', 'recipients']:
                 queryset = form.fields[field_name].queryset
-                queryset = queryset.filter(organization=organization)
+                if (self.request.user.get_profile().is_group_admin or
+                    field_name=='recipients'):
+                    queryset = queryset.filter(organization=organization)
+                else:
+                    queryset = queryset.filter(group__in=groups)
                 form.fields[field_name].queryset = queryset
         return form
 
@@ -271,7 +401,8 @@ class ScannerUpdate(RestrictedUpdateView):
 
     model = Scanner
     fields = ['name', 'schedule', 'whitelisted_names', 'domains',
-              'do_cpr_scan', 'do_cpr_modulus11', 'do_name_scan', 'do_ocr',
+              'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
+              'do_name_scan', 'do_ocr',
               'do_link_check', 'do_external_link_check',
               'do_last_modified_check', 'do_last_modified_check_head_request',
               'regex_rules', 'recipients']
@@ -287,7 +418,9 @@ class ScannerUpdate(RestrictedUpdateView):
         will be limited by the user's organiztion unless the user is a
         superuser.
         """
+        self.fields = self.get_form_fields()
         form = super(ScannerUpdate, self).get_form(form_class)
+
         scanner = self.get_object()
 
         # Exclude recipients with no email address
@@ -300,8 +433,14 @@ class ScannerUpdate(RestrictedUpdateView):
         for field_name in ['domains', 'regex_rules', 'recipients']:
             queryset = form.fields[field_name].queryset
             queryset = queryset.filter(organization=scanner.organization)
-            form.fields[field_name].queryset = queryset
 
+            if scanner.organization.do_use_groups:
+                # TODO: This is not very elegant!
+                if field_name == 'recipients':
+                    queryset = queryset.filter(groups__in=scanner.group)
+                else:
+                    queryset = queryset.filter(group=scanner.group)
+            form.fields[field_name].queryset = queryset
         return form
 
 
@@ -311,6 +450,30 @@ class ScannerDelete(RestrictedDeleteView):
 
     model = Scanner
     success_url = '/scanners/'
+
+
+class ScannerAskRun(RestrictedDetailView):
+
+    """Prompt for starting scan, validate first."""
+    model = Scanner
+
+    def get_context_data(self, **kwargs):
+        """Check that user is allowed to run this scanner."""
+        context = super(ScannerAskRun, self).get_context_data(**kwargs)
+
+        if self.object.has_active_scans:
+            ok = False
+            error_message = Scanner.ALREADY_RUNNING
+        elif not self.object.has_valid_domains:
+            ok = False
+            error_message = Scanner.NO_VALID_DOMAINS
+        else:
+            ok = True
+        context['ok'] = ok
+        if not ok:
+            context['error_message'] = error_message
+
+        return context
 
 
 class ScannerRun(RestrictedDetailView):
@@ -324,10 +487,13 @@ class ScannerRun(RestrictedDetailView):
         """Handle a get request to the view."""
         self.object = self.get_object()
 
-        result = self.object.run()
+        result = self.object.run(user=request.user)
         context = self.get_context_data(object=self.object)
-        context['success'] = not result is None
-        context['scan'] = result
+        context['success'] = isinstance(result, Scan)
+        if not context['success']:
+            context['error_message'] = result
+        else:
+            context['scan'] = result
 
         return self.render_to_response(context)
 
@@ -377,24 +543,22 @@ class DomainUpdate(RestrictedUpdateView):
     fields = ['url', 'exclusion_rules', 'download_sitemap', 'sitemap_url',
               'sitemap']
 
+    def get_form_fields(self):
+        """Get the list of form fields."""
+        fields = super(DomainUpdate, self).get_form_fields()
+
+        if self.request.user.is_superuser:
+            fields.append('validation_status')
+        elif not self.object.validation_status:
+            fields.append('validation_method')
+
+        self.fields = fields
+        return fields
+
     def get_form(self, form_class):
         """Get the form for the view.
-
-        If the user is a superuser the fields  'validation_status' and
-        'organization' will be added to the form.
-        If the user is not a superuser and the domain has not been validated
-        the 'validation_method' field will be added to the form.
         """
-        enabled_fields = [f for f in DomainUpdate.fields]
-        if self.request.user.is_superuser:
-            enabled_fields.append('validation_status')
-            enabled_fields.append('organization')
-        elif not self.object.validation_status:
-            enabled_fields.append('validation_method')
-
-        form_class = modelform_factory(self.model, fields=enabled_fields)
-        kwargs = self.get_form_kwargs()
-        form = form_class(**kwargs)
+        form = super(DomainUpdate, self).get_form(form_class)
 
         for fname in form.fields:
             f = form.fields[fname]
@@ -476,6 +640,83 @@ class DomainDelete(RestrictedDeleteView):
     success_url = '/domains/'
 
 
+class GroupCreate(RestrictedCreateView):
+
+    """Create a group view."""
+
+    fields = ['name', 'contact_email', 'contact_phone', 'user_profiles']
+    model = Group
+
+    def get_form_fields(self):
+        """Get the list of fields to use in the form for the view."""
+        fields = super(GroupCreate, self).get_form_fields()
+
+        if 'group' in fields:
+            fields.remove('group')
+
+        return fields
+
+    def get_form(self, form_class):
+        """Get the form for the view.
+
+        Querysets used for choices in the 'domains' and 'regex_rules' fields
+        will be limited by the user's organiztion unless the user is a
+        superuser.
+        """
+        form = super(GroupCreate, self).get_form(form_class)
+
+        field_name = 'user_profiles'
+        queryset = form.fields[field_name].queryset
+        queryset = queryset.filter(organization=0)
+        form.fields[field_name].queryset = queryset
+
+        return form
+
+    def get_success_url(self):
+        """The URL to redirect to after successful creation."""
+        return '/groups/%s/created/' % self.object.pk
+
+
+class GroupUpdate(RestrictedUpdateView):
+
+    """Update a domain view."""
+
+    model = Group
+    fields = ['name', 'contact_email', 'contact_phone', 'user_profiles']
+
+    def get_form(self, form_class):
+        """Get the form for the view.
+
+        Querysets used for choices in the 'domains' and 'regex_rules' fields
+        will be limited by the user's organiztion unless the user is a
+        superuser.
+        """
+        form = super(GroupUpdate, self).get_form(form_class)
+        group = self.get_object()
+        field_name = 'user_profiles'
+        queryset = form.fields[field_name].queryset
+        if group.organization:
+            queryset = queryset.filter(organization=group.organization)
+        else:
+            queryset = queryset.filter(organization=0)
+        form.fields[field_name].queryset = queryset
+        print queryset
+        return form
+
+    def get_success_url(self):
+        """The URL to redirect to after successful update."""
+        return '/groups/%s/saved/' % self.object.pk
+
+
+class GroupDelete(RestrictedDeleteView):
+
+    """Delete a domain view."""
+
+    model = Group
+    fields = ['name', 'contact_email', 'contact_phone', 'user_profiles']
+    success_url = '/groups/'
+
+
 class RuleCreate(RestrictedCreateView):
 
     """Create a rule view."""
@@ -506,6 +747,7 @@ class RuleUpdate(RestrictedUpdateView):
     """Update a rule view."""
 
     model = RegexRule
+    fields = ['name', 'match_string', 'description', 'sensitivity']
 
     def get_form(self, form_class):
         """Get the form for the view.
@@ -530,6 +772,7 @@ class RuleDelete(RestrictedDeleteView):
     """Delete a rule view."""
 
     model = RegexRule
+    fields = ['name', 'match_string', 'description', 'sensitivity']
     success_url = '/rules/'
 
 
@@ -607,6 +850,24 @@ class ReportDelete(DeleteView, LoginRequiredMixin):
         return queryset
 
 
+class ScanReportLog(ReportDetails):
+
+    """Display ordinary log file for debugging purposes."""
+
+    def render_to_response(self, context, **response_kwargs):
+        """Render log file."""
+        scan = self.get_object()
+        response = HttpResponse(content_type="text/plain")
+        log_file = "scan{0}_log.txt".format(scan.id)
+        response[
+            'Content-Disposition'
+        ] = u'attachment; filename={0}'.format(log_file)
+
+        with open(scan.scan_log_file, "r") as f:
+            response.write(f.read())
+        return response
+
+
 class CSVReportDetails(ReportDetails):
 
     """Display  full report in CSV format."""
@@ -637,10 +898,12 @@ class CSVReportDetails(ReportDetails):
             # Print match header
             writer.writerow(e([u'URL', u'Regel', u'Match', u'Følsomhed']))
             for match in all_matches:
-                writer.writerow(e([match.url.url,
-                                 match.get_matched_rule_display(),
-                                 match.matched_data.replace('\n', ''),
-                                 match.get_sensitivity_display()]))
+                writer.writerow(
+                    e([match.url.url,
+                       match.get_matched_rule_display(),
+                       match.matched_data.replace('\n', '').replace('\r', ' '),
+                       match.get_sensitivity_display()])
+                )
         broken_urls = context['broken_urls']
         if broken_urls:
             # Print broken link header
@@ -662,7 +925,9 @@ class DialogSuccess(TemplateView):
     type_map = {
         'domains': Domain,
         'scanners': Scanner,
-        'rules': RegexRule
+        'rules': RegexRule,
+        'groups': Group,
+        'summaries': Summary,
     }
 
     def get_context_data(self, **kwargs):
@@ -726,4 +991,102 @@ class SystemStatusView(TemplateView, SuperUserRequiredMixin):
         context['total_queue_items'] = total
         context['total_queue_items_by_type'] = totals_by_type
         context['total_queue_items_by_scan'] = totals_by_scan
+        return context
+
+
+class SummaryList(RestrictedListView):
+
+    """Displays list of summaries."""
+
+    model = Summary
+    template_name = 'os2webscanner/summaries.html'
+
+
+class SummaryCreate(RestrictedCreateView):
+
+    """Create new summary."""
+
+    model = Summary
+    fields = ['name', 'description', 'schedule', 'last_run', 'recipients',
+              'scanners']
+
+    def get_form(self, form_class):
+        """Set up fields and return form."""
+        form = super(SummaryCreate, self).get_form(form_class)
+
+        field_names = ['recipients', 'scanners']
+        for field_name in field_names:
+            queryset = form.fields[field_name].queryset
+            queryset = queryset.filter(organization=0)
+            form.fields[field_name].queryset = queryset
+
+        return form
+
+    def get_success_url(self):
+        """The URL to redirect to after successful creation."""
+        return '/summaries/{0}/created/'.format(self.object.id)
+
+
+class SummaryUpdate(RestrictedUpdateView):
+
+    """Edit summary."""
+
+    model = Summary
+    fields = ['name', 'description', 'schedule', 'last_run', 'recipients',
+              'scanners', 'do_email_recipients']
+
+    def get_form(self, form_class):
+        """Get the form for the view.
+
+        Querysets for selecting the field 'recipients' must be limited by the
+        summary's organization - i.e., there must be an organization set on
+        the object.
+        """
+        form = super(SummaryUpdate, self).get_form(form_class)
+        summary = self.get_object()
+        # Limit recipients to organization
+        queryset = form.fields['recipients'].queryset
+        if summary.organization:
+            queryset = queryset.filter(organization=summary.organization)
+        else:
+            queryset = queryset.filter(organization=0)
+        form.fields['recipients'].queryset = queryset
+        # Only display visible scanners
+        queryset = form.fields['scanners'].queryset
+        queryset = queryset.filter(is_visible=True)
+        form.fields['scanners'].queryset = queryset
+
+        return form
+
+    def get_success_url(self):
+        """The URL to redirect to after successful update."""
+        return '/summaries/%s/saved/' % self.object.pk
+
+
+class SummaryDelete(RestrictedDeleteView):
+
+    """Delete summary."""
+
+    model = Summary
+    success_url = '/summaries/'
+
+
+class SummaryReport(RestrictedDetailView):
+
+    """Display report for summary."""
+
+    model = Summary
+    template_name = 'os2webscanner/summary_report.html'
+
+    def get_context_data(self, **kwargs):
+        """Setup context for the template."""
+        context = super(SummaryReport, self).get_context_data(**kwargs)
+
+        summary = self.object
+        scan_list, from_date, to_date = scans_for_summary_report(summary)
+
+        context['scans'] = scan_list
+        context['from_date'] = from_date
+        context['to_date'] = to_date
+
         return context

@@ -1,13 +1,13 @@
 {% extends 'os2webscanner/base.html' %}
 {% block rendertype %}regular{% endblock %}
 {%  block title %}
-Regler
+Grupper
 {% endblock %}
 
 {% block body %}
 <div class="container">
-    <div class="table-responsive">
-		<table class="table table-striped">
+     <div class="table-responsive">
+	<table class="table table-striped">
           <thead>
             <tr>
               <td>
@@ -17,7 +17,6 @@ Regler
                   </small>
                 </strong>
               </td>
-              {% if user.is_superuser %}
               <td>
                 <strong>
                   <small>
@@ -25,110 +24,86 @@ Regler
                   </small>
                 </strong>
               </td>
-              {% endif %}
               <td>
                 <strong>
                   <small>
-                    Beskrivelse
+                    Kontakt-email
                   </small>
                 </strong>
               </td>
               <td>
                 <strong>
                   <small>
-                    Regulært udtryk
-                  </small>
-                </strong>
-              </td>
-              <td>
-                <strong>
-                  <small>
-                    Følsomhed
-                  </small>
-                </strong>
-              </td>
-              <td>
-                <strong>
-                  <small>
-                    Handling
+                    Telefon
                   </small>
                 </strong>
               </td>
             </tr>
           </thead>
           <tbody>
-          {% for rule in regexrule_list %}
+          {% for group in group_list %}
             <tr>
-              <td class="rule-name">
+              <td class="group-name">
                 <span>
-                    {{ rule.name }}
+                    {{group.name}}
                 </span>
               </td>
-              {% if user.is_superuser %}
-              <td class="rule-organization">
-                <span>
-                    {{ rule.organization }}
-                </span>
+              <td class="group-organization">
+               <span>{{group.organization}}</span>
               </td>
-              {% endif %}
-              <td class="rule-description">
-                <span>
-                    {{ rule.description }}
-                </span>
+              <td class="group-contact-email">
+                  <span>{{group.contact_email}}</span>
               </td>
-              <td class="rule-expression">
-                  <code>{{ rule.match_string }}</code>
+              <td class="group-contact-phone">
+                  <span>{{group.contact_phone}}</span>
               </td>
-              <td class="rule-sensitivity">
-                <span>
-                    {{ rule.get_sensitivity_display }}
-                </span>
-              </td>
-              <td class="rule-actions">
-                <button type="button" class="btn btn-default btn-xs btn-rule-settings"
-		onclick="os2web.iframeDialog(
-		      &quot;#edit-rule-modal&quot;,
-		      &quot;/rules/{{rule.pk}}&quot;,
-		      &quot;Redigér regel '{{rule.name}}'&quot;
+              <td class="group-actions">
+                <button type="button"
+		  class="btn btn-default btn-xs btn-group-settings"
+		  onclick="os2web.iframeDialog(
+		      &quot;#edit-group-modal&quot;,
+		      &quot;/groups/{{group.pk}}&quot;,
+		      &quot;Redigér gruppe '{{group.name}}'&quot;
 		  )">
               	  <span class="glyphicon glyphicon-cog"></span> <span>Redigér</span>
-				</button>
-          	<a href="/rules/{{rule.pk}}/delete/" class="btn btn-default btn-xs">
-              	    <span class="glyphicon glyphicon-remove"></span>
-              	    <span>Slet</span>
-          	</a>
+		</button>
+                <a href="/groups/{{group.pk}}/delete/" class="btn btn-default btn-xs">
+                    <span class="glyphicon glyphicon-remove"></span>
+                    <span>Slet </span>
+                </a>
               </td>
             </tr>
             {% endfor %}
           </tbody>
         </table>
-</div>
+      </div>
+   </div>
 {% endblock %}
 
 {% block heading %} 
-Regler 
+Grupper 
 <span class="page-action" style="float:right;">
-    <button type="button" class="btn btn-default" data-toggle="modal" data-target="#create-rule-modal">
+    <button type="button" class="btn btn-default" data-toggle="modal"
+        data-target="#create-group-modal">
         Tilføj ny 
         <span style="position:relative;top:.15em;" class="glyphicon glyphicon-plus-sign">
         </span>
     </button>
 </span>
-
 {% endblock %}
 
 {% block modal %}
-<div class="modal iframe" id="create-rule-modal" tabindex="-1" role="dialog"
-  aria-labelledby="create-rule-modal-title" aria-hidden="true"
-  data-href="/rules/add/">
+<div class="modal iframe" id="create-group-modal" tabindex="-1" role="dialog"
+  aria-labelledby="create-group-modal-title" aria-hidden="true"
+  data-href="/groups/add/">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
 	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
 	  &times;
 	</button>
-	<h4 class="modal-title" id="create-rule-modal-title">
-	  Opret ny regel
+	<h4 class="modal-title" id="create-group-modal-title">
+	  Opret ny gruppe
 	</h4>
       </div>
       <div class="modal-body">
@@ -141,17 +116,17 @@ Regler
     </div>
   </div>
 </div>
-<div class="modal iframe" id="edit-rule-modal" tabindex="-1" role="dialog"
-  aria-labelledby="edit-rule-modal-title" aria-hidden="true"
-  data-href="/rules/add/">
+<div class="modal iframe" id="edit-group-modal" tabindex="-1" role="dialog"
+  aria-labelledby="edit-group-modal-title" aria-hidden="true"
+  data-href="/groups/add/">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
 	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
 	  &times;
 	</button>
-	<h4 class="modal-title" id="edit-rule-modal-title">
-	  Opret ny regel
+	<h4 class="modal-title" id="edit-group-modal-title">
+	  Opret ny gruppe
 	</h4>
       </div>
       <div class="modal-body">
@@ -166,6 +141,6 @@ Regler
 </div>
 {% endblock %}
 
-{% block rules_active %}
+{% block groups_active %}
 class="active"
 {% endblock %}

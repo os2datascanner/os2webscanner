@@ -18,12 +18,15 @@
 from django.conf.urls import patterns, url
 from django.views.i18n import javascript_catalog
 from django.views.generic import View, ListView, TemplateView, DetailView
-
 from .views import MainPageView, ScannerList, DomainList, RuleList
 from .views import CSVReportDetails, ReportDetails, ReportList, ReportDelete
 from .views import ScannerCreate, ScannerUpdate, ScannerDelete, ScannerRun
+from .views import ScannerAskRun, ScanReportLog
 from .views import DomainCreate, DomainUpdate, DomainValidate, DomainDelete
-from .views import RuleCreate, RuleUpdate, RuleDelete
+from .views import GroupList, GroupCreate, GroupUpdate, GroupDelete
+from .views import RuleCreate, RuleUpdate, RuleDelete, OrganizationList
+from .views import SummaryList, SummaryCreate, SummaryUpdate, SummaryDelete
+from .views import SummaryReport
 from .views import DialogSuccess
 from .views import SystemStatusView
 from .models import Scanner
@@ -44,8 +47,9 @@ urlpatterns = patterns(
     url(r'^scanners/(?P<pk>\d+)/run/$', ScannerRun.as_view(),
         name='scanner_run'),
     url(r'^scanners/(?P<pk>\d+)/askrun/$',
-        DetailView.as_view(template_name='os2webscanner/scanner_askrun.html',
-                           model=Scanner),
+        ScannerAskRun.as_view(
+            template_name='os2webscanner/scanner_askrun.html',
+            model=Scanner),
         name='scanner_askrun'),
     url(r'^scanners/(?P<pk>\d+)/$', ScannerUpdate.as_view(),
         name='scanner_update'),
@@ -64,6 +68,13 @@ urlpatterns = patterns(
         name='rule_update'),
     url(r'^rules/(?P<pk>\d+)/delete/$', RuleDelete.as_view(),
         name='rule_delete'),
+    url(r'^groups/$', GroupList.as_view(), name='groups'),
+    url(r'^groups/add/$', GroupCreate.as_view(), name='group_add'),
+    url(r'^(groups)/(\d+)/(success)/$', DialogSuccess.as_view()),
+    url(r'^groups/(?P<pk>\d+)/$', GroupUpdate.as_view(),
+        name='group_update'),
+    url(r'^groups/(?P<pk>\d+)/delete/$', GroupDelete.as_view(),
+        name='group_delete'),
     url(r'^reports/$', ReportList.as_view(), name='reports'),
     url(r'^report/(?P<pk>[0-9]+)/$', ReportDetails.as_view(),
         name='report'),
@@ -71,8 +82,18 @@ urlpatterns = patterns(
         name='full_report'),
     url(r'^report/(?P<pk>[0-9]+)/csv/$', CSVReportDetails.as_view(),
         name='csvreport'),
+    url(r'^report/(?P<pk>[0-9]+)/log/$', ScanReportLog.as_view(),
+        name='logreport'),
     url(r'^report/(?P<pk>[0-9]+)/delete/$', ReportDelete.as_view(),
         name='report_delete'),
+    url(r'^summaries/$', SummaryList.as_view(), name='summaries'),
+    url(r'^summaries/add/$', SummaryCreate.as_view(), name='summary_add'),
+    url(r'^summary/(?P<pk>\d+)/$', SummaryUpdate.as_view(),
+        name='summary_update'),
+    url(r'^summary/(?P<pk>\d+)/report/$', SummaryReport.as_view(),
+        name='summary_report'),
+    url(r'^summary/(?P<pk>\d+)/delete/$', SummaryDelete.as_view(),
+        name='summary_delete'),
     # Login/logout stuff
     url(r'^accounts/login/', 'django.contrib.auth.views.login',
         {'template_name': 'login.html'}, name='login'),
@@ -90,11 +111,13 @@ urlpatterns = patterns(
     ),
 
     # General dialog success handler
-    url(r'^(scanners|domains|rules)/(\d+)/(created)/$',
+    url(r'^(scanners|domains|rules|groups|summaries)/(\d+)/(created)/$',
         DialogSuccess.as_view()),
-    url(r'^(scanners|domains|rules)/(\d+)/(saved)/$',
+    url(r'^(scanners|domains|rules|groups|summaries)/(\d+)/(saved)/$',
         DialogSuccess.as_view()),
     url(r'^jsi18n/$', javascript_catalog, js_info_dict),
 
     url(r'^system/status/?$', SystemStatusView.as_view()),
+    url(r'^system/orgs_and_domains/$', OrganizationList.as_view(),
+        name='orgs_and_domains'),
 )

@@ -44,7 +44,7 @@ class PDFProcessor(Processor):
             shutil.move(item.file_path, tmp_dir)
 
         extra_options = []
-        if not item.url.scan.scanner.do_ocr:
+        if not item.url.scan.do_ocr:
             # Ignore images in PDFs if no OCR scanning will be done
             extra_options.append("-i")
 
