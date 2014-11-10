@@ -8,6 +8,19 @@
 <script type="text/javascript" src="/jsi18n/"></script>
 <script type="text/javascript" src="{% static 'recurrence/js/recurrence.js' %}"></script>
 <script type="text/javascript" src="{% static 'recurrence/js/recurrence-widget.js' %}"></script>
+  <!-- BEGIN Admin scripts and CSS to render filter_horizontal -->
+  <script type="text/javascript" src="/admin/jsi18n/"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}admin/js/core.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}admin/js/jquery.min.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}admin/js/jquery.init.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}admin/js/SelectFilter2.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}admin/js/SelectBox.js"></script>
+
+   <link rel="stylesheet" type="text/css" href="{{ STATIC_URL
+       }}admin/css/widgets.css"/>
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}admin/css/forms.css"/>
+  <!-- END   Admin scripts and CSS to render filter_horizontal -->
+
 {% endblock %}
 
 {%block jquery_script %}
@@ -38,13 +51,6 @@
                 $("#id_{{ form.do_last_modified_check_head_request.name }}").parent("label").toggle();
             {% endif %}
 
-            // Toggle the Name whitelist field when Name is checked
-            $("#id_{{ form.do_name_scan.name }}").click(function () {
-                $("#{{ form.whitelisted_names.auto_id}}_container").toggle();
-            });
-            {% if not form.do_name_scan.value %}
-                $("#{{ form.whitelisted_names.auto_id}}_container").toggle();
-            {% endif %}
         })
     })(jQuery);
 </script>
@@ -110,125 +116,138 @@
       <li class="active"><a href="#domains" data-toggle="tab">Domæner</a></li>
       <li><a href="#rules" data-toggle="tab">Regler</a></li>
       <li><a href="#interval" data-toggle="tab">Interval</a></li>
+      <li><a href="#recipients" data-toggle="tab">Modtagere</a></li>
     </ul>
     <div class="tab-content">
-      <div class="tab-pane active" id="domains">
-        <div id="{{ form.domains.auto_id }}_container" class="col-sm-12{% if form.domains.errors %} has-error{% endif %}">
-	  <div class="form-group">
-            <label class="control-label" for="id_{{ form.domains.name }}">{{ form.domains.label }}</label>
-	    <select name="{{ form.domains.name }}" id="id_{{ form.domains.name }}" class="form-control" multiple="multiple">
-	      {% for value, tag in form.domains.field.choices %}
-	        <option value="{{ value }}"{% for val in form.domains.value %}{% if val == value %} selected="selected"{% endif %}{% endfor %}>{{ tag }}</option>
-	      {% endfor %}
-	    </select>
-            {% if form.domains.errors %}{{ form.domains.errors }}{% endif %}
-            {% if form.domains.help_text %}
-	    <p>
-	      <small>{{ form.domains.help_text }}</small>
-	    </p>
-	    {% endif %}
-          </div>
+        <div class="tab-pane active" id="domains">
+            <div id="{{ form.domains.auto_id }}_container" class="col-sm-12{% if form.domains.errors %} has-error{% endif %}">
+                <div class="form-group">
+                    <label class="control-label" for="id_{{ form.domains.name }}">{{ form.domains.label }}</label>
+                    <select name="{{ form.domains.name }}" id="id_{{ form.domains.name }}" class="form-control" multiple="multiple">
+                        {% for value, tag in form.domains.field.choices %}
+                        <option value="{{ value }}"{% for val in form.domains.value %}{% if val == value %} selected="selected"{% endif %}{% endfor %}>{{ tag }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if form.domains.errors %}{{ form.domains.errors }}{% endif %}
+                    {% if form.domains.help_text %}
+                    <p>
+                    <small>{{ form.domains.help_text }}</small>
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="tab-pane" id="rules">
-          <div id="select_scan_rules_container" class="col-sm-12">
-	        <div class="form-group">
-	      <label class="checkbox-inline" for="id_{{ form.do_ocr.name }}">
-		<input type="checkbox" id="id_{{ form.do_ocr.name }}" name="{{ form.do_ocr.name }}" value="{{ form.do_ocr.name }}"{% if form.do_ocr.value %} checked="checked"{% endif %}>
-		{{ form.do_ocr.label }}
-                {% if form.do_ocr.help_text %}<small>{{ form.do_ocr.help_text }}</small>{% endif %}
-            </label><br>
-            <label class="checkbox-inline" for="id_{{ form.do_last_modified_check.name }}">
-              <input type="checkbox" id="id_{{ form.do_last_modified_check.name }}" name="{{ form.do_last_modified_check.name }}" value="{{ form.do_last_modified_check.name }}"{% if form.do_last_modified_check.value %} checked="checked"{% endif %}>
-              {{ form.do_last_modified_check.label }}
-              {% if form.do_last_modified_check.help_text %}<small>{{ form.do_last_modified_check.help_text }}</small>{% endif %}
-            </label>
-            <label class="checkbox-inline" for="id_{{ form.do_last_modified_check_head_request.name }}">
-              <input type="checkbox" id="id_{{ form.do_last_modified_check_head_request.name }}" name="{{ form.do_last_modified_check_head_request.name }}" value="{{ form.do_last_modified_check_head_request.name }}"{% if form.do_last_modified_check_head_request.value %} checked="checked"{% endif %}>
-              {{ form.do_last_modified_check_head_request.label }}
-              {% if form.do_last_modified_check_head_request.help_text %}<small>{{ form.do_last_modified_check_head_request.help_text }}</small>{% endif %}
-            </label>
-		</div>
-		<div class="form-group">
-             <label class="checkbox-inline" for="id_{{ form.do_cpr_scan.name }}">
-		<input type="checkbox" id="id_{{ form.do_cpr_scan.name }}" name="{{ form.do_cpr_scan.name }}" value="{{ form.do_cpr_scan.name }}"{% if form.do_cpr_scan.value %} checked="checked"{% endif %}>
-	        {{ form.do_cpr_scan.label }}
-                {% if form.do_cpr_scan.help_text %}<small>{{ form.do_cpr_scan.help_text }}</small>{% endif %}
-	      </label>
-                  <label class="checkbox-inline"
-                               for="id_{{ form.do_cpr_modulus11.name }}">
-                  <input type="checkbox" id="id_{{ form.do_cpr_modulus11.name }}" name="{{ form.do_cpr_modulus11.name }}" value="{{ form.do_cpr_modulus11.name }}"{% if form.do_cpr_modulus11.value %} checked="checked"{% endif %}>
-              {{ form.do_cpr_modulus11.label }}
-              {% if form.do_cpr_modulus11.help_text %}<small>{{ form.do_cpr_modulus11.help_text }}</small>{% endif %}
-              </label>
-              <br>
-            <label class="checkbox-inline" for="id_{{ form.do_link_check.name }}">
-                <input type="checkbox" id="id_{{ form.do_link_check.name }}" name="{{ form.do_link_check.name }}" value="{{ form.do_link_check.name }}"{% if form.do_link_check.value %} checked="checked"{% endif %}>
-                {{ form.do_link_check.label }}
-                {% if form.do_link_check.help_text %}<small>{{ form.do_link_check.help_text }}</small>{% endif %}
-            </label>
-            <label class="checkbox-inline" for="id_{{ form.do_external_link_check.name }}">
-                <input type="checkbox" id="id_{{ form.do_external_link_check.name }}" name="{{ form.do_external_link_check.name }}" value="{{ form.do_external_link_check.name }}"{% if form.do_external_link_check.value %} checked="checked"{% endif %}>
-                {{ form.do_external_link_check.label }}
-                {% if form.do_external_link_check.help_text %}<small>{{ form.do_external_link_check.help_text }}</small>{% endif %}
-            </label>
-            <br>
-	      <label class="checkbox-inline" for="id_{{ form.do_name_scan.name }}">
-		<input type="checkbox" id="id_{{ form.do_name_scan.name }}" name="{{ form.do_name_scan.name }}" value="{{ form.do_name_scan.name }}"{% if form.do_name_scan.value %} checked="checked"{% endif %}>
-		{{ form.do_name_scan.label }}
-                {% if form.do_name_scan.help_text %}<small>{{ form.do_name_scan.help_text }}</small>{% endif %}
-	      </label>
-            <div id="{{ form.whitelisted_names.auto_id }}_container" class="col-sm-12{% if form.whitelisted_names.errors %} has-error{% endif %}">
-	      <label class="control-label" for="id_{{ form.whitelisted_names.name }}">{{ form.whitelisted_names.label }}</label>
-	      <textarea name="{{ form.whitelisted_names.name }}" id="id_{{ form.whitelisted_names.name }}" class="form-control" rows="3">{{ form.whitelisted_names.value }}</textarea>
-	      {% if form.whitelisted_names.help_text %}
-	      <p>
-		<small>{{ form.whitelisted_names.help_text }}</small>
-	      </p>
-	      {% endif %}
-	    </div>
-            <div id="{{ form.regex_rules.auto_id }}_container" class="col-sm-12{% if form.regex_rules.errors %} has-error{% endif %}">
-              <label class="control-label" for="id_{{ form.regex_rules.name }}">{{ form.regex_rules.label }}</label>
-	      <select name="{{ form.regex_rules.name }}" id="id_{{ form.regex_rules.name }}" class="form-control" multiple="multiple">
-	      {% for value, tag in form.regex_rules.field.choices %}
-	        <option value="{{ value }}"{% for val in form.regex_rules.value %}{% if val == value %} selected="selected"{% endif %}{% endfor %}>{{ tag }}</option>
-	      {% endfor %}
-	      </select>
-              {% if form.regex_rules.help_text %}
-	      <p>
-		<small>{{ form.regex_rules.help_text }}</small>
-	      </p>
-	      {% endif %}
-              {% if form.regex_rules.errors %}{{ form.regex_rules.errors }}{% endif %}
+        <div class="tab-pane" id="rules">
+            <div id="select_scan_rules_container" class="col-sm-12">
+                <div class="form-group">
+                    <label class="checkbox-inline" for="id_{{ form.do_ocr.name }}">
+                        <input type="checkbox" id="id_{{ form.do_ocr.name }}" name="{{ form.do_ocr.name }}" value="{{ form.do_ocr.name }}"{% if form.do_ocr.value %} checked="checked"{% endif %}>
+                        {{ form.do_ocr.label }}
+                        {% if form.do_ocr.help_text %}<small>{{ form.do_ocr.help_text }}</small>{% endif %}
+                    </label><br>
+                    <label class="checkbox-inline" for="id_{{ form.do_last_modified_check.name }}">
+                        <input type="checkbox" id="id_{{ form.do_last_modified_check.name }}" name="{{ form.do_last_modified_check.name }}" value="{{ form.do_last_modified_check.name }}"{% if form.do_last_modified_check.value %} checked="checked"{% endif %}>
+                        {{ form.do_last_modified_check.label }}
+                        {% if form.do_last_modified_check.help_text %}<small>{{ form.do_last_modified_check.help_text }}</small>{% endif %}
+                    </label>
+                    <label class="checkbox-inline" for="id_{{ form.do_last_modified_check_head_request.name }}">
+                        <input type="checkbox" id="id_{{ form.do_last_modified_check_head_request.name }}" name="{{ form.do_last_modified_check_head_request.name }}" value="{{ form.do_last_modified_check_head_request.name }}"{% if form.do_last_modified_check_head_request.value %} checked="checked"{% endif %}>
+                        {{ form.do_last_modified_check_head_request.label }}
+                        {% if form.do_last_modified_check_head_request.help_text %}<small>{{ form.do_last_modified_check_head_request.help_text }}</small>{% endif %}
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-inline" for="id_{{ form.do_cpr_scan.name }}">
+                        <input type="checkbox" id="id_{{ form.do_cpr_scan.name }}" name="{{ form.do_cpr_scan.name }}" value="{{ form.do_cpr_scan.name }}"{% if form.do_cpr_scan.value %} checked="checked"{% endif %}>
+                        {{ form.do_cpr_scan.label }}
+                        {% if form.do_cpr_scan.help_text %}<small>{{ form.do_cpr_scan.help_text }}</small>{% endif %}
+                    </label>
+                    <label class="checkbox-inline"
+                        for="id_{{ form.do_cpr_modulus11.name }}">
+                        <input type="checkbox" id="id_{{ form.do_cpr_modulus11.name }}" name="{{ form.do_cpr_modulus11.name }}" value="{{ form.do_cpr_modulus11.name }}"{% if form.do_cpr_modulus11.value %} checked="checked"{% endif %}>
+                        {{ form.do_cpr_modulus11.label }}
+                        {% if form.do_cpr_modulus11.help_text %}<small>{{ form.do_cpr_modulus11.help_text }}</small>{% endif %}
+                    </label>
+                    <br>
+                    <label class="checkbox-inline" for="id_{{ form.do_link_check.name }}">
+                        <input type="checkbox" id="id_{{ form.do_link_check.name }}" name="{{ form.do_link_check.name }}" value="{{ form.do_link_check.name }}"{% if form.do_link_check.value %} checked="checked"{% endif %}>
+                        {{ form.do_link_check.label }}
+                        {% if form.do_link_check.help_text %}<small>{{ form.do_link_check.help_text }}</small>{% endif %}
+                    </label>
+                    <label class="checkbox-inline" for="id_{{ form.do_external_link_check.name }}">
+                        <input type="checkbox" id="id_{{ form.do_external_link_check.name }}" name="{{ form.do_external_link_check.name }}" value="{{ form.do_external_link_check.name }}"{% if form.do_external_link_check.value %} checked="checked"{% endif %}>
+                        {{ form.do_external_link_check.label }}
+                        {% if form.do_external_link_check.help_text %}<small>{{ form.do_external_link_check.help_text }}</small>{% endif %}
+                    </label>
+                    <br>
+                    <div id="{{ form.regex_rules.auto_id }}_container" class="col-sm-12{% if form.regex_rules.errors %} has-error{% endif %}">
+                        <label class="control-label" for="id_{{ form.regex_rules.name }}">{{ form.regex_rules.label }}</label>
+                        <select name="{{ form.regex_rules.name }}" id="id_{{ form.regex_rules.name }}" class="form-control" multiple="multiple">
+                            {% for value, tag in form.regex_rules.field.choices %}
+                            <option value="{{ value }}"{% for val in form.regex_rules.value %}{% if val == value %} selected="selected"{% endif %}{% endfor %}>{{ tag }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if form.regex_rules.help_text %}
+                        <p>
+                        <small>{{ form.regex_rules.help_text }}</small>
+                        </p>
+                        {% endif %}
+                        {% if form.regex_rules.errors %}{{ form.regex_rules.errors }}{% endif %}
+                    </div>
+                </div>
             </div>
-	    </div>
-          </div>
-      </div>
-      <div class="tab-pane" id="interval">
-        <div class="col-sm-12 form-group">
-          <div id="{{ form.schedule.auto_id }}_container">
-            <div>{{ form.schedule.help_text }}</div>
-            <div>
-              <div>{{ form.schedule.label_tag }}</div>
-              {{ form.schedule }}
-            </div>
-            <div id="{{ form.schedule.auto_id }}_errors">
-              {{ form.schedule.errors }}
-            </div>
-          </div>
         </div>
-        {% if object.pk %}
-        <p>
-          Scanneren vil starte på følgende tidspunkt på de valgte dage:<br />
-          {{ object.get_start_time }}
-        </p>
-        {% endif %}
-      </div>
+        <div class="tab-pane" id="interval">
+            <div class="col-sm-12 form-group">
+                <div id="{{ form.schedule.auto_id }}_container">
+                    <div>{{ form.schedule.help_text }}</div>
+                    <div>
+                        <div>{{ form.schedule.label_tag }}</div>
+                        {{ form.schedule }}
+                    </div>
+                    <div id="{{ form.schedule.auto_id }}_errors">
+                        {{ form.schedule.errors }}
+                    </div>
+                </div>
+                {% if object.pk %}
+                <p>
+                Scanneren vil starte på følgende tidspunkt på de valgte dage:<br />
+                {{ object.get_start_time }}
+                </p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="tab-pane" id="recipients">
+            <div id="{{ form.recipients.auto_id }}_container" class="col-sm-12{% if form.recipients.errors %} has-error{% endif %}">
+                <div class="form-group">
+                    <label class="control-label" for="id_{{ form.recipients.name }}">{{ form.recipients.label }}</label>
+                    <select name="{{ form.recipients.name }}" id="id_{{ form.recipients.name }}" class="form-control" multiple="multiple">
+                        {% for value, tag in form.recipients.field.choices %}
+                        <option value="{{ value }}"{% for val in form.recipients.value %}{% if val == value %} selected="selected"{% endif %}{% endfor %}>{{ tag }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if form.recipients.errors %}{{ form.recipients.errors }}{% endif %}
+                    {% if form.recipients.help_text %}
+                    <p>
+                    <small>{{ form.recipients.help_text }}</small>
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
     <div class="col-sm-12"><div class="form-group">
-      <button type="submit" class="btn btn-primary" name="save">
-        Gem ændringer
-      </button>
-  </div></div>
+            <button type="submit" class="btn btn-primary" name="save">
+                Gem ændringer
+            </button>
+    </div></div>
 </form>
+
+
+<script type="text/javascript">
+    addEvent(window, "load", function(e) { SelectFilter.init("id_domains",
+                "domæner", 0, "{{ STATIC_URL }}admin/"); });
+    addEvent(window, "load", function(e) { SelectFilter.init("id_recipients",
+                "modtagere", 0, "{{ STATIC_URL }}admin/"); });
+</script>
 {% endblock %}
