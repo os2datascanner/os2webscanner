@@ -3,6 +3,9 @@
 .btn-disabled {
 opacity:.5;
 }
+.col-sm-12 .form-group button[type="submit"] {
+margin-bottom:-15px;
+}
 
 /* SCANNERS */
 
@@ -60,6 +63,10 @@ height:32em;
 }
 html.iframe-modal h1#page-title {
 display:none; /* Prevent blank h1 tags from showing */
+}
+html.iframe-modal body {
+float:left;
+clear:both;
 }
 
 /* FORM ERRORS */
