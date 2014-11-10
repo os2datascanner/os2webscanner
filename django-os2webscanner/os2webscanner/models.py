@@ -17,6 +17,7 @@
 
 """Contains Django models for the Webscanner."""
 from django.db.models.aggregates import Count
+from urlparse import urljoin
 
 import os
 import shutil
@@ -127,7 +128,16 @@ class Domain(models.Model):
                                        verbose_name='Ekskluderingsregler')
     sitemap = models.FileField(upload_to='sitemaps',
                                blank=True,
-                               verbose_name='Sitemap')
+                               verbose_name='Sitemap Fil')
+
+    sitemap_url = models.CharField(max_length=2048,
+                                   blank=True,
+                                   default="",
+                                   verbose_name='Sitemap Url')
+
+    download_sitemap = models.BooleanField(default=True,
+                                           verbose_name='Hent Sitemap fra '
+                                                        'serveren')
 
     @property
     def display_name(self):
@@ -160,7 +170,25 @@ class Domain(models.Model):
     @property
     def sitemap_full_path(self):
         """Get the absolute path to the uploaded sitemap.xml file."""
-        return "%s/%s" % (settings.BASE_DIR, self.sitemap.url)
+        return "%s/%s" % (settings.MEDIA_ROOT, self.sitemap.url)
+
+    @property
+    def default_sitemap_path(self):
+        return "/sitemap.xml"
+
+    def get_sitemap_url(self):
+        """Get the URL of the sitemap.xml file.
+
+        This will be the URL specified by the user, or if not present, the
+        URL of the default sitemap.xml file.
+        If downloading of the sitemap.xml file is disabled, this will return
+        None.
+        """
+        if not self.download_sitemap:
+            return None
+        else:
+            sitemap_url = self.sitemap_url or self.default_sitemap_path
+            return urljoin(self.root_url, sitemap_url)
 
     def get_absolute_url(self):
         """Get the absolute URL for domains."""

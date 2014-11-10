@@ -324,7 +324,8 @@ class DomainCreate(RestrictedCreateView):
     """Create a domain view."""
 
     model = Domain
-    fields = ['url', 'exclusion_rules', 'sitemap']
+    fields = ['url', 'exclusion_rules', 'download_sitemap', 'sitemap_url',
+              'sitemap']
 
     def get_form_fields(self):
         """Get the list of form fields.
@@ -360,7 +361,8 @@ class DomainUpdate(RestrictedUpdateView):
     """Update a domain view."""
 
     model = Domain
-    fields = ['url', 'exclusion_rules', 'sitemap']
+    fields = ['url', 'exclusion_rules', 'download_sitemap', 'sitemap_url',
+              'sitemap']
 
     def get_form(self, form_class):
         """Get the form for the view.
