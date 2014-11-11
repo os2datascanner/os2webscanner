@@ -3,7 +3,7 @@
 DIR=$(dirname "${BASH_SOURCE[0]}")
 FULL_DIR="$(cd "$DIR" && pwd)"
 BASE_DIR=$(dirname "${FULL_DIR}")
-LOG_FILE="${BASE_DIR}/var/logs/summary_report_dispatch.log"
+LOG_FILE="/var/lib/testwebscanner/logs/summary_report_dispatch.log"
 source "${BASE_DIR}/python-env/bin/activate"
 
 date >> ${LOG_FILE}

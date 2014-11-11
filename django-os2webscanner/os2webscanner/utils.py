@@ -117,7 +117,7 @@ def scans_for_summary_report(summary, from_date=None, to_date=None):
     return (relevant_scans, from_date, to_date)
 
 
-def send_summary_report(summary, from_date=None, to_date=None):
+def send_summary_report(summary, from_date=None, to_date=None, extra_email=None):
     """Send the actual summary report by email."""
     relevant_scans, from_date, to_date = scans_for_summary_report(
         summary,
@@ -144,6 +144,8 @@ def send_summary_report(summary, from_date=None, to_date=None):
         # mail should be sent. This is just for debugging.
         to_addresses = ['carstena@magenta.dk', ]
 
+    if extra_email:
+        to_addresses.append(extra_email)
     try:
         body = t.render(c)
         message = EmailMessage(subject, body, settings.ADMIN_EMAIL,
