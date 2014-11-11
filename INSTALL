@@ -49,11 +49,13 @@ Note, you are now logged in as the user `os2`. We assume this in the rest of
 this guide. Also note that this is only a convention - you are free to install
 the system wherever you want. Paths are not hard coded in the system.
 
+*Note:* You should probably remove `os2`'s sudo rights once the installation is
+complete.
+
 ## Install Git, Apache and WSGI
 
 ```
 sudo apt-get install git apache2 libapache2-mod-wsgi
-sudo a2enmod wsgi
 ```
 
 ## Get the code
@@ -150,7 +152,7 @@ DATABASES = {
 ```
 cd /home/os2/os2webscanner/webscanner_site
 source ../python-env/bin/activate
-python manage.py test
+python manage.py test os2webscanner
 ```
 
 The test should pass. Now do:
@@ -193,7 +195,7 @@ sudo a2enmod rewrite
 sudo a2enmod ssl
 ```
 
-You also need to create the Apache log directories:
+You also need to create the Apacheudlog directories:
 
 ```
 sudo mkdir -p /var/log/os2webscanner/
