@@ -373,6 +373,7 @@ class ScannerCreate(RestrictedCreateView):
         except UserProfile.DoesNotExist:
             organization = None
             groups = None
+
         # Exclude recipients with no email address
         form.fields[
             'recipients'
