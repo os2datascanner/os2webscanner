@@ -288,7 +288,7 @@ class OrgRestrictedMixin(ModelFormMixin, LoginRequiredMixin):
         fields = self.get_form_fields()
         form_class = modelform_factory(self.model, fields=fields)
         kwargs = self.get_form_kwargs()
-        
+
         form = form_class(**kwargs)
         user = self.request.user
         if 'group' in fields:
@@ -445,7 +445,8 @@ class ScannerUpdate(RestrictedUpdateView):
                 if field_name == 'recipients':
                     if scanner.group:
                         queryset = queryset.filter(
-                            Q(groups__in=scanner.group) | Q(groups__isnull=True)
+                            Q(groups__in=scanner.group) |
+                            Q(groups__isnull=True)
                         )
                 else:
                     queryset = queryset.filter(
