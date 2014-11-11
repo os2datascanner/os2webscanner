@@ -443,7 +443,10 @@ class ScannerUpdate(RestrictedUpdateView):
             if scanner.organization.do_use_groups:
                 # TODO: This is not very elegant!
                 if field_name == 'recipients':
-                    pass
+                    if scanner.group:
+                        queryset = queryset.filter(
+                            Q(groups__in=scanner.group) | Q(groups__isnull=True)
+                        )
                 else:
                     queryset = queryset.filter(
                         Q(group=scanner.group) | Q(group__isnull=True)
@@ -708,7 +711,6 @@ class GroupUpdate(RestrictedUpdateView):
         else:
             queryset = queryset.filter(organization=0)
         form.fields[field_name].queryset = queryset
-        print queryset
         return form
 
     def get_success_url(self):
