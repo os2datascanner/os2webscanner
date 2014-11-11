@@ -469,6 +469,9 @@ class Scan(models.Model):
     do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder?')
     do_cpr_modulus11 = models.BooleanField(default=True,
                                            verbose_name='Check modulus-11')
+    do_cpr_ignore_irrelevant = models.BooleanField(
+        default=True,
+        verbose_name='Ignorer irrelevante fødselsdatoer')
     do_link_check = models.BooleanField(default=False,
                                         verbose_name='Linkcheck')
     do_external_link_check = models.BooleanField(default=False,
@@ -496,6 +499,7 @@ class Scan(models.Model):
             do_name_scan=scanner.do_name_scan,
             do_ocr=scanner.do_ocr,
             do_cpr_modulus11=scanner.do_cpr_modulus11,
+            do_cpr_ignore_irrelevant=scanner.do_cpr_ignore_irrelevant,
             do_link_check=scanner.do_link_check,
             do_external_link_check=scanner.do_external_link_check,
             do_last_modified_check=scanner.do_last_modified_check,
