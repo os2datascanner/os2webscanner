@@ -443,9 +443,10 @@ class ScannerUpdate(RestrictedUpdateView):
             if scanner.organization.do_use_groups:
                 # TODO: This is not very elegant!
                 if field_name == 'recipients':
-                    queryset = queryset.filter(
-                        Q(groups__in=scanner.group) | Q(groups__isnull=True)
-                    )
+                    if scanner.group:
+                        queryset = queryset.filter(
+                            Q(groups__in=scanner.group) | Q(groups__isnull=True)
+                        )
                 else:
                     queryset = queryset.filter(
                         Q(group=scanner.group) | Q(group__isnull=True)
