@@ -23,3 +23,4 @@ ALTER TABLE "os2webscanner_scan" ADD "do_link_check" boolean NOT NULL DEFAULT FA
 ALTER TABLE "os2webscanner_scan" ADD "do_external_link_check" boolean NOT NULL DEFAULT FALSE;
 ALTER TABLE "os2webscanner_scan" ADD "do_last_modified_check" boolean NOT NULL DEFAULT TRUE;
 ALTER TABLE "os2webscanner_scan" ADD "do_last_modified_check_head_request" boolean NOT NULL DEFAULT TRUE;
+ALTER TABLE "os2webscanner_scan" ADD "do_cpr_ignore_irrelevant" boolean NOT NULL DEFAULT TRUE;
