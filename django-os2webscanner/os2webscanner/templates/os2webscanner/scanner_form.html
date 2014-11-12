@@ -183,13 +183,19 @@
                         {{ form.do_cpr_scan.label }}
                         {% if form.do_cpr_scan.help_text %}<small>{{ form.do_cpr_scan.help_text }}</small>{% endif %}
                     </label>
-                    <label class="checkbox-inline"
+                    <label class="checkbox-inline cpr_option"
                         for="id_{{ form.do_cpr_modulus11.name }}">
                         <input type="checkbox" id="id_{{ form.do_cpr_modulus11.name }}" name="{{ form.do_cpr_modulus11.name }}" value="{{ form.do_cpr_modulus11.name }}"{% if form.do_cpr_modulus11.value %} checked="checked"{% endif %}>
                         {{ form.do_cpr_modulus11.label }}
                         {% if form.do_cpr_modulus11.help_text %}<small>{{ form.do_cpr_modulus11.help_text }}</small>{% endif %}
                     </label>
                     <br>
+                    <label class="checkbox-inline cpr_option"
+                           for="id_{{ form.do_cpr_ignore_irrelevant.name }}">
+                        <input type="checkbox" id="id_{{ form.do_cpr_ignore_irrelevant.name }}" name="{{ form.do_cpr_ignore_irrelevant.name }}" value="{{ form.do_cpr_ignore_irrelevant.name }}"{% if form.do_cpr_ignore_irrelevant.value %} checked="checked"{% endif %}>
+                        {{ form.do_cpr_ignore_irrelevant.label }}
+                        {% if form.do_cpr_ignore_irrelevant.help_text %}<small>{{ form.do_cpr_ignore_irrelevant.help_text }}</small>{% endif %}
+                    </label>
                     <label class="checkbox-inline" for="id_{{ form.do_link_check.name }}">
                         <input type="checkbox" id="id_{{ form.do_link_check.name }}" name="{{ form.do_link_check.name }}" value="{{ form.do_link_check.name }}"{% if form.do_link_check.value %} checked="checked"{% endif %}>
                         {{ form.do_link_check.label }}
