@@ -54,6 +54,8 @@ cpr_exception_dates = (
     datetime(year=1966, month=1, day=1)
 )
 
+YEAR_TODAY = datetime.now().year
+
 
 def date_check(cpr, ignore_irrelevant=True):
     """Check a CPR number for a valid date.
@@ -94,8 +96,6 @@ def _get_birth_date(cpr, ignore_irrelevant=True):
         else:
             year += 2000
     elif year_check >= 5 and year_check <= 8:
-        if ignore_irrelevant and year >= 37:
-            raise ValueError
         if year > 57:
             year += 1800
         else:
@@ -105,6 +105,10 @@ def _get_birth_date(cpr, ignore_irrelevant=True):
             year += 1900
         else:
             year += 2000
+
+    if ignore_irrelevant:
+        if year > YEAR_TODAY + 2 or year < 1900:
+            raise ValueError
 
     return datetime(day=day, month=month, year=year)
 

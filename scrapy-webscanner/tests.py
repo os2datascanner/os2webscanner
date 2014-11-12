@@ -110,8 +110,10 @@ class CPRTest(unittest.TestCase):
             2006359917
             211062-5629 # in the past
             200638-5322 # in the future
+            080135-5102 # in the future
             """
-        valid_cprs = ['2110625629', '2006359917', '2006385322', '2110625629']
+        valid_cprs = ['2110625629', '2006359917', '2006385322', '2110625629',
+                      '0801355102']
         invalid_cprs = ['4110625629', '2113625629', '9110625629']
 
         matches = cpr.match_cprs(text, mask_digits=False,
@@ -124,9 +126,10 @@ class CPRTest(unittest.TestCase):
             211062-0155 # current
             211062-5629 # in the past
             200638-5322 # in the future
+            080135-5102 # in the future
             """
         valid_cprs = ['2110620155']
-        invalid_cprs = ['2110625629', '2006385322']
+        invalid_cprs = ['2110625629', '2006385322', '0801355102']
 
         matches = cpr.match_cprs(text, mask_digits=False,
                                  ignore_irrelevant=True)
