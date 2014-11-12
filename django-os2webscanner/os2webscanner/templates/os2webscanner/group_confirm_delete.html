@@ -1,0 +1,17 @@
+{% extends "os2webscanner/base.html" %}
+
+{% block rendertype %}regular{% endblock %}
+{% block heading %}
+Slet gruppe?
+{% endblock %}
+
+{% block body %}
+  <div class="container">
+    <p>Ønsker du virkelig at slette?</p>
+    <form action="" method="post">{% csrf_token %}
+      {{ form.as_p }}
+      <input class="btn btn-primary" type="submit" value="Ja" />
+      <a class="btn btn-default" href="javascript:history.go(-1)">Nej</a>
+    </form>
+  </div>
+{% endblock %}

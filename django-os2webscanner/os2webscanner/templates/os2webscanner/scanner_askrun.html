@@ -3,7 +3,7 @@
 {% block rendertype %}iframe-modal{% endblock %}
 {% block body %}
 
-{% if not scanner.has_active_scans %}
+{% if ok %}
 <p class="lead">
   Er du sikker på, at du vil starte scanneren?
 </p>
@@ -12,7 +12,7 @@
 </p>
 {% else %}
 <p class="lead">
-  Scanneren kunne ikke startes, fordi der allerede er en scanning i gang for den.
+{{ error_message }}
 </p>
 {% endif %}
 {% endblock %}

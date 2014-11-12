@@ -29,13 +29,15 @@ class CPRRule(Rule):
 
     name = 'cpr'
 
-    def __init__(self, do_modulus11):
+    def __init__(self, do_modulus11, ignore_irrelevant):
         """Initialize the CPR Rule."""
+        self.ignore_irrelevant = ignore_irrelevant
         self.do_modulus11 = do_modulus11
 
     def execute(self, text):
         """Execute the CPR rule."""
-        matches = match_cprs(text, do_modulus11=self.do_modulus11)
+        matches = match_cprs(text, do_modulus11=self.do_modulus11,
+                             ignore_irrelevant=self.ignore_irrelevant)
         return matches
 
 # TODO: Improve
@@ -52,25 +54,32 @@ cpr_exception_dates = (
     datetime(year=1966, month=1, day=1)
 )
 
+YEAR_TODAY = datetime.now().year
 
-def date_check(cpr):
+
+def date_check(cpr, ignore_irrelevant=True):
     """Check a CPR number for a valid date.
 
     The CPR number is passed as a string of sequential digits with no spaces
     or dashes.
+    If ignore_irrelevant is True, then CPRs with a
+    7th digit of 5, 6, 7, or 8 AND year > 37 will be considered invalid.
     """
     try:
-        _get_birth_date(cpr)
+        _get_birth_date(cpr, ignore_irrelevant=ignore_irrelevant)
         return True
     except ValueError:
         # Invalid date
         return False
 
 
-def _get_birth_date(cpr):
+def _get_birth_date(cpr, ignore_irrelevant=True):
     """Get the birth date as a datetime from the CPR number.
 
     If the CPR has an invalid birthday, raises ValueError.
+
+    If ignore_irrelevant is True, then CPRs with a
+    7th digit of 5, 6, 7, or 8 AND year > 37 will be considered invalid.
     """
     day = int(cpr[0:2])
     month = int(cpr[2:4])
@@ -96,6 +105,10 @@ def _get_birth_date(cpr):
             year += 1900
         else:
             year += 2000
+
+    if ignore_irrelevant:
+        if year > YEAR_TODAY + 2 or year < 1900:
+            raise ValueError
 
     return datetime(day=day, month=month, year=year)
 
@@ -127,7 +140,7 @@ def modulus11_check(cpr):
     modulus-11 check should not be applied.
     """
     try:
-        birth_date = _get_birth_date(cpr)
+        birth_date = _get_birth_date(cpr, ignore_irrelevant=False)
     except ValueError:
         return False
 
@@ -140,7 +153,8 @@ def modulus11_check(cpr):
         return _is_modulus11(cpr)
 
 
-def match_cprs(text, do_modulus11=True, mask_digits=True):
+def match_cprs(text, do_modulus11=True, ignore_irrelevant=True,
+               mask_digits=True):
     """Return MatchItem objects for each CPR matched in the given text.
 
     If mask_digits is False, then the matches will contain full CPR numbers.
@@ -149,7 +163,7 @@ def match_cprs(text, do_modulus11=True, mask_digits=True):
     matches = set()
     for m in it:
         cpr = m.group(1) + m.group(2)
-        valid_date = date_check(cpr)
+        valid_date = date_check(cpr, ignore_irrelevant)
         if do_modulus11:
             valid_modulus11 = modulus11_check(cpr)
         else:

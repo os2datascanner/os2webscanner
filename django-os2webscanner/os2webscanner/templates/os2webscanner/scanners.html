@@ -20,6 +20,15 @@ class="active"
 	    </small>
 	  </strong>
 	</td>
+        {% if user.is_superuser %}
+	<td>
+	  <strong>
+	    <small>
+	      Organisation
+	    </small>
+	  </strong>
+	</td>
+        {% endif %}
 	<td>
 	  <strong>
 	    <small>
@@ -44,6 +53,13 @@ class="active"
 	      {{scanner.name}}
 	  </span>
 	</td>
+        {% if user.is_superuser %}
+	<td class="scanner-organization">
+	  <span>
+	      {{scanner.organization}}
+	  </span>
+	</td>
+        {% endif %}
 	<td class="scanner-runtime">
 	  <span class="scanner-schedule-description">
 	      {{scanner.schedule_description}}

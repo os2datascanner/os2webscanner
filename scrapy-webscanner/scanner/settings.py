@@ -22,7 +22,6 @@
 #
 # http://doc.scrapy.org/en/latest/topics/settings.html
 #
-
 import os
 
 BOT_NAME = 'scanner'

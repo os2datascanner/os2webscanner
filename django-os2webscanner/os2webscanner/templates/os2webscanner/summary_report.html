@@ -1,0 +1,17 @@
+{% extends 'os2webscanner/base.html' %}
+{% block rendertype %}regular{% endblock %}
+{%  block title %}
+Opsummering: {{summary.name}}
+{% endblock %}
+
+{% block body %}
+{% include "os2webscanner/email/summary_report.html" %}
+{% endblock %}
+
+{% block heading %} 
+Opsummering: {{summary.name}}
+{% endblock %}
+
+{% block summaries_active %}
+class="active"
+{% endblock %}
