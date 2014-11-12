@@ -20,7 +20,7 @@ window.SelectFilter = {
         }
         var from_box = document.getElementById(field_id);
         from_box.id += '_from'; // change its ID
-        from_box.className = 'filtered';
+        from_box.className = 'filtered form-control';
 
         var ps = from_box.parentNode.getElementsByTagName('p');
         for (var i=0; i<ps.length; i++) {
@@ -48,27 +48,32 @@ window.SelectFilter = {
         var filter_p = quickElement('p', selector_available, '', 'id', field_id + '_filter');
         filter_p.className = 'selector-filter';
 
+        var filter_input = quickElement('input', filter_p, '', 'type', 'text', 'placeholder', gettext("Filter"));
+        filter_input.id = field_id + '_input';
+        filter_input.className = 'form-control';
+
         var search_filter_label = quickElement('label', filter_p, '', 'for', field_id + "_input");
 
         var search_selector_img = quickElement('img', search_filter_label, '', 'src', admin_static_prefix + 'img/selector-search.gif', 'class', 'help-tooltip', 'alt', '', 'title', interpolate(gettext("Type into this box to filter down the list of available %s."), [field_name]));
 
         filter_p.appendChild(document.createTextNode(' '));
 
-        var filter_input = quickElement('input', filter_p, '', 'type', 'text', 'placeholder', gettext("Filter"));
-        filter_input.id = field_id + '_input';
-        filter_input.className = 'form-control';
-
         selector_available.appendChild(from_box);
-        var choose_all = quickElement('a', selector_available, gettext('Choose all'), 'title', interpolate(gettext('Click to choose all %s at once.'), [field_name]), 'href', 'javascript: (function(){ SelectBox.move_all("' + field_id + '_from", "' + field_id + '_to"); SelectFilter.refresh_icons("' + field_id + '");})()', 'id', field_id + '_add_all_link');
-        choose_all.className = 'selector-chooseall';
+        var choose_all = quickElement('a', selector_available, gettext('Choose all') + ' ', 'title', interpolate(gettext('Click to choose all %s at once.'), [field_name]), 'href', 'javascript: (function(){ SelectBox.move_all("' + field_id + '_from", "' + field_id + '_to"); SelectFilter.refresh_icons("' + field_id + '");})()', 'id', field_id + '_add_all_link');
+        choose_all.className = 'btn btn-default btn-sm';
+	var glyph = quickElement('span', choose_all, '',  'class', 'glyphicon glyphicon-arrow-right');
 
         // <ul class="selector-chooser">
         var selector_chooser = quickElement('ul', selector_div, '');
         selector_chooser.className = 'selector-chooser';
-        var add_link = quickElement('a', quickElement('li', selector_chooser, ''), gettext('Choose'), 'title', gettext('Choose'), 'href', 'javascript: (function(){ SelectBox.move("' + field_id + '_from","' + field_id + '_to"); SelectFilter.refresh_icons("' + field_id + '");})()', 'id', field_id + '_add_link');
-        add_link.className = 'selector-add';
-        var remove_link = quickElement('a', quickElement('li', selector_chooser, ''), gettext('Remove'), 'title', gettext('Remove'), 'href', 'javascript: (function(){ SelectBox.move("' + field_id + '_to","' + field_id + '_from"); SelectFilter.refresh_icons("' + field_id + '");})()', 'id', field_id + '_remove_link');
-        remove_link.className = 'selector-remove';
+        var add_link = quickElement('a', quickElement('li', selector_chooser, ''), '', 'title', gettext('Choose'), 'href', 'javascript: (function(){ SelectBox.move("' + field_id + '_from","' + field_id + '_to"); SelectFilter.refresh_icons("' + field_id + '");})()', 'id', field_id + '_add_link');
+	var add_sr = quickElement('span', add_link, gettext('Choose'), 'class', 'sr-only');
+        var glyph_2 = quickElement('span', add_link, '', 'class', 'glyphicon glyphicon-arrow-right');
+        add_link.className = '';
+        var remove_link = quickElement('a', quickElement('li', selector_chooser, ''), '', 'title', gettext('Remove'), 'href', 'javascript: (function(){ SelectBox.move("' + field_id + '_to","' + field_id + '_from"); SelectFilter.refresh_icons("' + field_id + '");})()', 'id', field_id + '_remove_link');
+	var remove_sr = quickElement('span', add_link, gettext('Remove'), 'class', 'sr-only');
+        var glyph_3 = quickElement('span', remove_link, '', 'class', 'glyphicon glyphicon-arrow-left');
+        remove_link.className = '';
 
         // <div class="selector-chosen">
         var selector_chosen = quickElement('div', selector_div, '');
@@ -77,9 +82,11 @@ window.SelectFilter = {
         quickElement('img', title_chosen, '', 'src', admin_static_prefix + 'img/icon-unknown.gif', 'width', '10', 'height', '10', 'class', 'help help-tooltip', 'title', interpolate(gettext('This is the list of chosen %s. You may remove some by selecting them in the box below and then clicking the "Remove" arrow between the two boxes.'), [field_name]));
 
         var to_box = quickElement('select', selector_chosen, '', 'id', field_id + '_to', 'multiple', 'multiple', 'size', from_box.size, 'name', from_box.getAttribute('name'));
-        to_box.className = 'filtered';
-        var clear_all = quickElement('a', selector_chosen, gettext('Remove all'), 'title', interpolate(gettext('Click to remove all chosen %s at once.'), [field_name]), 'href', 'javascript: (function() { SelectBox.move_all("' + field_id + '_to", "' + field_id + '_from"); SelectFilter.refresh_icons("' + field_id + '");})()', 'id', field_id + '_remove_all_link');
-        clear_all.className = 'selector-clearall';
+        to_box.className = 'filtered form-control';
+        var clear_all = quickElement('a', selector_chosen, '', 'title', interpolate(gettext('Click to remove all chosen %s at once.'), [field_name]), 'href', 'javascript: (function() { SelectBox.move_all("' + field_id + '_to", "' + field_id + '_from"); SelectFilter.refresh_icons("' + field_id + '");})()', 'id', field_id + '_remove_all_link');
+	var glyph_4 = quickElement('span', clear_all, '', 'class', 'glyphicon glyphicon-arrow-left');
+	var remove_all_span = quickElement('span', clear_all, ' ' + gettext('Remove all'));
+        clear_all.className = 'btn btn-default btn-sm';
 
         from_box.setAttribute('name', from_box.getAttribute('name') + '_old');
 
