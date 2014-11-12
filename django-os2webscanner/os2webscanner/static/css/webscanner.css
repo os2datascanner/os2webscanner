@@ -19,14 +19,19 @@ margin: 2em 0 1em;
 #select_scan_rules_container div.form-group {
 border-top:1px solid #ddd;
 margin-bottom:7px;
+clear:both;
+overflow:hidden;
 }
 #select_scan_rules_container div.form-group:first-child {
 border-top-width:0;
 }
-#id_regex_rules_container {
-border-top:1px solid #ddd;
+label[for=id_do_name_scan]{
+margin-bottom:7px !important;
 }
-
+#id_whitelisted_names_container {
+padding:0;
+margin-bottom:10px;
+}
 /* DOMAINS */
 
 .btn-sitemap-upload {
@@ -97,6 +102,5 @@ margin-bottom:20px;
 
 /* filter_horizontal WIDGET */
 .selector-available h2, .selector-chosen h2 {
-    border: 1px solid #CCC;
     font-size: inherit;
 }
