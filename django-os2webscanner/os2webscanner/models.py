@@ -16,8 +16,8 @@
 # source municipalities ( http://www.os2web.dk/ )
 
 """Contains Django models for the Webscanner."""
-from urlparse import urljoin
 from django.db.models.aggregates import Count
+from urlparse import urljoin
 
 import os
 import shutil
