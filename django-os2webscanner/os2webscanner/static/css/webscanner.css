@@ -72,6 +72,12 @@ margin-top:.3em;
 padding-left:0;
 }
 
+/* filter_horizontal WIDGET */
+.selector-available h2, .selector-chosen h2 {
+    border: 1px solid #CCC;
+    font-size: inherit;
+}
+
 /* REPORT VIEW */
 
 .table.report td{

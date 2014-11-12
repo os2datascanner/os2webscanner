@@ -16,8 +16,8 @@
 # source municipalities ( http://www.os2web.dk/ )
 
 """Contains Django models for the Webscanner."""
-from urlparse import urljoin
 from django.db.models.aggregates import Count
+from urlparse import urljoin
 
 import os
 import shutil
@@ -151,6 +151,7 @@ class Domain(models.Model):
                                      verbose_name='Organisation')
     group = models.ForeignKey(Group,
                               null=True,
+                              blank=True,
                               related_name='domains',
                               verbose_name='Gruppe')
     validation_status = models.IntegerField(choices=validation_choices,
@@ -243,7 +244,7 @@ class RegexRule(models.Model):
                             verbose_name='Navn')
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')
-    group = models.ForeignKey(Group, null=True,
+    group = models.ForeignKey(Group, null=True, blank=True,
                               verbose_name='Gruppe')
     match_string = models.CharField(max_length=1024, blank=False,
                                     verbose_name='Udtryk')
@@ -308,7 +309,8 @@ class Scanner(models.Model):
                                          blank=True,
                                          null=True,
                                          verbose_name='Regex regler')
-    recipients = models.ManyToManyField(UserProfile, null=True, blank=True)
+    recipients = models.ManyToManyField(UserProfile, null=True, blank=True,
+                                        verbose_name='Modtagere')
 
     # DON'T USE DIRECTLY !!!
     # Use process_urls property instead.
@@ -882,7 +884,7 @@ class Summary(models.Model):
                                verbose_name='Planlagt afvikling')
     last_run = models.DateTimeField(blank=True, null=True,
                                       verbose_name='Sidste kørsel')
-    recipients = models.ManyToManyField(UserProfile, null=True, blank=True, 
+    recipients = models.ManyToManyField(UserProfile, null=True, blank=True,
                                         verbose_name="Modtagere")
     scanners = models.ManyToManyField(Scanner, null=True, blank=True,
                                       verbose_name="Scannere")

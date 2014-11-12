@@ -1,153 +1,150 @@
 {% extends 'os2webscanner/base.html' %}
 {% block topnav %}{% endblock %}
 {% block rendertype %}iframe-modal{% endblock %}
+{% block extra_head_html %}
+<!-- BEGIN Admin scripts and CSS to render filter_horizontal -->
+<script type="text/javascript" src="/admin/jsi18n/"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}admin/js/core.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}admin/js/jquery.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}admin/js/jquery.init.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}admin/js/SelectFilter2.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}admin/js/SelectBox.js"></script>
+
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}admin/css/widgets.css"/>
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}admin/css/forms.css"/>
+<!-- END   Admin scripts and CSS to render filter_horizontal -->
+
+{% endblock %}
 {% block jquery_script %}
 <script type="text/javascript">
 (function ($) {
-    $(document).ready(function () {
-        $('#{{form.sitemap.auto_id}}').bootstrapFileInput();
-    });
-})(jQuery);
+ $(document).ready(function () {
+     $('#{{form.sitemap.auto_id}}').bootstrapFileInput();
+     });
+ })(jQuery);
 </script>
 {% endblock %}
 {% block body %}
-{% if 0 %}
-  <form class="form" role="form">
-  {% if form.non_field_errors %}
-    <ul>
-      {% for error in form.non_field_errors %}
-        <li>{{ error }}</li>
-      {% endfor %}
-    </ul>
-  {% endif %}
-  {% for field in form %}
-  <div id="{{ field.auto_id }}_container">
-    {{ field.help_text }}
-    <div>
-      {{ field.label_tag }} {{ field }}
-    </div>
-    <div id="{{ field.auto_id }}_errors">
-      {{ field.errors }}
-    </div>
-  </div>
-  {% endfor %}
-  </form>
-{% endif %}
 
 {% if form.non_field_errors %}
-  <ul>
+<ul>
     {% for error in form.non_field_errors %}
-      <li>{{ error }}</li>
+    <li>{{ error }}</li>
     {% endfor %}
-  </ul>
+</ul>
 {% endif %}
 {% if form.errors %}
-  <div class="alert alert-danger" role="alert">
-      <p>Følgende felter er ikke udfyldt korrekt:</p>
-      <ul>
+<div class="alert alert-danger" role="alert">
+    <p>Følgende felter er ikke udfyldt korrekt:</p>
+    <ul>
         {% for error in form.errors %}
-          <li>{{ error }}</li>
+        <li>{{ error }}</li>
         {% endfor %}
-      </ul>
-  </div>
+    </ul>
+</div>
 {% endif %}
 <form class="form-horizontal" role="form" method="post" enctype="multipart/form-data">
-  {% csrf_token %}
-  <div id="{{ form.name.auto_id }}_container" class="col-sm-12{% if form.name.errors %} has-error{% endif %}">
-    <div class="form-group">
-      <label class="control-label col-sm-3" for="id_{{ form.name.name }}">{{ form.name.label }}</label>
-      <div class="col-sm-9">
-        <input type="text" class="form-control" name="{{ form.name.name }}"
-        id="id_{{ form.name.name }}" {% if form.name.value %}value="{{ form.name.value }}"{% endif %}>
-        {% if form.name.help_text %}
-        <p>
-          <small>{{ form.name.help_text }}</small>
-        </p>
-        {% endif %}
-        {% if form.name.errors %}{{ form.name.errors }}{% endif %}
-      </div>
-    </div>
-  </div>
-
-  {% if form.organization %}
-    <div id="{{ form.organization.auto_id }}_container" class="col-sm-12{% if form.organization.errors %} has-error{% endif %}">
-      <div class="form-group">
-        <label class="control-label col-sm-3" for="id_{{ form.organization.name }}">{{ form.organization.label }}</label>
-        <div class="col-sm-9">
-          <select name="{{ form.organization.name }}" id="id_{{ form.organization.name }}" class="form-control">
-            {% for value, tag in form.organization.field.choices %}
-            <option value="{{ value }}"{% if form.organization.value|add:"0" == value|add:"0" %} selected="selected"{% endif %}>{{ tag }}</option> {# silly type conversion #}
-            {% endfor %}
-          </select>
-          {% if form.organization.help_text %}
-          <p>
-            <small>{{ form.organization.help_text }}</small>
-          </p>
-          {% endif %}
-          {% if form.organization.errors %}{{ form.organization.errors }}{% endif %}
+    {% csrf_token %}
+    <div id="{{ form.name.auto_id }}_container" class="col-sm-12{% if form.name.errors %} has-error{% endif %}">
+        <div class="form-group">
+            <label class="control-label col-sm-3" for="id_{{ form.name.name }}">{{ form.name.label }}</label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control" name="{{ form.name.name }}"
+                id="id_{{ form.name.name }}" {% if form.name.value %}value="{{ form.name.value }}"{% endif %}>
+                {% if form.name.help_text %}
+                <p>
+                <small>{{ form.name.help_text }}</small>
+                </p>
+                {% endif %}
+                {% if form.name.errors %}{{ form.name.errors }}{% endif %}
+            </div>
         </div>
-      </div>
     </div>
-  {% endif %}
+
+    {% if form.organization %}
+    <div id="{{ form.organization.auto_id }}_container" class="col-sm-12{% if form.organization.errors %} has-error{% endif %}">
+        <div class="form-group">
+            <label class="control-label col-sm-3" for="id_{{ form.organization.name }}">{{ form.organization.label }}</label>
+            <div class="col-sm-9">
+                <select name="{{ form.organization.name }}" id="id_{{ form.organization.name }}" class="form-control">
+                    {% for value, tag in form.organization.field.choices %}
+                    <option value="{{ value }}"{% if form.organization.value|add:"0" == value|add:"0" %} selected="selected"{% endif %}>{{ tag }}</option> {# silly type conversion #}
+                    {% endfor %}
+                </select>
+                {% if form.organization.help_text %}
+                <p>
+                <small>{{ form.organization.help_text }}</small>
+                </p>
+                {% endif %}
+                {% if form.organization.errors %}{{ form.organization.errors }}{% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
 
-  <div id="{{ form.contact_email.auto_id }}_container" class="col-sm-12
-      {% if form.contact_email.errors %} has-error{% endif %}">
-    <div class="form-group">
-      <label class="control-label col-sm-3" for="id_{{ form.contact_email.name }}">{{ form.contact_email.label }}</label>
-      <div class="col-sm-9">
-        <input type="text" class="form-control" name="{{ form.contact_email.name }}"
-        id="id_{{ form.contact_email.name }}" {% if form.contact_email.value %}value="{{ form.contact_email.value }}"{% endif %}>
-        {% if form.contact_email.help_text %}
-        <p>
-          <small>{{ form.contact_email.help_text }}</small>
-        </p>
-        {% endif %}
-        {% if form.contact_email.errors %}{{ form.contact_email.errors }}{% endif %}
-      </div>
+    <div id="{{ form.contact_email.auto_id }}_container" class="col-sm-12
+        {% if form.contact_email.errors %} has-error{% endif %}">
+        <div class="form-group">
+            <label class="control-label col-sm-3" for="id_{{ form.contact_email.name }}">{{ form.contact_email.label }}</label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control" name="{{ form.contact_email.name }}"
+                id="id_{{ form.contact_email.name }}" {% if form.contact_email.value %}value="{{ form.contact_email.value }}"{% endif %}>
+                {% if form.contact_email.help_text %}
+                <p>
+                <small>{{ form.contact_email.help_text }}</small>
+                </p>
+                {% endif %}
+                {% if form.contact_email.errors %}{{ form.contact_email.errors }}{% endif %}
+            </div>
+        </div>
     </div>
-  </div>
   
-  <div id="{{ form.contact_phone.auto_id }}_container" class="col-sm-12{% if form.contact_phone.errors %} has-error{% endif %}">
-    <div class="form-group">
-      <label class="control-label col-sm-3" for="id_{{ form.contact_phone.name }}">{{ form.contact_phone.label }}</label>
-      <div class="col-sm-9">
-        <input type="text" class="form-control" name="{{ form.contact_phone.name }}"
-        id="id_{{ form.contact_phone.name }}" {% if form.contact_phone.value %}value="{{ form.contact_phone.value }}"{% endif %}>
-        {% if form.contact_phone.help_text %}
-        <p>
-          <small>{{ form.contact_phone.help_text }}</small>
-        </p>
-        {% endif %}
-        {% if form.contact_phone.errors %}{{ form.contact_phone.errors }}{% endif %}
-      </div>
+    <div id="{{ form.contact_phone.auto_id }}_container" class="col-sm-12{% if form.contact_phone.errors %} has-error{% endif %}">
+        <div class="form-group">
+            <label class="control-label col-sm-3" for="id_{{ form.contact_phone.name }}">{{ form.contact_phone.label }}</label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control" name="{{ form.contact_phone.name }}"
+                id="id_{{ form.contact_phone.name }}" {% if form.contact_phone.value %}value="{{ form.contact_phone.value }}"{% endif %}>
+                {% if form.contact_phone.help_text %}
+                <p>
+                <small>{{ form.contact_phone.help_text }}</small>
+                </p>
+                {% endif %}
+                {% if form.contact_phone.errors %}{{ form.contact_phone.errors }}{% endif %}
+            </div>
+        </div>
     </div>
-  </div>
 
  
-            <div id="{{ form.user_profiles.auto_id }}_container"
-                class="col-sm-12{% if form.user_profiles.errors %} has-error{% endif %}">
-              <label class="control-label" for="id_{{ form.user_profiles.name }}">{{ form.user_profiles.label }}</label>
-	      <select name="{{ form.user_profiles.name }}" id="id_{{ form.user_profiles.name }}" class="form-control" multiple="multiple">
-	      {% for value, tag in form.user_profiles.field.choices %}
-	        <option value="{{ value }}"{% for val in form.user_profiles.value %}{% if val == value %} selected="selected"{% endif %}{% endfor %}>{{ tag }}</option>
-	      {% endfor %}
-	      </select>
-              {% if form.user_profiles.help_text %}
-	      <p>
-		<small>{{ form.user_profiles.help_text }}</small>
-	      </p>
-	      {% endif %}
-              {% if form.user_profiles.errors %}{{ form.user_profiles.errors }}{% endif %}
-        
-        <div class="col-sm-offset-3">
-    <div class="col-sm-12">
-      <button type="submit" class="btn btn-primary" name="save">
-        Gem ændringer
-      </button>
+    <div id="{{ form.user_profiles.auto_id }}_container"
+        class="col-sm-12{% if form.user_profiles.errors %} has-error{% endif %}">
+        <label class="control-label" for="id_{{ form.user_profiles.name }}">{{ form.user_profiles.label }}</label>
+        <select name="{{ form.user_profiles.name }}" id="id_{{ form.user_profiles.name }}" class="form-control" multiple="multiple">
+            {% for value, tag in form.user_profiles.field.choices %}
+            <option value="{{ value }}"{% for val in form.user_profiles.value %}{% if val == value %} selected="selected"{% endif %}{% endfor %}>{{ tag }}</option>
+            {% endfor %}
+        </select>
+        {% if form.user_profiles.help_text %}
+        <p>
+        <small>{{ form.user_profiles.help_text }}</small>
+        </p>
+        {% endif %}
+        {% if form.user_profiles.errors %}{{ form.user_profiles.errors }}{% endif %}
     </div>
-  </div>
+    <! -- Save button -->
+    <div class="col-sm-offset-3">
+        <div class="col-sm-12">
+            <button type="submit" class="btn btn-primary" name="save">
+                Gem ændringer
+            </button>
+        </div>
+    </div>
 
-    </form>
+</form>
 
+<script type="text/javascript">
+    addEvent(window, "load", function(e) { SelectFilter.init("id_user_profiles",
+                "brugerprofiler", 0, "{{ STATIC_URL }}admin/"); });
+</script>
 {% endblock %}

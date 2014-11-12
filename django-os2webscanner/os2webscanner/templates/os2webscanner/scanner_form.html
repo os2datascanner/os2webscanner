@@ -8,124 +8,136 @@
 <script type="text/javascript" src="/jsi18n/"></script>
 <script type="text/javascript" src="{% static 'recurrence/js/recurrence.js' %}"></script>
 <script type="text/javascript" src="{% static 'recurrence/js/recurrence-widget.js' %}"></script>
+<!-- BEGIN Admin scripts and CSS to render filter_horizontal -->
+<script type="text/javascript" src="/admin/jsi18n/"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}admin/js/core.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}admin/js/jquery.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}admin/js/jquery.init.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}admin/js/SelectFilter2.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}admin/js/SelectBox.js"></script>
+
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}admin/css/widgets.css"/>
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}admin/css/forms.css"/>
+<!-- END   Admin scripts and CSS to render filter_horizontal -->
+
 {% endblock %}
 
 {%block jquery_script %}
 <script type="text/javascript">
-    (function ($) {
-        $(document).ready(function () {
-            // Toggle the CPR Options when Do CPR scan is checked
-            $("#id_{{ form.do_cpr_scan.name }}").click(function () {
-                $(".cpr_option").toggle();
-            });
-            {% if not form.do_cpr_scan.value %}
-                $(".cpr_option").toggle();
-            {% endif %}
+(function ($) {
+ $(document).ready(function () {
+     // Toggle the CPR Options when Do CPR scan is checked
+     $("#id_{{ form.do_cpr_scan.name }}").click(function () {
+         $(".cpr_option").toggle();
+         });
+     {% if not form.do_cpr_scan.value %}
+     $(".cpr_option").toggle();
+     {% endif %}
 
-            // Toggle the External Links field when Do Link Check scan is checked
-            $("#id_{{ form.do_link_check.name }}").click(function () {
-                $("#id_{{ form.do_external_link_check.name }}").parent("label").toggle();
-            });
-            {% if not form.do_link_check.value %}
-                $("#id_{{ form.do_external_link_check.name }}").parent("label").toggle();
-            {% endif %}
+     // Toggle the External Links field when Do Link Check scan is checked
+     $("#id_{{ form.do_link_check.name }}").click(function () {
+         $("#id_{{ form.do_external_link_check.name }}").parent("label").toggle();
+         });
+     {% if not form.do_link_check.value %}
+     $("#id_{{ form.do_external_link_check.name }}").parent("label").toggle();
+     {% endif %}
 
-            // Toggle the HEAD request field when Check Last-Modified is checked
-            $("#id_{{ form.do_last_modified_check.name }}").click(function () {
-                $("#id_{{ form.do_last_modified_check_head_request.name }}").parent("label").toggle();
-            });
-            {% if not form.do_last_modified_check.value %}
-                $("#id_{{ form.do_last_modified_check_head_request.name }}").parent("label").toggle();
-            {% endif %}
+     // Toggle the HEAD request field when Check Last-Modified is checked
+     $("#id_{{ form.do_last_modified_check.name }}").click(function () {
+         $("#id_{{ form.do_last_modified_check_head_request.name }}").parent("label").toggle();
+         });
+     {% if not form.do_last_modified_check.value %}
+     $("#id_{{ form.do_last_modified_check_head_request.name }}").parent("label").toggle();
+     {% endif %}
 
-        })
-    })(jQuery);
+ })
+})(jQuery);
 </script>
 {% endblock %}
 
 {% block body %}
 
 {% if form.non_field_errors %}
-  <ul>
+<ul>
     {% for error in form.non_field_errors %}
-      <li>{{ error }}</li>
+    <li>{{ error }}</li>
     {% endfor %}
-  </ul>
+</ul>
 {% endif %}
 {% if form.errors %}
-  <div class="alert alert-danger" role="alert">
-      <p>Følgende felter er ikke udfyldt korrekt:</p>
-      <ul>
+<div class="alert alert-danger" role="alert">
+    <p>Følgende felter er ikke udfyldt korrekt:</p>
+    <ul>
         {% for error in form.errors %}
-          <li>{{ error }}</li>
+        <li>{{ error }}</li>
         {% endfor %}
-      </ul>
-  </div>
+    </ul>
+</div>
 {% endif %}
 <form class="form-horizontal" role="form" method="post">
     {% csrf_token %}
-      <div id="{{ form.name.auto_id }}_container" class="col-sm-12{% if form.name.errors %} has-error{% endif %}">
-	<div class="form-group">
-          <label class="control-label col-sm-2" for="id_{{ form.name.name }}">{{ form.name.label }}</label>
-	  <div class="col-sm-10">
-	    <input type="text" class="form-control" name="{{ form.name.name }}" id="id_{{ form.name.name }}" {% if form.name.value %}value="{{ form.name.value }}"{% endif %}>
-	    {% if form.name.help_text %}
-	    <p>
-	      <small>{{ form.name.help_text }}</small>
-            </p>
-            {% endif %}
-	    {% if form.name.errors %}{{ form.name.errors }}{% endif %}
-          </div>
-	</div>
-      </div>
+    <div id="{{ form.name.auto_id }}_container" class="col-sm-12{% if form.name.errors %} has-error{% endif %}">
+        <div class="form-group">
+            <label class="control-label col-sm-2" for="id_{{ form.name.name }}">{{ form.name.label }}</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" name="{{ form.name.name }}" id="id_{{ form.name.name }}" {% if form.name.value %}value="{{ form.name.value }}"{% endif %}>
+                {% if form.name.help_text %}
+                <p>
+                <small>{{ form.name.help_text }}</small>
+                </p>
+                {% endif %}
+                {% if form.name.errors %}{{ form.name.errors }}{% endif %}
+            </div>
+        </div>
+    </div>
     {% if form.organization %}
-      <div id="{{ form.organization.auto_id }}_container" class="col-sm-12{% if form.organization.errors %} has-error{% endif %}">
-	<div class="form-group">
-          <label class="control-label col-sm-2" for="id_{{ form.organization.name }}">{{ form.organization.label }}</label>
-	  <div class="col-sm-10">
-	    <select name="{{ form.organization.name }}" id="id_{{ form.organization.name }}" class="form-control">
-	      {% for value, tag in form.organization.field.choices %}
-	      <option value="{{ value }}"{% if form.organization.value|add:"0" == value|add:"0" %} selected="selected"{% endif %}>{{ tag }}</option> {# silly type conversion #}
-	      {% endfor %}
-	    </select>
-            {% if form.organization.help_text %}
-	    <p>
-	      <small>{{ form.organization.help_text }}</small>
-	    </p>
-	    {% endif %}
-	    {% if form.organization.errors %}{{ form.organization.errors }}{% endif %}
-	  </div>
-	</div>
-      </div>
+    <div id="{{ form.organization.auto_id }}_container" class="col-sm-12{% if form.organization.errors %} has-error{% endif %}">
+        <div class="form-group">
+            <label class="control-label col-sm-2" for="id_{{ form.organization.name }}">{{ form.organization.label }}</label>
+            <div class="col-sm-10">
+                <select name="{{ form.organization.name }}" id="id_{{ form.organization.name }}" class="form-control">
+                    {% for value, tag in form.organization.field.choices %}
+                    <option value="{{ value }}"{% if form.organization.value|add:"0" == value|add:"0" %} selected="selected"{% endif %}>{{ tag }}</option> {# silly type conversion #}
+                    {% endfor %}
+                </select>
+                {% if form.organization.help_text %}
+                <p>
+                <small>{{ form.organization.help_text }}</small>
+                </p>
+                {% endif %}
+                {% if form.organization.errors %}{{ form.organization.errors }}{% endif %}
+            </div>
+        </div>
+    </div>
     {% endif %}
 
     {% if form.group %}
-      <div id="{{ form.group.auto_id }}_container" class="col-sm-12{% if form.group.errors %} has-error{% endif %}">
-	<div class="form-group">
-          <label class="control-label col-sm-2" for="id_{{ form.group.name }}">{{ form.group.label }}</label>
-	  <div class="col-sm-10">
-	    <select name="{{ form.group.name }}" id="id_{{ form.group.name }}" class="form-control">
-	      {% for value, tag in form.group.field.choices %}
-	      <option value="{{ value }}"{% if form.group.value|add:"0" == value|add:"0" %} selected="selected"{% endif %}>{{ tag }}</option> {# silly type conversion #}
-	      {% endfor %}
-	    </select>
-            {% if form.group.help_text %}
-	    <p>
-	      <small>{{ form.group.help_text }}</small>
-	    </p>
-	    {% endif %}
-	    {% if form.group.errors %}{{ form.group.errors }}{% endif %}
-	  </div>
-	</div>
-      </div>
+    <div id="{{ form.group.auto_id }}_container" class="col-sm-12{% if form.group.errors %} has-error{% endif %}">
+        <div class="form-group">
+            <label class="control-label col-sm-2" for="id_{{ form.group.name }}">{{ form.group.label }}</label>
+            <div class="col-sm-10">
+                <select name="{{ form.group.name }}" id="id_{{ form.group.name }}" class="form-control">
+                    {% for value, tag in form.group.field.choices %}
+                    <option value="{{ value }}"{% if form.group.value|add:"0" == value|add:"0" %} selected="selected"{% endif %}>{{ tag }}</option> {# silly type conversion #}
+                    {% endfor %}
+                </select>
+                {% if form.group.help_text %}
+                <p>
+                <small>{{ form.group.help_text }}</small>
+                </p>
+                {% endif %}
+                {% if form.group.errors %}{{ form.group.errors }}{% endif %}
+            </div>
+        </div>
+    </div>
     {% endif %}
 
     <div class="clearfix"></div>
     <ul class="nav nav-tabs" id="scanner-settings-tabs">
-      <li class="active"><a href="#domains" data-toggle="tab">Domæner</a></li>
-      <li><a href="#rules" data-toggle="tab">Regler</a></li>
-      <li><a href="#interval" data-toggle="tab">Interval</a></li>
-      <li><a href="#recipients" data-toggle="tab">Modtagere</a></li>
+        <li class="active"><a href="#domains" data-toggle="tab">Domæner</a></li>
+        <li><a href="#rules" data-toggle="tab">Regler</a></li>
+        <li><a href="#interval" data-toggle="tab">Interval</a></li>
+        <li><a href="#recipients" data-toggle="tab">Modtagere</a></li>
     </ul>
     <div class="tab-content">
         <div class="tab-pane active" id="domains">
@@ -146,63 +158,64 @@
                 </div>
             </div>
         </div>
-      </div>
-      <div class="tab-pane" id="rules">
-          <div id="select_scan_rules_container" class="col-sm-12">
-	        <div class="form-group">
-	      <label class="checkbox-inline" for="id_{{ form.do_ocr.name }}">
-		<input type="checkbox" id="id_{{ form.do_ocr.name }}" name="{{ form.do_ocr.name }}" value="{{ form.do_ocr.name }}"{% if form.do_ocr.value %} checked="checked"{% endif %}>
-		{{ form.do_ocr.label }}
-                {% if form.do_ocr.help_text %}<small>{{ form.do_ocr.help_text }}</small>{% endif %}
-            </label><br>
-            <label class="checkbox-inline" for="id_{{ form.do_last_modified_check.name }}">
-              <input type="checkbox" id="id_{{ form.do_last_modified_check.name }}" name="{{ form.do_last_modified_check.name }}" value="{{ form.do_last_modified_check.name }}"{% if form.do_last_modified_check.value %} checked="checked"{% endif %}>
-              {{ form.do_last_modified_check.label }}
-              {% if form.do_last_modified_check.help_text %}<small>{{ form.do_last_modified_check.help_text }}</small>{% endif %}
-            </label>
-            <label class="checkbox-inline" for="id_{{ form.do_last_modified_check_head_request.name }}">
-              <input type="checkbox" id="id_{{ form.do_last_modified_check_head_request.name }}" name="{{ form.do_last_modified_check_head_request.name }}" value="{{ form.do_last_modified_check_head_request.name }}"{% if form.do_last_modified_check_head_request.value %} checked="checked"{% endif %}>
-              {{ form.do_last_modified_check_head_request.label }}
-              {% if form.do_last_modified_check_head_request.help_text %}<small>{{ form.do_last_modified_check_head_request.help_text }}</small>{% endif %}
-            </label>
-		</div>
-		<div class="form-group">
-             <label class="checkbox-inline" for="id_{{ form.do_cpr_scan.name }}">
-		<input type="checkbox" id="id_{{ form.do_cpr_scan.name }}" name="{{ form.do_cpr_scan.name }}" value="{{ form.do_cpr_scan.name }}"{% if form.do_cpr_scan.value %} checked="checked"{% endif %}>
-	        {{ form.do_cpr_scan.label }}
-                {% if form.do_cpr_scan.help_text %}<small>{{ form.do_cpr_scan.help_text }}</small>{% endif %}
-	      </label>
-                  <label class="checkbox-inline"
-                               for="id_{{ form.do_cpr_modulus11.name }}">
-                  <input type="checkbox" id="id_{{ form.do_cpr_modulus11.name }}" name="{{ form.do_cpr_modulus11.name }}" value="{{ form.do_cpr_modulus11.name }}"{% if form.do_cpr_modulus11.value %} checked="checked"{% endif %}>
-              {{ form.do_cpr_modulus11.label }}
-              {% if form.do_cpr_modulus11.help_text %}<small>{{ form.do_cpr_modulus11.help_text }}</small>{% endif %}
-              </label>
-              <br>
-            <label class="checkbox-inline" for="id_{{ form.do_link_check.name }}">
-                <input type="checkbox" id="id_{{ form.do_link_check.name }}" name="{{ form.do_link_check.name }}" value="{{ form.do_link_check.name }}"{% if form.do_link_check.value %} checked="checked"{% endif %}>
-                {{ form.do_link_check.label }}
-                {% if form.do_link_check.help_text %}<small>{{ form.do_link_check.help_text }}</small>{% endif %}
-            </label>
-            <label class="checkbox-inline" for="id_{{ form.do_external_link_check.name }}">
-                <input type="checkbox" id="id_{{ form.do_external_link_check.name }}" name="{{ form.do_external_link_check.name }}" value="{{ form.do_external_link_check.name }}"{% if form.do_external_link_check.value %} checked="checked"{% endif %}>
-                {{ form.do_external_link_check.label }}
-                {% if form.do_external_link_check.help_text %}<small>{{ form.do_external_link_check.help_text }}</small>{% endif %}
-            </label>
-            <br>
-            <div id="{{ form.regex_rules.auto_id }}_container" class="col-sm-12{% if form.regex_rules.errors %} has-error{% endif %}">
-              <label class="control-label" for="id_{{ form.regex_rules.name }}">{{ form.regex_rules.label }}</label>
-	      <select name="{{ form.regex_rules.name }}" id="id_{{ form.regex_rules.name }}" class="form-control" multiple="multiple">
-	      {% for value, tag in form.regex_rules.field.choices %}
-	        <option value="{{ value }}"{% for val in form.regex_rules.value %}{% if val == value %} selected="selected"{% endif %}{% endfor %}>{{ tag }}</option>
-	      {% endfor %}
-	      </select>
-              {% if form.regex_rules.help_text %}
-	      <p>
-		<small>{{ form.regex_rules.help_text }}</small>
-	      </p>
-	      {% endif %}
-              {% if form.regex_rules.errors %}{{ form.regex_rules.errors }}{% endif %}
+        <div class="tab-pane" id="rules">
+            <div id="select_scan_rules_container" class="col-sm-12">
+                <div class="form-group">
+                    <label class="checkbox-inline" for="id_{{ form.do_ocr.name }}">
+                        <input type="checkbox" id="id_{{ form.do_ocr.name }}" name="{{ form.do_ocr.name }}" value="{{ form.do_ocr.name }}"{% if form.do_ocr.value %} checked="checked"{% endif %}>
+                        {{ form.do_ocr.label }}
+                        {% if form.do_ocr.help_text %}<small>{{ form.do_ocr.help_text }}</small>{% endif %}
+                    </label><br>
+                    <label class="checkbox-inline" for="id_{{ form.do_last_modified_check.name }}">
+                        <input type="checkbox" id="id_{{ form.do_last_modified_check.name }}" name="{{ form.do_last_modified_check.name }}" value="{{ form.do_last_modified_check.name }}"{% if form.do_last_modified_check.value %} checked="checked"{% endif %}>
+                        {{ form.do_last_modified_check.label }}
+                        {% if form.do_last_modified_check.help_text %}<small>{{ form.do_last_modified_check.help_text }}</small>{% endif %}
+                    </label>
+                    <label class="checkbox-inline" for="id_{{ form.do_last_modified_check_head_request.name }}">
+                        <input type="checkbox" id="id_{{ form.do_last_modified_check_head_request.name }}" name="{{ form.do_last_modified_check_head_request.name }}" value="{{ form.do_last_modified_check_head_request.name }}"{% if form.do_last_modified_check_head_request.value %} checked="checked"{% endif %}>
+                        {{ form.do_last_modified_check_head_request.label }}
+                        {% if form.do_last_modified_check_head_request.help_text %}<small>{{ form.do_last_modified_check_head_request.help_text }}</small>{% endif %}
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-inline" for="id_{{ form.do_cpr_scan.name }}">
+                        <input type="checkbox" id="id_{{ form.do_cpr_scan.name }}" name="{{ form.do_cpr_scan.name }}" value="{{ form.do_cpr_scan.name }}"{% if form.do_cpr_scan.value %} checked="checked"{% endif %}>
+                        {{ form.do_cpr_scan.label }}
+                        {% if form.do_cpr_scan.help_text %}<small>{{ form.do_cpr_scan.help_text }}</small>{% endif %}
+                    </label>
+                    <label class="checkbox-inline"
+                        for="id_{{ form.do_cpr_modulus11.name }}">
+                        <input type="checkbox" id="id_{{ form.do_cpr_modulus11.name }}" name="{{ form.do_cpr_modulus11.name }}" value="{{ form.do_cpr_modulus11.name }}"{% if form.do_cpr_modulus11.value %} checked="checked"{% endif %}>
+                        {{ form.do_cpr_modulus11.label }}
+                        {% if form.do_cpr_modulus11.help_text %}<small>{{ form.do_cpr_modulus11.help_text }}</small>{% endif %}
+                    </label>
+                    <br>
+                    <label class="checkbox-inline" for="id_{{ form.do_link_check.name }}">
+                        <input type="checkbox" id="id_{{ form.do_link_check.name }}" name="{{ form.do_link_check.name }}" value="{{ form.do_link_check.name }}"{% if form.do_link_check.value %} checked="checked"{% endif %}>
+                        {{ form.do_link_check.label }}
+                        {% if form.do_link_check.help_text %}<small>{{ form.do_link_check.help_text }}</small>{% endif %}
+                    </label>
+                    <label class="checkbox-inline" for="id_{{ form.do_external_link_check.name }}">
+                        <input type="checkbox" id="id_{{ form.do_external_link_check.name }}" name="{{ form.do_external_link_check.name }}" value="{{ form.do_external_link_check.name }}"{% if form.do_external_link_check.value %} checked="checked"{% endif %}>
+                        {{ form.do_external_link_check.label }}
+                        {% if form.do_external_link_check.help_text %}<small>{{ form.do_external_link_check.help_text }}</small>{% endif %}
+                    </label>
+                    <br>
+                    <div id="{{ form.regex_rules.auto_id }}_container" class="col-sm-12{% if form.regex_rules.errors %} has-error{% endif %}">
+                        <label class="control-label" for="id_{{ form.regex_rules.name }}">{{ form.regex_rules.label }}</label>
+                        <select name="{{ form.regex_rules.name }}" id="id_{{ form.regex_rules.name }}" class="form-control" multiple="multiple">
+                            {% for value, tag in form.regex_rules.field.choices %}
+                            <option value="{{ value }}"{% for val in form.regex_rules.value %}{% if val == value %} selected="selected"{% endif %}{% endfor %}>{{ tag }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if form.regex_rules.help_text %}
+                        <p>
+                        <small>{{ form.regex_rules.help_text }}</small>
+                        </p>
+                        {% endif %}
+                        {% if form.regex_rules.errors %}{{ form.regex_rules.errors }}{% endif %}
+                    </div>
+                </div>
             </div>
         </div>
         <div class="tab-pane" id="interval">
@@ -248,6 +261,13 @@
             <button type="submit" class="btn btn-primary" name="save">
                 Gem ændringer
             </button>
-    </div></div>
+    </div>
 </form>
+
+<script type="text/javascript">
+addEvent(window, "load", function(e) { SelectFilter.init("id_domains",
+            "domæner", 0, "{{ STATIC_URL }}admin/"); });
+addEvent(window, "load", function(e) { SelectFilter.init("id_recipients",
+            "modtagere", 0, "{{ STATIC_URL }}admin/"); });
+</script>
 {% endblock %}
