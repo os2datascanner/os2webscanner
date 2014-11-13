@@ -117,7 +117,8 @@ def scans_for_summary_report(summary, from_date=None, to_date=None):
     return (relevant_scans, from_date, to_date)
 
 
-def send_summary_report(summary, from_date=None, to_date=None, extra_email=None):
+def send_summary_report(summary, from_date=None, to_date=None,
+                        extra_email=None):
     """Send the actual summary report by email."""
     relevant_scans, from_date, to_date = scans_for_summary_report(
         summary,
