@@ -86,6 +86,11 @@ class RestrictedListView(ListView, LoginRequiredMixin):
                             Q(group__in=groups) | Q(group__isnull=True)
                         )
                         return qs
+                else:
+                    return self.model.objects.filter(
+                        organization=profile.organization
+                    )
+
             except UserProfile.DoesNotExist:
                 return self.model.objects.filter(organization=None)
 
@@ -154,7 +159,10 @@ class DomainList(RestrictedListView):
         """Get queryset, ordered by url followed by primary key."""
         query_set = super(DomainList, self).get_queryset()
 
-        return query_set.order_by('url', 'pk')
+	if query_set:
+	    query_set = query_set.order_by('url', 'pk')
+
+        return query_set
 
 
 class GroupList(RestrictedListView):
