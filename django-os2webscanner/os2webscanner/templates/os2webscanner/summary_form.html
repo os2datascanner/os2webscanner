@@ -19,7 +19,6 @@
   <script type="text/javascript" src="{{ STATIC_URL }}admin/js/SelectBox.js"></script>
 
   <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}admin/css/widgets.css"/>
-  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}admin/css/base.css"/>
   <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}admin/css/forms.css"/>
   <!-- END   Admin scripts and CSS to render filter_horizontal -->
 {% endblock %}
@@ -128,11 +127,24 @@
     </div>
   {% endif %}
 
+  <ul class="nav nav-tabs" id="summary-settings-tabs">
+    <li class="active">
+      <a href="#recipients" data-toggle="tab">Modtagere</a>
+    </li>
+    <li>
+      <a href="#scanners" data-toggle="tab">Scannere</a>
+    </li>
+    <li>
+      <a href="#schedule" data-toggle="tab">Planlagt afvikling</a>
+    </li>
+  </ul>
 
-
-            {% if summary.pk %} 
+  <div class="tab-content">
+        {% if summary.pk %} 
+          <div class="tab-pane active" id="recipients">
             <div id="{{ form.recipients.auto_id }}_container"
                 class="col-sm-12{% if form.recipients.errors %} has-error{% endif %}">
+            <div class="form-group">
               <label class="control-label" for="id_{{ form.recipients.name }}">{{ form.recipients.label }}</label>
 	      <select name="{{ form.recipients.name }}" id="id_{{ form.recipients.name }}" class="form-control" multiple="multiple">
 	      {% for value, tag in form.recipients.field.choices %}
@@ -145,10 +157,13 @@
 	      </p>
 	      {% endif %}
               {% if form.recipients.errors %}{{ form.recipients.errors }}{% endif %}
-          </div> 
-
+          </div>
+          </div>
+        </div>
+        <div class="tab-pane" id="scanners">
             <div id="{{ form.scanners.auto_id }}_container"
                 class="col-sm-12{% if form.scanners.errors %} has-error{% endif %}">
+            <div class="form-group">
               <label class="control-label" for="id_{{ form.scanners.name }}">{{ form.scanners.label }}</label>
 	      <select name="{{ form.scanners.name }}" id="id_{{ form.scanners.name }}" class="form-control" multiple="multiple">
 	      {% for value, tag in form.scanners.field.choices %}
@@ -162,40 +177,49 @@
 	      {% endif %}
               {% if form.scanners.errors %}{{ form.scanners.errors }}{% endif %}
 
-	      <label class="checkbox-inline" for="id_{{ form.do_email_recipients.name }}">
-		{{ form.do_email_recipients.label }}
-		<input type="checkbox" id="id_{{ form.do_email_recipients.name }}" name="{{ form.do_email_recipients.name }}" value="{{ form.do_email_recipients.name }}"{% if form.do_email_recipients.value %} checked="checked"{% endif %}>
-                {% if form.do_email_recipients.help_text %}<small>{{ form.do_email_recipients.help_text }}</small>{% endif %}
-            </label><br>
-          </div> 
-        {% endif %}
-      <div class="tab-pane" id="interval">
-        <div class="col-sm-12 form-group">
-          <div id="{{ form.schedule.auto_id }}_container">
-            <div>{{ form.schedule.help_text }}</div>
-            <div>
-              <div>{{ form.schedule.label_tag }}</div>
-              {{ form.schedule }}
-            </div>
-            <div id="{{ form.schedule.auto_id }}_errors">
-              {{ form.schedule.errors }}
-            </div>
+          </div>
           </div>
         </div>
-        <div class="col-sm-offset-3">
-    <div class="col-sm-12">
-      <button type="submit" class="btn btn-primary" name="save">
-        Gem ændringer
-      </button>
+      {% endif %}
+      <div class="tab-pane" id="schedule">
+        <div id="{{ form.do_email_recipients.auto_id }}_container" class="col-sm-12">
+          <div class="form-group">
+            <label class="checkbox-inline" for="id_{{ form.do_email_recipients.name }}">
+	      <input type="checkbox" id="id_{{ form.do_email_recipients.name }}" name="{{ form.do_email_recipients.name }}" value="{{ form.do_email_recipients.name }}"{% if form.do_email_recipients.value %} checked="checked"{% endif %}>
+	      {{ form.do_email_recipients.label }}
+            </label>
+            {% if form.do_email_recipients.help_text %}<small>{{ form.do_email_recipients.help_text }}</small>{% endif %}
+          </div>
+        </div>
+        <div id="{{ form.schedule.auto_id }}_container" class="col-sm-12">
+        <div class="form-group">
+          {% if form.schedule.help_text %}
+          <p>
+            <small>{{ form.schedule.help_text }}</small>
+          </p>
+          {% endif %}
+          {{ form.schedule.label_tag }}
+          {{ form.schedule }}
+          <div id="{{ form.schedule.auto_id }}_errors">
+            {{ form.schedule.errors }}
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-
-    </form>
+        <div class="col-sm-12">
+	  <div class="form-group">
+          <button type="submit" class="btn btn-primary" name="save">
+            Gem ændringer
+          </button>
+          </div>
+        </div>
+</form>
 
 <script type="text/javascript">
     addEvent(window, "load", function(e) { SelectFilter.init("id_recipients",
                 "modtagere", 0, "{{ STATIC_URL }}admin/"); });
-    addEvent(window, "load", function(e) { SelectFilter.init("id_recipients",
-                "modtagere", 0, "{{ STATIC_URL }}admin/"); });
+    addEvent(window, "load", function(e) { SelectFilter.init("id_scanners",
+                "scannere", 0, "{{ STATIC_URL }}admin/"); });
 </script>
 {% endblock %}

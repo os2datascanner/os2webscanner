@@ -72,21 +72,21 @@ Opsummeringsrapporter
                       {% if not forloop.last %}, {% endif %}{% endfor %}</span>
               </td>
               <td class="summary-actions">
-                <a class="btn btn-sm btn-default"
+                <a class="btn btn-xs btn-default"
 		  onclick="os2web.iframeDialog(
 		      &quot;#edit-summary-modal&quot;,
 		      &quot;/summary/{{summary.pk}}&quot;,
 		      &quot;Redigér opsummeringsrapport '{{summary.name}}'&quot;
 		  )"
                   title="Redigér opsummeringsrapport">
-                   <span class="glyphicon glyphicon-cog"></span></a>
-          <a href="/summary/{{summary.pk}}/report/" class="btn btn-default btn-sm"
+                   <span class="glyphicon glyphicon-cog"></span> <span>Redigér</span></a>
+          <a href="/summary/{{summary.pk}}/report/" class="btn btn-default btn-xs"
               title="Læs rapport">
-              <span class="glyphicon glyphicon-book"></span>
+              <span class="glyphicon glyphicon-book"></span> <span>Læs</span>
           </a>
-          <a href="/summary/{{summary.pk}}/delete/" class="btn btn-default btn-sm"
+          <a href="/summary/{{summary.pk}}/delete/" class="btn btn-default btn-xs"
               title="Slet opsummeringsrapport">
-              <span class="glyphicon glyphicon-remove"></span>
+              <span class="glyphicon glyphicon-remove"></span> <span>Slet</span>
           </a>
               </td>
             </tr>
@@ -125,11 +125,7 @@ Opsummeringsrapporter
 	</h4>
       </div>
       <div class="modal-body">
-	<iframe src="about:blank" frameborder="0"
-	  width="550" height="650"></iframe>
-      </div>
-      <div class="modal-footer">
-	<div class="btn-group"></div>
+        <iframe src="about:blank" frameborder="0"></iframe>
       </div>
     </div>
   </div>
@@ -148,11 +144,7 @@ Opsummeringsrapporter
 	</h4>
       </div>
       <div class="modal-body">
-	<iframe src="about:blank" frameborder="0"
-	  width="550" height="650"></iframe>
-      </div>
-      <div class="modal-footer">
-	<div class="btn-group"></div>
+        <iframe src="about:blank" frameborder="0"></iframe>
       </div>
     </div>
   </div>

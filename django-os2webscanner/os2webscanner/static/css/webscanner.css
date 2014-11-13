@@ -3,6 +3,9 @@
 .btn-disabled {
 opacity:.5;
 }
+.col-sm-12 .form-group button[type="submit"] {
+margin-bottom:-15px;
+}
 
 /* SCANNERS */
 
@@ -16,14 +19,19 @@ margin: 2em 0 1em;
 #select_scan_rules_container div.form-group {
 border-top:1px solid #ddd;
 margin-bottom:7px;
+clear:both;
+overflow:hidden;
 }
 #select_scan_rules_container div.form-group:first-child {
 border-top-width:0;
 }
-#id_regex_rules_container {
-border-top:1px solid #ddd;
+label[for=id_do_name_scan]{
+margin-bottom:7px !important;
 }
-
+#id_whitelisted_names_container {
+padding:0;
+margin-bottom:10px;
+}
 /* DOMAINS */
 
 .btn-sitemap-upload {
@@ -61,6 +69,10 @@ height:32em;
 html.iframe-modal h1#page-title {
 display:none; /* Prevent blank h1 tags from showing */
 }
+html.iframe-modal body {
+float:left;
+clear:both;
+}
 
 /* FORM ERRORS */
 
@@ -72,9 +84,24 @@ margin-top:.3em;
 padding-left:0;
 }
 
+/* REPORT VIEW */
+
+.table.report td{
+width:33%;
+}
+.table.report td.head {
+padding:0;
+border-color:#fff #fff inherit;
+}
+.table-responsive.domains-regex {
+margin-top:-20px;
+}
+div.failed-conversions {
+margin-bottom:20px;
+}
+
 /* filter_horizontal WIDGET */
 .selector-available h2, .selector-chosen h2 {
-    border: 1px solid #CCC;
     font-size: inherit;
 }
 
