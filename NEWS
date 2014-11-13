@@ -1,19 +1,57 @@
+* Version 1.2.0; November 14, 2014
+
+New in this version:
+ - Summary report - summaries of certain scanners' results which may be
+   emailed to users.
+ - Automatic retrieval of sitemap.xml, i.e. no explicit upload required.
+ - You can now specify a number of individual recipients of scan reports.
+   The organization contact will no longer receive these emails by default.
+ - Details of specific scan are always copied to the scan report; an technical
+   occurrence log has been added to the report to help diagnose scan failures
+   and conversion errors, etc.
+ - Minimize false positives: Many more irrelevant CPR matches are ignored.
+ - Group concept to enforce access limitations within one organization is
+   mostly implemented; due to some issues, its use is discouraged until next
+   sprint.
+ - CSV file with report was broken in some cases.
+ - Overview page listing domains per organisation is now available for
+   superusers.
+ - Pooling of PostgreSQL connections is now possible (but STRONGLY
+   DISCOURAGED!)
+ - Scanner listing is now sorted by date.
+ - The Name rule has been completely removed from the GUI.
+ - Small images are ignored, i.e. not OCR'ed.
+ - Organization is included in all lists where relevant (superuser only).
+ - Scheduled scans didn't run if set for specific dates.
+ - Admin-related menu items have been consolidated in an admin menu.
+ - Installation instructions have been updated and now work.
+ - Installation instructions include how to set up crontab for scheduled
+   scanning.
+ - Links in scan reports now open in a new window.
+ - Minimize false positives: CPR matches are ignored in inline style tags.
+ - New widget to maintain many to many links, including a search field to
+   support very long lists.
+ - Improved GUI design.
+
+
 * Version 1.1.0.5; November 4, 2014
 
-  - Bug fix: Failed conversion items did not get their temporary directories
-    removed.
-  - Better error handling in processing of conversion items if an
-    image's dimensions cannot be determined.
+ - Bug fix: Failed conversion items did not get their temporary directories
+   removed.
+ - Better error handling in processing of conversion items if an
+   image's dimensions cannot be determined.
+
 
 * Version 1.1.0.4; October 29, 2014
 
-  - Performance improvement: When the number of OCR items per scan reaches a
-    certain limit, non-OCR conversions are paused to allow the number of OCR
-    items to fall to a reasonable level before being resumed again. For large
-    scans with OCR enabled, this is necessary because so many OCR items are
-    extracted from PDFs or Office documents that it exhausts the number of
-    available inodes on the filesystem.
-  - Connnection pooling is removed due to database problems.
+ - Performance improvement: When the number of OCR items per scan reaches a
+   certain limit, non-OCR conversions are paused to allow the number of OCR
+   items to fall to a reasonable level before being resumed again. For large
+   scans with OCR enabled, this is necessary because so many OCR items are
+   extracted from PDFs or Office documents that it exhausts the number of
+   available inodes on the filesystem.
+ - Connnection pooling is removed due to database problems.
+
 
 * Version 1.1.0.3, October 10, 2014
 
@@ -22,6 +60,7 @@ New in this version:
  - Bug fix: Catch InternalError exception in process_manager.py.
  - Conversion queue items of a given type are now picked randomly from among
    the active scans to avoid one scan hogging the queue.
+
 
 * Version 1.1.0.2, October 10, 2014
 
@@ -40,6 +79,7 @@ New in this version:
  - Pool PostgreSQL connections to avoid too heavy load on the database server.
  - System status page for superusers.
 
+
 * Version 1.1.0, September 23, 2014
 
 New in this version:
@@ -54,5 +94,3 @@ New in this version:
  - Allow scanning of subdomains.
  - Disk usage/disk performance improvements.
  - 10 seconds timeout on PDF files in the link checker.
-
-
