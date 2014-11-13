@@ -104,19 +104,3 @@ margin-bottom:20px;
 .selector-available h2, .selector-chosen h2 {
     font-size: inherit;
 }
-
-/* REPORT VIEW */
-
-.table.report td{
-width:33%;
-}
-.table.report td.head {
-padding:0;
-border-color:#fff #fff inherit;
-}
-.table-responsive.domains-regex {
-margin-top:-20px;
-}
-div.failed-conversions {
-margin-bottom:20px;
-}

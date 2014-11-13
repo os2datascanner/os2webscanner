@@ -94,7 +94,7 @@ Rapport &dash; {{scan.scanner.name}}
 {% endif %}
   {% if matches %}
   <h2>Resultater</h2>
-  {% if no_of_matches > 100 %}<p>Kun de f&oslash;rste 100 resultater vises. <a href="./csv/">Klik her for at downloade hele rapporten</a></p>{% endif %}
+  <p>{% if no_of_matches > 100 %}Kun de f&oslash;rste 100 resultater vises.{% endif %} <a href="./csv/">Klik her for at downloade hele rapporten</a></p>
   <div class="table-responsive">
             <table class="table table-striped">
       <thead>
