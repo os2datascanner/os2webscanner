@@ -229,9 +229,8 @@ sudo -u www-data -b /home/os2/os2webscanner/scrapy-webscanner/start_process_mana
 *Note:* You may want to have the scanners `var` dir somewhere else, e.g. in
 `/var/lib/os2webscanner`, which is the location we (the developers) prefer for
 production environments. To achieve this, please overwrite the Django setting
-`VAR_DIR` in your `local_settings.py` accordingly. Also be sure to change the
-`var` directory given in the file `start_process_manager.sh` to the one you're
-actually using.
+`VAR_DIR` in your `local_settings.py` accordingly and set ownership for the
+directory as indicated above. 
 
 
 ## Setting up scheduled scans
