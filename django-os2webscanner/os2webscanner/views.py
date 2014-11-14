@@ -159,8 +159,8 @@ class DomainList(RestrictedListView):
         """Get queryset, ordered by url followed by primary key."""
         query_set = super(DomainList, self).get_queryset()
 
-	if query_set:
-	    query_set = query_set.order_by('url', 'pk')
+        if query_set:
+            query_set = query_set.order_by('url', 'pk')
 
         return query_set
 

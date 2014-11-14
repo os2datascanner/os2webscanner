@@ -15,9 +15,11 @@
 # source municipalities ( http://www.os2web.dk/ )
 """URL mappings."""
 
+from django.conf import settings
 from django.conf.urls import patterns, url
 from django.views.i18n import javascript_catalog
 from django.views.generic import View, ListView, TemplateView, DetailView
+
 from .views import MainPageView, ScannerList, DomainList, RuleList
 from .views import CSVReportDetails, ReportDetails, ReportList, ReportDelete
 from .views import ScannerCreate, ScannerUpdate, ScannerDelete, ScannerRun
@@ -68,13 +70,6 @@ urlpatterns = patterns(
         name='rule_update'),
     url(r'^rules/(?P<pk>\d+)/delete/$', RuleDelete.as_view(),
         name='rule_delete'),
-    url(r'^groups/$', GroupList.as_view(), name='groups'),
-    url(r'^groups/add/$', GroupCreate.as_view(), name='group_add'),
-    url(r'^(groups)/(\d+)/(success)/$', DialogSuccess.as_view()),
-    url(r'^groups/(?P<pk>\d+)/$', GroupUpdate.as_view(),
-        name='group_update'),
-    url(r'^groups/(?P<pk>\d+)/delete/$', GroupDelete.as_view(),
-        name='group_delete'),
     url(r'^reports/$', ReportList.as_view(), name='reports'),
     url(r'^report/(?P<pk>[0-9]+)/$', ReportDetails.as_view(),
         name='report'),
@@ -121,3 +116,15 @@ urlpatterns = patterns(
     url(r'^system/orgs_and_domains/$', OrganizationList.as_view(),
         name='orgs_and_domains'),
 )
+
+if settings.DO_USE_GROUPS:
+    urlpatterns += patterns(
+        '',
+        url(r'^groups/$', GroupList.as_view(), name='groups'),
+        url(r'^groups/add/$', GroupCreate.as_view(), name='group_add'),
+        url(r'^(groups)/(\d+)/(success)/$', DialogSuccess.as_view()),
+        url(r'^groups/(?P<pk>\d+)/$', GroupUpdate.as_view(),
+            name='group_update'),
+        url(r'^groups/(?P<pk>\d+)/delete/$', GroupDelete.as_view(),
+            name='group_delete'),
+    )

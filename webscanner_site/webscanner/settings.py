@@ -117,6 +117,9 @@ EMAIL_HOST = 'localhost'
 EMAIL_PORT = 25
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
+# Enable groups - or not
+
+DO_USE_GROUPS = False
 
 # The threshold for number of OCR conversion queue items per scan above which
 # non-OCR conversion will be paused. The reason to have this feature is that

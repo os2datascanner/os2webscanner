@@ -63,7 +63,8 @@ class Organization(models.Model):
     name = models.CharField(max_length=256, unique=True, verbose_name='Navn')
     contact_email = models.CharField(max_length=256, verbose_name='Email')
     contact_phone = models.CharField(max_length=256, verbose_name='Telefon')
-    do_use_groups = models.BooleanField(default=False)
+    do_use_groups = models.BooleanField(default=False,
+                                        editable=settings.DO_USE_GROUPS)
 
     def __unicode__(self):
         """Return the name of the organization."""
@@ -85,6 +86,11 @@ class UserProfile(models.Model):
                              related_name='profile',
                              verbose_name='Bruger')
     is_group_admin = models.BooleanField(default=False)
+
+    @property
+    def is_groups_enabled(self):
+        """Whether to activate groups in GUI."""
+        return settings.DO_USE_GROUPS
 
     def __unicode__(self):
         """Return the user's username."""
