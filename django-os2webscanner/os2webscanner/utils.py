@@ -154,6 +154,8 @@ def send_summary_report(summary, from_date=None, to_date=None,
         message.content_subtype = "html"
         message.send()
         print "Mail sendt til", ",".join(to_addresses)
+        summary.last_run = datetime.datetime.now()
+        summary.save()
     except Exception as e:
         # TODO: Handle this properly
         raise
