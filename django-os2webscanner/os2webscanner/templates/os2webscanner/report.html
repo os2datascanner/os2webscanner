@@ -49,6 +49,7 @@ Rapport &dash; {{scan.scanner.name}}
           <tr>
               <td {% if scan.do_cpr_scan %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>CPR{% if scan.do_cpr_scan %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
               <td {% if scan.do_cpr_modulus11 %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Check modulus-11{% if scan.do_cpr_modulus11 %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
+              <td {% if scan.do_cpr_ignore_irrelevant %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Ignorer irrelevante fødselsdatoer{% if scan.do_cpr_ignore_irrelevant %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
               <td></td>
           </tr>
           <tr>
