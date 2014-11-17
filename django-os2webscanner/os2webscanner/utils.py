@@ -81,6 +81,8 @@ def do_scan(user, urls):
     scanner.organization = user.get_profile().organization
     scanner.name = user.username + '-' + str(time.time())
     scanner.do_run_synchronously = True
+    scanner.do_last_modified_check = False
+    scanner.do_last_modified_check_head_request = False
     scanner.process_urls = urls
     scanner.is_visible = False
 

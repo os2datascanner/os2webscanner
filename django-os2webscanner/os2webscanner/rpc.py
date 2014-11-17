@@ -78,8 +78,7 @@ def scan_documents(username, password, binary_documents):
     documents = map(writefile, binary_documents)
     file_url = lambda f: 'file://{0}'.format(f)
     scan = do_scan(user, map(file_url, documents))
-    # Assuming scan was synchronous, we can now clean up files
-    map(os.remove, documents)
+    # map(os.remove, documents)
 
     url = scan.get_absolute_url()
     return "{0}{1}".format(settings.SITE_URL, url)
