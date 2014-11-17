@@ -57,7 +57,7 @@ def scan_documents(username, password, data):
     Parameters:
         * username (string) - login credentials
         * password (string) - login credentials
-        * binary_documents  (list of data) - the files to be scanned.
+        * data (list of tuples) - (binary, filename) the files to be scanned.
     Return value:
         The URL for retrieving the report.
     """
@@ -72,13 +72,11 @@ def scan_documents(username, password, data):
     dirname = tempfile.mkdtemp()
     # Save files on disk
     def writefile(data_item):
-        filename, binary = data_item
+        binary, filename = data_item
         full_path = os.path.join(dirname, filename)
-        handle = os.open(full_path)
-        os.write(handle, binary.data)
-        print full_path
+        with open(full_path, "wb") as f:
+            f.write(binary.data)
         return full_path
-
     documents = map(writefile, data)
     file_url = lambda f: 'file://{0}'.format(f)
     scan = do_scan(user, map(file_url, documents))
