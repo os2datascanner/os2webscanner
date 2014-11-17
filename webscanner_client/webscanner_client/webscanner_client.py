@@ -1,4 +1,6 @@
 """Webscanner client API class."""
+
+import os
 import xmlrpclib
 
 
@@ -22,8 +24,11 @@ class WebscannerClient(object):
         def get_binary(path):
             with open(path, "rb") as f:
                 return xmlrpclib.Binary(f.read())
-        binary_docs = map(get_binary, documents)
-        return self._rpc_srv.scan_documents(user, password, binary_docs)
+        docs = map(get_binary, documents)
+        filenames = map(os.path.basename, documents)
+        data = zip(docs, filenames)
+        
+        return self._rpc_srv.scan_documents(user, password, data)
 
     def get_status(self, user, password, report_url):
         """Get status for given report."""

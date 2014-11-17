@@ -51,7 +51,7 @@ def scan_urls(username, password, urls):
     return "{0}{1}".format(settings.SITE_URL, url)
 
 
-def scan_documents(username, password, binary_documents):
+def scan_documents(username, password, data):
     """Web service for scanning the documents send by the caller.
 
     Parameters:
@@ -62,20 +62,24 @@ def scan_documents(username, password, binary_documents):
         The URL for retrieving the report.
     """
     # First check the user sent us a list
-    if not isinstance(binary_documents, list):
+    if not isinstance(data, list):
         raise RuntimeError("Malformed parameters.")
     # Authenticate
     user = authenticate(username=username, password=password)
     if not user:
         raise RuntimeError("Wrong username or password!")
 
+    dirname = tempfile.mkdtemp()
     # Save files on disk
-    def writefile(binary_doc):
-        handle, filename = tempfile.mkstemp()
-        os.write(handle, binary_doc.data)
-        return filename
+    def writefile(data_item):
+        filename, binary = data_item
+        full_path = os.path.join(dirname, filename)
+        handle = os.open(full_path)
+        os.write(handle, binary.data)
+        print full_path
+        return full_path
 
-    documents = map(writefile, binary_documents)
+    documents = map(writefile, data)
     file_url = lambda f: 'file://{0}'.format(f)
     scan = do_scan(user, map(file_url, documents))
     # map(os.remove, documents)
