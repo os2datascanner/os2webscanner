@@ -379,8 +379,12 @@ class Scanner(models.Model):
     @property
     def schedule_description(self):
         """A lambda for creating schedule description strings."""
-        f = lambda s: "Schedule: " + s
-        return f
+        rules = [r for r in self.schedule.rrules]  # Use r.to_text() to render
+        dates = [d for d in self.schedule.rdates]
+        if len(rules) > 0 or len(dates) > 0:
+            return u"Ja"
+        else:
+            return u"Nej"
 
     @property
     def has_active_scans(self):
