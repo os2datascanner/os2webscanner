@@ -69,7 +69,18 @@ def scan_documents(username, password, data):
     if not user:
         raise RuntimeError("Wrong username or password!")
 
-    dirname = tempfile.mkdtemp()
+    # Create RPC dir for temp files
+    rpcdir = settings.RPC_TMP_PREFIX
+    try:
+        os.makedirs(rpcdir)
+    except OSError:
+        if os.path.isdir(rpcdir):
+            pass
+        else:
+            # There was an error, so make sure we know about it
+            raise
+    # Now create temporary dir, fill with files
+    dirname = tempfile.mkdtemp(dir=settings.RPC_TMP_PREFIX)
     # Save files on disk
     def writefile(data_item):
         binary, filename = data_item
