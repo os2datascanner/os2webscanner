@@ -29,6 +29,8 @@ from scrapy.utils.url import canonicalize_url
 from email.utils import parsedate_tz, mktime_tz
 from os2webscanner.models import UrlLastModified
 
+from django.conf import settings as django_settings
+
 
 class ExclusionRuleMiddleware(object):
 
@@ -100,7 +102,7 @@ class OffsiteDownloaderMiddleware(object):
         host = parse_result.hostname or ''
         scheme = parse_result.scheme or ''
         if scheme == 'file' and not getattr(spider, "crawl", False):
-            return True
+            return parse_result.path.startswith(django_settings.RPC_TMP_PREFIX)
         return bool(regex.search(host))
 
     def get_host_regex(self, spider):
