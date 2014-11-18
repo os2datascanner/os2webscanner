@@ -159,7 +159,8 @@ def main():
             name = '%s%d' % (ptype, i)
             program = [
                 'python',
-                os.path.join(base_dir, 'scrapy-webscanner', 'process_queue.py'),
+                os.path.join(base_dir, 'scrapy-webscanner',
+                    'process_queue.py'),
                 ptype
             ]
             # Libreoffice takes the homedir name as second arg
@@ -201,8 +202,7 @@ def main():
                 p.status = ConversionQueueItem.FAILED
                 try:
                     p.url.scan.log_occurrence(
-                        "CONVERSION ERROR: file <{0}> type <{1}>, URL: {2}".format(
-                            p.file,
+                        "CONVERSION ERROR: type <{0}>, URL: {1}".format(
                             p.type,
                             p.url.url
                         )

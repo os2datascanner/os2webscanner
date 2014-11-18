@@ -182,7 +182,7 @@ class Processor(object):
                     item.status = ConversionQueueItem.FAILED
                     lm = "CONVERSION ERROR: file <{0}>, type <{1}>, URL: {2}"
                     item.url.scan.log_occurrence(
-                        lm.format(item.file, item.type, item.url.url) 
+                        lm.format(item.file, item.type, item.url.url)
                     )
                     item.save()
                     item.delete_tmp_dir()

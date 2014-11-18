@@ -22,6 +22,7 @@ def _is_valid_link(url):
     else:
         return True
 
+
 def _extract_links(self, selector, response_url, response_encoding, base_url):
     links = []
     # hacky way to get the underlying lxml parsed document
@@ -40,12 +41,13 @@ def _extract_links(self, selector, response_url, response_encoding, base_url):
                 url = url.encode(response_encoding)
             # to fix relative links after process_value
             url = urljoin(response_url, url)
-            link = Link(url, _collect_string_content(el) or u'',
-                        nofollow=True if el.get('rel') == 'nofollow' else False)
+            link = Link(
+                url, _collect_string_content(el) or u'',
+                nofollow=True if el.get('rel') == 'nofollow' else False
+            )
             links.append(link)
     return unique_list(links, key=lambda link: link.url) \
         if self.unique else links
 
 # Monkey-patch link extractor to ignore links with certain schemes
 LxmlParserLinkExtractor._extract_links = _extract_links
-
