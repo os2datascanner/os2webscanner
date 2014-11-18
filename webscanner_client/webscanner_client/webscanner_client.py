@@ -27,7 +27,7 @@ class WebscannerClient(object):
         docs = map(get_binary, documents)
         filenames = map(os.path.basename, documents)
         data = zip(docs, filenames)
-        
+
         return self._rpc_srv.scan_documents(user, password, data)
 
     def get_status(self, user, password, report_url):

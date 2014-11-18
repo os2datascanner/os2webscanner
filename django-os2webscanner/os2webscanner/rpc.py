@@ -81,6 +81,7 @@ def scan_documents(username, password, data):
             raise
     # Now create temporary dir, fill with files
     dirname = tempfile.mkdtemp(dir=settings.RPC_TMP_PREFIX)
+
     # Save files on disk
     def writefile(data_item):
         binary, filename = data_item
