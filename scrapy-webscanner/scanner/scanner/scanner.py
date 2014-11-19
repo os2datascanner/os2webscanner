@@ -47,10 +47,7 @@ class Scanner:
                     ignore_irrelevant=self.scan_object.do_cpr_ignore_irrelevant
                 )
             )
-        # TODO: Re-enable once we have a more sensible way of doing name scans.
-        # Note, this also disables name scanning for existing scanners.
-        # if self.scan_object.do_name_scan:
-        if False:
+        if self.scan_object.do_name_scan:
             rules.append(
                 NameRule(whitelist=self.scan_object.whitelisted_names)
             )

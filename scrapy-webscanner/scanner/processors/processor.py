@@ -14,6 +14,7 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 """Processors."""
+import codecs
 import random
 import subprocess
 
@@ -62,6 +63,7 @@ class Processor(object):
     """
 
     mime_magic = magic.Magic(mime=True)
+    encoding_magic = magic.Magic(mime_encoding=True)
 
     processors_by_type = {}
     processor_instances = {}
@@ -145,7 +147,8 @@ class Processor(object):
         Calls self.process.
         """
         try:
-            f = open(file_path, "r")
+            encoding = self.encoding_magic.from_file(file_path)
+            f = codecs.open(file_path, "r", encoding=encoding)
             self.process(f.read(), url)
             f.close()
         except IOError, e:

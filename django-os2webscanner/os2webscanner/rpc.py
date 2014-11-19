@@ -29,13 +29,14 @@ from .models import Match, Scan
 from django_xmlrpc.decorators import xmlrpc_func
 
 
-def scan_urls(username, password, urls):
+def scan_urls(username, password, urls, params={}):
     """Web service for scanning URLs specified by the caller.
 
     Parameters:
         * username (string) - login credentials
         * password (string) - login credentials
         * urls  (list of strings) - the URLs to be scanned.
+        * params (dict) - parameters for the scanner.
     Return value:
         The URL for retrieving the report.
     """
@@ -51,13 +52,14 @@ def scan_urls(username, password, urls):
     return "{0}{1}".format(settings.SITE_URL, url)
 
 
-def scan_documents(username, password, data):
+def scan_documents(username, password, data, params={}):
     """Web service for scanning the documents send by the caller.
 
     Parameters:
         * username (string) - login credentials
         * password (string) - login credentials
         * data (list of tuples) - (binary, filename) the files to be scanned.
+        * params (dict) - parameters for the scanner.
     Return value:
         The URL for retrieving the report.
     """
@@ -68,6 +70,8 @@ def scan_documents(username, password, data):
     user = authenticate(username=username, password=password)
     if not user:
         raise RuntimeError("Wrong username or password!")
+    if not isinstance(params, dict):
+        raise RuntimeError("Malformed params parameter.")
 
     # Create RPC dir for temp files
     rpcdir = settings.RPC_TMP_PREFIX
@@ -91,7 +95,7 @@ def scan_documents(username, password, data):
         return full_path
     documents = map(writefile, data)
     file_url = lambda f: 'file://{0}'.format(f)
-    scan = do_scan(user, map(file_url, documents))
+    scan = do_scan(user, map(file_url, documents), params)
     # map(os.remove, documents)
 
     url = scan.get_absolute_url()

@@ -68,13 +68,22 @@ def capitalize_first(s):
     return s.replace(s[0], s[0].upper(), 1)
 
 
-def do_scan(user, urls):
+def get_supported_rpc_params():
+    """Return a list of supported Scanner parameters for the RPC interface."""
+    return ["do_cpr_scan", "do_cpr_modulus11",
+           "do_cpr_ignore_irrelevant", "do_ocr", "do_name_scan"]
+
+
+def do_scan(user, urls, params={}):
     """Create a scanner to scan a list of URLs.
 
     The 'urls' parameter may be either http:// or file:// URLS - we expect the
     scanner to handle this distinction transparently. The list is assumed to be
     well-formed and denote existing files/URLs. The consequences of load errors
     etc. should be in the report.
+
+    The 'params' parameter should be a dict of supported Scanner
+    parameters and values. Defaults are used for unspecified parameters.
     """
     # TODO: Scan the listed URLs and return result to user
     scanner = models.Scanner()
@@ -85,6 +94,10 @@ def do_scan(user, urls):
     scanner.do_last_modified_check_head_request = False
     scanner.process_urls = urls
     scanner.is_visible = False
+
+    for param in get_supported_rpc_params():
+        if param in params:
+            setattr(scanner, param, params[param])
 
     scanner.save()
     for domain in scanner.organization.domains.all():
