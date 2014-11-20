@@ -43,6 +43,8 @@ def scan_urls(username, password, urls, params={}):
     # First check the user sent us a list
     if not isinstance(urls, list):
         raise RuntimeError("Malformed parameters.")
+    if not isinstance(params, dict):
+        raise RuntimeError("Malformed params parameter.")
     user = authenticate(username=username, password=password)
     if not user:
         raise RuntimeError("Wrong username or password!")
@@ -180,8 +182,9 @@ def get_report(username, password, report_url):
     # Print match header
     writer.writerow(e([u'URL', u'Regel', u'Match', u'Følsomhed']))
     for match in all_matches:
-        writer.writerow(e([match.url.url,
-                         match.get_matched_rule_display(),
-                         match.matched_data.replace('\n', ''),
-                         match.get_sensitivity_display()]))
+        writer.writerow(
+            e([match.url.url,
+               match.get_matched_rule_display(),
+               match.matched_data.replace('\n', '').replace('\r', ' '),
+               match.get_sensitivity_display()]))
     return output.getvalue()

@@ -22,39 +22,26 @@ parser.add_argument('-u', '--username', dest='username', help="Username",
                     required=True)
 
 
-# Add params arguments
+# Params arguments
 parser.add_argument('-c', '--cpr', dest='do_cpr_scan', help="Do CPR scan",
                     action="store_true", default=False)
-# parser.add_argument('--no-cpr', dest='do_cpr_scan', help="Do not CPR scan",
-#                     action="store_false",
-#                     default=None)
 
-parser.add_argument('--cpr-mod11', dest='do_cpr_modulus_11',
+parser.add_argument('--cpr-mod11', dest='do_cpr_modulus11',
                     help="Do CPR modulus 11 check",
                     action="store_true", default=False)
-# parser.add_argument('--no-cpr-mod11', dest='do_cpr_modulus_11',
-#                     help="Do not CPR modulus 11 check",
-#                     action="store_false", default=None)
 
-parser.add_argument('--cpr-ignore-irrelevant', dest='do_cpr_ignore_irrelevant',
+parser.add_argument('--cpr-ignore-irrelevant',
+                    dest='do_cpr_ignore_irrelevant',
                     help="Ignore irrelevant CPR birth dates",
                     action="store_true", default=False)
-# parser.add_argument('--no-ignore-irrelevant', dest='do_cpr_ignore_irrelevant',
-#                     help="Do not ignore irrelevant CPR birth dates",
-#                     action="store_false", default=None)
 
 parser.add_argument('-n', '--name', help="Do name scan", dest='do_name_scan',
                     action="store_true", default=False)
-# parser.add_argument('--no-name', help="Do not name scan", dest='do_name_scan',
-#                     action="store_false", default=None)
+
 
 parser.add_argument('-o', '--ocr', dest='do_ocr',
                     help="Do OCR scan", action="store_true",
                     default=False)
-# parser.add_argument('--no-ocr', dest='do_ocr',
-#                     help="Do not OCR scan",
-#                     action="store_false", default=None)
-
 
 
 parser.add_argument('-W', dest='webscanner_url',
@@ -66,7 +53,10 @@ parser.add_argument('--output-file', dest='output_file',
 
 args = parser.parse_args()
 
-# username = raw_input('User name: ')
+if not (args.do_cpr_scan or args.do_name_scan):
+    print "Must specify at least one type of scan (--cpr or --name)"
+    sys.exit()
+
 username = args.username
 password = getpass()
 
