@@ -32,6 +32,10 @@ New in this version:
  - New widget to maintain many to many links, including a search field to
    support very long lists.
  - Improved GUI design.
+ - Spreadsheets in formats XLSX/XLS/ODS are now scanned correctly.
+ - Improvements and bug-fixes to the XML-RPC interface.
+ - Sample RPC client has been improved significantly and now supports passing
+   parameters for the scan, and saving the report to a CSV file.
 
 
 * Version 1.1.0.5; November 4, 2014
