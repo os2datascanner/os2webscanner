@@ -6,7 +6,7 @@ New in this version:
  - Automatic retrieval of sitemap.xml, i.e. no explicit upload required.
  - You can now specify a number of individual recipients of scan reports.
    The organization contact will no longer receive these emails by default.
- - Details of specific scan are always copied to the scan report; an technical
+ - Details of specific scan are always copied to the scan report; a technical
    occurrence log has been added to the report to help diagnose scan failures
    and conversion errors, etc.
  - Minimize false positives: Many more irrelevant CPR matches are ignored.
@@ -36,6 +36,8 @@ New in this version:
  - Improvements and bug-fixes to the XML-RPC interface.
  - Sample RPC client has been improved significantly and now supports passing
    parameters for the scan, and saving the report to a CSV file.
+ - Schedule information now shown as Yes/No in scanner list.
+ - Documents sent and scanned via XML-RPC now retain file names in the URL.
 
 
 * Version 1.1.0.5; November 4, 2014
