@@ -56,10 +56,10 @@ class ScannerSpider(BaseScannerSpider):
 
         self.start_urls = []
 
-        if self.scanner.scanner_object.process_urls:
+        if self.scanner.scan_object.scanner.process_urls:
             # If the scan is run from a web service, use the starting urls
             # from the scanner.
-            self.start_urls = self.scanner.scanner_object.process_urls
+            self.start_urls = self.scanner.scan_object.scanner.process_urls
             self.crawl = False
         else:
             self.crawl = True
@@ -72,20 +72,19 @@ class ScannerSpider(BaseScannerSpider):
                 url = url.replace('*.', '')
                 self.start_urls.append(url)
 
-
         self.link_extractor = LxmlLinkExtractor(
             deny_extensions=(),
             tags=('a', 'area', 'frame', 'iframe', 'script'),
             attrs=('href', 'src')
         )
 
-        # TODO: Read from Scanner settings
-        scanner_object = self.scanner.scanner_object
+        # Read from Scanner settings
+        scan_object = self.scanner.scan_object
         self.do_last_modified_check = getattr(
-            scanner_object, "do_last_modified_check"
+            scan_object, "do_last_modified_check"
         )
         self.do_last_modified_check_head_request = getattr(
-            scanner_object, "do_last_modified_check_head_request"
+            scan_object, "do_last_modified_check_head_request"
         )
 
         self.referrers = {}
@@ -122,12 +121,12 @@ class ScannerSpider(BaseScannerSpider):
         self.scan(response)
 
         # Store referrer when doing link checks
-        if self.scanner.scanner_object.do_link_check:
+        if self.scanner.scan_object.do_link_check:
             source_url = response.request.url
             for request in requests:
                 target_url = request.url
                 self.referrers.setdefault(target_url, []).append(source_url)
-                if (self.scanner.scanner_object.do_external_link_check and
+                if (self.scanner.scan_object.do_external_link_check and
                         self.is_offsite(request)):
                     # Save external URLs for later checking
                     self.external_urls.add(target_url)
@@ -154,7 +153,7 @@ class ScannerSpider(BaseScannerSpider):
 
         If link checking is enabled, saves the broken URL and referrers.
         """
-        if (not self.scanner.scanner_object.do_link_check or
+        if (not self.scanner.scan_object.do_link_check or
                 (isinstance(failure.value, IgnoreRequest) and not isinstance(
                         failure.value, HttpError))):
             return
@@ -222,6 +221,10 @@ class ScannerSpider(BaseScannerSpider):
             log.msg("Guessing mime-type based on file extension",
                     level=log.DEBUG)
             mime_type, encoding = mimetypes.guess_type(response.url)
+            if not mime_type:
+                log.msg("Guessing mime-type based on file contents",
+                        level=log.DEBUG)
+                mime_type = self.magic.from_buffer(response.body)
             # Scrapy already guesses the encoding.. we don't need it
 
         if hasattr(response, "encoding"):
@@ -261,7 +264,7 @@ class ScannerSpider(BaseScannerSpider):
 
         # Save the URL item to the database
         if (Processor.mimetype_to_processor_type(mime_type) == 'ocr' and not
-            self.scanner.scanner_object.do_ocr):
+            self.scanner.scan_object.do_ocr):
             # Ignore this URL
             return
         url_object = Url(url=response.request.url, mime_type=mime_type,

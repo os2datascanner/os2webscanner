@@ -9,7 +9,7 @@ Rapport &dash; {{scan.scanner.name}}
 	<a href="{{ reports_url }}">&larr; Klik her for at vise listen over rapporter</a>
       </p>
       <div class="table-responsive">
-        <table class="table">
+        <table class="table table-bordered report">
             <tbody>
             <tr>
                 <td>Starttidspunkt:</td>
@@ -36,17 +36,71 @@ Rapport &dash; {{scan.scanner.name}}
             </tbody>
         </table>
       </div>
-      <p> {% if no_of_matches > 100 %}
-      Kun de første 100 resultater vises.
-      {% endif %}
-	<a href="./csv/">Klik her for at downloade hele rapporten</a>
-      </p>
-      {% if matches %}
-      <div class="table-responsive">
-		<table class="table table-striped">
-          <thead>
-            <tr>
-              <td>
+      <h3>Indstillinger</h3>
+
+    <div class="table-responsive">
+      <table class="table table-bordered report">
+          <tbody>
+          <tr>
+              <td {% if scan.do_ocr %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Scan Billeder?{% if scan.do_ocr %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td> 
+              <td {% if scan.do_last_modified_check %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Check Last-Modified{% if scan.do_last_modified_check %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td> 
+              <td {% if scan.do_last_modified_check_head_request %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Brug HEAD request{% if scan.do_last_modified_check_head_request %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
+          </tr>
+          <tr>
+              <td {% if scan.do_cpr_scan %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>CPR{% if scan.do_cpr_scan %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
+              <td {% if scan.do_cpr_modulus11 %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Check modulus-11{% if scan.do_cpr_modulus11 %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
+              <td {% if scan.do_cpr_ignore_irrelevant %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Ignorer irrelevante fødselsdatoer{% if scan.do_cpr_ignore_irrelevant %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
+              <td></td>
+          </tr>
+          <tr>
+            <td {% if scan.do_link_check %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Links{% if scan.do_link_check %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
+            <td {% if scan.do_external_link_check %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Eksterne links{% if scan.do_external_link_check %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
+              <td></td>
+        </tr>
+        <tr>
+            <td colspan="4"><b>Modtagere:</b> {% for profile in scan.recipients.all %}
+                                      {% if profile.user.email %}{{profile.user.email}}{% else %}{{profile.user.username}}{% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}
+            </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+{% if scan.domains.all or scan.regex_rules.all %}
+    <div class="table-responsive domains-regex">
+      <table class="table table-bordered report">
+        <tbody>
+        <tr>
+                {% if scan.domains.all %}<td class="head"> 
+                    <h3>Domæner</h3>
+		</td>{% endif %}
+                {% if scan.regex_rules.all %}<td class="head">
+                    <h3>Regex-regler</h3>
+                </td>{% endif %}
+        </tr>
+        <tr>
+                {% if scan.domains.all %}<td>
+                    {% for domain in scan.domains.all %}
+                    {{domain.url}}<br>
+                    {% endfor %}
+                </td>{% endif %}
+                {% if scan.regex_rules.all %}<td>
+                    {% for rule in scan.regex_rules.all %}
+                    {{rule.name}}<br>
+                    {% endfor %}
+                </td>{% endif %}
+            </tr>
+            </tbody>
+        </table>
+      </div>
+{% endif %}
+  {% if matches %}
+  <h2>Resultater</h2>
+  <p>{% if no_of_matches > 100 %}Kun de f&oslash;rste 100 resultater vises.{% endif %} <a href="./csv/">Klik her for at downloade hele rapporten</a></p>
+  <div class="table-responsive">
+            <table class="table table-striped">
+      <thead>
+        <tr>
+          <td>
                 <strong>
                   <small>
                     URL
@@ -80,7 +134,7 @@ Rapport &dash; {{scan.scanner.name}}
               <tr class="{{ match.get_sensitivity_class }}">
                   <td class="match-url">
                     <span>
-                        <a href="{{ match.url.url }}">{{ match.url.url }}</a>
+                        <a href="{{ match.url.url }}" target="_NEW">{{ match.url.url }}</a>
                     </span>
                   </td>
                   <td class="match-rule">
@@ -146,14 +200,14 @@ Rapport &dash; {{scan.scanner.name}}
                     {% with url.referrers.all as referrers %}
                         {% for referrer in referrers|slice:":5" %}
                         <p>
-                            <a href="{{referrer}}">{{ referrer }}</a>
+                            <a href="{{referrer}}" target="_NEW">{{ referrer }}</a>
                         </p>
                         {% endfor %}
                         {% if referrers|length > 5 %}
                             {% if full_report %}
                                 {% for referrer in referrers|slice:"5:" %}
                                 <p>
-                                    <a href="{{referrer}}">{{ referrer }}</a>
+                                    <a href="{{referrer}}" target="_NEW">{{ referrer }}</a>
                                 </p>
                                 {% endfor %}
                             {% else %}
@@ -169,7 +223,7 @@ Rapport &dash; {{scan.scanner.name}}
                 </td>
                 <td class="broken-url-url">
                         <span>
-                            <a href="{{ url.url }}"
+                            <a href="{{ url.url }}" target="_NEW"
                                name="broken_url{{url.id}}">{{ url.url }}</a>
                         </span>
                 </td>
@@ -183,6 +237,19 @@ Rapport &dash; {{scan.scanner.name}}
 
     </div>
     {% endif %}
+      
+    {% if failed_conversions or scan.status == "FAILED" %}
+    <div class="failed-conversions">
+      <h2>Fejllog</h2>
+      <pre>
+      
+      {{ scan.occurrence_log }}
+      
+      </pre>
+      <a href="/report/{{scan.id}}/log/">Se fuld log</a>
+    </div>
+    {% endif %}
+
 {% endblock %}
 
 {% block heading %}

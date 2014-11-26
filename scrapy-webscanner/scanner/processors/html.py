@@ -16,7 +16,7 @@
 """HTML Processors."""
 
 from processor import Processor
-from w3lib.html import replace_entities
+from w3lib.html import replace_entities, remove_tags_with_content
 
 from text import TextProcessor
 from scrapy import log
@@ -60,6 +60,8 @@ class HTMLProcessor(Processor):
         """
         log.msg("Process HTML %s" % url_object.url)
 
+        # Remove style tags to avoid false positives from inline styles
+        data = remove_tags_with_content(data, which_ones=('style',))
         # Convert HTML entities to their unicode representation
         entity_replaced_html = replace_entities(data)
 

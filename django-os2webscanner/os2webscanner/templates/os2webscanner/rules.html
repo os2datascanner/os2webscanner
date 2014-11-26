@@ -17,6 +17,15 @@ Regler
                   </small>
                 </strong>
               </td>
+              {% if user.is_superuser %}
+              <td>
+                <strong>
+                  <small>
+                    Organisation
+                  </small>
+                </strong>
+              </td>
+              {% endif %}
               <td>
                 <strong>
                   <small>
@@ -55,6 +64,13 @@ Regler
                     {{ rule.name }}
                 </span>
               </td>
+              {% if user.is_superuser %}
+              <td class="rule-organization">
+                <span>
+                    {{ rule.organization }}
+                </span>
+              </td>
+              {% endif %}
               <td class="rule-description">
                 <span>
                     {{ rule.description }}
@@ -116,11 +132,7 @@ Regler
 	</h4>
       </div>
       <div class="modal-body">
-	<iframe src="about:blank" frameborder="0"
-	  width="550" height="650"></iframe>
-      </div>
-      <div class="modal-footer">
-	<div class="btn-group"></div>
+	<iframe src="about:blank" frameborder="0"></iframe>
       </div>
     </div>
   </div>
@@ -139,11 +151,7 @@ Regler
 	</h4>
       </div>
       <div class="modal-body">
-	<iframe src="about:blank" frameborder="0"
-	  width="550" height="650"></iframe>
-      </div>
-      <div class="modal-footer">
-	<div class="btn-group"></div>
+	<iframe src="about:blank" frameborder="0"></iframe>
       </div>
     </div>
   </div>

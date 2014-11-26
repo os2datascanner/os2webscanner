@@ -20,10 +20,19 @@ class="active"
 	    </small>
 	  </strong>
 	</td>
+        {% if user.is_superuser %}
 	<td>
 	  <strong>
 	    <small>
-	      Kørsel
+	      Organisation
+	    </small>
+	  </strong>
+	</td>
+        {% endif %}
+	<td>
+	  <strong>
+	    <small>
+	      Automatisk kørsel
 	    </small>
 	  </strong>
 	</td>
@@ -44,9 +53,16 @@ class="active"
 	      {{scanner.name}}
 	  </span>
 	</td>
+        {% if user.is_superuser %}
+	<td class="scanner-organization">
+	  <span>
+	      {{scanner.organization}}
+	  </span>
+	</td>
+        {% endif %}
 	<td class="scanner-runtime">
 	  <span class="scanner-schedule-description">
-	      {{scanner.schedule_description}}
+	      {{ scanner.schedule_description|truncatechars:20 }}
 	  </span>
 
 	</td>
@@ -127,20 +143,7 @@ Scannere
 	</h4>
       </div>
       <div class="modal-body">
-	<iframe src="about:blank" frameborder="0"
-	  width="550" height="650"></iframe>
-      </div>
-      <div class="modal-footer">
-	{% if 0 %}{# disable for now #}
-	<div class="btn-group">
-	  <button type="button" class="btn btn-default" data-dismiss="modal">
-	    Luk
-	  </button>
-	  <button type="button" class="btn btn-primary">
-	    Gem ændringer
-	  </button>
-	</div>
-	{% endif %}
+	<iframe src="about:blank" frameborder="0"></iframe>
       </div>
     </div>
   </div>
@@ -159,20 +162,7 @@ Scannere
 	</h4>
       </div>
       <div class="modal-body">
-	<iframe src="about:blank" frameborder="0"
-	  width="550" height="650"></iframe>
-      </div>
-      <div class="modal-footer">
-	{% if 0 %}{# disable for now #}
-	<div class="btn-group">
-	  <button type="button" class="btn btn-default" data-dismiss="modal">
-	    Luk
-	  </button>
-	  <button type="button" class="btn btn-primary">
-	    Gem ændringer
-	  </button>
-	</div>
-	{% endif %}
+	<iframe src="about:blank" frameborder="0"></iframe>
       </div>
     </div>
   </div>
@@ -192,20 +182,7 @@ Scannere
 	</h4>
       </div>
       <div class="modal-body">
-	<iframe src="about:blank" frameborder="0"
-	  width="550" height="150"></iframe>
-      </div>
-      <div class="modal-footer">
-	{% if 0 %}{# disable for now #}
-	<div class="btn-group">
-	  <button type="button" class="btn btn-default" data-dismiss="modal">
-	    Luk
-	  </button>
-	  <button type="button" class="btn btn-primary">
-	    Gem ændringer
-	  </button>
-	</div>
-	{% endif %}
+	<iframe src="about:blank" frameborder="0"></iframe>
       </div>
     </div>
   </div>

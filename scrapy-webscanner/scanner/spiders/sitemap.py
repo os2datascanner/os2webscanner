@@ -20,14 +20,31 @@ class SitemapURLGathererSpider(BaseScannerSpider, SitemapSpider):
 
     name = 'sitemap_url_gatherer'
 
-    def __init__(self, scanner, sitemap_urls, sitemap_alternate_links, *a,
+    def __init__(self, scanner, sitemap_urls, uploaded_sitemap_urls,
+                 sitemap_alternate_links,
+                 *a,
                  **kw):
         """Initialize the sitemap spider."""
         super(SitemapURLGathererSpider, self).__init__(scanner=scanner, *a,
                                                        **kw)
         self.sitemap_urls = sitemap_urls
+        self.uploaded_sitemap_urls = uploaded_sitemap_urls
         self.sitemap_alternate_links = sitemap_alternate_links
         self.urls = []
+
+    def start_requests(self):
+        requests = []
+        for x in self.sitemap_urls:
+            requests.append(Request(x, callback=self._parse_sitemap))
+
+        # Add requests for uploaded sitemap files
+        for x in self.uploaded_sitemap_urls:
+            # Specify dont_filter because this is an uploaded sitemap file
+            # with a file:// URL and we don't want it filtered as an offsite
+            # request.
+            requests.append(Request(x, callback=self._parse_sitemap,
+                                    dont_filter=True))
+        return requests
 
     def _parse_sitemap(self, response):
         log.msg("Parsing sitemap %s" % response)

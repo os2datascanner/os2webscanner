@@ -14,7 +14,6 @@
 #
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
-
 """Run a scan by Scan ID."""
 import collections
 import urllib2
@@ -121,14 +120,16 @@ class ScannerApp:
 
         self.crawler_process = OrderedCrawlerProcess(settings)
 
-        self.sitemap_spider = self.setup_sitemap_spider()
+        # Don't sitemap scan when running over RPC
+        if not self.scan_object.scanner.process_urls:
+            self.sitemap_spider = self.setup_sitemap_spider()
         self.scanner_spider = self.setup_scanner_spider()
 
         # Run the crawlers and block
         self.crawler_process.start()
 
-        if (self.scanner.scanner_object.do_link_check
-                and self.scanner.scanner_object.do_external_link_check):
+        if (self.scanner.scan_object.do_link_check
+                and self.scanner.scan_object.do_external_link_check):
             # Do external link check
             self.external_link_check(self.scanner_spider.external_urls)
 
@@ -144,6 +145,8 @@ class ScannerApp:
         self.scan_object = Scan.objects.get(pk=self.scan_id)
         self.scan_object.pid = None
         self.scan_object.status = Scan.FAILED
+        self.scan.log_occurrence("SCANNER FAILED: Killed")
+        log.error("Killed")
         self.scan_object.reason = "Killed"
         # TODO: Remove all non-processed conversion queue items.
         self.scan_object.save()
@@ -154,6 +157,7 @@ class ScannerApp:
         sitemap_spider = SitemapURLGathererSpider(
             scanner=self.scanner,
             sitemap_urls=self.scanner.get_sitemap_urls(),
+            uploaded_sitemap_urls=self.scanner.get_uploaded_sitemap_urls(),
             sitemap_alternate_links=True
         )
         crawler.crawl(sitemap_spider)
@@ -172,7 +176,10 @@ class ScannerApp:
 
     def get_start_urls_from_sitemap(self):
         """Return the URLs found by the sitemap spider."""
-        return self.sitemap_spider.get_urls()
+        if hasattr(self, "sitemap_spider"):
+            return self.sitemap_spider.get_urls()
+        else:
+            return []
 
     def external_link_check(self, external_urls):
         """Perform external link checking."""

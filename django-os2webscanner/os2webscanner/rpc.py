@@ -29,19 +29,22 @@ from .models import Match, Scan
 from django_xmlrpc.decorators import xmlrpc_func
 
 
-def scan_urls(username, password, urls):
+def scan_urls(username, password, urls, params={}):
     """Web service for scanning URLs specified by the caller.
 
     Parameters:
         * username (string) - login credentials
         * password (string) - login credentials
         * urls  (list of strings) - the URLs to be scanned.
+        * params (dict) - parameters for the scanner.
     Return value:
         The URL for retrieving the report.
     """
     # First check the user sent us a list
     if not isinstance(urls, list):
         raise RuntimeError("Malformed parameters.")
+    if not isinstance(params, dict):
+        raise RuntimeError("Malformed params parameter.")
     user = authenticate(username=username, password=password)
     if not user:
         raise RuntimeError("Wrong username or password!")
@@ -51,35 +54,51 @@ def scan_urls(username, password, urls):
     return "{0}{1}".format(settings.SITE_URL, url)
 
 
-def scan_documents(username, password, binary_documents):
+def scan_documents(username, password, data, params={}):
     """Web service for scanning the documents send by the caller.
 
     Parameters:
         * username (string) - login credentials
         * password (string) - login credentials
-        * binary_documents  (list of data) - the files to be scanned.
+        * data (list of tuples) - (binary, filename) the files to be scanned.
+        * params (dict) - parameters for the scanner.
     Return value:
         The URL for retrieving the report.
     """
     # First check the user sent us a list
-    if not isinstance(binary_documents, list):
+    if not isinstance(data, list):
         raise RuntimeError("Malformed parameters.")
     # Authenticate
     user = authenticate(username=username, password=password)
     if not user:
         raise RuntimeError("Wrong username or password!")
+    if not isinstance(params, dict):
+        raise RuntimeError("Malformed params parameter.")
+
+    # Create RPC dir for temp files
+    rpcdir = settings.RPC_TMP_PREFIX
+    try:
+        os.makedirs(rpcdir)
+    except OSError:
+        if os.path.isdir(rpcdir):
+            pass
+        else:
+            # There was an error, so make sure we know about it
+            raise
+    # Now create temporary dir, fill with files
+    dirname = tempfile.mkdtemp(dir=settings.RPC_TMP_PREFIX)
 
     # Save files on disk
-    def writefile(binary_doc):
-        handle, filename = tempfile.mkstemp()
-        os.write(handle, binary_doc.data)
-        return filename
-
-    documents = map(writefile, binary_documents)
+    def writefile(data_item):
+        binary, filename = data_item
+        full_path = os.path.join(dirname, filename)
+        with open(full_path, "wb") as f:
+            f.write(binary.data)
+        return full_path
+    documents = map(writefile, data)
     file_url = lambda f: 'file://{0}'.format(f)
-    scan = do_scan(user, map(file_url, documents))
-    # Assuming scan was synchronous, we can now clean up files
-    map(os.remove, documents)
+    scan = do_scan(user, map(file_url, documents), params)
+    # map(os.remove, documents)
 
     url = scan.get_absolute_url()
     return "{0}{1}".format(settings.SITE_URL, url)
@@ -163,8 +182,9 @@ def get_report(username, password, report_url):
     # Print match header
     writer.writerow(e([u'URL', u'Regel', u'Match', u'Følsomhed']))
     for match in all_matches:
-        writer.writerow(e([match.url.url,
-                         match.get_matched_rule_display(),
-                         match.matched_data.replace('\n', ''),
-                         match.get_sensitivity_display()]))
+        writer.writerow(
+            e([match.url.url,
+               match.get_matched_rule_display(),
+               match.matched_data.replace('\n', '').replace('\r', ' '),
+               match.get_sensitivity_display()]))
     return output.getvalue()

@@ -16,43 +16,6 @@
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
   <![endif]-->
-  {% if 0 %}
-  <style type="text/css">
-    /* GENERAL */
-    .btn-disabled {
-        opacity:.5;
-    }
-    /* SCANNERS */
-    .scanner-status {
-        display:inline-block;
-        min-width:3em;
-    }
-    /* DOMAINS */
-    .btn-sitemap-upload {
-        position:relative;
-        overflow:hidden;
-    }
-    .btn-sitemap-upload input[type=file] {
-        position:absolute;
-        top:0;
-        right:0;
-        min-width:100%;
-        min-height:100%;
-        font-size:999px;
-        text-align:right;
-        filter:alpha(opacity=0);
-        opacity:0;
-        outline:none;
-        background:white;
-        cursor:inherit;
-        display:block;
-    }
-    /* RULES */
-    .rule-description {
-        max-width:20%;
-    }
-  </style>
-  {% endif %}
   {% block extra_head_html %}{% endblock %}
 </head>
 <body>
@@ -80,6 +43,13 @@
           <li {% block scanners_active %}{% endblock %}>
             <a href="/scanners/">Scannere</a>
           </li>
+          {% if user.get_profile.is_groups_enabled %}
+          {% if user.is_superuser or user.get_profile.is_group_admin %}
+          <li {% block groups_active %}{% endblock %}>
+            <a href="/groups/">Grupper</a>
+          </li>
+          {% endif %}
+          {% endif %}
           <li {% block domains_active %}{% endblock %}>
             <a href="/domains/">Domæner</a>
           </li>
@@ -91,9 +61,24 @@
               Rapporter
             </a>
             </li>
+          <li {% block summaries_active %}{% endblock %}>
+            <a href="/summaries/">
+              Opsummering
+            </a>
+            </li>
             {% if user.is_superuser %}
-            <li {% block system_status_active %}{% endblock %}>
-                <a href="/system/status/">System Status</a>
+            <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">System<span class="caret"></span></a>
+            <ul class="dropdown-menu" role="menu">
+                <li {% block system_status_active %}{% endblock %}>
+                <a href="/system/status/">Status</a>
+                </li>
+                <li>
+                <a href="/system/orgs_and_domains/">Domæneoversigt</a>
+                </li>
+                <li>
+                <a href="/admin/" target="_NEW">Administration</a>
+            </ul>
             </li>
             {% endif %}
             {% if user.is_authenticated %}

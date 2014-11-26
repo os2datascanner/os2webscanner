@@ -1,0 +1,146 @@
+{% extends 'os2webscanner/base.html' %}
+{% block rendertype %}regular{% endblock %}
+{%  block title %}
+Grupper
+{% endblock %}
+
+{% block body %}
+<div class="container">
+     <div class="table-responsive">
+	<table class="table table-striped">
+          <thead>
+            <tr>
+              <td>
+                <strong>
+                  <small>
+                    Navn
+                  </small>
+                </strong>
+              </td>
+              <td>
+                <strong>
+                  <small>
+                    Organisation
+                  </small>
+                </strong>
+              </td>
+              <td>
+                <strong>
+                  <small>
+                    Kontakt-email
+                  </small>
+                </strong>
+              </td>
+              <td>
+                <strong>
+                  <small>
+                    Telefon
+                  </small>
+                </strong>
+              </td>
+            </tr>
+          </thead>
+          <tbody>
+          {% for group in group_list %}
+            <tr>
+              <td class="group-name">
+                <span>
+                    {{group.name}}
+                </span>
+              </td>
+              <td class="group-organization">
+               <span>{{group.organization}}</span>
+              </td>
+              <td class="group-contact-email">
+                  <span>{{group.contact_email}}</span>
+              </td>
+              <td class="group-contact-phone">
+                  <span>{{group.contact_phone}}</span>
+              </td>
+              <td class="group-actions">
+                <button type="button"
+		  class="btn btn-default btn-xs btn-group-settings"
+		  onclick="os2web.iframeDialog(
+		      &quot;#edit-group-modal&quot;,
+		      &quot;/groups/{{group.pk}}&quot;,
+		      &quot;Redigér gruppe '{{group.name}}'&quot;
+		  )">
+              	  <span class="glyphicon glyphicon-cog"></span> <span>Redigér</span>
+		</button>
+                <a href="/groups/{{group.pk}}/delete/" class="btn btn-default btn-xs">
+                    <span class="glyphicon glyphicon-remove"></span>
+                    <span>Slet </span>
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+   </div>
+{% endblock %}
+
+{% block heading %} 
+Grupper 
+<span class="page-action" style="float:right;">
+    <button type="button" class="btn btn-default" data-toggle="modal"
+        data-target="#create-group-modal">
+        Tilføj ny 
+        <span style="position:relative;top:.15em;" class="glyphicon glyphicon-plus-sign">
+        </span>
+    </button>
+</span>
+{% endblock %}
+
+{% block modal %}
+<div class="modal iframe" id="create-group-modal" tabindex="-1" role="dialog"
+  aria-labelledby="create-group-modal-title" aria-hidden="true"
+  data-href="/groups/add/">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+	  &times;
+	</button>
+	<h4 class="modal-title" id="create-group-modal-title">
+	  Opret ny gruppe
+	</h4>
+      </div>
+      <div class="modal-body">
+	<iframe src="about:blank" frameborder="0"
+	  width="550" height="650"></iframe>
+      </div>
+      <div class="modal-footer">
+	<div class="btn-group"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal iframe" id="edit-group-modal" tabindex="-1" role="dialog"
+  aria-labelledby="edit-group-modal-title" aria-hidden="true"
+  data-href="/groups/add/">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+	  &times;
+	</button>
+	<h4 class="modal-title" id="edit-group-modal-title">
+	  Opret ny gruppe
+	</h4>
+      </div>
+      <div class="modal-body">
+	<iframe src="about:blank" frameborder="0"
+	  width="550" height="650"></iframe>
+      </div>
+      <div class="modal-footer">
+	<div class="btn-group"></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block groups_active %}
+class="active"
+{% endblock %}

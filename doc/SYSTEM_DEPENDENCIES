@@ -1,3 +1,5 @@
+apache2
+libapache2-mod-wsgi
 python-virtualenv
 postgresql
 libpq-dev
@@ -10,5 +12,5 @@ tesseract-ocr
 tesseract-ocr-dan
 pdftohtml
 unzip
-libreoffice-common
+libreoffice
 imagemagick

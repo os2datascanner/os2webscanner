@@ -17,6 +17,7 @@
 
 """Contains Django models for the Webscanner."""
 from django.db.models.aggregates import Count
+from urlparse import urljoin
 
 import os
 import shutil
@@ -29,8 +30,11 @@ from django.db import models
 from django.contrib.auth.models import User
 from recurrence.fields import RecurrenceField
 
-from os2webscanner.utils import notify_user
 from django.conf import settings
+
+
+base_dir = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 
 # Sensitivity values
@@ -59,6 +63,8 @@ class Organization(models.Model):
     name = models.CharField(max_length=256, unique=True, verbose_name='Navn')
     contact_email = models.CharField(max_length=256, verbose_name='Email')
     contact_phone = models.CharField(max_length=256, verbose_name='Telefon')
+    do_use_groups = models.BooleanField(default=False,
+                                        editable=settings.DO_USE_GROUPS)
 
     def __unicode__(self):
         """Return the name of the organization."""
@@ -79,10 +85,43 @@ class UserProfile(models.Model):
                              unique=True,
                              related_name='profile',
                              verbose_name='Bruger')
+    is_group_admin = models.BooleanField(default=False)
+
+    @property
+    def is_groups_enabled(self):
+        """Whether to activate groups in GUI."""
+        return settings.DO_USE_GROUPS
 
     def __unicode__(self):
         """Return the user's username."""
         return self.user.username
+
+
+class Group(models.Model):
+    """Represents the group or sub-organisation."""
+    name = models.CharField(max_length=256, unique=True, verbose_name='Navn')
+    contact_email = models.CharField(max_length=256, verbose_name='Email')
+    contact_phone = models.CharField(max_length=256, verbose_name='Telefon')
+    user_profiles = models.ManyToManyField(UserProfile, null=True, blank=True,
+                                           verbose_name='Brugere',
+                                           related_name='groups')
+    organization = models.ForeignKey(Organization,
+                                     null=False,
+                                     related_name='groups',
+                                     verbose_name='Organisation')
+
+    def __unicode__(self):
+        """Return the name of the group."""
+        return self.name
+
+    class Meta:
+        """Ordering and other options."""
+        ordering = ['name']
+
+    @property
+    def display_name(self):
+        """The name used when displaying the domain on the web page."""
+        return "Group '%s'" % self.__unicode__()
 
 
 class Domain(models.Model):
@@ -116,6 +155,11 @@ class Domain(models.Model):
                                      null=False,
                                      related_name='domains',
                                      verbose_name='Organisation')
+    group = models.ForeignKey(Group,
+                              null=True,
+                              blank=True,
+                              related_name='domains',
+                              verbose_name='Gruppe')
     validation_status = models.IntegerField(choices=validation_choices,
                                             default=INVALID,
                                             verbose_name='Valideringsstatus')
@@ -127,7 +171,16 @@ class Domain(models.Model):
                                        verbose_name='Ekskluderingsregler')
     sitemap = models.FileField(upload_to='sitemaps',
                                blank=True,
-                               verbose_name='Sitemap')
+                               verbose_name='Sitemap Fil')
+
+    sitemap_url = models.CharField(max_length=2048,
+                                   blank=True,
+                                   default="",
+                                   verbose_name='Sitemap Url')
+
+    download_sitemap = models.BooleanField(default=True,
+                                           verbose_name='Hent Sitemap fra '
+                                                        'serveren')
 
     @property
     def display_name(self):
@@ -160,7 +213,25 @@ class Domain(models.Model):
     @property
     def sitemap_full_path(self):
         """Get the absolute path to the uploaded sitemap.xml file."""
-        return "%s/%s" % (settings.BASE_DIR, self.sitemap.url)
+        return "%s/%s" % (settings.MEDIA_ROOT, self.sitemap.url)
+
+    @property
+    def default_sitemap_path(self):
+        return "/sitemap.xml"
+
+    def get_sitemap_url(self):
+        """Get the URL of the sitemap.xml file.
+
+        This will be the URL specified by the user, or if not present, the
+        URL of the default sitemap.xml file.
+        If downloading of the sitemap.xml file is disabled, this will return
+        None.
+        """
+        if not self.download_sitemap:
+            return None
+        else:
+            sitemap_url = self.sitemap_url or self.default_sitemap_path
+            return urljoin(self.root_url, sitemap_url)
 
     def get_absolute_url(self):
         """Get the absolute URL for domains."""
@@ -179,6 +250,8 @@ class RegexRule(models.Model):
                             verbose_name='Navn')
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')
+    group = models.ForeignKey(Group, null=True, blank=True,
+                              verbose_name='Gruppe')
     match_string = models.CharField(max_length=1024, blank=False,
                                     verbose_name='Udtryk')
 
@@ -209,6 +282,8 @@ class Scanner(models.Model):
                             verbose_name='Navn')
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')
+    group = models.ForeignKey(Group, null=True, blank=True,
+                                     verbose_name='Gruppe')
     schedule = RecurrenceField(max_length=1024,
                                verbose_name='Planlagt afvikling')
     whitelisted_names = models.TextField(max_length=4096, blank=True,
@@ -221,20 +296,27 @@ class Scanner(models.Model):
     do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder?')
     do_cpr_modulus11 = models.BooleanField(default=True,
                                            verbose_name='Check modulus-11')
+    do_cpr_ignore_irrelevant = models.BooleanField(
+        default=True,
+        verbose_name='Ignorer irrelevante fødselsdatoer')
     do_link_check = models.BooleanField(default=False,
                                         verbose_name='Linkcheck')
     do_external_link_check = models.BooleanField(default=False,
                                                  verbose_name='Check ' +
-                                                              'externe links')
+                                                              'eksterne links')
     do_last_modified_check = models.BooleanField(default=True,
                                                  verbose_name='Check ' +
                                                               'Last-Modified')
-    do_last_modified_check_head_request = \
-        models.BooleanField(default=True, verbose_name='Brug HEAD request')
+    do_last_modified_check_head_request = models.BooleanField(
+        default=True,
+        verbose_name='Brug HEAD request'
+    )
     regex_rules = models.ManyToManyField(RegexRule,
                                          blank=True,
                                          null=True,
                                          verbose_name='Regex regler')
+    recipients = models.ManyToManyField(UserProfile, null=True, blank=True,
+                                        verbose_name='Modtagere')
 
     # DON'T USE DIRECTLY !!!
     # Use process_urls property instead.
@@ -297,8 +379,12 @@ class Scanner(models.Model):
     @property
     def schedule_description(self):
         """A lambda for creating schedule description strings."""
-        f = lambda s: "Schedule: " + s
-        return f
+        rules = [r for r in self.schedule.rrules]  # Use r.to_text() to render
+        dates = [d for d in self.schedule.rdates]
+        if len(rules) > 0 or len(dates) > 0:
+            return u"Ja"
+        else:
+            return u"Nej"
 
     @property
     def has_active_scans(self):
@@ -307,7 +393,17 @@ class Scanner(models.Model):
                         Scan.NEW, Scan.STARTED)).count()
         return active_scanners > 0
 
-    def run(self, test_only=False):
+    @property
+    def has_valid_domains(self):
+        return len([d for d in self.domains.all() if d.validation_status]) > 0
+
+    # Run error messages
+    ALREADY_RUNNING = ("Scanneren kunne ikke startes," +
+                        " fordi der allerede er en scanning i gang for den.")
+    NO_VALID_DOMAINS = ("Scanneren kunne ikke startes," +
+                         " fordi den ikke har nogen gyldige domæner.")
+
+    def run(self, test_only=False, user=None):
         """Run a scan with the Scanner.
 
         Return the Scan object if we started the scanner.
@@ -317,14 +413,18 @@ class Scanner(models.Model):
         run one.
         """
         if self.has_active_scans:
-            return None
+            return Scanner.ALREADY_RUNNING
+
+        if not self.has_valid_domains:
+            return Scanner.NO_VALID_DOMAINS
+
         # Create a new Scan
-        scan = Scan(scanner=self, status=Scan.NEW)
-        scan.save()
+        scan = Scan.create(self)
+        # Add user as recipient on scan
+        if user:
+            scan.recipients.add(user.get_profile())
         # Get path to run script
-        SCRAPY_WEBSCANNER_DIR = os.path.join(os.path.dirname(os.path.dirname(
-            os.path.dirname(
-                os.path.realpath(__file__)))), "scrapy-webscanner")
+        SCRAPY_WEBSCANNER_DIR = os.path.join(base_dir, "scrapy-webscanner")
 
         if test_only:
             return scan
@@ -339,6 +439,7 @@ class Scanner(models.Model):
                             stderr=log_file,
                             stdout=log_file)
         except Exception as e:
+            print e
             return None
         return scan
 
@@ -349,6 +450,9 @@ class Scanner(models.Model):
     def __unicode__(self):
         """Return the name of the scanner."""
         return self.name
+
+    class Meta:
+        ordering = ['name']
 
 
 class Scan(models.Model):
@@ -361,6 +465,66 @@ class Scan(models.Model):
                                       verbose_name='Starttidspunkt')
     end_time = models.DateTimeField(blank=True, null=True,
                                     verbose_name='Sluttidspunkt')
+
+    # Begin setup copied from scanner
+
+    whitelisted_names = models.TextField(max_length=4096, blank=True,
+                                         default="",
+                                         verbose_name='Godkendte navne')
+    domains = models.ManyToManyField(Domain,
+                                     null=True,
+                                     verbose_name='Domæner')
+    do_cpr_scan = models.BooleanField(default=True, verbose_name='CPR')
+    do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
+    do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder?')
+    do_cpr_modulus11 = models.BooleanField(default=True,
+                                           verbose_name='Check modulus-11')
+    do_cpr_ignore_irrelevant = models.BooleanField(
+        default=True,
+        verbose_name='Ignorer irrelevante fødselsdatoer')
+    do_link_check = models.BooleanField(default=False,
+                                        verbose_name='Linkcheck')
+    do_external_link_check = models.BooleanField(default=False,
+                                                 verbose_name='Check ' +
+                                                              'externe links')
+    do_last_modified_check = models.BooleanField(default=True,
+                                                 verbose_name='Check ' +
+                                                              'Last-Modified')
+    do_last_modified_check_head_request = \
+        models.BooleanField(default=True, verbose_name='Brug HEAD request')
+    regex_rules = models.ManyToManyField(RegexRule,
+                                         blank=True,
+                                         null=True,
+                                         verbose_name='Regex regler')
+    recipients = models.ManyToManyField(UserProfile, null=True, blank=True)
+    # END setup copied from scanner
+
+    # Create method - copies fields from scanner
+    @classmethod
+    def create(scan_cls, scanner):
+        """ Create and copy fields from scanner. """
+        scan = scan_cls(
+            whitelisted_names=scanner.whitelisted_names,
+            do_cpr_scan=scanner.do_cpr_scan,
+            do_name_scan=scanner.do_name_scan,
+            do_ocr=scanner.do_ocr,
+            do_cpr_modulus11=scanner.do_cpr_modulus11,
+            do_cpr_ignore_irrelevant=scanner.do_cpr_ignore_irrelevant,
+            do_link_check=scanner.do_link_check,
+            do_external_link_check=scanner.do_external_link_check,
+            do_last_modified_check=scanner.do_last_modified_check,
+            do_last_modified_check_head_request=scanner.
+            do_last_modified_check_head_request
+        )
+        #
+        scan.status = Scan.NEW
+        scan.scanner = scanner
+        scan.save()
+        scan.domains.add(*scanner.domains.all())
+        scan.regex_rules.add(*scanner.regex_rules.all())
+        scan.recipients.add(*scanner.recipients.all())
+
+        return scan
 
     # Scan status
     NEW = "NEW"
@@ -407,6 +571,24 @@ class Scan(models.Model):
         """Return the log file path associated with this scan."""
         return os.path.join(self.scan_log_dir, 'scan_%s.log' % self.pk)
 
+    # Occurrence log - mainly for the scanner to notify when something FAILS.
+    def log_occurrence(self, string):
+        with open(self.occurrence_log_file, "a") as f:
+            f.write("{0}\n".format(string))
+
+    @property
+    def occurrence_log(self):
+        try:
+            with open(self.occurrence_log_file, "r") as f:
+                return f.read()
+        except IOError:
+            return ""
+
+    @property
+    def occurrence_log_file(self):
+        """Return the file path to this scan's occurrence log."""
+        return os.path.join(self.scan_log_dir, 'occurrence_%s.log' % self.pk)
+
     # Reason for failure
     reason = models.CharField(max_length=1024, blank=True, default="",
                               verbose_name='Årsag')
@@ -419,9 +601,27 @@ class Scan(models.Model):
             status=ConversionQueueItem.FAILED
         ).count()
 
+    @property
+    def no_of_matches(self):
+        """Return the number of matches for this scan."""
+        return self.matches.count()
+
+    @property
+    def no_of_critical_matches(self):
+        """Return the number of *critical* matches, <= no_of_matches."""
+        return self.matches.filter(sensitivity=Sensitivity.HIGH).count()
+
+    @property
+    def no_of_broken_links(self):
+        """Return the number of broken links for this scan."""
+        return self.urls.exclude(status_code__isnull=True).count()
+
     def __unicode__(self):
         """Return the name of the scan's scanner."""
-        return "SCAN: " + self.scanner.name
+        try:
+            return "SCAN: " + self.scanner.name
+        except:
+            return "ORPHANED SCAN: " + str(self.id)
 
     def save(self, *args, **kwargs):
         """Save changes to the scan.
@@ -441,6 +641,7 @@ class Scan(models.Model):
         if (self.status in [Scan.DONE, Scan.FAILED] and
             (self._old_status != self.status)):
             # Send email
+            from os2webscanner.utils import notify_user
             notify_user(self)
 
             self.cleanup_finished_scan()
@@ -549,7 +750,8 @@ class Url(models.Model):
 
     url = models.CharField(max_length=2048, verbose_name='Url')
     mime_type = models.CharField(max_length=256, verbose_name='Mime-type')
-    scan = models.ForeignKey(Scan, null=False, verbose_name='Scan')
+    scan = models.ForeignKey(Scan, null=False, verbose_name='Scan',
+                             related_name='urls')
     status_code = models.IntegerField(blank=True, null=True,
                                       verbose_name='Status code')
     status_message = models.CharField(blank=True, null=True, max_length=256,
@@ -573,7 +775,8 @@ class Match(models.Model):
     """The data associated with a single match in a single URL."""
 
     url = models.ForeignKey(Url, null=False, verbose_name='Url')
-    scan = models.ForeignKey(Scan, null=False, verbose_name='Scan')
+    scan = models.ForeignKey(Scan, null=False, verbose_name='Scan',
+                             related_name='matches')
     matched_data = models.CharField(max_length=1024, verbose_name='Data match')
     matched_rule = models.CharField(max_length=256, verbose_name='Regel match')
     sensitivity = models.IntegerField(choices=Sensitivity.choices,
@@ -677,3 +880,39 @@ class UrlLastModified(models.Model):
     def __unicode__(self):
         """Return the URL and last modified date."""
         return "<%s %s>" % (self.url, self.last_modified)
+
+
+class Summary(models.Model):
+
+    """The necessary configuration for summary reports."""
+
+    name = models.CharField(max_length=256, unique=True, null=False,
+                            verbose_name='Navn')
+    description = models.TextField(verbose_name='Beskrivelse', null=True,
+                                   blank=True)
+    schedule = RecurrenceField(max_length=1024,
+                               verbose_name='Planlagt afvikling')
+    last_run = models.DateTimeField(blank=True, null=True,
+                                      verbose_name='Sidste kørsel')
+    recipients = models.ManyToManyField(UserProfile, null=True, blank=True,
+                                        verbose_name="Modtagere")
+    scanners = models.ManyToManyField(Scanner, null=True, blank=True,
+                                      verbose_name="Scannere")
+    organization = models.ForeignKey(Organization, null=False,
+                                     verbose_name='Organisation')
+    group = models.ForeignKey(Group, null=True, blank=True,
+                                     verbose_name='Gruppe')
+    do_email_recipients = models.BooleanField(default=False,
+                                              verbose_name="Udsend mails")
+
+    def __unicode__(self):
+        """Return the name as a text representation of this summary object."""
+        return self.name
+
+    @property
+    def display_name(self):
+        """Display name = name."""
+        return self.name
+
+    class Meta:
+        ordering = ['name', ]

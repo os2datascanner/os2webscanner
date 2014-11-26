@@ -65,6 +65,13 @@ for scanner in Scanner.objects.exclude(schedule=""):
         print reason
         continue
 
+    # We have to set the times of the specific dates to the start time in
+    # order for the recurrence rule check to work
+    for i in range(len(schedule.rdates)):
+        rdate = schedule.rdates[i]
+        schedule.rdates[i] = rdate.replace(hour=start_time.hour,
+                                           minute=start_time.minute)
+
     # Check if it's time to run the scanner
     if not schedule.between(
         current_qhr, next_qhr,

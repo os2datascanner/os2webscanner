@@ -69,11 +69,14 @@ class ScannerTest(TestCase):
         """Test running a scan."""
         domain = Domain(url="http://www.magenta.dk/",
                         organization=self.magenta,
-                        validation_method=Domain.ROBOTSTXT)
+                        validation_method=Domain.ROBOTSTXT,
+                        validation_status=1)
         scanner = Scanner(organization=self.magenta, schedule="")
         scanner.save()
+        domain.save()
+        scanner.domains.add(domain)
         self.assertTrue(isinstance(scanner.run(test_only=True), Scan))
-        self.assertFalse(scanner.run(test_only=True))
+        self.assertFalse(isinstance(scanner.run(test_only=True), Scan))
 
 
 def pep8_test(filepath):
@@ -98,4 +101,4 @@ class Pep8Test(TestCase):
 
     test_os2webscanner = pep8_test(j('django-os2webscanner'))
     test_scrapywebscanner = pep8_test(j('scrapy-webscanner'))
-    test_scrapywebscanner = pep8_test(j('webscanner_client'))
+    test_webscanner_client = pep8_test(j('webscanner_client'))
