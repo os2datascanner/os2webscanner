@@ -120,13 +120,12 @@ cp local_settings.py.example local_settings.py
 ```
 
 In order to make your database setup work, you must override the default
-DATABASES configuration by adding the following to `local_settings.py`:
+DATABASES configuration.
 
 A sample `local_settings.py` configured for your server could look like this:
 
 ```
 SITE_URL = 'http://webscanner.kommune.dk'
-DEFAULT_FROM_EMAIL = 'your@email'
 STATIC_ROOT = '/home/os2/os2webscanner/webscanner_site/static'
 MEDIA_ROOT = '/home/os2/os2webscanner/webscanner_site/uploads'
 DEFAULT_FROM_EMAIL = 'your@email'
@@ -195,7 +194,7 @@ sudo a2enmod rewrite
 sudo a2enmod ssl
 ```
 
-You also need to create the Apacheudlog directories:
+You also need to create the Apache log directories:
 
 ```
 sudo mkdir -p /var/log/os2webscanner/
