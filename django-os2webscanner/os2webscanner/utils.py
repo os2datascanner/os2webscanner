@@ -74,7 +74,7 @@ def get_supported_rpc_params():
            "do_cpr_ignore_irrelevant", "do_ocr", "do_name_scan"]
 
 
-def do_scan(user, urls, params={}):
+def do_scan(user, urls, params={}, add_domains=True):
     """Create a scanner to scan a list of URLs.
 
     The 'urls' parameter may be either http:// or file:// URLS - we expect the
@@ -85,7 +85,7 @@ def do_scan(user, urls, params={}):
     The 'params' parameter should be a dict of supported Scanner
     parameters and values. Defaults are used for unspecified parameters.
     """
-    # TODO: Scan the listed URLs and return result to user
+    # Scan the listed URLs and return result to user
     scanner = models.Scanner()
     scanner.organization = user.get_profile().organization
     scanner.name = user.username + '-' + str(time.time())
@@ -100,8 +100,10 @@ def do_scan(user, urls, params={}):
             setattr(scanner, param, params[param])
 
     scanner.save()
-    for domain in scanner.organization.domains.all():
-        scanner.domains.add(domain)
+    # Add domains if necessary
+    if add_domains:
+        for domain in scanner.organization.domains.all():
+            scanner.domains.add(domain)
     scanner.run(user=user)
 
     scan = scanner.scans.all()[0]

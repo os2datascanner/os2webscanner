@@ -55,7 +55,7 @@ def scan_urls(username, password, urls, params={}):
 
 
 def scan_documents(username, password, data, params={}):
-    """Web service for scanning the documents send by the caller.
+    """Web service for scanning the documents sent by the caller.
 
     Parameters:
         * username (string) - login credentials
@@ -97,7 +97,7 @@ def scan_documents(username, password, data, params={}):
         return full_path
     documents = map(writefile, data)
     file_url = lambda f: 'file://{0}'.format(f)
-    scan = do_scan(user, map(file_url, documents), params)
+    scan = do_scan(user, map(file_url, documents), params, add_domains=False)
     # map(os.remove, documents)
 
     url = scan.get_absolute_url()
