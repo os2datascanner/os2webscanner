@@ -27,13 +27,12 @@ from ..items import MatchItem
 
 # Match whitespace except newlines
 _whitespace = "[^\\S\\n\\r]+"
-
+_simple_name = "\\p{Uppercase}(\\p{Lowercase}+|\\.?)"
+_name = "{0}(-{0})?".format(_simple_name)
 name_regex = regex.compile(
-    "\\b(?P<first>\\p{Uppercase}\\p{Lowercase}+)" +
-    "(?P<middle>(" + _whitespace +
-    "\\p{Uppercase}(\\p{Lowercase}+|\\.)){0,2})" + _whitespace +
-    "(?P<last>\\p{Uppercase}\\p{Lowercase}+)\\b",
-    regex.UNICODE)
+    "\\b(?P<first>" + _name + ")" + 
+    "(?P<middle>(" + _whitespace + _name + "){0,2})" + _whitespace + 
+    "(?P<last>" + _name + ")\\b", regex.UNICODE)
 
 
 def match_name(text):
