@@ -126,10 +126,13 @@ class NameRule(Rule):
 
     def execute(self, text):
         """Execute the Name rule."""
-        # First, check for whole names, i.e. at least Firstname + Lastname
-        names = match_full_name(text)
         matches = set()
         unmatched_text = text
+        # Determine if a name matches one of the lists
+        match = lambda n, list: n in list and not n in self.whitelist
+
+        # First, check for whole names, i.e. at least Firstname + Lastname
+        names = match_full_name(text)
         for name in names:
             # Match each name against the list of first and last names
             first_name = name[0].upper()
@@ -138,10 +141,11 @@ class NameRule(Rule):
 
             if u"%s %s" % (first_name, last_name) in self.whitelist:
                 continue
-
-            first_match = first_name in self.first_names
-            last_match = last_name in self.last_names
-            middle_match = any([n in self.all_names for n in middle_names])
+            first_match = match(first_name, self.first_names)
+            last_match = match(last_name, self.last_names)
+            middle_match = any(
+                [match(n, self.all_names) for n in middle_names]
+            )
             # Name match is always high sensitivity
             # and occurs only when first and last name are in the name lists
             # Set sensitivity according to how many of the names were found
@@ -153,7 +157,7 @@ class NameRule(Rule):
             else:
                 #sensitivity = Sensitivity.OK
                 continue
-
+            
             # Store the original matching text
             matched_text = name[3]
 
@@ -169,7 +173,7 @@ class NameRule(Rule):
         it = name_regex.finditer(unmatched_text, overlapped=False)
         for m in it:
             matched = m.group(0)
-            if matched.upper() in self.all_names:
+            if match(matched.upper(), self.all_names):
                 matches.add(
                     MatchItem(matched_data=matched,
                               sensitivity=Sensitivity.LOW)
