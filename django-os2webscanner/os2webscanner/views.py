@@ -18,10 +18,11 @@
 
 import csv
 from django import forms
+from django.template import RequestContext
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.db.models import Count, Q
 from django.http import Http404, HttpResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, render_to_response
 from django.views.generic import View, ListView, TemplateView, DetailView
 from django.views.generic.edit import ModelFormMixin, DeleteView
 from django.views.generic.edit import CreateView, UpdateView
@@ -30,11 +31,14 @@ from django.utils.decorators import method_decorator
 from django.forms.models import modelform_factory
 from django.conf import settings
 
+from webscanner_client import WebscannerClient
+
 from .validate import validate_domain, get_validation_str
 
 from .models import Scanner, Domain, RegexRule, Scan, Match, UserProfile, Url
 from .models import Organization, ConversionQueueItem, Group, Summary
 from .utils import scans_for_summary_report
+from .forms import FileUploadForm
 
 
 class LoginRequiredMixin(View):
@@ -1116,3 +1120,23 @@ class SummaryReport(RestrictedDetailView):
         context['to_date'] = to_date
 
         return context
+
+
+@login_required
+def file_upload(request):
+    """Handle upload of file for scanning."""
+    if request.method == 'POST':
+        form = FileUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            # Perform the scan
+            upload_file = request.FILES['scan_file']
+            # TODO: Implement this
+
+            # TODO: Load CSV file, write it back to the client
+    else:
+        form = FileUploadForm()
+
+    return render_to_response(
+        'os2webscanner/file_upload.html',
+        RequestContext(request, {'form': form})
+    )

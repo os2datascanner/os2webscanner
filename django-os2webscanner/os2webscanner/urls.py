@@ -28,10 +28,10 @@ from .views import DomainCreate, DomainUpdate, DomainValidate, DomainDelete
 from .views import GroupList, GroupCreate, GroupUpdate, GroupDelete
 from .views import RuleCreate, RuleUpdate, RuleDelete, OrganizationList
 from .views import SummaryList, SummaryCreate, SummaryUpdate, SummaryDelete
-from .views import SummaryReport
-from .views import DialogSuccess
-from .views import SystemStatusView
+from .views import SummaryReport, DialogSuccess, SystemStatusView
+from .views import file_upload
 from .models import Scanner
+from .forms import FileUploadForm
 
 
 js_info_dict = {
@@ -111,10 +111,11 @@ urlpatterns = patterns(
     url(r'^(scanners|domains|rules|groups|summaries)/(\d+)/(saved)/$',
         DialogSuccess.as_view()),
     url(r'^jsi18n/$', javascript_catalog, js_info_dict),
-
+    # System functions
     url(r'^system/status/?$', SystemStatusView.as_view()),
     url(r'^system/orgs_and_domains/$', OrganizationList.as_view(),
         name='orgs_and_domains'),
+    url(r'system/upload_file', file_upload, name='file_upload')
 )
 
 if settings.DO_USE_GROUPS:
