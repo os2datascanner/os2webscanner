@@ -82,8 +82,15 @@ class CSVProcessor(Processor):
         reader = unicodecsv.reader(StringIO.StringIO(data.encode('utf-8')),
                                    dialect)
         first_row = True
+        header_row = []
         for row in reader:
-            rules_matched_in_row = set()
+            warnings_in_row = []
+            if first_row:
+                header_row = row
+                # Append column header
+                row.append("Matches")
+                first_row = False
+
             for i in range(len(row)):
                 # Execute rules on each cell
                 matches = scanner.execute_rules(row[i])
@@ -93,9 +100,7 @@ class CSVProcessor(Processor):
                     match['scan'] = url_object.scan
                     match.save()
 
-                    # Add the matched rule to the set of rules matched in
-                    # this row
-                    rules_matched_in_row.add(match['matched_rule'])
+                    warnings_in_row.append((match['matched_rule'], i))
 
                     # Only replace HIGH sensitivity matches
                     if not match['sensitivity'] == Sensitivity.HIGH:
@@ -124,15 +129,13 @@ class CSVProcessor(Processor):
                             search_text = match['matched_data']
                         row[i] = row[i].replace(search_text, replacement)
 
-            if first_row:
-                # Append column header
-                row.append("Matches")
-                first_row = False
-            else:
-                # Add annotation cell
-                annotation = ", ".join(Match.get_matched_rule_display_name(rule)
-                                       for rule in rules_matched_in_row)
-                row.append(annotation)
+            # Add annotation cell indicating which rules were matched and in
+            # which column
+            annotation = ", ".join("%s (%s)" % (
+                Match.get_matched_rule_display_name(warning[0]),
+                header_row[warning[1]]
+            ) for warning in warnings_in_row)
+            row.append(annotation)
             rows.append(row)
 
         # Write to output file
