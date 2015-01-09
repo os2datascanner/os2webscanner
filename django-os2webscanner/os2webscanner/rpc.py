@@ -48,7 +48,7 @@ def scan_urls(username, password, urls, params={}):
     user = authenticate(username=username, password=password)
     if not user:
         raise RuntimeError("Wrong username or password!")
-    scan = do_scan(user, urls)
+    scan = do_scan(user, urls, params)
 
     url = scan.get_absolute_url()
     return "{0}{1}".format(settings.SITE_URL, url)
