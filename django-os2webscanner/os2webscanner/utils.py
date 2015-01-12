@@ -100,11 +100,12 @@ def do_scan(user, urls, params={}):
             setattr(scanner, param, params[param])
 
     scanner.save()
+
     for domain in scanner.organization.domains.all():
         scanner.domains.add(domain)
-    scanner.run(user=user)
-
-    scan = scanner.scans.all()[0]
+    scan = scanner.run(user=user)
+    # NOTE: Running scan may have failed.
+    # Pass the error message or empty scan in that case.
     return scan
 
 

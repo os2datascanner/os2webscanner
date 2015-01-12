@@ -17,6 +17,8 @@
 """Contains Django views."""
 
 import csv
+from shutil import copyfile
+
 from django import forms
 from django.template import RequestContext
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
@@ -31,13 +33,11 @@ from django.utils.decorators import method_decorator
 from django.forms.models import modelform_factory
 from django.conf import settings
 
-from webscanner_client import WebscannerClient
-
 from .validate import validate_domain, get_validation_str
 
 from .models import Scanner, Domain, RegexRule, Scan, Match, UserProfile, Url
 from .models import Organization, ConversionQueueItem, Group, Summary
-from .utils import scans_for_summary_report
+from .utils import scans_for_summary_report, do_scan
 from .forms import FileUploadForm
 
 
@@ -1130,13 +1130,62 @@ def file_upload(request):
         if form.is_valid():
             # Perform the scan
             upload_file = request.FILES['scan_file']
-            # TODO: Implement this
-
+            path = upload_file.temporary_file_path()
+            file_path = '_'.join([path, upload_file.name])
+            copyfile(path, file_path)
+            print file_path
+            file_url = 'file://{0}'.format(file_path)
+            scan = do_scan(request.user, [file_path])
             # TODO: Load CSV file, write it back to the client
-    else:
-        form = FileUploadForm()
+            # TODO: Remove CSV file after use.
+            if not isinstance(scan, Scan):
+                raise RuntimeError("Unable to perform scan - check user has" 
+                                   "organization and valid domain")
+            i = 0
+            while not scan.status in (Scan.DONE, Scan.FAILED):
+                i = i +1
+                if i > 100:
+                    break
+                
+            print "Scan is done! CSV file ready!"
+            # We now have the scan object
+            response = HttpResponse(content_type='text/csv')
+            report_file = u'{0}{1}.csv'.format(
+                scan.scanner.organization.name.replace(u' ', u'_'),
+                scan.id)
+            response[
+                'Content-Disposition'
+            ] = u'attachment; filename={0}'.format(report_file)
+            writer = csv.writer(response)
 
-    return render_to_response(
-        'os2webscanner/file_upload.html',
-        RequestContext(request, {'form': form})
-    )
+            all_matches = Match.objects.filter(scan=scan).order_by(
+                '-sensitivity', 'url', 'matched_rule', 'matched_data'
+            )
+            # CSV utilities
+            e = lambda fields: ([f.encode('utf-8') for f in fields])
+            # Print summary header
+            writer.writerow(e([u'Starttidspunkt', u'Sluttidspunkt', u'Status',
+                               u'Totalt antal matches']))
+            # Print summary
+            writer.writerow(e([str(scan.start_time),
+                               str(scan.end_time), scan.get_status_display(),
+                               str(len(all_matches))]))
+            # Print match header
+            writer.writerow(e([u'URL', u'Regel', u'Match', u'Følsomhed']))
+            for match in all_matches:
+                writer.writerow(
+                    e([match.url.url,
+                       match.get_matched_rule_display(),
+                       match.matched_data.replace('\n',
+                                                  '').replace('\r', ' '),
+               match.get_sensitivity_display()]))
+            return response
+
+        else:
+            # Request.method == 'GET'
+            form = FileUploadForm()
+
+            return render_to_response(
+                'os2webscanner/file_upload.html',
+                RequestContext(request, {'form': form})
+            )
