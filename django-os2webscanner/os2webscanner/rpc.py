@@ -29,7 +29,6 @@ from .models import Match, Scan
 from django_xmlrpc.decorators import xmlrpc_func
 
 
-
 @xmlrpc_func(returns='string', args=['string', 'string', 'string', 'dict'])
 def scan_urls(username, password, urls, params={}):
     """Web service for scanning URLs specified by the caller.
@@ -64,12 +63,12 @@ def scan_documents(username, password, data, params={}):
         The URL for retrieving the report.
     """
     # Authenticate
-    import pdb; pdb.set_trace()
     user = authenticate(username=username, password=password)
     if not user:
         raise RuntimeError("Wrong username or password!")
 
     return do_scan_documents(user, data, params)
+
 
 @xmlrpc_func(returns='list', args=['string', 'string', 'string'])
 def get_status(username, password, report_url):
@@ -200,12 +199,10 @@ def do_scan_documents(user, data, params={}):
         return full_path
     documents = map(writefile, data)
     file_url = lambda f: 'file://{0}'.format(f)
-    scan = do_scan(user, map(file_url, documents), params)
+    scan = do_scan(user, map(file_url, documents), params, blocking=True)
     # map(os.remove, documents)
     if not isinstance(scan, Scan):
         raise RuntimeError("Unable to perform scan - check user has" +
                            "organization and valid domain")
     url = scan.get_absolute_url()
     return "{0}{1}".format(settings.SITE_URL, url)
-
-

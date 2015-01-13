@@ -16,7 +16,9 @@
 # source municipalities ( http://www.os2web.dk/ )
 """Contains Django views."""
 
+import os
 import csv
+import tempfile
 from shutil import copyfile
 
 from django import forms
@@ -1150,17 +1152,28 @@ def file_upload(request):
                 'address_replacement_text'
             ]
             params['output_spreadsheet_file'] = True
-            
+
             path = upload_file.temporary_file_path()
-            file_path = '_'.join([path, upload_file.name])
+            rpcdir = settings.RPC_TMP_PREFIX
+            try:
+                os.makedirs(rpcdir)
+            except OSError:
+                if os.path.isdir(rpcdir):
+                    pass
+                else:
+                    # There was an error, so make sure we know about it
+                    raise
+            # Now create temporary dir, fill with files
+            dirname = tempfile.mkdtemp(dir=rpcdir)
+            file_path = os.path.join(dirname, upload_file.name)
             copyfile(path, file_path)
             print file_path
             file_url = 'file://{0}'.format(file_path)
             scan = do_scan(request.user, [file_url], params, blocking=True)
 
-            # 
+            #
             if not isinstance(scan, Scan):
-                raise RuntimeError("Unable to perform scan - check user has" 
+                raise RuntimeError("Unable to perform scan - check user has"
                                    "organization and valid domain")
             print "Scan is done! CSV file ready!"
             # We now have the scan object
@@ -1173,9 +1186,9 @@ def file_upload(request):
             ] = u'attachment; filename={0}'.format(report_file)
             writer = csv.writer(response)
             csv_file = open(scan.scan_output_file, "rb")
-            
+
             # TODO: Load CSV file, write it back to the client
-            for row in csv.reader(csvfile):
+            for row in csv.reader(csv_file):
                 writer.writerow(row)
 
             return response
@@ -1185,6 +1198,6 @@ def file_upload(request):
         form = FileUploadForm()
 
     return render_to_response(
-        'os2webscanner/file_upload.html', 
+        'os2webscanner/file_upload.html',
         RequestContext(request, {'form': form})
     )

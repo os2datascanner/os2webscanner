@@ -46,7 +46,7 @@ class CSVProcessor(Processor):
     def process(self, data, url_object):
         """Process the CSV, by executing rules and saving matches."""
         scanner = Scanner(url_object.scan.pk)
-
+        print "*** 1 ***"
         # If we don't have to do any annotation/replacement, treat it like a
         # normal text file for efficiency
         if not scanner.scan_object.output_spreadsheet_file:
@@ -67,6 +67,7 @@ class CSVProcessor(Processor):
         dialect.escapechar = '\\'
         dialect.quoting = unicodecsv.QUOTE_ALL
 
+        print "*** 2 ***"
         # Convert unicode dialect properties to str because csv.Reader
         # expects them to be
         dialect.delimiter = str(dialect.delimiter)
@@ -78,6 +79,7 @@ class CSVProcessor(Processor):
 
         rows = []
 
+        print "*** 3 ***"
         # Read CSV file
         reader = unicodecsv.reader(StringIO.StringIO(data.encode('utf-8')),
                                    dialect)
@@ -109,7 +111,7 @@ class CSVProcessor(Processor):
                     if (scanner.scan_object.do_cpr_replace and
                             match['matched_rule'] == 'cpr'):
                         replacement = scanner.scan_object.cpr_replace_text
-                    elif (scanner.scan_object.do_name_replace and 
+                    elif (scanner.scan_object.do_name_replace and
                           match['matched_rule'] == 'name'):
                         replacement = scanner.scan_object.name_replace_text
                     elif (scanner.scan_object.do_address_replace and
@@ -138,10 +140,12 @@ class CSVProcessor(Processor):
             row.append(annotation)
             rows.append(row)
 
+        print "*** 4 ***"
         # Write to output file
         with open(scanner.scan_object.scan_output_file, 'w') as f:
             writer = unicodecsv.writer(f, dialect)
             writer.writerows(rows)
+        print "*** 5 ***"
         return True
 
 Processor.register_processor(CSVProcessor.item_type, CSVProcessor)

@@ -47,7 +47,7 @@ def notify_user(scan):
         sensitivity=models.Sensitivity.HIGH
     ).count()
 
-    c = Context({'scan': scan, 'domain': settings.SITE_URL, 
+    c = Context({'scan': scan, 'domain': settings.SITE_URL,
                  'matches': matches, 'critical': critical})
 
     try:
@@ -89,6 +89,7 @@ def do_scan(user, urls, params={}, blocking=False):
     parameters and values. Defaults are used for unspecified parameters.
     """
     # TODO: Scan the listed URLs and return result to user
+    print user, urls, params
     scanner = models.Scanner()
     scanner.organization = user.get_profile().organization
     scanner.name = user.username + '-' + str(time.time())

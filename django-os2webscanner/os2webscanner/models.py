@@ -460,7 +460,6 @@ class Scanner(models.Model):
         if not os.path.exists(scan.scan_output_files_dir):
             os.makedirs(scan.scan_output_files_dir)
 
-        import pdb; pdb.set_trace()
         try:
             process = Popen([os.path.join(SCRAPY_WEBSCANNER_DIR, "run.sh"),
                              str(scan.pk)], cwd=SCRAPY_WEBSCANNER_DIR,
@@ -633,7 +632,6 @@ class Scan(models.Model):
         """Return the log file path associated with this scan."""
         return os.path.join(self.scan_log_dir, 'scan_%s.log' % self.pk)
 
-
     @property
     def scan_output_files_dir(self):
         """Return the path to the scan output files dir."""
@@ -645,7 +643,8 @@ class Scan(models.Model):
 
         Note that this currently only supports one output file per scan.
         """
-        return os.path.join(self.scan_output_files_dir, 'scan_%s.csv' % self.pk)
+        return os.path.join(self.scan_output_files_dir,
+                            'scan_%s.csv' % self.pk)
 
     # Occurrence log - mainly for the scanner to notify when something FAILS.
     def log_occurrence(self, string):

@@ -30,9 +30,9 @@ _whitespace = "[^\\S\\n\\r]+"
 _simple_name = "\\p{Uppercase}(\\p{L}+|\\.?)"
 _name = "{0}(-{0})?".format(_simple_name)
 full_name_regex = regex.compile(
-    "\\b(?P<first>" + _name + ")" + 
-    "(?P<middle>(" + _whitespace + _name + "){0,2})" + 
-    "(?P<last>" + _whitespace  + _name + "){1}\\b", regex.UNICODE)
+    "\\b(?P<first>" + _name + ")" +
+    "(?P<middle>(" + _whitespace + _name + "){0,2})" +
+    "(?P<last>" + _whitespace + _name + "){1}\\b", regex.UNICODE)
 
 
 def match_full_name(text):
@@ -157,7 +157,7 @@ class NameRule(Rule):
             else:
                 #sensitivity = Sensitivity.OK
                 continue
-            
+
             # Store the original matching text
             matched_text = name[3]
 
