@@ -47,8 +47,8 @@ def notify_user(scan):
         sensitivity=models.Sensitivity.HIGH
     ).count()
 
-    c = Context({'scan': scan, 'domain': settings.SITE_URL, 'matches': matches,
-                 'critical': critical})
+    c = Context({'scan': scan, 'domain': settings.SITE_URL, 
+                 'matches': matches, 'critical': critical})
 
     try:
         body = t.render(c)
@@ -73,11 +73,11 @@ def get_supported_rpc_params():
     return ["do_cpr_scan", "do_cpr_modulus11",
            "do_cpr_ignore_irrelevant", "do_ocr", "do_name_scan",
            "output_spreadsheet_file", "do_cpr_replace", "cpr_replace_text",
-           "do_name_replace", "name_replace_text", "do_address_replace",
-           "address_replace_text"]
+           "do_name_replace", "name_replace_text", "do_address_scan",
+           "do_address_replace", "address_replace_text"]
 
 
-def do_scan(user, urls, params={}):
+def do_scan(user, urls, params={}, blocking=False):
     """Create a scanner to scan a list of URLs.
 
     The 'urls' parameter may be either http:// or file:// URLS - we expect the
@@ -111,7 +111,7 @@ def do_scan(user, urls, params={}):
 
     for domain in scanner.organization.domains.all():
         scanner.domains.add(domain)
-    scan = scanner.run(user=user)
+    scan = scanner.run(user=user, blocking=blocking)
     # NOTE: Running scan may have failed.
     # Pass the error message or empty scan in that case.
     return scan

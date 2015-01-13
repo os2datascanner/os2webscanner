@@ -427,7 +427,7 @@ class Scanner(models.Model):
     NO_VALID_DOMAINS = ("Scanneren kunne ikke startes," +
                          " fordi den ikke har nogen gyldige domæner.")
 
-    def run(self, test_only=False, user=None):
+    def run(self, test_only=False, blocking=False, user=None):
         """Run a scan with the Scanner.
 
         Return the Scan object if we started the scanner.
@@ -460,11 +460,14 @@ class Scanner(models.Model):
         if not os.path.exists(scan.scan_output_files_dir):
             os.makedirs(scan.scan_output_files_dir)
 
+        import pdb; pdb.set_trace()
         try:
             process = Popen([os.path.join(SCRAPY_WEBSCANNER_DIR, "run.sh"),
                              str(scan.pk)], cwd=SCRAPY_WEBSCANNER_DIR,
                             stderr=log_file,
                             stdout=log_file)
+            if blocking:
+                process.communicate()
         except Exception as e:
             print e
             return None
@@ -715,7 +718,10 @@ class Scan(models.Model):
             (self._old_status != self.status)):
             # Send email
             from os2webscanner.utils import notify_user
-            notify_user(self)
+            try:
+                notify_user(self)
+            except IOError:
+                self.log_occurrence("Unable to send email notification!")
 
             self.cleanup_finished_scan()
             self._old_status = self.status

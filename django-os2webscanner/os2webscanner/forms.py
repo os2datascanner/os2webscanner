@@ -40,12 +40,22 @@ class FileUploadForm(forms.Form):
     scan_file = forms.FileField(label="Fil", validators=[validate_filetype])
     #scan_file = forms.FileField(label="Fil")
     # CPR scan
-    do_cpr_scan = forms.BooleanField(label="Scan CPR-numre")
-    cpr_replacement_text = forms.CharField(label="Erstat match med")
+    do_cpr_scan = forms.BooleanField(label="Scan CPR-numre", initial=True)
+    do_replace_cpr = forms.BooleanField(label="Erstat CPR-numre",
+                                        initial=True)
+    cpr_replacement_text = forms.CharField(label="Erstat match med",
+                                           required=False)
     # Name scan
-    do_name_scan = forms.BooleanField(label="Scan navne")
-    name_replacement_text = forms.CharField(label="Erstat match med")
+    do_name_scan = forms.BooleanField(label="Scan navne", initial=True)
+    do_replace_name = forms.BooleanField(label="Erstat navne",
+                                         initial=False, required=False)
+    name_replacement_text = forms.CharField(label="Erstat match med",
+                                            required=False)
     # Address scan
-    do_address_scan = forms.BooleanField(label="Scan adresser")
-    address_replacement_text = forms.CharField(label="Erstat match med")
+    do_address_scan = forms.BooleanField(label="Scan adresser", initial=False,
+                                        required=False)
+    do_replace_address = forms.BooleanField(label="Erstat adresser",
+                                            initial=False, required=False)
+    address_replacement_text = forms.CharField(label="Erstat match med",
+                                               required=False)
 

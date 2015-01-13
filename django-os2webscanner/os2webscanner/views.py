@@ -1130,23 +1130,38 @@ def file_upload(request):
         if form.is_valid():
             # Perform the scan
             upload_file = request.FILES['scan_file']
+            # Get parametes
+            params = {}
+            params['do_cpr_scan'] = form.cleaned_data['do_cpr_scan']
+            params['do_cpr_replace'] = form.cleaned_data['do_replace_cpr']
+            params['cpr_replace_text'] = form.cleaned_data[
+                'cpr_replacement_text'
+            ]
+            params['do_name_scan'] = form.cleaned_data['do_name_scan']
+            params['do_name_replace'] = form.cleaned_data['do_replace_name']
+            params['name_replace_text'] = form.cleaned_data[
+                'name_replacement_text'
+            ]
+            params['do_address_scan'] = form.cleaned_data['do_address_scan']
+            params['do_address_replace'] = form.cleaned_data[
+                'do_replace_address'
+            ]
+            params['address_replace_text'] = form.cleaned_data[
+                'address_replacement_text'
+            ]
+            params['output_spreadsheet_file'] = True
+            
             path = upload_file.temporary_file_path()
             file_path = '_'.join([path, upload_file.name])
             copyfile(path, file_path)
             print file_path
             file_url = 'file://{0}'.format(file_path)
-            scan = do_scan(request.user, [file_path])
-            # TODO: Load CSV file, write it back to the client
-            # TODO: Remove CSV file after use.
+            scan = do_scan(request.user, [file_url], params, blocking=True)
+
+            # 
             if not isinstance(scan, Scan):
                 raise RuntimeError("Unable to perform scan - check user has" 
                                    "organization and valid domain")
-            i = 0
-            while not scan.status in (Scan.DONE, Scan.FAILED):
-                i = i +1
-                if i > 100:
-                    break
-                
             print "Scan is done! CSV file ready!"
             # We now have the scan object
             response = HttpResponse(content_type='text/csv')
@@ -1157,35 +1172,19 @@ def file_upload(request):
                 'Content-Disposition'
             ] = u'attachment; filename={0}'.format(report_file)
             writer = csv.writer(response)
+            csv_file = open(scan.scan_output_file, "rb")
+            
+            # TODO: Load CSV file, write it back to the client
+            for row in csv.reader(csvfile):
+                writer.writerow(row)
 
-            all_matches = Match.objects.filter(scan=scan).order_by(
-                '-sensitivity', 'url', 'matched_rule', 'matched_data'
-            )
-            # CSV utilities
-            e = lambda fields: ([f.encode('utf-8') for f in fields])
-            # Print summary header
-            writer.writerow(e([u'Starttidspunkt', u'Sluttidspunkt', u'Status',
-                               u'Totalt antal matches']))
-            # Print summary
-            writer.writerow(e([str(scan.start_time),
-                               str(scan.end_time), scan.get_status_display(),
-                               str(len(all_matches))]))
-            # Print match header
-            writer.writerow(e([u'URL', u'Regel', u'Match', u'Følsomhed']))
-            for match in all_matches:
-                writer.writerow(
-                    e([match.url.url,
-                       match.get_matched_rule_display(),
-                       match.matched_data.replace('\n',
-                                                  '').replace('\r', ' '),
-               match.get_sensitivity_display()]))
             return response
 
-        else:
-            # Request.method == 'GET'
-            form = FileUploadForm()
+    else:
+        # Request.method == 'GET'
+        form = FileUploadForm()
 
-            return render_to_response(
-                'os2webscanner/file_upload.html',
-                RequestContext(request, {'form': form})
-            )
+    return render_to_response(
+        'os2webscanner/file_upload.html', 
+        RequestContext(request, {'form': form})
+    )
