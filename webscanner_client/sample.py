@@ -44,6 +44,23 @@ parser.add_argument('-o', '--ocr', dest='do_ocr',
                     default=False)
 
 
+parser.add_argument('--output-spreadsheet', dest='output_spreadsheet_file',
+                    help="Output spreadsheet file with annotations",
+                    action="store_true", default=False)
+
+parser.add_argument('--cpr-replace', dest='do_cpr_replace',
+                    help="Replace CPRs",
+                    action="store_true", default=False)
+parser.add_argument('--cpr-replace-text', dest='cpr_replace_text',
+                    help="CPR replacement text")
+
+parser.add_argument('--name-replace', dest='do_name_replace',
+                    help="Replace Names",
+                    action="store_true", default=False)
+parser.add_argument('--name-replace-text', dest='name_replace_text',
+                    help="Name replacement text")
+
+
 parser.add_argument('-W', dest='webscanner_url',
                     help="URL of the webscanner server",
                     default=WEBSCANNER_URL)
@@ -64,7 +81,11 @@ params = {}
 
 
 supported_params = ["do_cpr_scan", "do_cpr_modulus11",
-                    "do_cpr_ignore_irrelevant", "do_ocr", "do_name_scan"]
+                    "do_cpr_ignore_irrelevant", "do_ocr", "do_name_scan",
+                    "output_spreadsheet_file", "do_cpr_replace",
+                    "cpr_replace_text", "do_name_replace",
+                    "name_replace_text", "do_address_replace",
+                    "address_replace_text"]
 
 # Copy the command options to the params dict
 for param in supported_params:

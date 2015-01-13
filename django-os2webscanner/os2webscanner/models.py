@@ -318,6 +318,30 @@ class Scanner(models.Model):
     recipients = models.ManyToManyField(UserProfile, null=True, blank=True,
                                         verbose_name='Modtagere')
 
+    # Spreadsheet annotation and replacement parameters
+
+    # Save a copy of any spreadsheets scanned with annotations
+    # in each row where matches were found. If this is enabled and any of
+    # the replacement parameters are enabled (e.g. do_cpr_replace), matches
+    # will also be replaced with the specified text (e.g. cpr_replace_text).
+    output_spreadsheet_file = models.BooleanField(default=False)
+
+    # Replace CPRs?
+    do_cpr_replace = models.BooleanField(default=False)
+    # Text to replace CPRs with
+    cpr_replace_text = models.CharField(max_length=2048, null=True,
+                                        blank=True)
+    # Replace names?
+    do_name_replace = models.BooleanField(default=False)
+    # Text to replace names with
+    name_replace_text = models.CharField(max_length=2048, null=True,
+                                         blank=True)
+    # Replace addresses?
+    do_address_replace = models.BooleanField(default=False)
+    # Text to replace addresses with
+    address_replace_text = models.CharField(max_length=2048, null=True,
+                                            blank=True)
+
     # DON'T USE DIRECTLY !!!
     # Use process_urls property instead.
     encoded_process_urls = models.CharField(
@@ -433,6 +457,9 @@ class Scanner(models.Model):
             os.makedirs(scan.scan_log_dir)
         log_file = open(scan.scan_log_file, "a")
 
+        if not os.path.exists(scan.scan_output_files_dir):
+            os.makedirs(scan.scan_output_files_dir)
+
         try:
             process = Popen([os.path.join(SCRAPY_WEBSCANNER_DIR, "run.sh"),
                              str(scan.pk)], cwd=SCRAPY_WEBSCANNER_DIR,
@@ -497,6 +524,31 @@ class Scan(models.Model):
                                          null=True,
                                          verbose_name='Regex regler')
     recipients = models.ManyToManyField(UserProfile, null=True, blank=True)
+
+    # Spreadsheet annotation and replacement parameters
+
+    # Save a copy of any spreadsheets scanned with annotations
+    # in each row where matches were found. If this is enabled and any of
+    # the replacement parameters are enabled (e.g. do_cpr_replace), matches
+    # will also be replaced with the specified text (e.g. cpr_replace_text).
+    output_spreadsheet_file = models.BooleanField(default=False)
+
+    # Replace CPRs?
+    do_cpr_replace = models.BooleanField(default=False)
+    # Text to replace CPRs with
+    cpr_replace_text = models.CharField(max_length=2048, null=True,
+                                        blank=True)
+    # Replace names?
+    do_name_replace = models.BooleanField(default=False)
+    # Text to replace names with
+    name_replace_text = models.CharField(max_length=2048, null=True,
+                                         blank=True)
+    # Replace addresses?
+    do_address_replace = models.BooleanField(default=False)
+    # Text to replace addresses with
+    address_replace_text = models.CharField(max_length=2048, null=True,
+                                            blank=True)
+
     # END setup copied from scanner
 
     # Create method - copies fields from scanner
@@ -514,7 +566,14 @@ class Scan(models.Model):
             do_external_link_check=scanner.do_external_link_check,
             do_last_modified_check=scanner.do_last_modified_check,
             do_last_modified_check_head_request=scanner.
-            do_last_modified_check_head_request
+            do_last_modified_check_head_request,
+            output_spreadsheet_file=scanner.output_spreadsheet_file,
+            do_cpr_replace=scanner.do_cpr_replace,
+            cpr_replace_text=scanner.cpr_replace_text,
+            do_name_replace=scanner.do_name_replace,
+            name_replace_text=scanner.name_replace_text,
+            do_address_replace=scanner.do_address_replace,
+            address_replace_text=scanner.address_replace_text
         )
         #
         scan.status = Scan.NEW
@@ -570,6 +629,20 @@ class Scan(models.Model):
     def scan_log_file(self):
         """Return the log file path associated with this scan."""
         return os.path.join(self.scan_log_dir, 'scan_%s.log' % self.pk)
+
+
+    @property
+    def scan_output_files_dir(self):
+        """Return the path to the scan output files dir."""
+        return os.path.join(settings.VAR_DIR, 'output_files')
+
+    @property
+    def scan_output_file(self):
+        """Return the output file path associated with this scan.
+
+        Note that this currently only supports one output file per scan.
+        """
+        return os.path.join(self.scan_output_files_dir, 'scan_%s.csv' % self.pk)
 
     # Occurrence log - mainly for the scanner to notify when something FAILS.
     def log_occurrence(self, string):
@@ -785,12 +858,17 @@ class Match(models.Model):
 
     def get_matched_rule_display(self):
         """Return a display name for the rule."""
-        if self.matched_rule == 'cpr':
+        return Match.get_matched_rule_display_name(self.matched_rule)
+
+    @classmethod
+    def get_matched_rule_display_name(cls, rule):
+        """Return a display name for the given rule."""
+        if rule == 'cpr':
             return "CPR"
-        elif self.matched_rule == 'name':
+        elif rule == 'name':
             return "Navn"
         else:
-            return self.matched_rule
+            return rule
 
     def get_sensitivity_class(self):
         """Return the bootstrap CSS class for the sensitivty."""

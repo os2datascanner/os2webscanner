@@ -46,6 +46,7 @@ def scan_urls(username, password, urls, params={}):
     user = authenticate(username=username, password=password)
     if not user:
         raise RuntimeError("Wrong username or password!")
+    scan = do_scan(user, urls, params)
 
     return do_scan_urls(user, urls, params)
 

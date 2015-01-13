@@ -71,7 +71,10 @@ def capitalize_first(s):
 def get_supported_rpc_params():
     """Return a list of supported Scanner parameters for the RPC interface."""
     return ["do_cpr_scan", "do_cpr_modulus11",
-           "do_cpr_ignore_irrelevant", "do_ocr", "do_name_scan"]
+           "do_cpr_ignore_irrelevant", "do_ocr", "do_name_scan",
+           "output_spreadsheet_file", "do_cpr_replace", "cpr_replace_text",
+           "do_name_replace", "name_replace_text", "do_address_replace",
+           "address_replace_text"]
 
 
 def do_scan(user, urls, params={}):
@@ -95,9 +98,14 @@ def do_scan(user, urls, params={}):
     scanner.process_urls = urls
     scanner.is_visible = False
 
-    for param in get_supported_rpc_params():
-        if param in params:
+    supported_params = get_supported_rpc_params()
+    for param in params:
+        if param in supported_params:
             setattr(scanner, param, params[param])
+        else:
+            raise ValueError("Unsupported parameter passed: " + param +
+                             ". Supported parameters: " +
+                             str(supported_params))
 
     scanner.save()
 
