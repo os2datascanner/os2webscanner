@@ -101,4 +101,4 @@ class Pep8Test(TestCase):
 
     test_os2webscanner = pep8_test(j('django-os2webscanner'))
     test_scrapywebscanner = pep8_test(j('scrapy-webscanner'))
-    test_scrapywebscanner = pep8_test(j('webscanner_client'))
+    test_webscanner_client = pep8_test(j('webscanner_client'))

@@ -14,7 +14,6 @@
 #
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
-
 """Run a scan by Scan ID."""
 import collections
 import urllib2
@@ -121,7 +120,9 @@ class ScannerApp:
 
         self.crawler_process = OrderedCrawlerProcess(settings)
 
-        self.sitemap_spider = self.setup_sitemap_spider()
+        # Don't sitemap scan when running over RPC
+        if not self.scan_object.scanner.process_urls:
+            self.sitemap_spider = self.setup_sitemap_spider()
         self.scanner_spider = self.setup_scanner_spider()
 
         # Run the crawlers and block
@@ -175,7 +176,10 @@ class ScannerApp:
 
     def get_start_urls_from_sitemap(self):
         """Return the URLs found by the sitemap spider."""
-        return self.sitemap_spider.get_urls()
+        if hasattr(self, "sitemap_spider"):
+            return self.sitemap_spider.get_urls()
+        else:
+            return []
 
     def external_link_check(self, external_urls):
         """Perform external link checking."""

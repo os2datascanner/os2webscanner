@@ -14,6 +14,7 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 """LibreOffice related processors."""
+import mimetypes
 
 from processor import Processor
 import os
@@ -82,12 +83,26 @@ class LibreOfficeProcessor(Processor):
         if self.home_dir is None:
             self.setup_homedir()
 
+        # TODO: Use the mime-type detected by the scanner
+        mime_type, encoding = mimetypes.guess_type(item.file_path)
+        if not mime_type:
+            mime_type = self.mime_magic.from_file(item.file_path)
+
+        if (mime_type == "application/vnd.ms-excel"
+                or "spreadsheet" in mime_type):
+            # If it's a spreadsheet, we want to convert to a CSV file
+            output_filter = "csv"
+        else:
+            # Default to converting to HTML
+            output_filter = "htm:HTML"
+
         # TODO: Input type to filter mapping?
         return_code = subprocess.call([
                                           "libreoffice", "--headless",
-                                          "--convert-to", "htm:HTML",
+                                          "--convert-to", output_filter,
                                           item.file_path, "--outdir", tmp_dir
                                       ], env=self.env)
+
         return return_code == 0
 
 

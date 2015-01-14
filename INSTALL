@@ -19,12 +19,13 @@ that the setup of Apache is different on such systems.
 *Note:* The Apache configuration file delivered with version 1.1.0 of the
 OS2Webscanner is for Apache <= 2.2  and will *not* work on Apache 2.4.
 A configuration file for Apache 2.4 will be supplied in future versions.
+
 In the meantime, please refer to
 http://httpd.apache.org/docs/2.4/upgrading.html for instructions on how to
 upgrade the configuration file for running Apache 2.4. As Apache 2.2 is not
-available in Ubuntu 14.04, please note that these instructions will _not_ work
-without modification in Ubuntu 14.04. We do not recommend running a production
-server on non-LTS versions of Ubuntu.
+available in Ubuntu 14.04, please note that the present instructions will _not_
+work without modification in Ubuntu 14.04. We do not recommend running a
+production server on non-LTS versions of Ubuntu.
 
 If you wish to run the system on a Windows system, you need to install a C
 compiler environment, e.g. MinGW or Cygwin. Running on Windows has not been
@@ -48,11 +49,13 @@ Note, you are now logged in as the user `os2`. We assume this in the rest of
 this guide. Also note that this is only a convention - you are free to install
 the system wherever you want. Paths are not hard coded in the system.
 
+*Note:* You should probably remove `os2`'s sudo rights once the installation is
+complete.
+
 ## Install Git, Apache and WSGI
 
 ```
 sudo apt-get install git apache2 libapache2-mod-wsgi
-sudo a2enmod wsgi
 ```
 
 ## Get the code
@@ -95,11 +98,12 @@ alter user os2webscanner with password '<PASSWORD>';
 alter user os2webscanner createdb;
 ```
 
-You may (of course) use another database name, database user etc. as you please.
+You may (of course) use another database name, database user etc. as you
+please.
 
 Now log out from psql (`\q`) and logout as the postgres user (by pressing
-`Ctrl+D`) to proceed, and return to where you cloned the `os2webscanner`
-source directory (e.g. `/home/os2/os2webscanner`).
+`Ctrl+D`) to proceed, and return to where you cloned the `os2webscanner` source
+directory (e.g. `/home/os2/os2webscanner`).
 
 Next, change into the `webscanner_site/webscanner` directory:
 
@@ -115,14 +119,13 @@ cp local_settings.py.example local_settings.py
 << edit local_settings.py with your favorite editor>>
 ```
 
-In order to make your database setup work, you must override
-the default DATABASES configuration by adding the following to `local_settings.py`:
+In order to make your database setup work, you must override the default
+DATABASES configuration.
 
 A sample `local_settings.py` configured for your server could look like this:
 
 ```
 SITE_URL = 'http://webscanner.kommune.dk'
-DEFAULT_FROM_EMAIL = 'your@email'
 STATIC_ROOT = '/home/os2/os2webscanner/webscanner_site/static'
 MEDIA_ROOT = '/home/os2/os2webscanner/webscanner_site/uploads'
 DEFAULT_FROM_EMAIL = 'your@email'
@@ -148,7 +151,7 @@ DATABASES = {
 ```
 cd /home/os2/os2webscanner/webscanner_site
 source ../python-env/bin/activate
-python manage.py test
+python manage.py test os2webscanner
 ```
 
 The test should pass. Now do:
@@ -222,6 +225,13 @@ which scan non-text files (e.g. PDF files or Office documents) to work.
 sudo -u www-data -b /home/os2/os2webscanner/scrapy-webscanner/start_process_manager.sh
 ```
 
+*Note:* You may want to have the scanners `var` dir somewhere else, e.g. in
+`/var/lib/os2webscanner`, which is the location we (the developers) prefer for
+production environments. To achieve this, please overwrite the Django setting
+`VAR_DIR` in your `local_settings.py` accordingly and set ownership for the
+directory as indicated above. 
+
+
 ## Setting up scheduled scans
 
 To setup scheduled scans, you need to add an entry to the user www-data's
@@ -235,8 +245,26 @@ Add the following line below the commented lines (beginning with '#'), and
 then save the file:
 
 ```
-*/15 * * * *    /home/os2/os2webscanner/scrapy-webscanner/cron.sh
+*/15 * * * *    /home/os2/os2webscanner/cron/run_cron_script.sh
 ```
+
+
+## Setting up scheduled summary reports
+
+The system may send out summary reports describing the performance, results,
+etc., of different scanners. 
+
+To have summaries emaild to recipients, edit `crontab` as described in the
+previous section, adding the line
+
+```
+0    7 * * * /home/os2test/os2webscanner/cron/dispatch_summaries.sh
+```
+
+to have summaries emailed every day at 7AM. You can of course change this as
+you wish, but summaries should be mailed no more than once a day as this may
+cause reports to be sent twice.
+
 
 ## Creating an organization and adding a user to it:
 

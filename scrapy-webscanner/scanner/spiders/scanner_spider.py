@@ -72,7 +72,6 @@ class ScannerSpider(BaseScannerSpider):
                 url = url.replace('*.', '')
                 self.start_urls.append(url)
 
-
         self.link_extractor = LxmlLinkExtractor(
             deny_extensions=(),
             tags=('a', 'area', 'frame', 'iframe', 'script'),
@@ -222,6 +221,10 @@ class ScannerSpider(BaseScannerSpider):
             log.msg("Guessing mime-type based on file extension",
                     level=log.DEBUG)
             mime_type, encoding = mimetypes.guess_type(response.url)
+            if not mime_type:
+                log.msg("Guessing mime-type based on file contents",
+                        level=log.DEBUG)
+                mime_type = self.magic.from_buffer(response.body)
             # Scrapy already guesses the encoding.. we don't need it
 
         if hasattr(response, "encoding"):

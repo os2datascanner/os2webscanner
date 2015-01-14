@@ -1,5 +1,4 @@
 SITE_URL = 'http://webscanner.kommune.dk'
-DEFAULT_FROM_EMAIL = 'your@email'
 STATIC_ROOT = '/home/os2/os2webscanner/webscanner_site/static'
 MEDIA_ROOT = '/home/os2/os2webscanner/webscanner_site/uploads'
 DEFAULT_FROM_EMAIL = 'your@email'

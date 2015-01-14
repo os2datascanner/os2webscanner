@@ -14,4 +14,4 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 """Processors for processing and converting spider and queue items."""
-__all__ = ("html", "libreoffice", "pdf", "ocr", "zip", "text")
+__all__ = ("html", "libreoffice", "pdf", "ocr", "zip", "text", "csv_processor")

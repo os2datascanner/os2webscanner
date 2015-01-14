@@ -117,6 +117,9 @@ EMAIL_HOST = 'localhost'
 EMAIL_PORT = 25
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
+# Enable groups - or not
+
+DO_USE_GROUPS = False
 
 # The threshold for number of OCR conversion queue items per scan above which
 # non-OCR conversion will be paused. The reason to have this feature is that
@@ -131,6 +134,11 @@ PAUSE_NON_OCR_ITEMS_THRESHOLD = 2000
 # PAUSE_NON_OCR_ITEMS_THRESHOLD.
 RESUME_NON_OCR_ITEMS_THRESHOLD = PAUSE_NON_OCR_ITEMS_THRESHOLD - 1000
 
+# Directory to store files transmitted by RPC
+RPC_TMP_PREFIX = '/tmp/os2webscanner'
+
+# Always store temp files on disk
+FILE_UPLOAD_MAX_MEMORY_SIZE = 0
 
 local_settings_file = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),

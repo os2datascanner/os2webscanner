@@ -29,6 +29,8 @@ from scrapy.utils.url import canonicalize_url
 from email.utils import parsedate_tz, mktime_tz
 from os2webscanner.models import UrlLastModified
 
+from django.conf import settings as django_settings
+
 
 class ExclusionRuleMiddleware(object):
 
@@ -96,7 +98,11 @@ class OffsiteDownloaderMiddleware(object):
         """Return whether the request should be followed."""
         regex = self.host_regex
         # hostname can be None for wrong urls (like javascript links)
-        host = urlparse_cached(request).hostname or ''
+        parse_result = urlparse_cached(request)
+        host = parse_result.hostname or ''
+        scheme = parse_result.scheme or ''
+        if scheme == 'file' and not getattr(spider, "crawl", False):
+            return parse_result.path.startswith(django_settings.RPC_TMP_PREFIX)
         return bool(regex.search(host))
 
     def get_host_regex(self, spider):

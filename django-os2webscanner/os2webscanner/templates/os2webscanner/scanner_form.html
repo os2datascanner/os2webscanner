@@ -207,19 +207,21 @@
                         {% if form.do_external_link_check.help_text %}<small>{{ form.do_external_link_check.help_text }}</small>{% endif %}
                     </label>
                     <br>
-                    <div id="{{ form.regex_rules.auto_id }}_container" class="col-sm-12{% if form.regex_rules.errors %} has-error{% endif %}">
-                        <label class="control-label" for="id_{{ form.regex_rules.name }}">{{ form.regex_rules.label }}</label>
-                        <select name="{{ form.regex_rules.name }}" id="id_{{ form.regex_rules.name }}" class="form-control" multiple="multiple">
-                            {% for value, tag in form.regex_rules.field.choices %}
-                            <option value="{{ value }}"{% for val in form.regex_rules.value %}{% if val == value %} selected="selected"{% endif %}{% endfor %}>{{ tag }}</option>
-                            {% endfor %}
-                        </select>
-                        {% if form.regex_rules.help_text %}
-                        <p>
-                        <small>{{ form.regex_rules.help_text }}</small>
-                        </p>
-                        {% endif %}
-                        {% if form.regex_rules.errors %}{{ form.regex_rules.errors }}{% endif %}
+                    <div class="form-group">
+                        <div id="{{ form.regex_rules.auto_id }}_container" class="col-sm-12{% if form.regex_rules.errors %} has-error{% endif %}">
+                            <label class="control-label" for="id_{{ form.regex_rules.name }}">{{ form.regex_rules.label }}</label>
+                            <select name="{{ form.regex_rules.name }}" id="id_{{ form.regex_rules.name }}" class="form-control" multiple="multiple">
+                                {% for value, tag in form.regex_rules.field.choices %}
+                                <option value="{{ value }}"{% for val in form.regex_rules.value %}{% if val == value %} selected="selected"{% endif %}{% endfor %}>{{ tag }}</option>
+                                {% endfor %}
+                            </select>
+                            {% if form.regex_rules.help_text %}
+                            <p>
+                            <small>{{ form.regex_rules.help_text }}</small>
+                            </p>
+                            {% endif %}
+                            {% if form.regex_rules.errors %}{{ form.regex_rules.errors }}{% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
