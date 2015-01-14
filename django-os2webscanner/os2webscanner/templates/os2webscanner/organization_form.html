@@ -1,5 +1,8 @@
 {% extends 'os2webscanner/base.html' %}
 
+{% block heading %}Organisation: {{ form.name.value }}
+{% endblock %}
+
 {% block body %}
 
 {% if form.non_field_errors %}
@@ -23,22 +26,6 @@
 <form class="form-horizontal" role="form" method="post">
 {% csrf_token %}    
 
-  <!-- Name -->    
-  <div id="{{ form.name.auto_id }}_container" class="col-sm-12{% if form.name.errors %} has-error{% endif %}">
-    <div class="form-group">
-      <label class="control-label col-sm-2" for="id_{{ form.name.name }}">{{ form.name.label }}</label>
-      <div class="col-sm-10">
-	<input disabled type="text" class="form-control" name="{{ form.name.name }}" id="id_{{ form.name.name }}" {% if form.name.value %}value="{{ form.name.value }}"{% endif %}>
-	{% if form.name.help_text %}
-	  <p>
-            <small>{{ form.name.help_text }}</small>
-          </p>
-        {% endif %}
-        {% if form.name.errors %}{{ form.name.errors }}{% endif %}
-      </div>
-    </div>
-  </div>
-  
   <!-- Contact email -->
   <div id="{{ form.contact_email.auto_id }}_container" class="col-sm-12{% if form.contact_email.errors %} has-error{% endif %}">
     <div class="form-group">
