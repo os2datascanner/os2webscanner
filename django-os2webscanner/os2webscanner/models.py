@@ -86,6 +86,7 @@ class UserProfile(models.Model):
                              related_name='profile',
                              verbose_name='Bruger')
     is_group_admin = models.BooleanField(default=False)
+    is_upload_only = models.BooleanField(default=False)
 
     @property
     def is_groups_enabled(self):

@@ -27,6 +27,7 @@ from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.db.models import Count, Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import render, get_object_or_404, render_to_response
+from django.shortcuts import redirect
 from django.views.generic import View, ListView, TemplateView, DetailView
 from django.views.generic.edit import ModelFormMixin, DeleteView
 from django.views.generic.edit import CreateView, UpdateView
@@ -45,11 +46,21 @@ from .forms import FileUploadForm
 
 class LoginRequiredMixin(View):
 
-    """Include to require login."""
+    """Include to require login.
+    
+    If user is "upload only", redirect to upload page."""
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         """Check for login and dispatch the view."""
+        user = self.request.user
+        try:
+            profile = user.get_profile()
+            if profile.is_upload_only:
+                return redirect('system/upload_file')
+        except UserProfile.DoesNotExist:
+            # User is *not* "upload only", all is good
+            pass
         return super(LoginRequiredMixin, self).dispatch(*args, **kwargs)
 
 
