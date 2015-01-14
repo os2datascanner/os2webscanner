@@ -23,7 +23,7 @@ from django.views.generic import View, ListView, TemplateView, DetailView
 from .views import MainPageView, ScannerList, DomainList, RuleList
 from .views import CSVReportDetails, ReportDetails, ReportList, ReportDelete
 from .views import ScannerCreate, ScannerUpdate, ScannerDelete, ScannerRun
-from .views import ScannerAskRun, ScanReportLog
+from .views import ScannerAskRun, ScanReportLog, OrganizationUpdate
 from .views import DomainCreate, DomainUpdate, DomainValidate, DomainDelete
 from .views import GroupList, GroupCreate, GroupUpdate, GroupDelete
 from .views import RuleCreate, RuleUpdate, RuleDelete, OrganizationList
@@ -89,6 +89,8 @@ urlpatterns = patterns(
         name='summary_report'),
     url(r'^summary/(?P<pk>\d+)/delete/$', SummaryDelete.as_view(),
         name='summary_delete'),
+    url(r"^organization/$", OrganizationUpdate.as_view(),
+        name='organization_update'),
     # Login/logout stuff
     url(r'^accounts/login/', 'django.contrib.auth.views.login',
         {'template_name': 'login.html'}, name='login'),

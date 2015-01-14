@@ -66,6 +66,18 @@ class Organization(models.Model):
     do_use_groups = models.BooleanField(default=False,
                                         editable=settings.DO_USE_GROUPS)
 
+    name_whitelist = models.TextField(blank=True,
+                                       default="",
+                                       verbose_name='Godkendte navne')
+    name_blacklist =  models.TextField(blank=True,
+                                       default="",
+                                       verbose_name='Sortlistede navne')
+    address_whitelist = models.TextField(blank=True,
+                                       default="",
+                                       verbose_name='Godkendte adresser')
+    address_blacklist = models.TextField(blank=True,
+                                       default="",
+                                       verbose_name='Sortlistede adresser')
     def __unicode__(self):
         """Return the name of the organization."""
         return self.name
