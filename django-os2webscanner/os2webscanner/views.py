@@ -372,6 +372,26 @@ class RestrictedDeleteView(DeleteView, OrgRestrictedMixin):
     pass
 
 
+class OrganizationUpdate(UpdateView, LoginRequiredMixin):
+
+    """Create an organization update view."""
+
+    model = Organization
+    fields = ['contact_email', 'contact_phone', 'name_whitelist',
+              'name_blacklist', 'address_whitelist', 'address_blacklist']
+
+    def get_object(self):
+        """Get the organization to which the current user belongs."""
+        try:
+            object = self.request.user.get_profile().organization
+        except UserProfile.DoesNotExist:
+            object = None
+        return object
+
+    def get_success_url(self):
+        return "/organization/"
+
+
 class ScannerCreate(RestrictedCreateView):
 
     """Create a scanner view."""

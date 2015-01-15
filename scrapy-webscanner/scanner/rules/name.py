@@ -102,8 +102,8 @@ class NameRule(Rule):
     _first_name_files = ['fornavne_2014_-_kvinder.txt',
                          'fornavne_2014_-_mænd.txt']
 
-    def __init__(self, whitelist=None):
-        """Initialize the rule with an optional whitelist.
+    def __init__(self, whitelist=None, blacklist=None):
+        """Initialize the rule with optional whitelist and blacklist.
 
         The whitelist should contains a multi-line string, with one name per
         line.
