@@ -26,6 +26,8 @@
 <form class="form-horizontal" role="form" method="post">
 {% csrf_token %}    
 
+  <!-- Name, hidden -->
+
   <!-- Contact email -->
   <div id="{{ form.contact_email.auto_id }}_container" class="col-sm-12{% if form.contact_email.errors %} has-error{% endif %}">
     <div class="form-group">
