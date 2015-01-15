@@ -397,7 +397,7 @@ class ScannerCreate(RestrictedCreateView):
     """Create a scanner view."""
 
     model = Scanner
-    fields = ['name', 'schedule', 'whitelisted_names', 'domains',
+    fields = ['name', 'schedule', 'domains',
               'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
               'do_name_scan', 'do_ocr',
               'do_link_check', 'do_external_link_check',
@@ -451,7 +451,7 @@ class ScannerUpdate(RestrictedUpdateView):
     """Update a scanner view."""
 
     model = Scanner
-    fields = ['name', 'schedule', 'whitelisted_names', 'domains',
+    fields = ['name', 'schedule', 'domains',
               'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
               'do_name_scan', 'do_ocr',
               'do_link_check', 'do_external_link_check',
