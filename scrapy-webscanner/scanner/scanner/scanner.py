@@ -49,7 +49,8 @@ class Scanner:
             )
         if self.scan_object.do_name_scan:
             rules.append(
-                NameRule(whitelist=self.scan_object.whitelisted_names)
+                NameRule(whitelist=self.scan_object.whitelisted_names,
+                        blacklist=self.scan_object.blacklisted_names)
             )
         # Add Regex Rules
         for rule in self.scan_object.regex_rules.all():

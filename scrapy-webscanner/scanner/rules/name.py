@@ -83,7 +83,11 @@ def load_whitelist(whitelist):
 
     Returns a set of the names in all upper-case characters
     """
-    return set([line.upper().strip() for line in whitelist.splitlines()])
+    return set(
+        [
+            line.upper().strip() for line in whitelist.splitlines()
+        ] if whitelist else []
+    )
 
 
 class NameRule(Rule):
@@ -119,17 +123,16 @@ class NameRule(Rule):
         self.last_names = set(self.last_names)
         self.first_names = set(self.first_names)
         self.all_names = self.last_names.union(self.first_names)
-        if whitelist is not None:
-            self.whitelist = load_whitelist(whitelist)
-        else:
-            self.whitelist = set()
+        self.whitelist = load_whitelist(whitelist)
+        self.blacklist = load_whitelist(blacklist)
 
     def execute(self, text):
         """Execute the Name rule."""
         matches = set()
         unmatched_text = text
         # Determine if a name matches one of the lists
-        match = lambda n, list: n in list and not n in self.whitelist
+        match = lambda n, list: n in self.blacklist or (n in list and not
+                                                        n in self.whitelist)
 
         # First, check for whole names, i.e. at least Firstname + Lastname
         names = match_full_name(text)
@@ -138,19 +141,30 @@ class NameRule(Rule):
             first_name = name[0].upper()
             middle_names = [n.upper() for n in name[1]]
             last_name = name[2].upper() if name[2] else ""
-
-            if u"%s %s" % (first_name, last_name) in self.whitelist:
+            if middle_names:
+                full_name = u"%s %s" % (first_name, last_name)
+            else:
+                full_name = u"%s %s %s" % (
+                    first_name, " ".join(middle_names), last_name
+                )
+            if full_name in self.whitelist:
                 continue
             first_match = match(first_name, self.first_names)
             last_match = match(last_name, self.last_names)
             middle_match = any(
                 [match(n, self.all_names) for n in middle_names]
             )
+
+            # Check if name is blacklisted.
+            # The name is blacklisted if there exists a string in the
+            # blacklist which is contained as a substring of the name.
+            is_match = lambda str: str in full_name
+            is_blacklisted = any(map(is_match, self.blacklist))
             # Name match is always high sensitivity
             # and occurs only when first and last name are in the name lists
             # Set sensitivity according to how many of the names were found
             # in the names lists
-            if first_match and last_match:
+            if (first_match and last_match) or is_blacklisted:
                 sensitivity = Sensitivity.HIGH
             elif first_match or last_match or middle_match:
                 sensitivity = Sensitivity.LOW
@@ -174,6 +188,11 @@ class NameRule(Rule):
         for m in it:
             matched = m.group(0)
             if match(matched.upper(), self.all_names):
+                # Check blacklist - only exact matches
+                if matched.upper() in self.blacklist:
+                    sensitivity = Sensitivity.HIGH
+                else:
+                    sensitivity = Sensitivity.HIGH
                 matches.add(
                     MatchItem(matched_data=matched,
                               sensitivity=Sensitivity.LOW)

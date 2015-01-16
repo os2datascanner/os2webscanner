@@ -47,7 +47,7 @@ from .forms import FileUploadForm
 class LoginRequiredMixin(View):
 
     """Include to require login.
-    
+
     If user is "upload only", redirect to upload page."""
 
     @method_decorator(login_required)
@@ -1198,7 +1198,6 @@ def file_upload(request):
             dirname = tempfile.mkdtemp(dir=rpcdir)
             file_path = os.path.join(dirname, upload_file.name)
             copyfile(path, file_path)
-            print file_path
             file_url = 'file://{0}'.format(file_path)
             scan = do_scan(request.user, [file_url], params, blocking=True)
 
@@ -1206,7 +1205,6 @@ def file_upload(request):
             if not isinstance(scan, Scan):
                 raise RuntimeError("Unable to perform scan - check user has"
                                    "organization and valid domain")
-            print "Scan is done! CSV file ready!"
             # We now have the scan object
             response = HttpResponse(content_type='text/csv')
             report_file = u'{0}{1}.csv'.format(

@@ -44,9 +44,11 @@ class FileUploadForm(forms.Form):
     do_replace_cpr = forms.BooleanField(label="Erstat CPR-numre",
                                         initial=True, required=False)
     cpr_replacement_text = forms.CharField(label="Erstat match med",
-                                           required=False)
+                                           required=False,
+                                           initial="xxxxxx-xxxx")
     # Name scan
-    do_name_scan = forms.BooleanField(label="Scan navne", initial=True)
+    do_name_scan = forms.BooleanField(label="Scan navne", initial=True,
+                                      required=False)
     do_replace_name = forms.BooleanField(label="Erstat navne",
                                          initial=False, required=False)
     name_replacement_text = forms.CharField(label="Erstat match med",
