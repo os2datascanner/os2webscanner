@@ -128,6 +128,7 @@ class NameRule(Rule):
 
     def execute(self, text):
         """Execute the Name rule."""
+        #import pdb; pdb.set_trace()
         matches = set()
         unmatched_text = text
         # Determine if a name matches one of the lists
@@ -164,7 +165,7 @@ class NameRule(Rule):
             # and occurs only when first and last name are in the name lists
             # Set sensitivity according to how many of the names were found
             # in the names lists
-            if (first_match and last_match) or is_blacklisted
+            if (first_match and last_match) or is_blacklisted:
                 sensitivity = Sensitivity.HIGH
             elif first_match or last_match or middle_match:
                 sensitivity = Sensitivity.LOW
