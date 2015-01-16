@@ -78,6 +78,7 @@ class Organization(models.Model):
     address_blacklist = models.TextField(blank=True,
                                        default="",
                                        verbose_name='Sortlistede adresser')
+
     def __unicode__(self):
         """Return the name of the organization."""
         return self.name
@@ -299,9 +300,6 @@ class Scanner(models.Model):
                                      verbose_name='Gruppe')
     schedule = RecurrenceField(max_length=1024,
                                verbose_name='Planlagt afvikling')
-    whitelisted_names = models.TextField(max_length=4096, blank=True,
-                                         default="",
-                                         verbose_name='Godkendte navne')
     domains = models.ManyToManyField(Domain, related_name='scanners',
                                      null=False, verbose_name='Domæner')
     do_cpr_scan = models.BooleanField(default=True, verbose_name='CPR')
@@ -513,6 +511,15 @@ class Scan(models.Model):
     whitelisted_names = models.TextField(max_length=4096, blank=True,
                                          default="",
                                          verbose_name='Godkendte navne')
+    blacklisted_names = models.TextField(max_length=4096, blank=True,
+                                         default="",
+                                         verbose_name='Sortlistede navne')
+    whitelisted_addresses = models.TextField(max_length=4096, blank=True,
+                                         default="",
+                                         verbose_name='Godkendte adresser')
+    blacklisted_addresses = models.TextField(max_length=4096, blank=True,
+                                         default="",
+                                         verbose_name='Sortlistede adresser')
     domains = models.ManyToManyField(Domain,
                                      null=True,
                                      verbose_name='Domæner')
@@ -571,7 +578,10 @@ class Scan(models.Model):
     def create(scan_cls, scanner):
         """ Create and copy fields from scanner. """
         scan = scan_cls(
-            whitelisted_names=scanner.whitelisted_names,
+            whitelisted_names=scanner.organization.name_whitelist,
+            blacklisted_names=scanner.organization.name_blacklist,
+            whitelisted_addresses=scanner.organization.address_whitelist,
+            blacklisted_addresses=scanner.organization.address_blacklist,
             do_cpr_scan=scanner.do_cpr_scan,
             do_name_scan=scanner.do_name_scan,
             do_ocr=scanner.do_ocr,

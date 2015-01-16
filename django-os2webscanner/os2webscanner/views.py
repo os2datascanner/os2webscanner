@@ -377,6 +377,8 @@ class OrganizationUpdate(UpdateView, LoginRequiredMixin):
     """Create an organization update view."""
 
     model = Organization
+    fields = ['contact_email', 'contact_phone', 'name_whitelist',
+              'name_blacklist', 'address_whitelist', 'address_blacklist']
 
     def get_object(self):
         """Get the organization to which the current user belongs."""
@@ -389,12 +391,13 @@ class OrganizationUpdate(UpdateView, LoginRequiredMixin):
     def get_success_url(self):
         return "/organization/"
 
+
 class ScannerCreate(RestrictedCreateView):
 
     """Create a scanner view."""
 
     model = Scanner
-    fields = ['name', 'schedule', 'whitelisted_names', 'domains',
+    fields = ['name', 'schedule', 'domains',
               'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
               'do_name_scan', 'do_ocr',
               'do_link_check', 'do_external_link_check',
@@ -448,7 +451,7 @@ class ScannerUpdate(RestrictedUpdateView):
     """Update a scanner view."""
 
     model = Scanner
-    fields = ['name', 'schedule', 'whitelisted_names', 'domains',
+    fields = ['name', 'schedule', 'domains',
               'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
               'do_name_scan', 'do_ocr',
               'do_link_check', 'do_external_link_check',
