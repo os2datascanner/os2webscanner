@@ -69,7 +69,7 @@ class Organization(models.Model):
     name_whitelist = models.TextField(blank=True,
                                        default="",
                                        verbose_name='Godkendte navne')
-    name_blacklist =  models.TextField(blank=True,
+    name_blacklist = models.TextField(blank=True,
                                        default="",
                                        verbose_name='Sortlistede navne')
     address_whitelist = models.TextField(blank=True,

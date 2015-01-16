@@ -55,7 +55,6 @@ def notify_user(scan):
         message = EmailMessage(subject, body, settings.ADMIN_EMAIL,
                                to_addresses)
         message.send()
-        print "Mail sendt til", ",".join(to_addresses)
     except Exception as e:
         # TODO: Handle this properly
         raise
@@ -88,8 +87,6 @@ def do_scan(user, urls, params={}, blocking=False):
     The 'params' parameter should be a dict of supported Scanner
     parameters and values. Defaults are used for unspecified parameters.
     """
-    # TODO: Scan the listed URLs and return result to user
-    print user, urls, params
     scanner = models.Scanner()
     scanner.organization = user.get_profile().organization
     scanner.name = user.username + '-' + str(time.time())
@@ -178,7 +175,6 @@ def send_summary_report(summary, from_date=None, to_date=None,
                                to_addresses)
         message.content_subtype = "html"
         message.send()
-        print "Mail sendt til", ",".join(to_addresses)
         summary.last_run = datetime.datetime.now()
         summary.save()
     except Exception as e:

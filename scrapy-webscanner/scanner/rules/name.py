@@ -128,7 +128,6 @@ class NameRule(Rule):
 
     def execute(self, text):
         """Execute the Name rule."""
-        #import pdb; pdb.set_trace()
         matches = set()
         unmatched_text = text
         # Determine if a name matches one of the lists
@@ -145,7 +144,7 @@ class NameRule(Rule):
             if middle_names:
                 full_name = u"%s %s" % (first_name, last_name)
             else:
-                full_name =  u"%s %s %s" % (
+                full_name = u"%s %s %s" % (
                     first_name, " ".join(middle_names), last_name
                 )
             if full_name in self.whitelist:
@@ -157,10 +156,10 @@ class NameRule(Rule):
             )
 
             # Check if name is blacklisted.
-            # The name is blacklisted if there exists a string in the 
+            # The name is blacklisted if there exists a string in the
             # blacklist which is contained as a substring of the name.
             is_match = lambda str: str in full_name
-            is_blacklisted = any(map(is_match, blacklist))
+            is_blacklisted = any(map(is_match, self.blacklist))
             # Name match is always high sensitivity
             # and occurs only when first and last name are in the name lists
             # Set sensitivity according to how many of the names were found
