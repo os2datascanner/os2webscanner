@@ -90,10 +90,7 @@ def load_name_file(file_name):
     """
     names = []
     for line in codecs.open(file_name, "r", "latin-1"):
-        # Skip beginning lines which are not in uppercase
-        if len(line) > 0 and not line[1].isupper():
-            continue
-        names.append(unicode(line[:line.index('\t')]))
+        names.append(unicode(line.strip().upper()))
     return names
 
 
@@ -102,7 +99,10 @@ def load_whitelist(whitelist):
 
     Returns a set of the names in all upper-case characters
     """
-    return set([line.upper().strip() for line in whitelist.splitlines()])
+    if whitelist:
+        return set([line.upper().strip() for line in whitelist.splitlines()])
+    else:
+        return set()
 
 
 class AddressRule(Rule):
@@ -114,10 +114,10 @@ class AddressRule(Rule):
     Matches against full, capitalized, names with up to 2 middle names.
     """
 
-    name = 'name'
+    name = 'address'
     _data_dir = os.path.dirname(
         os.path.dirname(os.path.dirname(os.path.realpath(__file__)))) + '/data'
-    _street_name_file = 'efternavne_2014.txt'
+    _street_name_file = 'gadenavne.txt'
 
     def __init__(self, whitelist=None, blacklist=None):
         """Initialize the rule with an optional whitelist.
@@ -146,8 +146,8 @@ class AddressRule(Rule):
             # Match each name against the list of first and last names
             street_name = address[0].upper()
             house_number = address[1].upper()
-            zip_code = address[2].upper()
-            city = address[3].upper()
+            zip_code = address[2].upper() if address[2] else ''
+            city = address[3].upper()if address[3] else ''
 
             street_address = u"%s %s" % (street_name, house_number)
             full_address = u"%s %s, %s %s" % (street_name, house_number,
@@ -156,10 +156,9 @@ class AddressRule(Rule):
             if (street_address in self.whitelist or
                 full_address in self.whitelist):
                 continue
-            if (street_address in self.blacklist or
-                full_address in self.blacklist):
-                blacklisted = True
-
+            blacklisted = (street_address in self.blacklist or
+                            full_address in self.blacklist)
+            import pdb; pdb.set_trace()
             street_match = street_name[:20] in self.street_names
 
             if blacklisted:
