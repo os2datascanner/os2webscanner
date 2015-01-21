@@ -17,6 +17,7 @@
 from urlparse import urljoin, urlparse
 
 from ..rules.name import NameRule
+from ..rules.name import AddressRule
 from ..rules.cpr import CPRRule
 from ..rules.regexrule import RegexRule
 
