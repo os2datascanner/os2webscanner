@@ -40,7 +40,8 @@ class FileUploadForm(forms.Form):
     scan_file = forms.FileField(label="Fil", validators=[validate_filetype])
     #scan_file = forms.FileField(label="Fil")
     # CPR scan
-    do_cpr_scan = forms.BooleanField(label="Scan CPR-numre", initial=True)
+    do_cpr_scan = forms.BooleanField(label="Scan CPR-numre", initial=True,
+                                     required=False)
     do_replace_cpr = forms.BooleanField(label="Erstat CPR-numre",
                                         initial=True, required=False)
     cpr_replacement_text = forms.CharField(label="Erstat match med",

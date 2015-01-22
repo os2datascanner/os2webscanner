@@ -304,6 +304,8 @@ class Scanner(models.Model):
                                      null=False, verbose_name='Domæner')
     do_cpr_scan = models.BooleanField(default=True, verbose_name='CPR')
     do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
+    do_address_scan = models.BooleanField(default=False,
+                                          verbose_name='Adresse')
     do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder?')
     do_cpr_modulus11 = models.BooleanField(default=True,
                                            verbose_name='Check modulus-11')
@@ -525,6 +527,8 @@ class Scan(models.Model):
                                      verbose_name='Domæner')
     do_cpr_scan = models.BooleanField(default=True, verbose_name='CPR')
     do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
+    do_address_scan = models.BooleanField(default=False,
+                                          verbose_name='Adresse')
     do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder?')
     do_cpr_modulus11 = models.BooleanField(default=True,
                                            verbose_name='Check modulus-11')
@@ -584,6 +588,7 @@ class Scan(models.Model):
             blacklisted_addresses=scanner.organization.address_blacklist,
             do_cpr_scan=scanner.do_cpr_scan,
             do_name_scan=scanner.do_name_scan,
+            do_address_scan=scanner.do_address_scan,
             do_ocr=scanner.do_ocr,
             do_cpr_modulus11=scanner.do_cpr_modulus11,
             do_cpr_ignore_irrelevant=scanner.do_cpr_ignore_irrelevant,
@@ -895,6 +900,8 @@ class Match(models.Model):
             return "CPR"
         elif rule == 'name':
             return "Navn"
+        elif rule == 'address':
+            return "Adresse"
         else:
             return rule
 

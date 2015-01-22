@@ -17,7 +17,7 @@
 from urlparse import urljoin, urlparse
 
 from ..rules.name import NameRule
-from ..rules.name import AddressRule
+from ..rules.address import AddressRule
 from ..rules.cpr import CPRRule
 from ..rules.regexrule import RegexRule
 
@@ -52,6 +52,11 @@ class Scanner:
             rules.append(
                 NameRule(whitelist=self.scan_object.whitelisted_names,
                         blacklist=self.scan_object.blacklisted_names)
+            )
+        if self.scan_object.do_address_scan:
+            rules.append(
+                AddressRule(whitelist=self.scan_object.whitelisted_addresses,
+                        blacklist=self.scan_object.blacklisted_addresses)
             )
         # Add Regex Rules
         for rule in self.scan_object.regex_rules.all():

@@ -158,7 +158,6 @@ class AddressRule(Rule):
                 continue
             blacklisted = (street_address in self.blacklist or
                             full_address in self.blacklist)
-            import pdb; pdb.set_trace()
             street_match = street_name[:20] in self.street_names
 
             if blacklisted:
