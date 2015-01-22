@@ -48,14 +48,14 @@ def scan_urls(username, password, urls, params={}):
     user = authenticate(username=username, password=password)
     if not user:
         raise RuntimeError("Wrong username or password!")
-    scan = do_scan(user, urls)
+    scan = do_scan(user, urls, params)
 
     url = scan.get_absolute_url()
     return "{0}{1}".format(settings.SITE_URL, url)
 
 
 def scan_documents(username, password, data, params={}):
-    """Web service for scanning the documents send by the caller.
+    """Web service for scanning the documents sent by the caller.
 
     Parameters:
         * username (string) - login credentials
@@ -86,7 +86,7 @@ def scan_documents(username, password, data, params={}):
             # There was an error, so make sure we know about it
             raise
     # Now create temporary dir, fill with files
-    dirname = tempfile.mkdtemp(dir=settings.RPC_TMP_PREFIX)
+    dirname = tempfile.mkdtemp(dir=rpcdir)
 
     # Save files on disk
     def writefile(data_item):
