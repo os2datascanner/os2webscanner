@@ -1199,7 +1199,8 @@ def file_upload(request):
             file_path = os.path.join(dirname, upload_file.name)
             copyfile(path, file_path)
             file_url = 'file://{0}'.format(file_path)
-            scan = do_scan(request.user, [file_url], params, blocking=True)
+            scan = do_scan(request.user, [file_url], params, blocking=True,
+                           visible=True)
 
             #
             if not isinstance(scan, Scan):
