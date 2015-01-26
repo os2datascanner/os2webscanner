@@ -156,8 +156,9 @@ class AddressRule(Rule):
             if (street_address in self.whitelist or
                 full_address in self.whitelist):
                 continue
-            blacklisted = (street_address in self.blacklist or
-                            full_address in self.blacklist)
+            blacklisted = (street_name in self.blacklist or 
+                           street_address in self.blacklist or
+                           full_address in self.blacklist)
             street_match = street_name[:20] in self.street_names
 
             if blacklisted:
