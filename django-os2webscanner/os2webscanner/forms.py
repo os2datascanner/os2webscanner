@@ -15,13 +15,49 @@
 # source municipalities ( http://www.os2web.dk/ )
 """Contains forms."""
 
-from django.forms import ModelForm
+from django import forms
+from django.core.exceptions import ValidationError
 from .models import Scanner
 
 
-class ScannerForm(ModelForm):
+class ScannerForm(forms.ModelForm):
 
     """A form for creating or updating scanners."""
 
     class Meta:
         model = Scanner
+
+
+class FileUploadForm(forms.Form):
+    """This form is for uploading and scanning files - to start with, mainly
+    spreadsheets."""
+
+    def validate_filetype(upload_file):
+        extension = upload_file.name.split('.')[-1]
+        if not extension in ['odp', 'xls', 'xlsx', 'csv']:
+            raise ValidationError('Please upload a spreadsheet!')
+
+    scan_file = forms.FileField(label="Fil", validators=[validate_filetype])
+    #scan_file = forms.FileField(label="Fil")
+    # CPR scan
+    do_cpr_scan = forms.BooleanField(label="Scan CPR-numre", initial=True,
+                                     required=False)
+    do_replace_cpr = forms.BooleanField(label="Erstat CPR-numre",
+                                        initial=True, required=False)
+    cpr_replacement_text = forms.CharField(label="Erstat match med",
+                                           required=False,
+                                           initial="xxxxxx-xxxx")
+    # Name scan
+    do_name_scan = forms.BooleanField(label="Scan navne", initial=True,
+                                      required=False)
+    do_replace_name = forms.BooleanField(label="Erstat navne",
+                                         initial=False, required=False)
+    name_replacement_text = forms.CharField(label="Erstat match med",
+                                            required=False)
+    # Address scan
+    do_address_scan = forms.BooleanField(label="Scan adresser", initial=False,
+                                        required=False)
+    do_replace_address = forms.BooleanField(label="Erstat adresser",
+                                            initial=False, required=False)
+    address_replacement_text = forms.CharField(label="Erstat match med",
+                                               required=False)

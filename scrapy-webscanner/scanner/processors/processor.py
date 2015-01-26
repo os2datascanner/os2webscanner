@@ -353,7 +353,8 @@ class Processor(object):
 
         'application/javascript': 'text',
         'application/json': 'text',
-        'application/csv': 'text',
+        'application/csv': 'csv',
+        'text/csv': 'csv',
 
         'application/zip': 'zip',
 

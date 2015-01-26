@@ -29,6 +29,7 @@ from .models import Match, Scan
 from django_xmlrpc.decorators import xmlrpc_func
 
 
+@xmlrpc_func(returns='string', args=['string', 'string', 'string', 'dict'])
 def scan_urls(username, password, urls, params={}):
     """Web service for scanning URLs specified by the caller.
 
@@ -40,22 +41,18 @@ def scan_urls(username, password, urls, params={}):
     Return value:
         The URL for retrieving the report.
     """
-    # First check the user sent us a list
-    if not isinstance(urls, list):
-        raise RuntimeError("Malformed parameters.")
-    if not isinstance(params, dict):
-        raise RuntimeError("Malformed params parameter.")
+    # Authenticate
     user = authenticate(username=username, password=password)
     if not user:
         raise RuntimeError("Wrong username or password!")
-    scan = do_scan(user, urls)
+    scan = do_scan(user, urls, params)
 
-    url = scan.get_absolute_url()
-    return "{0}{1}".format(settings.SITE_URL, url)
+    return do_scan_urls(user, urls, params)
 
 
+@xmlrpc_func(returns='string', args=['string', 'string', 'string', 'dict'])
 def scan_documents(username, password, data, params={}):
-    """Web service for scanning the documents send by the caller.
+    """Web service for scanning the documents sent by the caller.
 
     Parameters:
         * username (string) - login credentials
@@ -65,43 +62,12 @@ def scan_documents(username, password, data, params={}):
     Return value:
         The URL for retrieving the report.
     """
-    # First check the user sent us a list
-    if not isinstance(data, list):
-        raise RuntimeError("Malformed parameters.")
     # Authenticate
     user = authenticate(username=username, password=password)
     if not user:
         raise RuntimeError("Wrong username or password!")
-    if not isinstance(params, dict):
-        raise RuntimeError("Malformed params parameter.")
 
-    # Create RPC dir for temp files
-    rpcdir = settings.RPC_TMP_PREFIX
-    try:
-        os.makedirs(rpcdir)
-    except OSError:
-        if os.path.isdir(rpcdir):
-            pass
-        else:
-            # There was an error, so make sure we know about it
-            raise
-    # Now create temporary dir, fill with files
-    dirname = tempfile.mkdtemp(dir=settings.RPC_TMP_PREFIX)
-
-    # Save files on disk
-    def writefile(data_item):
-        binary, filename = data_item
-        full_path = os.path.join(dirname, filename)
-        with open(full_path, "wb") as f:
-            f.write(binary.data)
-        return full_path
-    documents = map(writefile, data)
-    file_url = lambda f: 'file://{0}'.format(f)
-    scan = do_scan(user, map(file_url, documents), params)
-    # map(os.remove, documents)
-
-    url = scan.get_absolute_url()
-    return "{0}{1}".format(settings.SITE_URL, url)
+    return do_scan_documents(user, data, params)
 
 
 @xmlrpc_func(returns='list', args=['string', 'string', 'string'])
@@ -188,3 +154,55 @@ def get_report(username, password, report_url):
                match.matched_data.replace('\n', '').replace('\r', ' '),
                match.get_sensitivity_display()]))
     return output.getvalue()
+
+
+def do_scan_urls(user, urls, params={}):
+    """Implementation of scan_urls for direct calling."""
+    # Check parameters
+    if not isinstance(urls, list):
+        raise RuntimeError("Malformed parameters.")
+    if not isinstance(params, dict):
+        raise RuntimeError("Malformed params parameter.")
+    scan = do_scan(user, urls, params)
+
+    url = scan.get_absolute_url()
+    return "{0}{1}".format(settings.SITE_URL, url)
+
+
+def do_scan_documents(user, data, params={}):
+    """Implementation of scan_documents for direct calling."""
+    # Check parameters
+    if not isinstance(data, list):
+        raise RuntimeError("Malformed parameters.")
+    if not isinstance(params, dict):
+        raise RuntimeError("Malformed params parameter.")
+
+    # Create RPC dir for temp files
+    rpcdir = settings.RPC_TMP_PREFIX
+    try:
+        os.makedirs(rpcdir)
+    except OSError:
+        if os.path.isdir(rpcdir):
+            pass
+        else:
+            # There was an error, so make sure we know about it
+            raise
+    # Now create temporary dir, fill with files
+    dirname = tempfile.mkdtemp(dir=rpcdir)
+
+    # Save files on disk
+    def writefile(data_item):
+        binary, filename = data_item
+        full_path = os.path.join(dirname, filename)
+        with open(full_path, "wb") as f:
+            f.write(binary.data)
+        return full_path
+    documents = map(writefile, data)
+    file_url = lambda f: 'file://{0}'.format(f)
+    scan = do_scan(user, map(file_url, documents), params, blocking=True)
+    # map(os.remove, documents)
+    if not isinstance(scan, Scan):
+        raise RuntimeError("Unable to perform scan - check user has" +
+                           "organization and valid domain")
+    url = scan.get_absolute_url()
+    return "{0}{1}".format(settings.SITE_URL, url)

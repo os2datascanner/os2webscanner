@@ -47,15 +47,14 @@ def notify_user(scan):
         sensitivity=models.Sensitivity.HIGH
     ).count()
 
-    c = Context({'scan': scan, 'domain': settings.SITE_URL, 'matches': matches,
-                 'critical': critical})
+    c = Context({'scan': scan, 'domain': settings.SITE_URL,
+                 'matches': matches, 'critical': critical})
 
     try:
         body = t.render(c)
         message = EmailMessage(subject, body, settings.ADMIN_EMAIL,
                                to_addresses)
         message.send()
-        print "Mail sendt til", ",".join(to_addresses)
     except Exception as e:
         # TODO: Handle this properly
         raise
@@ -71,10 +70,13 @@ def capitalize_first(s):
 def get_supported_rpc_params():
     """Return a list of supported Scanner parameters for the RPC interface."""
     return ["do_cpr_scan", "do_cpr_modulus11",
-           "do_cpr_ignore_irrelevant", "do_ocr", "do_name_scan"]
+           "do_cpr_ignore_irrelevant", "do_ocr", "do_name_scan",
+           "output_spreadsheet_file", "do_cpr_replace", "cpr_replace_text",
+           "do_name_replace", "name_replace_text", "do_address_scan",
+           "do_address_replace", "address_replace_text"]
 
 
-def do_scan(user, urls, params={}):
+def do_scan(user, urls, params={}, blocking=False):
     """Create a scanner to scan a list of URLs.
 
     The 'urls' parameter may be either http:// or file:// URLS - we expect the
@@ -85,7 +87,6 @@ def do_scan(user, urls, params={}):
     The 'params' parameter should be a dict of supported Scanner
     parameters and values. Defaults are used for unspecified parameters.
     """
-    # TODO: Scan the listed URLs and return result to user
     scanner = models.Scanner()
     scanner.organization = user.get_profile().organization
     scanner.name = user.username + '-' + str(time.time())
@@ -95,16 +96,22 @@ def do_scan(user, urls, params={}):
     scanner.process_urls = urls
     scanner.is_visible = False
 
-    for param in get_supported_rpc_params():
-        if param in params:
+    supported_params = get_supported_rpc_params()
+    for param in params:
+        if param in supported_params:
             setattr(scanner, param, params[param])
+        else:
+            raise ValueError("Unsupported parameter passed: " + param +
+                             ". Supported parameters: " +
+                             str(supported_params))
 
     scanner.save()
+
     for domain in scanner.organization.domains.all():
         scanner.domains.add(domain)
-    scanner.run(user=user)
-
-    scan = scanner.scans.all()[0]
+    scan = scanner.run(user=user, blocking=blocking)
+    # NOTE: Running scan may have failed.
+    # Pass the error message or empty scan in that case.
     return scan
 
 
@@ -168,7 +175,6 @@ def send_summary_report(summary, from_date=None, to_date=None,
                                to_addresses)
         message.content_subtype = "html"
         message.send()
-        print "Mail sendt til", ",".join(to_addresses)
         summary.last_run = datetime.datetime.now()
         summary.save()
     except Exception as e:
