@@ -92,6 +92,8 @@ class CSVProcessor(Processor):
                 # Append column header
                 row.append("Matches")
                 first_row = False
+                rows.append(row)
+                continue
 
             for i in range(len(row)):
                 # Execute rules on each cell
