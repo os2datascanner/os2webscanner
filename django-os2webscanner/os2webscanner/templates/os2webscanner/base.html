@@ -81,6 +81,9 @@
                 <li>
                 <a href="/system/upload_file/">Scan regneark</a>
                 </li>
+                {% if not user.get_profile.is_upload_only %}
+                <li><a href="/customization/">Oplæring</a></li>
+                {% endif %}
                 <li>
                 <a href="/admin/" target="_NEW">Administration</a>
                 </li>
@@ -93,9 +96,6 @@
                 data-toggle="dropdown">Velkommen, {{user.username}}!<span class="caret"></span></a>
             <ul class="dropdown-menu" role="menu">
                 <li><a href="/accounts/password_change/">Skift password</a></li>
-                {% if not user.get_profile.is_upload_only %}
-                <li><a href="/organization/">Organisation</a></li>
-                {% endif %}
             </ul>
             </li>
             <li>
