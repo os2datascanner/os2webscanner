@@ -66,6 +66,19 @@ class Organization(models.Model):
     do_use_groups = models.BooleanField(default=False,
                                         editable=settings.DO_USE_GROUPS)
 
+    name_whitelist = models.TextField(blank=True,
+                                       default="",
+                                       verbose_name='Godkendte navne')
+    name_blacklist = models.TextField(blank=True,
+                                       default="",
+                                       verbose_name='Sortlistede navne')
+    address_whitelist = models.TextField(blank=True,
+                                       default="",
+                                       verbose_name='Godkendte adresser')
+    address_blacklist = models.TextField(blank=True,
+                                       default="",
+                                       verbose_name='Sortlistede adresser')
+
     def __unicode__(self):
         """Return the name of the organization."""
         return self.name
@@ -86,6 +99,7 @@ class UserProfile(models.Model):
                              related_name='profile',
                              verbose_name='Bruger')
     is_group_admin = models.BooleanField(default=False)
+    is_upload_only = models.BooleanField(default=False)
 
     @property
     def is_groups_enabled(self):
@@ -286,13 +300,12 @@ class Scanner(models.Model):
                                      verbose_name='Gruppe')
     schedule = RecurrenceField(max_length=1024,
                                verbose_name='Planlagt afvikling')
-    whitelisted_names = models.TextField(max_length=4096, blank=True,
-                                         default="",
-                                         verbose_name='Godkendte navne')
     domains = models.ManyToManyField(Domain, related_name='scanners',
                                      null=False, verbose_name='Domæner')
     do_cpr_scan = models.BooleanField(default=True, verbose_name='CPR')
     do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
+    do_address_scan = models.BooleanField(default=False,
+                                          verbose_name='Adresse')
     do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder?')
     do_cpr_modulus11 = models.BooleanField(default=True,
                                            verbose_name='Check modulus-11')
@@ -317,6 +330,30 @@ class Scanner(models.Model):
                                          verbose_name='Regex regler')
     recipients = models.ManyToManyField(UserProfile, null=True, blank=True,
                                         verbose_name='Modtagere')
+
+    # Spreadsheet annotation and replacement parameters
+
+    # Save a copy of any spreadsheets scanned with annotations
+    # in each row where matches were found. If this is enabled and any of
+    # the replacement parameters are enabled (e.g. do_cpr_replace), matches
+    # will also be replaced with the specified text (e.g. cpr_replace_text).
+    output_spreadsheet_file = models.BooleanField(default=False)
+
+    # Replace CPRs?
+    do_cpr_replace = models.BooleanField(default=False)
+    # Text to replace CPRs with
+    cpr_replace_text = models.CharField(max_length=2048, null=True,
+                                        blank=True)
+    # Replace names?
+    do_name_replace = models.BooleanField(default=False)
+    # Text to replace names with
+    name_replace_text = models.CharField(max_length=2048, null=True,
+                                         blank=True)
+    # Replace addresses?
+    do_address_replace = models.BooleanField(default=False)
+    # Text to replace addresses with
+    address_replace_text = models.CharField(max_length=2048, null=True,
+                                            blank=True)
 
     # DON'T USE DIRECTLY !!!
     # Use process_urls property instead.
@@ -403,7 +440,7 @@ class Scanner(models.Model):
     NO_VALID_DOMAINS = ("Scanneren kunne ikke startes," +
                          " fordi den ikke har nogen gyldige domæner.")
 
-    def run(self, test_only=False, user=None):
+    def run(self, test_only=False, blocking=False, user=None):
         """Run a scan with the Scanner.
 
         Return the Scan object if we started the scanner.
@@ -433,11 +470,16 @@ class Scanner(models.Model):
             os.makedirs(scan.scan_log_dir)
         log_file = open(scan.scan_log_file, "a")
 
+        if not os.path.exists(scan.scan_output_files_dir):
+            os.makedirs(scan.scan_output_files_dir)
+
         try:
             process = Popen([os.path.join(SCRAPY_WEBSCANNER_DIR, "run.sh"),
                              str(scan.pk)], cwd=SCRAPY_WEBSCANNER_DIR,
                             stderr=log_file,
                             stdout=log_file)
+            if blocking:
+                process.communicate()
         except Exception as e:
             print e
             return None
@@ -471,11 +513,22 @@ class Scan(models.Model):
     whitelisted_names = models.TextField(max_length=4096, blank=True,
                                          default="",
                                          verbose_name='Godkendte navne')
+    blacklisted_names = models.TextField(max_length=4096, blank=True,
+                                         default="",
+                                         verbose_name='Sortlistede navne')
+    whitelisted_addresses = models.TextField(max_length=4096, blank=True,
+                                         default="",
+                                         verbose_name='Godkendte adresser')
+    blacklisted_addresses = models.TextField(max_length=4096, blank=True,
+                                         default="",
+                                         verbose_name='Sortlistede adresser')
     domains = models.ManyToManyField(Domain,
                                      null=True,
                                      verbose_name='Domæner')
     do_cpr_scan = models.BooleanField(default=True, verbose_name='CPR')
     do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
+    do_address_scan = models.BooleanField(default=False,
+                                          verbose_name='Adresse')
     do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder?')
     do_cpr_modulus11 = models.BooleanField(default=True,
                                            verbose_name='Check modulus-11')
@@ -497,6 +550,31 @@ class Scan(models.Model):
                                          null=True,
                                          verbose_name='Regex regler')
     recipients = models.ManyToManyField(UserProfile, null=True, blank=True)
+
+    # Spreadsheet annotation and replacement parameters
+
+    # Save a copy of any spreadsheets scanned with annotations
+    # in each row where matches were found. If this is enabled and any of
+    # the replacement parameters are enabled (e.g. do_cpr_replace), matches
+    # will also be replaced with the specified text (e.g. cpr_replace_text).
+    output_spreadsheet_file = models.BooleanField(default=False)
+
+    # Replace CPRs?
+    do_cpr_replace = models.BooleanField(default=False)
+    # Text to replace CPRs with
+    cpr_replace_text = models.CharField(max_length=2048, null=True,
+                                        blank=True)
+    # Replace names?
+    do_name_replace = models.BooleanField(default=False)
+    # Text to replace names with
+    name_replace_text = models.CharField(max_length=2048, null=True,
+                                         blank=True)
+    # Replace addresses?
+    do_address_replace = models.BooleanField(default=False)
+    # Text to replace addresses with
+    address_replace_text = models.CharField(max_length=2048, null=True,
+                                            blank=True)
+
     # END setup copied from scanner
 
     # Create method - copies fields from scanner
@@ -504,9 +582,13 @@ class Scan(models.Model):
     def create(scan_cls, scanner):
         """ Create and copy fields from scanner. """
         scan = scan_cls(
-            whitelisted_names=scanner.whitelisted_names,
+            whitelisted_names=scanner.organization.name_whitelist,
+            blacklisted_names=scanner.organization.name_blacklist,
+            whitelisted_addresses=scanner.organization.address_whitelist,
+            blacklisted_addresses=scanner.organization.address_blacklist,
             do_cpr_scan=scanner.do_cpr_scan,
             do_name_scan=scanner.do_name_scan,
+            do_address_scan=scanner.do_address_scan,
             do_ocr=scanner.do_ocr,
             do_cpr_modulus11=scanner.do_cpr_modulus11,
             do_cpr_ignore_irrelevant=scanner.do_cpr_ignore_irrelevant,
@@ -514,7 +596,14 @@ class Scan(models.Model):
             do_external_link_check=scanner.do_external_link_check,
             do_last_modified_check=scanner.do_last_modified_check,
             do_last_modified_check_head_request=scanner.
-            do_last_modified_check_head_request
+            do_last_modified_check_head_request,
+            output_spreadsheet_file=scanner.output_spreadsheet_file,
+            do_cpr_replace=scanner.do_cpr_replace,
+            cpr_replace_text=scanner.cpr_replace_text,
+            do_name_replace=scanner.do_name_replace,
+            name_replace_text=scanner.name_replace_text,
+            do_address_replace=scanner.do_address_replace,
+            address_replace_text=scanner.address_replace_text
         )
         #
         scan.status = Scan.NEW
@@ -570,6 +659,20 @@ class Scan(models.Model):
     def scan_log_file(self):
         """Return the log file path associated with this scan."""
         return os.path.join(self.scan_log_dir, 'scan_%s.log' % self.pk)
+
+    @property
+    def scan_output_files_dir(self):
+        """Return the path to the scan output files dir."""
+        return os.path.join(settings.VAR_DIR, 'output_files')
+
+    @property
+    def scan_output_file(self):
+        """Return the output file path associated with this scan.
+
+        Note that this currently only supports one output file per scan.
+        """
+        return os.path.join(self.scan_output_files_dir,
+                            'scan_%s.csv' % self.pk)
 
     # Occurrence log - mainly for the scanner to notify when something FAILS.
     def log_occurrence(self, string):
@@ -642,7 +745,10 @@ class Scan(models.Model):
             (self._old_status != self.status)):
             # Send email
             from os2webscanner.utils import notify_user
-            notify_user(self)
+            try:
+                notify_user(self)
+            except IOError:
+                self.log_occurrence("Unable to send email notification!")
 
             self.cleanup_finished_scan()
             self._old_status = self.status
@@ -785,12 +891,19 @@ class Match(models.Model):
 
     def get_matched_rule_display(self):
         """Return a display name for the rule."""
-        if self.matched_rule == 'cpr':
+        return Match.get_matched_rule_display_name(self.matched_rule)
+
+    @classmethod
+    def get_matched_rule_display_name(cls, rule):
+        """Return a display name for the given rule."""
+        if rule == 'cpr':
             return "CPR"
-        elif self.matched_rule == 'name':
+        elif rule == 'name':
             return "Navn"
+        elif rule == 'address':
+            return "Adresse"
         else:
-            return self.matched_rule
+            return rule
 
     def get_sensitivity_class(self):
         """Return the bootstrap CSS class for the sensitivty."""

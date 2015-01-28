@@ -30,3 +30,9 @@ class MatchItem(DjangoItem):
     """Scrapy Item using the Match object from the Django model as storage."""
 
     django_model = Match
+
+    """Original text matched. Stored temporarily for the purposes of
+    replacing the original matched text.
+
+    Note that this is not stored in the DB."""
+    original_matched_data = Field()

@@ -23,15 +23,15 @@ from django.views.generic import View, ListView, TemplateView, DetailView
 from .views import MainPageView, ScannerList, DomainList, RuleList
 from .views import CSVReportDetails, ReportDetails, ReportList, ReportDelete
 from .views import ScannerCreate, ScannerUpdate, ScannerDelete, ScannerRun
-from .views import ScannerAskRun, ScanReportLog
+from .views import ScannerAskRun, ScanReportLog, OrganizationUpdate
 from .views import DomainCreate, DomainUpdate, DomainValidate, DomainDelete
 from .views import GroupList, GroupCreate, GroupUpdate, GroupDelete
 from .views import RuleCreate, RuleUpdate, RuleDelete, OrganizationList
 from .views import SummaryList, SummaryCreate, SummaryUpdate, SummaryDelete
-from .views import SummaryReport
-from .views import DialogSuccess
-from .views import SystemStatusView
+from .views import SummaryReport, DialogSuccess, SystemStatusView
+from .views import file_upload
 from .models import Scanner
+from .forms import FileUploadForm
 
 
 js_info_dict = {
@@ -89,6 +89,8 @@ urlpatterns = patterns(
         name='summary_report'),
     url(r'^summary/(?P<pk>\d+)/delete/$', SummaryDelete.as_view(),
         name='summary_delete'),
+    url(r"^organization/$", OrganizationUpdate.as_view(),
+        name='organization_update'),
     # Login/logout stuff
     url(r'^accounts/login/', 'django.contrib.auth.views.login',
         {'template_name': 'login.html'}, name='login'),
@@ -111,10 +113,11 @@ urlpatterns = patterns(
     url(r'^(scanners|domains|rules|groups|summaries)/(\d+)/(saved)/$',
         DialogSuccess.as_view()),
     url(r'^jsi18n/$', javascript_catalog, js_info_dict),
-
+    # System functions
     url(r'^system/status/?$', SystemStatusView.as_view()),
     url(r'^system/orgs_and_domains/$', OrganizationList.as_view(),
         name='orgs_and_domains'),
+    url(r'system/upload_file', file_upload, name='file_upload')
 )
 
 if settings.DO_USE_GROUPS:
