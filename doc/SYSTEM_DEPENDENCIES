@@ -14,3 +14,4 @@ pdftohtml
 unzip
 libreoffice
 imagemagick
+unoconv
