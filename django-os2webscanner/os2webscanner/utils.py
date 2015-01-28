@@ -76,7 +76,7 @@ def get_supported_rpc_params():
            "do_address_replace", "address_replace_text"]
 
 
-def do_scan(user, urls, params={}, blocking=False):
+def do_scan(user, urls, params={}, blocking=False, visible=False):
     """Create a scanner to scan a list of URLs.
 
     The 'urls' parameter may be either http:// or file:// URLS - we expect the
@@ -94,7 +94,7 @@ def do_scan(user, urls, params={}, blocking=False):
     scanner.do_last_modified_check = False
     scanner.do_last_modified_check_head_request = False
     scanner.process_urls = urls
-    scanner.is_visible = False
+    scanner.is_visible = visible
 
     supported_params = get_supported_rpc_params()
     for param in params:
