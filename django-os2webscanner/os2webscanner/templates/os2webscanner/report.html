@@ -70,7 +70,7 @@ Rapport &dash; {{scan.scanner.name}}
       <table class="table table-bordered report">
         <tbody>
         <tr>
-                {% if scan.domains.all %}<td class="head"> 
+                {% if scan.domains.all and not scan.scanner.process_urls %}<td class="head"> 
                     <h3>Domæner</h3>
 		</td>{% endif %}
                 {% if scan.regex_rules.all %}<td class="head">
@@ -78,7 +78,7 @@ Rapport &dash; {{scan.scanner.name}}
                 </td>{% endif %}
         </tr>
         <tr>
-                {% if scan.domains.all %}<td>
+                {% if scan.domains.all and not scan.scanner.process_urls %}<td>
                     {% for domain in scan.domains.all %}
                     {{domain.url}}<br>
                     {% endfor %}
