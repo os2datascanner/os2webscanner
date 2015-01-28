@@ -31,7 +31,7 @@ _simple_name = "\\p{Uppercase}(\\p{L}+|\\.?)"
 _name = "{0}(-{0})?".format(_simple_name)
 full_name_regex = regex.compile(
     "\\b(?P<first>" + _name + ")" +
-    "(?P<middle>(" + _whitespace + _name + "){0,2})" +
+    "(?P<middle>(" + _whitespace + _name + "){0,3})" +
     "(?P<last>" + _whitespace + _name + "){1}\\b", regex.UNICODE)
 
 
