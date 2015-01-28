@@ -1214,12 +1214,11 @@ def file_upload(request):
             response[
                 'Content-Disposition'
             ] = u'attachment; filename={0}'.format(report_file)
-            writer = csv.writer(response)
             csv_file = open(scan.scan_output_file, "rb")
 
-            # TODO: Load CSV file, write it back to the client
-            for row in csv.reader(csv_file):
-                writer.writerow(row)
+            # Load CSV file, write it back to the client
+            csv_data = csv_file.read()
+            response.write(csv_data)
 
             return response
 
