@@ -145,8 +145,8 @@ class CSVProcessor(Processor):
         # print "*** 4 ***"
         # Write to output file
         with open(scanner.scan_object.scan_output_file, 'w') as f:
-            writer = unicodecsv.writer(f, delimiter=';', quotechar='"')
-            #writer = unicodecsv.writer(f, dialect)
+            writer = unicodecsv.writer(f, delimiter=';', quotechar='"',
+                                       escapechar='|')
             writer.writerows(rows)
         # print "*** 5 ***"
         return True
