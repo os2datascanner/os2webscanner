@@ -1,6 +1,6 @@
 {% extends 'os2webscanner/base.html' %}
 
-{% block heading %}Organisation: {{ form.name.value }}
+{% block heading %}Oplæring
 {% endblock %}
 
 {% block body %}
@@ -26,39 +26,6 @@
 <form class="form-horizontal" role="form" method="post">
 {% csrf_token %}    
 
-  <!-- Name, hidden -->
-
-  <!-- Contact email -->
-  <div id="{{ form.contact_email.auto_id }}_container" class="col-sm-12{% if form.contact_email.errors %} has-error{% endif %}">
-    <div class="form-group">
-      <label class="control-label col-sm-2" for="id_{{ form.contact_email.name }}">{{ form.contact_email.label }}</label>
-      <div class="col-sm-10">
-	<input type="text" class="form-control" name="{{ form.contact_email.name }}" id="id_{{ form.contact_email.name }}" {% if form.contact_email.value %}value="{{ form.contact_email.value }}"{% endif %}>
-	{% if form.contact_email.help_text %}
-	  <p>
-            <small>{{ form.contact_email.help_text }}</small>
-          </p>
-        {% endif %}
-        {% if form.contact_email.errors %}{{ form.contact_email.errors }}{% endif %}
-      </div>
-    </div>
-  </div>
-  
-  <!-- Contact phone -->
-  <div id="{{ form.contact_phone.auto_id }}_container" class="col-sm-12{% if form.contact_phone.errors %} has-error{% endif %}">
-    <div class="form-group">
-      <label class="control-label col-sm-2" for="id_{{ form.contact_phone.name }}">{{ form.contact_phone.label }}</label>
-      <div class="col-sm-10">
-	<input type="text" class="form-control" name="{{ form.contact_phone.name }}" id="id_{{ form.contact_phone.name }}" {% if form.contact_phone.value %}value="{{ form.contact_phone.value }}"{% endif %}>
-	{% if form.contact_phone.help_text %}
-	  <p>
-            <small>{{ form.contact_phone.help_text }}</small>
-          </p>
-        {% endif %}
-        {% if form.contact_phone.errors %}{{ form.contact_phone.errors }}{% endif %}
-      </div>
-    </div>
-  </div>
 
   <!-- Whitelists & blacklists -->
   
