@@ -53,11 +53,15 @@ class FileUploadForm(forms.Form):
     do_replace_name = forms.BooleanField(label="Erstat navne",
                                          initial=False, required=False)
     name_replacement_text = forms.CharField(label="Erstat match med",
-                                            required=False)
+                                            required=False,
+                                            initial="NAVN",
+                                           )
     # Address scan
-    do_address_scan = forms.BooleanField(label="Scan adresser", initial=False,
+    do_address_scan = forms.BooleanField(label="Scan adresser", initial=True,
                                         required=False)
     do_replace_address = forms.BooleanField(label="Erstat adresser",
                                             initial=False, required=False)
     address_replacement_text = forms.CharField(label="Erstat match med",
-                                               required=False)
+                                               required=False,
+                                               initial="ADRESSE",
+                                              )
