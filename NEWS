@@ -1,4 +1,14 @@
-* Version 1.3.0.1; January 28, 2014
+* Version 1.3.0.1; February 5, 2015
+
+New in this version:
+
+ - Address scanning adjusted to give a match whenever a valid street name is
+   found and a critical match if a street name is found with a house number.
+ - Name scanning will eliminate leading and tailing capitalized words to
+   avoid false negatives.
+
+
+* Version 1.3.0.1; January 28, 2015
 
 Hotfix:
 
