@@ -131,34 +131,61 @@ class NameRule(Rule):
         matches = set()
         unmatched_text = text
         # Determine if a name matches one of the lists
-        match = lambda n, list: n in self.blacklist or (n in list and not
-                                                        n in self.whitelist)
+        match = lambda n, list: n.upper() in self.blacklist or (
+            n.upper() in list and not n.upper() in self.whitelist
+        )
 
         # First, check for whole names, i.e. at least Firstname + Lastname
         names = match_full_name(text)
         for name in names:
             # Match each name against the list of first and last names
-            first_name = name[0].upper()
-            middle_names = [n.upper() for n in name[1]]
-            last_name = name[2].upper() if name[2] else ""
-            if middle_names:
-                full_name = u"%s %s" % (first_name, last_name)
-            else:
-                full_name = u"%s %s %s" % (
-                    first_name, " ".join(middle_names), last_name
-                )
-            if full_name in self.whitelist:
-                continue
+            first_name = name[0]
+            middle_names = [n for n in name[1]]
+            last_name = name[2] if name[2] else ""
+
+            # Store the original matching text
+            matched_text = name[3]
+
             first_match = match(first_name, self.first_names)
             last_match = match(last_name, self.last_names)
             middle_match = any(
                 [match(n, self.all_names) for n in middle_names]
             )
+            # But what if the name is Word Firstname Lastname?
+            while middle_match and not first_match:
+                old_name = first_name
+                first_name = middle_names.pop(0)
+                first_match = match(first_name, self.first_names)
+                middle_match = any(
+                    [match(n, self.all_names) for n in middle_names]
+                )
+                matched_text = matched_text.lstrip(old_name)
+                matched_text = matched_text.lstrip()
+            # Or Firstname Lastname Word?
+            while middle_match and not last_match:
+                old_name = last_name
+                last_name = middle_names.pop()
+                last_match = match(last_name, self.last_names)
+                middle_match = any(
+                    [match(n, self.all_names) for n in middle_names]
+                )
+                matched_text = matched_text.rstrip(old_name)
+                matched_text = matched_text.rstrip()
+
+            if middle_names:
+                full_name = u"%s %s %s" % (
+                    first_name, " ".join(middle_names), last_name
+                )
+            else:
+                full_name = u"%s %s" % (first_name, last_name)
+
+            if full_name in self.whitelist:
+                continue
 
             # Check if name is blacklisted.
             # The name is blacklisted if there exists a string in the
             # blacklist which is contained as a substring of the name.
-            is_match = lambda str: str in full_name
+            is_match = lambda str: str in full_name.upper()
             is_blacklisted = any(map(is_match, self.blacklist))
             # Name match is always high sensitivity
             # and occurs only when first and last name are in the name lists
@@ -171,9 +198,6 @@ class NameRule(Rule):
             else:
                 #sensitivity = Sensitivity.OK
                 continue
-
-            # Store the original matching text
-            matched_text = name[3]
 
             # Update remaining, i.e. unmatched text
             unmatched_text = unmatched_text.replace(matched_text, "", 1)

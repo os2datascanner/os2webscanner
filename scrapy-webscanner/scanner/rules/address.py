@@ -31,10 +31,8 @@ _simple_name = "\\p{Uppercase}(\\p{L}+|\\.?)"
 _house_number = "[1-9][0-9]*[a-zA-Z]?"
 _zip_code = "[1-9][0-9][0-9][0-9]"
 
-_street_name = "{0}({1}{0})?".format(_simple_name, _whitespace)
-
-_street_address = "(?P<street_name>{0}){1}(?P<house_number>{2})".format(
-    _street_name, _whitespace, _house_number
+_street_address = "(?P<street_name>{0})(?P<house_number>{1}{2})?".format(
+    _simple_name, _whitespace, _house_number
 )
 _zip_city = "(?P<zip_code>{0}){1}(?P<city>{2})".format(
     _zip_code,
@@ -58,7 +56,6 @@ def match_full_address(text):
     for m in it:
         street_address = m.group("street_name")
         house_number = m.group("house_number")
-
         try:
             zip_code = m.group("zip_code")
         except IndexError:
@@ -68,6 +65,10 @@ def match_full_address(text):
         except IndexError:
             city = ''
 
+        if not house_number is None:
+            house_number = house_number.lstrip()
+        else:
+            house_number = ''
         matched_text = m.group(0)
         matches.add(
             (street_address, house_number, zip_code, city, matched_text)
@@ -145,7 +146,7 @@ class AddressRule(Rule):
         for address in addresses:
             # Match each name against the list of first and last names
             street_name = address[0].upper()
-            house_number = address[1].upper()
+            house_number = address[1].upper() if address[1] else ''
             zip_code = address[2].upper() if address[2] else ''
             city = address[3].upper()if address[3] else ''
 
@@ -161,7 +162,7 @@ class AddressRule(Rule):
                            full_address in self.blacklist)
             street_match = street_name[:20] in self.street_names
 
-            if blacklisted:
+            if blacklisted or (street_match and house_number):
                 sensitivity = Sensitivity.HIGH
             elif street_match:
                 # Real street name, but not blacklisted
