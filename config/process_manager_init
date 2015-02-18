@@ -1,0 +1,24 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides: process_manager
+# Required-Start: $remote_fs $syslog
+# Default-Start: 2 3 4 5
+# Short-Description: process_manager
+# Description: This file starts and stops process_manager
+# 
+### END INIT INFO
+
+# TODO: Add way of stopping also.
+
+WEBSCANNER_DIR=/home/os2/os2webscanner
+
+case "$1" in
+
+start) 
+    sudo -u www-data -b $WEBSCANNER_DIR/scrapy-webscanner/start_process_manager.sh
+    ;;
+*)
+    echo "Usage: process_manager {start}" >&2
+    ;;
+esac
+
