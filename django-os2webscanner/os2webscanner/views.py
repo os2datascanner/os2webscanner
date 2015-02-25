@@ -1196,7 +1196,7 @@ def file_upload(request):
                     raise
             # Now create temporary dir, fill with files
             dirname = tempfile.mkdtemp(dir=rpcdir)
-            file_path = os.path.join(dirname, upload_file.name)
+            file_path = os.path.join(dirname, upload_file.name).encode('utf-8')
             copyfile(path, file_path)
             file_url = 'file://{0}'.format(file_path)
             scan = do_scan(request.user, [file_url], params, blocking=True,

@@ -55,7 +55,7 @@ class BaseScannerSpider(Spider):
         # Build a string to match against, containing the path, and if
         # present, the query and fragment as well.
         url = urlparse_cached(request)
-        match_against = url.path
+        match_against = url.netloc + url.path
         if url.query != '':
             match_against += "?" + url.query
         if url.fragment != '':

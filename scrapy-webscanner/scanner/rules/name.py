@@ -142,14 +142,6 @@ class NameRule(Rule):
             first_name = name[0]
             middle_names = [n for n in name[1]]
             last_name = name[2] if name[2] else ""
-            if middle_names:
-                full_name = u"%s %s" % (first_name, last_name)
-            else:
-                full_name = u"%s %s %s" % (
-                    first_name, " ".join(middle_names), last_name
-                )
-            if full_name in self.whitelist:
-                continue
 
             # Store the original matching text
             matched_text = name[3]
@@ -180,12 +172,20 @@ class NameRule(Rule):
                 matched_text = matched_text.rstrip(old_name)
                 matched_text = matched_text.rstrip()
 
+            if middle_names:
+                full_name = u"%s %s %s" % (
+                    first_name, " ".join(middle_names), last_name
+                )
+            else:
+                full_name = u"%s %s" % (first_name, last_name)
 
+            if full_name in self.whitelist:
+                continue
 
             # Check if name is blacklisted.
             # The name is blacklisted if there exists a string in the
             # blacklist which is contained as a substring of the name.
-            is_match = lambda str: str in full_name
+            is_match = lambda str: str in full_name.upper()
             is_blacklisted = any(map(is_match, self.blacklist))
             # Name match is always high sensitivity
             # and occurs only when first and last name are in the name lists
