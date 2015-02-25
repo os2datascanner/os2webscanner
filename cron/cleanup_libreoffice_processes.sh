@@ -13,8 +13,7 @@ for SCAN_ID in $LO_PROCESSES
 do
     if [[ -z $(echo $RUNNING_SCANS | grep -w $SCAN_ID) ]]
     then
-        #sudo -u www-data kill -9 $(ps aux | grep oosplash | grep "scan_${SCAN_ID}" | awk ' { print $2; }')
-        echo $(ps aux | grep oosplash | grep "scan_${SCAN_ID}" | awk ' { print $2; }')
+        sudo -u www-data kill -9 $(ps aux | grep oosplash | grep "scan_${SCAN_ID}" | awk ' { print $2; }')
     fi
 done
 
