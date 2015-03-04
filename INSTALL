@@ -254,7 +254,7 @@ then save the file:
 The system may send out summary reports describing the performance, results,
 etc., of different scanners. 
 
-To have summaries emaild to recipients, edit `crontab` as described in the
+To have summaries emailed to recipients, edit `crontab` as described in the
 previous section, adding the line
 
 ```
