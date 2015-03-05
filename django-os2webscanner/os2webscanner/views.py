@@ -19,6 +19,7 @@
 import os
 import csv
 import tempfile
+import codecs
 from shutil import copyfile
 
 from django import forms
@@ -1217,6 +1218,7 @@ def file_upload(request):
             csv_file = open(scan.scan_output_file, "rb")
 
             # Load CSV file, write it back to the client
+            response.write(codecs.BOM_UTF8)
             csv_data = csv_file.read()
             response.write(csv_data)
 
