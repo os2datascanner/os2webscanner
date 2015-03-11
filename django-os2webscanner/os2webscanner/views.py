@@ -1184,10 +1184,7 @@ def file_upload(request):
                 'address_replacement_text'
             ]
             params['output_spreadsheet_file'] = True
-            params['columns'] = map(
-                int,
-                form.cleaned_data['column_list'].split(',')
-            )
+            params['columns'] = form.cleaned_data['column_list']
 
             print params['columns']
 
