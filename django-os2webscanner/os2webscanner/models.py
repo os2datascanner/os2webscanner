@@ -324,6 +324,9 @@ class Scanner(models.Model):
         default=True,
         verbose_name='Brug HEAD request'
     )
+    columns = models.CommaSeparatedIntegerField(max_length=128,
+                                                null=True,
+                                                blank=True)
     regex_rules = models.ManyToManyField(RegexRule,
                                          blank=True,
                                          null=True,
@@ -543,8 +546,13 @@ class Scan(models.Model):
     do_last_modified_check = models.BooleanField(default=True,
                                                  verbose_name='Check ' +
                                                               'Last-Modified')
-    do_last_modified_check_head_request = \
-        models.BooleanField(default=True, verbose_name='Brug HEAD request')
+    do_last_modified_check_head_request = models.BooleanField(
+        default=True,
+        verbose_name='Brug HEAD request'
+    )
+    columns = models.CommaSeparatedIntegerField(max_length=128,
+                                                null=True,
+                                                blank=True)
     regex_rules = models.ManyToManyField(RegexRule,
                                          blank=True,
                                          null=True,
