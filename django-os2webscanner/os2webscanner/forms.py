@@ -67,6 +67,6 @@ class FileUploadForm(forms.Form):
                                               )
     # Column list - ignored if left blank
     column_list = forms.RegexField(label="Scan kolonner",
-                                    regex='^[\d,]+$',
+                                    regex='^[A-Z,]+$',
                                    required=False,
                                    max_length=128)
