@@ -605,6 +605,7 @@ class Scan(models.Model):
             do_last_modified_check=scanner.do_last_modified_check,
             do_last_modified_check_head_request=scanner.
             do_last_modified_check_head_request,
+            columns=scanner.columns,
             output_spreadsheet_file=scanner.output_spreadsheet_file,
             do_cpr_replace=scanner.do_cpr_replace,
             cpr_replace_text=scanner.cpr_replace_text,
