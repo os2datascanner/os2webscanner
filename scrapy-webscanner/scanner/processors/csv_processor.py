@@ -52,6 +52,10 @@ class CSVProcessor(Processor):
         if not scanner.scan_object.output_spreadsheet_file:
             return self.text_processor.process(data, url_object)
 
+        # Check if scan is limited to certain columns.
+        columns = scanner.scan_object.columns
+        columns = map(int, columns.split(',')) if columns else []
+
         # Try to detect the CSV Dialect using the first 1024 characters of
         # the data
         try:
@@ -96,6 +100,10 @@ class CSVProcessor(Processor):
                 continue
 
             for i in range(len(row)):
+                # If columns are specified, and present column is not listed,
+                # skip.
+                if columns and not i + 1 in columns:
+                    continue
                 # Execute rules on each cell
                 matches = scanner.execute_rules(row[i])
                 for match in matches:

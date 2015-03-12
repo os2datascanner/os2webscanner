@@ -1184,6 +1184,12 @@ def file_upload(request):
                 'address_replacement_text'
             ]
             params['output_spreadsheet_file'] = True
+            to_int = lambda L: str(ord(L) - ord('A') + 1)
+            params['columns'] = ','.join(
+                map(to_int, form.cleaned_data['column_list'].split(','))
+            )
+
+            print params['columns']
 
             path = upload_file.temporary_file_path()
             rpcdir = settings.RPC_TMP_PREFIX
