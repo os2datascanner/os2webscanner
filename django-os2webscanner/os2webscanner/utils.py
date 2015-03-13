@@ -73,7 +73,7 @@ def get_supported_rpc_params():
            "do_cpr_ignore_irrelevant", "do_ocr", "do_name_scan",
            "output_spreadsheet_file", "do_cpr_replace", "cpr_replace_text",
            "do_name_replace", "name_replace_text", "do_address_scan",
-           "do_address_replace", "address_replace_text"]
+           "do_address_replace", "address_replace_text", "columns"]
 
 
 def do_scan(user, urls, params={}, blocking=False, visible=False):
