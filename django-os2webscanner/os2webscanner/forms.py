@@ -65,3 +65,11 @@ class FileUploadForm(forms.Form):
                                                required=False,
                                                initial="ADRESSE",
                                               )
+    # Column list - ignored if left blank
+    column_list = forms.RegexField(
+        label="Scan kun kolonner",
+        help_text='Angiv kolonner som store bogstaver adskilt med komma',
+        regex='^[A-Z,]+$',
+        required=False,
+        max_length=128
+    )
