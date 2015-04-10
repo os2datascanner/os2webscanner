@@ -95,6 +95,20 @@ class Processor(object):
         """
         return settings.VAR_DIR
 
+    def is_md5_known(self, data):
+        
+        """Decide if we know a given file by calculation its MD5."""
+        # TODO: Implement this.
+        return False
+
+    def store_md5(self, data):
+
+        """
+        Store MD5 sum for these scan parameters & data.
+        """
+        # TODO: Implement this.
+        pass
+
     def handle_spider_item(self, data, url_object):
         """Process an item from a spider. Must be overridden.
 
@@ -148,9 +162,14 @@ class Processor(object):
         """
         try:
             encoding = self.encoding_magic.from_file(file_path)
-            f = codecs.open(file_path, "r", encoding=encoding)
-            self.process(f.read(), url)
-            f.close()
+            with codecs.open(file_path, "r", encoding=encoding) as f:
+                data = f.read()
+                # TODO: Perform MD5 check here!
+                if self.is_md5_known(data):
+                    pass
+                else:
+                    self.process(data, url)
+                    self.store_md5(data)
         except IOError, e:
             print repr(e)
             return False
