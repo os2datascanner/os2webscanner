@@ -17,7 +17,7 @@
 
 import datetime
 import pytz
-from  lxml import html
+from lxml import html
 
 import arrow
 
@@ -358,7 +358,6 @@ class LastModifiedCheckMiddleware(object):
         """
         # Check the Last-Modified header to see if the content has been
         # updated since the last time we checked it.
-        log.error("Check last modified header!")
         last_modified_header = response.headers.get("Last-Modified", None)
         last_modified_header_date = datetime.datetime.fromtimestamp(
             mktime_tz(parsedate_tz(last_modified_header)), tz=pytz.utc
@@ -373,14 +372,14 @@ class LastModifiedCheckMiddleware(object):
                 # TODO: Check meta tag.
                 # TODO: This is correct, but find out where it goes :-)
                 body_html = html.fromstring(response.body)
-                meta_dict  = { el.values()[0] : el.values()[1] 
+                meta_dict = {el.values()[0]: el.values()[1]
                               for el in body_html.findall('head/meta')}
                 if 'last-modified' in meta_dict:
                     lm = meta_dict['last-modified']
-                    try: 
+                    try:
                         last_modified_header_date = arrow.get(lm).datetime
                     except:
-                        log.error(
+                        log.msg(
                             "Date format error on last modied: {0}".format(lm)
                         )
         # lastmod comes from a sitemap.xml file
