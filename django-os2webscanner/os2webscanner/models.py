@@ -1044,7 +1044,6 @@ class MD5Sum(models.Model):
 
     """"Store MD5 sums of binary files to avoid reprocessing."""
 
-
     organization = models.ForeignKey(Organization,
                                      null=False,
                                      verbose_name='Organisation')
