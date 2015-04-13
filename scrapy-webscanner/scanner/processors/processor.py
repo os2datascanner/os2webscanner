@@ -17,8 +17,10 @@
 import codecs
 import random
 import subprocess
+import hashlib
 
-from os2webscanner.models import ConversionQueueItem
+from os2webscanner.models import ConversionQueueItem, MD5Sum
+
 from django.db import transaction, IntegrityError, DatabaseError
 from django import db
 from django.utils import timezone
@@ -95,6 +97,40 @@ class Processor(object):
         """
         return settings.VAR_DIR
 
+    def is_md5_known(self, data, scan):
+        """Decide if we know a given file by calculating its MD5."""
+        md5 = hashlib.md5(data).hexdigest()
+        exists = MD5Sum.objects.filter(
+            organization=scan.scanner.organization,
+            md5=md5,
+            is_cpr_scan=scan.do_cpr_scan,
+            is_check_mod11=scan.do_cpr_modulus11,
+            is_ignore_irrelevant=scan.do_cpr_ignore_irrelevant,
+        ).count() > 0
+        
+        return exists
+
+    def store_md5(self, data, scan):
+
+        """
+        Store MD5 sum for these scan parameters & data.
+        """
+        md5 = hashlib.md5(data).hexdigest()
+
+        md5 = MD5Sum(
+            organization=scan.scanner.organization,
+                md5=md5,
+                is_cpr_scan=scan.do_cpr_scan,
+                is_check_mod11=scan.do_cpr_modulus11,
+                is_ignore_irrelevant=scan.do_cpr_ignore_irrelevant,
+            )
+        try:
+            md5.save()
+        except IntegrityError:
+            scan.log_occurence(
+                "Trying to save MD5 sum twice - shouldn't happen"
+            )
+
     def handle_spider_item(self, data, url_object):
         """Process an item from a spider. Must be overridden.
 
@@ -148,9 +184,15 @@ class Processor(object):
         """
         try:
             encoding = self.encoding_magic.from_file(file_path)
-            f = codecs.open(file_path, "r", encoding=encoding)
-            self.process(f.read(), url)
-            f.close()
+            with codecs.open(file_path, "r", encoding=encoding) as f:
+                data = f.read()
+                # TODO: Perform MD5 check here!
+                scan = url.scan
+                if self.is_md5_known(data, scan):
+                    pass
+                else:
+                    self.process(data, url)
+                    self.store_md5(data, scan)
         except IOError, e:
             print repr(e)
             return False
