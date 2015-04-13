@@ -107,7 +107,7 @@ class Processor(object):
             is_check_mod11=scan.do_cpr_modulus11,
             is_ignore_irrelevant=scan.do_cpr_ignore_irrelevant,
         ).count() > 0
-        
+
         return exists
 
     def store_md5(self, data, scan):
