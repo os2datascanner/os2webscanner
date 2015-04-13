@@ -98,7 +98,6 @@ class Processor(object):
         return settings.VAR_DIR
 
     def is_md5_known(self, data, scan):
-
         """Decide if we know a given file by calculating its MD5."""
         md5 = hashlib.md5(data).hexdigest()
         exists = MD5Sum.objects.filter(
@@ -108,6 +107,7 @@ class Processor(object):
             is_check_mod11=scan.do_cpr_modulus11,
             is_ignore_irrelevant=scan.do_cpr_ignore_irrelevant,
         ).count() > 0
+        
         return exists
 
     def store_md5(self, data, scan):
@@ -115,9 +115,6 @@ class Processor(object):
         """
         Store MD5 sum for these scan parameters & data.
         """
-        is_cpr_scan =
-        is_check_mod11 =
-        is_ignore_irrelevant =
         md5 = hashlib.md5(data).hexdigest()
 
         md5 = MD5Sum(

@@ -1055,3 +1055,6 @@ class MD5Sum(models.Model):
     class Meta:
         unique_together = ('md5', 'is_cpr_scan', 'is_check_mod11',
                         'is_ignore_irrelevant', 'organization')
+
+    def __unicode__(self):
+        return "{0}: {1}".format(self.organization.name, self.md5)
