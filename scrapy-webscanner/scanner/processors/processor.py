@@ -14,6 +14,13 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 """Processors."""
+
+
+import time
+import os
+import mimetypes
+import sys
+import magic
 import codecs
 import random
 import subprocess
@@ -24,12 +31,9 @@ from os2webscanner.models import ConversionQueueItem, MD5Sum
 from django.db import transaction, IntegrityError, DatabaseError
 from django import db
 from django.utils import timezone
-import time
-import os
-import mimetypes
-import sys
-import magic
 from django.conf import settings
+
+from scrapy import log
 
 
 # Minimum width and height an image must have to be scanned
@@ -38,6 +42,14 @@ MIN_OCR_DIMENSION_BOTH = 7
 # Minimum width or height (at least one dimension) an image must have to be
 # scanned
 MIN_OCR_DIMENSION_EITHER = 64
+
+
+def get_md5_sum(data):
+    """Helper function to calculate md5 sum."""
+
+    md5 = hashlib.md5(data).hexdigest()
+
+    return md5
 
 
 def get_image_dimensions(file_path):
@@ -99,7 +111,8 @@ class Processor(object):
 
     def is_md5_known(self, data, scan):
         """Decide if we know a given file by calculating its MD5."""
-        md5 = hashlib.md5(data).hexdigest()
+
+        md5 = get_md5_sum(data)
         exists = MD5Sum.objects.filter(
             organization=scan.scanner.organization,
             md5=md5,
@@ -115,11 +128,11 @@ class Processor(object):
         """
         Store MD5 sum for these scan parameters & data.
         """
-        md5 = hashlib.md5(data).hexdigest()
+        md5str = get_md5_sum(data)
 
         md5 = MD5Sum(
             organization=scan.scanner.organization,
-                md5=md5,
+                md5=md5str,
                 is_cpr_scan=scan.do_cpr_scan,
                 is_check_mod11=scan.do_cpr_modulus11,
                 is_ignore_irrelevant=scan.do_cpr_ignore_irrelevant,
@@ -127,7 +140,7 @@ class Processor(object):
         try:
             md5.save()
         except IntegrityError:
-            scan.log_occurence(
+            scan.log_occurrence(
                 "Trying to save MD5 sum twice - shouldn't happen"
             )
 
@@ -156,6 +169,11 @@ class Processor(object):
         """
         # Write data to a temporary file
         # Get temporary directory
+        if self.is_md5_known(data, url_object.scan):
+            log.msg(
+                "Known MD5 sum for URL {0} - not adding to queue".format(
+                    url_object.url), level=log.INFO)
+            return True
         tmp_dir = url_object.tmp_dir
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
@@ -184,18 +202,30 @@ class Processor(object):
         """
         try:
             encoding = self.encoding_magic.from_file(file_path)
-            with codecs.open(file_path, "r", encoding=encoding) as f:
+            with codecs.open(file_path, "r") as f:
                 data = f.read()
                 # TODO: Perform MD5 check here!
                 scan = url.scan
                 if self.is_md5_known(data, scan):
-                    pass
+                    log.msg(
+                        "Known MD5 sum for URL {0} - skipping".format(url.url),
+                        level=log.INFO)
+                    return True
                 else:
                     self.process(data, url)
-                    self.store_md5(data, scan)
-        except IOError, e:
-            print repr(e)
+                    try:
+                        self.store_md5(data, scan)
+                    except UnicodeEncodeError:
+                        scan.log_occurrence(
+                            "Unable to store MD5 for URL {0} and encoding {1}".format(url.url, encoding)
+                        )
+        except Exception as e:
+            url.scan.log_occurrence(
+                "process_file failed for url {0}: {1}".format(url.url, str(e))
+            )
+            log.msg(repr(e))
             return False
+
         return True
 
     def setup_queue_processing(self, pid, *args):
