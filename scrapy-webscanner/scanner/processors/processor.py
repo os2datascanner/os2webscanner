@@ -170,9 +170,10 @@ class Processor(object):
         # Write data to a temporary file
         # Get temporary directory
         if self.is_md5_known(data, url_object.scan):
-            log.msg(
+            scan.log_occurrence(
                 "Known MD5 sum for URL {0} - not adding to queue".format(
-                    url_object.url), level=log.INFO)
+                    url_object.url)
+            )
             return True
         tmp_dir = url_object.tmp_dir
         if not os.path.exists(tmp_dir):
@@ -207,9 +208,11 @@ class Processor(object):
                 # TODO: Perform MD5 check here!
                 scan = url.scan
                 if self.is_md5_known(data, scan):
-                    log.msg(
-                        "Known MD5 sum for URL {0} - skipping".format(url.url),
-                        level=log.INFO)
+                    scan.log_occurrence(
+                        "Known MD5 sum for URL {0} - skipping".format(
+                            url.url
+                        )
+                    )
                     return True
                 else:
                     self.process(data, url)
@@ -217,7 +220,8 @@ class Processor(object):
                         self.store_md5(data, scan)
                     except UnicodeEncodeError:
                         scan.log_occurrence(
-                            "Unable to store MD5 for URL {0} and encoding {1}".format(url.url, encoding)
+                            "Unable to store MD5 for URL {0}" +
+                            " and encoding {1}".format(url.url, encoding)
                         )
         except Exception as e:
             url.scan.log_occurrence(
