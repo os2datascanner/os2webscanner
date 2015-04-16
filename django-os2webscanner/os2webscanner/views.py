@@ -1205,9 +1205,9 @@ def file_upload(request):
             copyfile(path, file_path)
             file_url = 'file://{0}'.format(file_path)
             scan = do_scan(request.user, [file_url], params, blocking=True,
-                           visible=False)
-            scan.is_visible = True
-            scan.save()
+                           visible=True)
+            scan.scanner.is_visible = False
+            scan.scanner.save()
 
             #
             if not isinstance(scan, Scan):
