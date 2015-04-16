@@ -30,7 +30,7 @@ setup(
     packages=['os2webscanner'],
     include_package_data=True,
     license='MPL',  # example license
-    description='OS2 web scanner for Danish municipalities',
+    description='OS2Webscanner for Danish municipalities',
     long_description=README,
     url='http:///magenta.dk',
     author='Magenta ApS',
