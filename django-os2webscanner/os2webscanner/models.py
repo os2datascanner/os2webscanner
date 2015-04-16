@@ -86,7 +86,7 @@ class Organization(models.Model):
 
 class UserProfile(models.Model):
 
-    """OS2 Web Scanner specific user profile.
+    """OS2Webscanner specific user profile.
 
     Each user MUST be associated with an organization.
     """

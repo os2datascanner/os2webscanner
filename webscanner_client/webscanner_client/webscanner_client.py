@@ -6,7 +6,7 @@ import xmlrpclib
 
 class WebscannerClient(object):
 
-    """Client for the OS2 web scanner."""
+    """Client for OS2Webscanner."""
 
     def __init__(self, url, verbose=False):
         """Set up server proxy."""

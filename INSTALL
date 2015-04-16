@@ -1,4 +1,4 @@
-# HOWTO install the OS2 Webscanner on your own server
+# HOWTO install OS2Webscanner on your own server
 
 ## System requirements
 
@@ -16,7 +16,7 @@ FreeBSD or OSX, you will have to modify `install.sh` yourself to handle the
 package managers, package names and dependencies in these systems. Also note
 that the setup of Apache is different on such systems.
 
-*Note:* The Apache configuration file delivered with version 1.1.0 of the
+*Note:* The Apache configuration file delivered with version 1.1.0 of
 OS2Webscanner is for Apache <= 2.2  and will *not* work on Apache 2.4.
 A configuration file for Apache 2.4 will be supplied in future versions.
 
@@ -283,4 +283,4 @@ Click the username that you would like to add to the organization.
 At the bottom of the page, under "User profiles", change the "Organisation"
 to the organization you created and save.
 
-The web scanner is now ready to be used.
+OS2Webscanner is now ready to be used.
