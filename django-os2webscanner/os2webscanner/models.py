@@ -513,6 +513,8 @@ class Scan(models.Model):
 
     # Begin setup copied from scanner
 
+    is_visible = models.BooleanField(default=True)
+
     whitelisted_names = models.TextField(max_length=4096, blank=True,
                                          default="",
                                          verbose_name='Godkendte navne')
@@ -590,6 +592,7 @@ class Scan(models.Model):
     def create(scan_cls, scanner):
         """ Create and copy fields from scanner. """
         scan = scan_cls(
+            is_visible=scanner.is_visible,
             whitelisted_names=scanner.organization.name_whitelist,
             blacklisted_names=scanner.organization.name_blacklist,
             whitelisted_addresses=scanner.organization.address_whitelist,

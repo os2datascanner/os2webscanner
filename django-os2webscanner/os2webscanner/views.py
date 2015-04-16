@@ -227,7 +227,7 @@ class ReportList(RestrictedListView):
                 reports = self.model.objects.filter(
                     scanner__organization=None
                 )
-        reports = reports.filter(scanner__is_visible=True)
+        reports = reports.filter(is_visible=True)
         return reports.order_by('-start_time')
 
 
@@ -1205,7 +1205,9 @@ def file_upload(request):
             copyfile(path, file_path)
             file_url = 'file://{0}'.format(file_path)
             scan = do_scan(request.user, [file_url], params, blocking=True,
-                           visible=True)
+                           visible=False)
+            scan.is_visible = True
+            scan.save()
 
             #
             if not isinstance(scan, Scan):

@@ -48,7 +48,7 @@ DOWNLOADER_MIDDLEWARES = {
     'scanner.middlewares.LastModifiedCheckMiddleware': 1200,
 }
 
-LOG_LEVEL = 'ERROR'
+LOG_LEVEL = 'DEBUG'
 
 # Crawl responsibly by identifying yourself (and your website) on the
 # user-agent
