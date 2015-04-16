@@ -1040,7 +1040,7 @@ class Summary(models.Model):
         ordering = ['name', ]
 
 
-class MD5Sum(models.Model):
+class Md5Sum(models.Model):
 
     """"Store MD5 sums of binary files to avoid reprocessing."""
 

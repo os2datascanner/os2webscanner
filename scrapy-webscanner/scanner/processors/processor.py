@@ -26,7 +26,7 @@ import random
 import subprocess
 import hashlib
 
-from os2webscanner.models import ConversionQueueItem, MD5Sum
+from os2webscanner.models import ConversionQueueItem, Md5Sum
 
 from django.db import transaction, IntegrityError, DatabaseError
 from django import db
@@ -113,7 +113,7 @@ class Processor(object):
         """Decide if we know a given file by calculating its MD5."""
 
         md5 = get_md5_sum(data)
-        exists = MD5Sum.objects.filter(
+        exists = Md5Sum.objects.filter(
             organization=scan.scanner.organization,
             md5=md5,
             is_cpr_scan=scan.do_cpr_scan,
@@ -130,7 +130,7 @@ class Processor(object):
         """
         md5str = get_md5_sum(data)
 
-        md5 = MD5Sum(
+        md5 = Md5Sum(
             organization=scan.scanner.organization,
                 md5=md5str,
                 is_cpr_scan=scan.do_cpr_scan,
@@ -170,10 +170,6 @@ class Processor(object):
         # Write data to a temporary file
         # Get temporary directory
         if self.is_md5_known(data, url_object.scan):
-            scan.log_occurrence(
-                "Known MD5 sum for URL {0} - not adding to queue".format(
-                    url_object.url)
-            )
             return True
         tmp_dir = url_object.tmp_dir
         if not os.path.exists(tmp_dir):
@@ -205,14 +201,8 @@ class Processor(object):
             encoding = self.encoding_magic.from_file(file_path)
             with codecs.open(file_path, "r") as f:
                 data = f.read()
-                # TODO: Perform MD5 check here!
                 scan = url.scan
                 if self.is_md5_known(data, scan):
-                    scan.log_occurrence(
-                        "Known MD5 sum for URL {0} - skipping".format(
-                            url.url
-                        )
-                    )
                     return True
                 else:
                     self.process(data, url)
@@ -335,11 +325,20 @@ class Processor(object):
         self.convert to run the actual conversion. After converting,
         adds all files produced in the conversion directory to the queue.
         """
+        with open(item.file_path, "rb") as f:
+            data = f.read()
+        if self.is_md5_known(data, item.url.scan):
+            # Already processed this file, nothing more to do
+            return True
+
         tmp_dir = item.tmp_dir
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
 
         result = self.convert(item, tmp_dir)
+        # Conversion successful, store MD5 sum.
+        self.store_md5(data, item.url.scan)
+
         if os.path.exists(item.file_path):
             os.remove(item.file_path)
 
