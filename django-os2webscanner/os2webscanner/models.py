@@ -1057,4 +1057,4 @@ class Md5Sum(models.Model):
                         'is_ignore_irrelevant', 'organization')
 
     def __unicode__(self):
-        return "{0}: {1}".format(self.organization.name, self.md5)
+        return u"{0}: {1}".format(self.organization.name, self.md5)
