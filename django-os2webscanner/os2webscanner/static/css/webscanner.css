@@ -28,7 +28,10 @@ border-top-width:0;
 label[for=id_do_name_scan]{
 margin-bottom:7px !important;
 }
-
+#id_whitelisted_names_container {
+padding:0;
+margin-bottom:10px;
+}
 /* DOMAINS */
 
 .btn-sitemap-upload {
@@ -116,6 +119,14 @@ border-color:#fff #fff inherit;
 }
 .table-responsive.domains-regex {
 margin-top:-20px;
+}
+a.download-csv:visited,
+.broken-url-referrers a:visited,
+.broken-url-url a:visited,
+.failed-conversions a:visited,
+.domains-regex a:visited,
+.match-url a:visited {
+color:#ca428b;
 }
 div.failed-conversions {
 margin-bottom:20px;
