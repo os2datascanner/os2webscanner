@@ -132,17 +132,16 @@ class Processor(object):
 
         md5 = Md5Sum(
             organization=scan.scanner.organization,
-                md5=md5str,
-                is_cpr_scan=scan.do_cpr_scan,
-                is_check_mod11=scan.do_cpr_modulus11,
-                is_ignore_irrelevant=scan.do_cpr_ignore_irrelevant,
-            )
+            md5=md5str,
+            is_cpr_scan=scan.do_cpr_scan,
+            is_check_mod11=scan.do_cpr_modulus11,
+            is_ignore_irrelevant=scan.do_cpr_ignore_irrelevant,
+        )
         try:
             md5.save()
         except IntegrityError:
-            scan.log_occurrence(
-                "Trying to save MD5 sum twice - shouldn't happen"
-            )
+            # This happens, we now know - but is not actually an error.
+            pass
 
     def handle_spider_item(self, data, url_object):
         """Process an item from a spider. Must be overridden.
@@ -199,20 +198,8 @@ class Processor(object):
         """
         try:
             encoding = self.encoding_magic.from_file(file_path)
-            with codecs.open(file_path, "r") as f:
-                data = f.read()
-                scan = url.scan
-                if self.is_md5_known(data, scan):
-                    return True
-                else:
-                    self.process(data, url)
-                    try:
-                        self.store_md5(data, scan)
-                    except UnicodeEncodeError:
-                        scan.log_occurrence(
-                            "Unable to store MD5 for URL {0}" +
-                            " and encoding {1}".format(url.url, encoding)
-                        )
+            with codecs.open(file_path, "r", encoding=encoding) as f:
+                self.process(f.read(f.read() url)
         except Exception as e:
             url.scan.log_occurrence(
                 "process_file failed for url {0}: {1}".format(url.url, str(e))
@@ -327,9 +314,9 @@ class Processor(object):
         """
         with open(item.file_path, "rb") as f:
             data = f.read()
-        if self.is_md5_known(data, item.url.scan):
-            # Already processed this file, nothing more to do
-            return True
+            if self.is_md5_known(data, item.url.scan):
+                # Already processed this file, nothing more to do
+                return True
 
         tmp_dir = item.tmp_dir
         if not os.path.exists(tmp_dir):
