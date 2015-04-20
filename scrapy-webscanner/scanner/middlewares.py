@@ -17,6 +17,9 @@
 
 import datetime
 import pytz
+from lxml import html
+
+import arrow
 
 from scrapy import Request
 from scrapy import log, signals
@@ -297,6 +300,7 @@ class LastModifiedCheckMiddleware(object):
             else:
                 # If it's a GET request, process the response
                 return response
+
         else:
             # Add requests for all the links that we know were on the
             # page the last time we visited it.
@@ -359,6 +363,25 @@ class LastModifiedCheckMiddleware(object):
             mktime_tz(parsedate_tz(last_modified_header)), tz=pytz.utc
         ) if last_modified_header is not None else None
 
+        if last_modified_header_date is None and request.method == 'GET':
+            content_type_header = response.headers.get(
+                "Content-Type", None
+            )
+            log.msg("Checking last modified meta!")
+            if content_type_header.startswith("text/html"):
+                # TODO: Check meta tag.
+                # TODO: This is correct, but find out where it goes :-)
+                body_html = html.fromstring(response.body)
+                meta_dict = {el.values()[0]: el.values()[1]
+                              for el in body_html.findall('head/meta')}
+                if 'last-modified' in meta_dict:
+                    lm = meta_dict['last-modified']
+                    try:
+                        last_modified_header_date = arrow.get(lm).datetime
+                    except:
+                        log.msg(
+                            "Date format error on last modied: {0}".format(lm)
+                        )
         # lastmod comes from a sitemap.xml file
         sitemap_lastmod_date = request.meta.get("lastmod", None)
         if sitemap_lastmod_date is None:

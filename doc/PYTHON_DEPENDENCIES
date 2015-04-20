@@ -29,3 +29,4 @@ w3lib==1.10.0
 wsgiref==0.1.2
 zope.interface==4.1.1
 unicodecsv==0.9.4
+arrow==0.5.4
