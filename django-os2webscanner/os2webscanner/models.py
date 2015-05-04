@@ -324,6 +324,8 @@ class Scanner(models.Model):
         default=True,
         verbose_name='Brug HEAD request'
     )
+    do_collect_cookies = models.BooleanField(default=False,
+                                        verbose_name='Collect cookies')
     columns = models.CommaSeparatedIntegerField(max_length=128,
                                                 null=True,
                                                 blank=True)
@@ -550,6 +552,9 @@ class Scan(models.Model):
         default=True,
         verbose_name='Brug HEAD request'
     )
+    do_collect_cookies = models.BooleanField(default=False,
+                                        verbose_name='Collect cookies')
+
     columns = models.CommaSeparatedIntegerField(max_length=128,
                                                 null=True,
                                                 blank=True)
@@ -605,6 +610,7 @@ class Scan(models.Model):
             do_last_modified_check=scanner.do_last_modified_check,
             do_last_modified_check_head_request=scanner.
             do_last_modified_check_head_request,
+            do_collect_cookies=scanner.do_collect_cookies,
             columns=scanner.columns,
             output_spreadsheet_file=scanner.output_spreadsheet_file,
             do_cpr_replace=scanner.do_cpr_replace,

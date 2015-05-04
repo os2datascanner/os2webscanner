@@ -24,6 +24,7 @@ import arrow
 from scrapy import Request
 from scrapy import log, signals
 from scrapy.contrib.downloadermiddleware.redirect import RedirectMiddleware
+from scrapy.contrib.downloadermiddleware.cookies import CookiesMiddleware
 from scrapy.contrib.spidermiddleware.offsite import OffsiteMiddleware
 from scrapy.exceptions import IgnoreRequest
 from scrapy.utils.httpobj import urlparse_cached
@@ -72,6 +73,36 @@ class NoSubdomainOffsiteMiddleware(OffsiteMiddleware):
         Overrides OffsiteMiddleware.
         """
         return spider.get_host_regex()
+
+
+class CookieCollectorMiddleware(CookiesMiddleware):
+
+    """Collect all cookies set while scanning."""
+
+    def process_response(self, request, response, spider):
+
+        """Collect cookie, store on scan object."""
+
+        # First, extract cookies as needed - call superclass.
+        response = super(
+            CookieCollectorMiddleware,
+            self
+        ).process_response(request, response, spider)
+
+        # Now collect cookie
+        current_scan = spider.scanner.scan_object
+
+
+        if current_scan.do_collect_cookies:
+
+            for cookie in response.headers.getlist('Set-Cookie'):
+                log.msg("CCOOOOKKKKIIIIIEEEEEEEE!!!! - DO SOMETHING !!!",
+                        level=log.DEBUG, spider=spider,
+                        request=request)
+                log.msg(cookie, level=log.DEBUG, spider=spider,
+                        request=request)
+
+        return response
 
 
 class OffsiteDownloaderMiddleware(object):
