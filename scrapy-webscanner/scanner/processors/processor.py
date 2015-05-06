@@ -198,8 +198,11 @@ class Processor(object):
         """
         try:
             encoding = self.encoding_magic.from_file(file_path)
-            with codecs.open(file_path, "r", encoding=encoding) as f:
-                self.process(f.read(f.read() url)
+            if encoding != 'binary':
+                f = codecs.open(file_path, "r", encoding=encoding)
+            else:
+                f = open(file_path, "rb")
+            self.process(f.read(), url)
         except Exception as e:
             url.scan.log_occurrence(
                 "process_file failed for url {0}: {1}".format(url.url, str(e))
