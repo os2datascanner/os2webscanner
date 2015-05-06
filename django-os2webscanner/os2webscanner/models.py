@@ -1043,7 +1043,7 @@ class Summary(models.Model):
         ordering = ['name', ]
 
 
-class MD5Sum(models.Model):
+class Md5Sum(models.Model):
 
     """"Store MD5 sums of binary files to avoid reprocessing."""
 
@@ -1060,4 +1060,4 @@ class MD5Sum(models.Model):
                         'is_ignore_irrelevant', 'organization')
 
     def __unicode__(self):
-        return "{0}: {1}".format(self.organization.name, self.md5)
+        return u"{0}: {1}".format(self.organization.name, self.md5)

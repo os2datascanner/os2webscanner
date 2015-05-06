@@ -14,22 +14,26 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 """Processors."""
-import codecs
-import random
-import subprocess
-import hashlib
 
-from os2webscanner.models import ConversionQueueItem, MD5Sum
 
-from django.db import transaction, IntegrityError, DatabaseError
-from django import db
-from django.utils import timezone
 import time
 import os
 import mimetypes
 import sys
 import magic
+import codecs
+import random
+import subprocess
+import hashlib
+
+from os2webscanner.models import ConversionQueueItem, Md5Sum
+
+from django.db import transaction, IntegrityError, DatabaseError
+from django import db
+from django.utils import timezone
 from django.conf import settings
+
+from scrapy import log
 
 
 # Minimum width and height an image must have to be scanned
@@ -38,6 +42,14 @@ MIN_OCR_DIMENSION_BOTH = 7
 # Minimum width or height (at least one dimension) an image must have to be
 # scanned
 MIN_OCR_DIMENSION_EITHER = 64
+
+
+def get_md5_sum(data):
+    """Helper function to calculate md5 sum."""
+
+    md5 = hashlib.md5(data).hexdigest()
+
+    return md5
 
 
 def get_image_dimensions(file_path):
@@ -99,15 +111,16 @@ class Processor(object):
 
     def is_md5_known(self, data, scan):
         """Decide if we know a given file by calculating its MD5."""
-        md5 = hashlib.md5(data).hexdigest()
-        exists = MD5Sum.objects.filter(
+
+        md5 = get_md5_sum(data)
+        exists = Md5Sum.objects.filter(
             organization=scan.scanner.organization,
             md5=md5,
             is_cpr_scan=scan.do_cpr_scan,
             is_check_mod11=scan.do_cpr_modulus11,
             is_ignore_irrelevant=scan.do_cpr_ignore_irrelevant,
         ).count() > 0
-        
+
         return exists
 
     def store_md5(self, data, scan):
@@ -115,21 +128,20 @@ class Processor(object):
         """
         Store MD5 sum for these scan parameters & data.
         """
-        md5 = hashlib.md5(data).hexdigest()
+        md5str = get_md5_sum(data)
 
-        md5 = MD5Sum(
+        md5 = Md5Sum(
             organization=scan.scanner.organization,
-                md5=md5,
-                is_cpr_scan=scan.do_cpr_scan,
-                is_check_mod11=scan.do_cpr_modulus11,
-                is_ignore_irrelevant=scan.do_cpr_ignore_irrelevant,
-            )
+            md5=md5str,
+            is_cpr_scan=scan.do_cpr_scan,
+            is_check_mod11=scan.do_cpr_modulus11,
+            is_ignore_irrelevant=scan.do_cpr_ignore_irrelevant,
+        )
         try:
             md5.save()
         except IntegrityError:
-            scan.log_occurence(
-                "Trying to save MD5 sum twice - shouldn't happen"
-            )
+            # This happens, we now know - but is not actually an error.
+            pass
 
     def handle_spider_item(self, data, url_object):
         """Process an item from a spider. Must be overridden.
@@ -156,6 +168,8 @@ class Processor(object):
         """
         # Write data to a temporary file
         # Get temporary directory
+        if self.is_md5_known(data, url_object.scan):
+            return True
         tmp_dir = url_object.tmp_dir
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
@@ -185,17 +199,14 @@ class Processor(object):
         try:
             encoding = self.encoding_magic.from_file(file_path)
             with codecs.open(file_path, "r", encoding=encoding) as f:
-                data = f.read()
-                # TODO: Perform MD5 check here!
-                scan = url.scan
-                if self.is_md5_known(data, scan):
-                    pass
-                else:
-                    self.process(data, url)
-                    self.store_md5(data, scan)
-        except IOError, e:
-            print repr(e)
+                self.process(f.read(f.read() url)
+        except Exception as e:
+            url.scan.log_occurrence(
+                "process_file failed for url {0}: {1}".format(url.url, str(e))
+            )
+            log.msg(repr(e))
             return False
+
         return True
 
     def setup_queue_processing(self, pid, *args):
@@ -301,11 +312,20 @@ class Processor(object):
         self.convert to run the actual conversion. After converting,
         adds all files produced in the conversion directory to the queue.
         """
+        with open(item.file_path, "rb") as f:
+            data = f.read()
+            if self.is_md5_known(data, item.url.scan):
+                # Already processed this file, nothing more to do
+                return True
+
         tmp_dir = item.tmp_dir
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
 
         result = self.convert(item, tmp_dir)
+        # Conversion successful, store MD5 sum.
+        self.store_md5(data, item.url.scan)
+
         if os.path.exists(item.file_path):
             os.remove(item.file_path)
 
