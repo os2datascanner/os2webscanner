@@ -92,7 +92,6 @@ class CookieCollectorMiddleware(CookiesMiddleware):
         # Now collect cookie
         current_scan = spider.scanner.scan_object
 
-
         if current_scan.do_collect_cookies:
 
             for cookie in response.headers.getlist('Set-Cookie'):
