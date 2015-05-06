@@ -96,11 +96,7 @@ class CookieCollectorMiddleware(CookiesMiddleware):
         if current_scan.do_collect_cookies:
 
             for cookie in response.headers.getlist('Set-Cookie'):
-                log.msg("CCOOOOKKKKIIIIIEEEEEEEE!!!! - DO SOMETHING !!!",
-                        level=log.DEBUG, spider=spider,
-                        request=request)
-                log.msg(cookie, level=log.DEBUG, spider=spider,
-                        request=request)
+                current_scan.log_cookie(cookie)
 
         return response
 

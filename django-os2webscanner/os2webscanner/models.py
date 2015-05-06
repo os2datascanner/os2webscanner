@@ -689,6 +689,24 @@ class Scan(models.Model):
         return os.path.join(self.scan_output_files_dir,
                             'scan_%s.csv' % self.pk)
 
+    # Cookie log - undigested cookie strings for inspection.
+    def log_cookie(self, string):
+        with open(self.cookie_log_file, "a") as f:
+            f.write("{0}\n".format(string))
+
+    @property
+    def cookie_log(self):
+        try:
+            with open(self.cookie_log_file, "r") as f:
+                return f.read()
+        except IOError:
+            return ""
+
+    @property
+    def cookie_log_file(self):
+        """Return the file path to this scan's cookie log."""
+        return os.path.join(self.scan_log_dir, 'cookie_%s.log' % self.pk)
+
     # Occurrence log - mainly for the scanner to notify when something FAILS.
     def log_occurrence(self, string):
         with open(self.occurrence_log_file, "a") as f:
