@@ -254,6 +254,17 @@ Rapport &dash; {{scan.scanner.name}}
     </div>
     {% endif %}
 
+    {% if scan.do_collect_cookies %}
+
+    <div class="cookies">
+        <h2>Cookies</h2>
+        <pre>
+{{ scan.cookie_log }}
+        </pre>
+    </div>
+    {% endif %}
+
+
 {% endblock %}
 
 {% block heading %}

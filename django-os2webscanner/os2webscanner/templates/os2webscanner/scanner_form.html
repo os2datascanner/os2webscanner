@@ -206,6 +206,11 @@
                         {{ form.do_external_link_check.label }}
                         {% if form.do_external_link_check.help_text %}<small>{{ form.do_external_link_check.help_text }}</small>{% endif %}
                     </label>
+                    <label class="checkbox-inline" for="id_{{ form.do_collect_cookies.name }}">
+                        <input type="checkbox" id="id_{{ form.do_collect_cookies.name }}" name="{{ form.do_collect_cookies.name }}" value="{{ form.do_collect_cookies.name }}"{% if form.do_collect_cookies.value %} checked="checked"{% endif %}>
+                        {{ form.do_collect_cookies.label }}
+                        {% if form.do_collect_cookies.help_text %}<small>{{ form.do_collect_cookies.help_text }}</small>{% endif %}
+                    </label>
                     <br>
                     <div class="form-group">
                         <div id="{{ form.regex_rules.auto_id }}_container" class="col-sm-12{% if form.regex_rules.errors %} has-error{% endif %}">

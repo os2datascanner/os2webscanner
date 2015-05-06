@@ -324,6 +324,8 @@ class Scanner(models.Model):
         default=True,
         verbose_name='Brug HEAD request'
     )
+    do_collect_cookies = models.BooleanField(default=False,
+                                        verbose_name='Collect cookies')
     columns = models.CommaSeparatedIntegerField(max_length=128,
                                                 null=True,
                                                 blank=True)
@@ -552,6 +554,9 @@ class Scan(models.Model):
         default=True,
         verbose_name='Brug HEAD request'
     )
+    do_collect_cookies = models.BooleanField(default=False,
+                                        verbose_name='Collect cookies')
+
     columns = models.CommaSeparatedIntegerField(max_length=128,
                                                 null=True,
                                                 blank=True)
@@ -608,6 +613,7 @@ class Scan(models.Model):
             do_last_modified_check=scanner.do_last_modified_check,
             do_last_modified_check_head_request=scanner.
             do_last_modified_check_head_request,
+            do_collect_cookies=scanner.do_collect_cookies,
             columns=scanner.columns,
             output_spreadsheet_file=scanner.output_spreadsheet_file,
             do_cpr_replace=scanner.do_cpr_replace,
@@ -685,6 +691,24 @@ class Scan(models.Model):
         """
         return os.path.join(self.scan_output_files_dir,
                             'scan_%s.csv' % self.pk)
+
+    # Cookie log - undigested cookie strings for inspection.
+    def log_cookie(self, string):
+        with open(self.cookie_log_file, "a") as f:
+            f.write("{0}\n".format(string))
+
+    @property
+    def cookie_log(self):
+        try:
+            with open(self.cookie_log_file, "r") as f:
+                return f.read()
+        except IOError:
+            return ""
+
+    @property
+    def cookie_log_file(self):
+        """Return the file path to this scan's cookie log."""
+        return os.path.join(self.scan_log_dir, 'cookie_%s.log' % self.pk)
 
     # Occurrence log - mainly for the scanner to notify when something FAILS.
     def log_occurrence(self, string):
