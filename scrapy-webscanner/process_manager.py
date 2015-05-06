@@ -84,8 +84,24 @@ def stop_process(p):
     )
     # Remove the temp directories for the failed queue items
     for item in ongoing_items:
-        # TODO: Log to occurrence log
+        # Log to occurrence log
+        try:
+            item.url.scan.log_occurrence(
+                "CONVERSION ERROR: type <{0}>, URL: {1}".format(
+                    item.type,
+                    item.url.url
+                )
+            )
+        except:
+            item.url.scan.log_occurrence(
+                "CONVERSION ERROR: url <{0}>".format(
+                    item.url.url,
+                )
+            )
+
+        # Clean up.
         item.delete_tmp_dir()
+
     ongoing_items.update(
         status=ConversionQueueItem.FAILED
     )
