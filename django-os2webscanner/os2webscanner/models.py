@@ -660,6 +660,11 @@ class Scan(models.Model):
         return os.path.join(settings.VAR_DIR, 'scan_%s' % self.pk)
 
     @property
+    def scan_job_dir(self):
+        """The directory associated with this scan."""
+        return os.path.join(settings.VAR_DIR, 'scan_%s' % self.pk, 'job')
+
+    @property
     def scan_log_dir(self):
         """Return the path to the scan log dir."""
         return os.path.join(settings.VAR_DIR, 'logs', 'scans')
