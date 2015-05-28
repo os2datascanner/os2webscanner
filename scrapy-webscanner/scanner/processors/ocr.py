@@ -26,6 +26,7 @@ class OCRProcessor(Processor):
 
     item_type = "ocr"
     text_processor = TextProcessor()
+    auto_process_text = True
 
     def handle_spider_item(self, data, url_object):
         """Add the item to the queue."""
@@ -35,7 +36,7 @@ class OCRProcessor(Processor):
         """Convert the queue item."""
         return self.convert_queue_item(item)
 
-    def convert(self, item, tmp_dir):
+    def convert(self, item, tmp_dir, process_after=True):
         """Convert the item and immediately run a Text processor on it."""
         txt_file = os.path.join(tmp_dir, "file")
         return_code = subprocess.call([
@@ -46,9 +47,12 @@ class OCRProcessor(Processor):
             return False
 
         txt_file += ".txt"
-        self.text_processor.process_file(txt_file, item.url)
-        if os.path.exists(txt_file):
-            os.remove(txt_file)
+        
+        if self.auto_process_text:
+            self.text_processor.process_file(txt_file, item.url)
+            if os.path.exists(txt_file):
+                os.remove(txt_file)
+
         return return_code == 0
 
 
