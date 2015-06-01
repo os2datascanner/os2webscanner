@@ -112,14 +112,17 @@ class Processor(object):
     def is_md5_known(self, data, scan):
         """Decide if we know a given file by calculating its MD5."""
 
-        md5 = get_md5_sum(data)
-        exists = Md5Sum.objects.filter(
-            organization=scan.scanner.organization,
-            md5=md5,
-            is_cpr_scan=scan.do_cpr_scan,
-            is_check_mod11=scan.do_cpr_modulus11,
-            is_ignore_irrelevant=scan.do_cpr_ignore_irrelevant,
-        ).count() > 0
+        if settings.DO_USE_MD5:
+            md5 = get_md5_sum(data)
+            exists = Md5Sum.objects.filter(
+                organization=scan.scanner.organization,
+                md5=md5,
+                is_cpr_scan=scan.do_cpr_scan,
+                is_check_mod11=scan.do_cpr_modulus11,
+                is_ignore_irrelevant=scan.do_cpr_ignore_irrelevant,
+            ).count() > 0
+        else:
+            exists = False
 
         return exists
 

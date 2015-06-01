@@ -897,6 +897,7 @@ class Match(models.Model):
     sensitivity = models.IntegerField(choices=Sensitivity.choices,
                                       default=Sensitivity.HIGH,
                                       verbose_name='Følsomhed')
+    context = models.CharField(max_length=1152)
 
     def get_matched_rule_display(self):
         """Return a display name for the rule."""
