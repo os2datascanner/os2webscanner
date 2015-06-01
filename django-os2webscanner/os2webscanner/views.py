@@ -1180,10 +1180,13 @@ def file_upload(request):
             params['do_address_replace'] = form.cleaned_data[
                 'do_replace_address'
             ]
+            params['do_ocr'] = form.cleaned_data['do_ocr']
             params['address_replace_text'] = form.cleaned_data[
                 'address_replacement_text'
             ]
-            params['output_spreadsheet_file'] = True
+            params['output_spreadsheet_file'] = form.cleaned_data[
+                'do_output_spreadsheet'
+            ]
             to_int = lambda L: str(ord(L) - ord('A') + 1) if L else ''
             params['columns'] = ','.join(
                 map(to_int, form.cleaned_data['column_list'].split(','))
@@ -1201,7 +1204,8 @@ def file_upload(request):
                     raise
             # Now create temporary dir, fill with files
             dirname = tempfile.mkdtemp(dir=rpcdir)
-            file_path = os.path.join(dirname, upload_file.name).encode('utf-8')
+            file_path = os.path.join(dirname,
+                                     upload_file.name).encode('utf-8')
             copyfile(path, file_path)
             file_url = 'file://{0}'.format(file_path)
             scan = do_scan(request.user, [file_url], params, blocking=True,
@@ -1212,6 +1216,8 @@ def file_upload(request):
                 raise RuntimeError("Unable to perform scan - check user has"
                                    "organization and valid domain")
             # We now have the scan object
+            if not params['output_spreadsheet_file']:
+                return HttpResponse("<h2>Ok</h2>", content_type="text/html")
             response = HttpResponse(content_type='text/csv')
             report_file = u'{0}{1}.csv'.format(
                 scan.scanner.organization.name.replace(u' ', u'_'),

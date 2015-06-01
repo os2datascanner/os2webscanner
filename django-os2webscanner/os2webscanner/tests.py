@@ -33,12 +33,14 @@ install_directory = os.path.abspath(os.path.join(settings.BASE_DIR, '..'))
 class ScannerTest(TestCase):
 
     """Test running a scan and domain validation."""
+    # TODO: Capture the interaction so these tests can work without an
+    # Internet connection! !!!
 
     @classmethod
     def setUpClass(cls):
         """Setup some data to test with."""
-        # Don't change the order of these, because Magenta needs pk = 2 to pass
-        # the validation test
+        # Don't change the order of these, because Magenta needs
+        # pk = 2 to pass the validation test
         cls.magenta = Organization(name="Magenta", pk=1)
         cls.magenta.save()
         cls.google = Organization(name="Google", pk=2)
@@ -49,7 +51,7 @@ class ScannerTest(TestCase):
         # Make sure Google does not validate in any of the possible methods
         all_methods = [Domain.ROBOTSTXT, Domain.WEBSCANFILE, Domain.METAFIELD]
         # Make sure Magenta's website validates using all possible methods
-        for validation_method in all_methods:
+        for validation_method in all_methods[1:]:
             domain = Domain(url="http://www.magenta.dk/",
                             validation_method=validation_method,
                             organization=self.magenta,

@@ -128,21 +128,22 @@ class Processor(object):
         """
         Store MD5 sum for these scan parameters & data.
         """
-        md5str = get_md5_sum(data)
+        if settings.DO_USE_MD5:
+            md5str = get_md5_sum(data)
 
-        md5 = Md5Sum(
-            organization=scan.scanner.organization,
+            md5 = Md5Sum(
+                organization=scan.scanner.organization,
                 md5=md5str,
                 is_cpr_scan=scan.do_cpr_scan,
                 is_check_mod11=scan.do_cpr_modulus11,
                 is_ignore_irrelevant=scan.do_cpr_ignore_irrelevant,
             )
-        try:
-            md5.save()
-        except IntegrityError:
-            scan.log_occurrence(
-                "Trying to save MD5 sum twice - shouldn't happen"
-            )
+            try:
+                md5.save()
+            except IntegrityError:
+                scan.log_occurrence(
+                    "Trying to save MD5 sum twice - shouldn't happen"
+                )
 
     def handle_spider_item(self, data, url_object):
         """Process an item from a spider. Must be overridden.
