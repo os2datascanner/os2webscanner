@@ -51,7 +51,7 @@ class OCRProcessor(Processor):
 
         txt_file += ".txt"
         log.msg("Processing file {0}".format(txt_file))
-        self.text_processor.process_file(txt_file, item.url)
+        self.text_processor.process_file(txt_file, item.url, item.page_no)
         if os.path.exists(txt_file):
             os.remove(txt_file)
         return return_code == 0

@@ -52,6 +52,13 @@ def get_md5_sum(data):
     return md5
 
 
+def get_ocr_page_no(ocr_file_name):
+    "Get page number from image file to be OCR'ed."
+
+    # xyz*-d+_d+.png
+    page_no = int(ocr_file_name.split('_')[-2].split('-')[-1])
+
+
 def get_image_dimensions(file_path):
     """Return an image's dimensions as a tuple containing width and height.
 
@@ -399,6 +406,9 @@ class Processor(object):
                             url=item.url,
                             status=ConversionQueueItem.NEW,
                         )
+                        if processor_type == 'ocr':
+                            new_item.page_no = get_ocr_page_no(fname)
+
                         new_item.save()
                     else:
                         os.remove(file_path)
