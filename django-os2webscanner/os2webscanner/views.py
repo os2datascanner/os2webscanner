@@ -26,7 +26,7 @@ from django import forms
 from django.template import RequestContext
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.db.models import Count, Q
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, render_to_response
 from django.shortcuts import redirect
 from django.views.generic import View, ListView, TemplateView, DetailView
@@ -1217,7 +1217,7 @@ def file_upload(request):
                                    "organization and valid domain")
             # We now have the scan object
             if not params['output_spreadsheet_file']:
-                return HttpResponse("<h2>Ok</h2>", content_type="text/html")
+                return HttpResponseRedirect('/report/{0}/'.format(scan.pk))
             response = HttpResponse(content_type='text/csv')
             report_file = u'{0}{1}.csv'.format(
                 scan.scanner.organization.name.replace(u' ', u'_'),

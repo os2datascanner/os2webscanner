@@ -177,14 +177,16 @@ def match_cprs(text, do_modulus11=True, ignore_irrelevant=True,
         if low < 50:
             # Sanity
             low = 50
-        context = text[low - 50:high + 50]
-        regex.sub(cpr_regex, "XXXXXX-XXXX", context)
+        match_context = text[low - 50:high + 50]
+        match_context = regex.sub(cpr_regex, "XXXXXX-XXXX", match_context)
+        match_context = match_context.replace('<', '')
+        match_context = match_context.replace('>', '')
 
         if valid_date and valid_modulus11:
             matches.add(MatchItem(
                 matched_data=cpr,
                 sensitivity=Sensitivity.HIGH,
-                context=context,
+                match_context=match_context,
                 original_matched_data=original_cpr,
             ))
     return matches
