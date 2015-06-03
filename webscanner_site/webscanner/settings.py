@@ -126,7 +126,7 @@ DO_USE_GROUPS = False
 # debugging uses. At some point, this could also become a parameter on the
 # scanner.
 
-DO_USE_MD5 = True
+DO_USE_MD5 = False
 
 # The threshold for number of OCR conversion queue items per scan above which
 # non-OCR conversion will be paused. The reason to have this feature is that
