@@ -34,8 +34,10 @@ class FileUploadForm(forms.Form):
 
     def validate_filetype(upload_file):
         extension = upload_file.name.split('.')[-1]
-        if not extension in ['odp', 'xls', 'xlsx', 'csv']:
-            raise ValidationError('Please upload a spreadsheet!')
+        if not extension in ['odp', 'xls', 'xlsx', 'csv', 'pdf']:
+            raise ValidationError(
+                'Please upload a spreadsheet or a PDF file!'
+            )
 
     scan_file = forms.FileField(label="Fil", validators=[validate_filetype])
     #scan_file = forms.FileField(label="Fil")
@@ -65,6 +67,9 @@ class FileUploadForm(forms.Form):
                                                required=False,
                                                initial="ADRESSE",
                                               )
+    # OCR scan
+    do_ocr = forms.BooleanField(label="OCR scan", initial=False,
+                                     required=False)
     # Column list - ignored if left blank
     column_list = forms.RegexField(
         label="Scan kun kolonner",
