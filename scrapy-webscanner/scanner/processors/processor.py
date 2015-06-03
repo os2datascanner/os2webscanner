@@ -56,7 +56,9 @@ def get_ocr_page_no(ocr_file_name):
     "Get page number from image file to be OCR'ed."
 
     # xyz*-d+_d+.png
+    # HACK ALERT: This depends on the output from pdftohtml.
     page_no = int(ocr_file_name.split('_')[-2].split('-')[-1])
+    return page_no
 
 
 def get_image_dimensions(file_path):
@@ -203,7 +205,7 @@ class Processor(object):
         new_item.save()
         return True
 
-    def process_file(self, file_path, url):
+    def process_file(self, file_path, url, page_no=None):
         """Open the file associated with the item and process the file data.
 
         Calls self.process.
@@ -216,7 +218,10 @@ class Processor(object):
                 if self.is_md5_known(data, scan):
                     return True
                 else:
-                    self.process(data, url)
+                    if page_no:
+                        self.process(data, url, page_no)
+                    else:
+                        self.process(data, url)
                     try:
                         self.store_md5(data, scan)
                     except UnicodeEncodeError:

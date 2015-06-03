@@ -70,12 +70,6 @@ class FileUploadForm(forms.Form):
     # OCR scan
     do_ocr = forms.BooleanField(label="OCR scan", initial=False,
                                      required=False)
-    # Output spreadsheet?
-    do_output_spreadsheet = forms.BooleanField(
-        label="Send regneark?",
-        initial=False,
-        required=False
-    )
     # Column list - ignored if left blank
     column_list = forms.RegexField(
         label="Scan kun kolonner",

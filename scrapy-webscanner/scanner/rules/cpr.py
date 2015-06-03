@@ -179,8 +179,6 @@ def match_cprs(text, do_modulus11=True, ignore_irrelevant=True,
             low = 50
         match_context = text[low - 50:high + 50]
         match_context = regex.sub(cpr_regex, "XXXXXX-XXXX", match_context)
-        match_context = match_context.replace('<', '')
-        match_context = match_context.replace('>', '')
 
         if valid_date and valid_modulus11:
             matches.add(MatchItem(

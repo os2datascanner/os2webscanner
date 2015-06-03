@@ -1164,6 +1164,7 @@ def file_upload(request):
         if form.is_valid():
             # Perform the scan
             upload_file = request.FILES['scan_file']
+            extension = upload_file.name.split('.')[-1]
             # Get parametes
             params = {}
             params['do_cpr_scan'] = form.cleaned_data['do_cpr_scan']
@@ -1184,9 +1185,8 @@ def file_upload(request):
             params['address_replace_text'] = form.cleaned_data[
                 'address_replacement_text'
             ]
-            params['output_spreadsheet_file'] = form.cleaned_data[
-                'do_output_spreadsheet'
-            ]
+            params['output_spreadsheet_file'] = (extension != 'pdf')
+
             to_int = lambda L: str(ord(L) - ord('A') + 1) if L else ''
             params['columns'] = ','.join(
                 map(to_int, form.cleaned_data['column_list'].split(','))

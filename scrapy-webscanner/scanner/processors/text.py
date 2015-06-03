@@ -46,7 +46,7 @@ class TextProcessor(Processor):
             match['url'] = url_object
             match['scan'] = url_object.scan
             if page_no:
-                match.page_no = page_no
+                match['page_no'] = page_no
             match.save()
         return True
 
