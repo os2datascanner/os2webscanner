@@ -924,6 +924,8 @@ class Match(models.Model):
     sensitivity = models.IntegerField(choices=Sensitivity.choices,
                                       default=Sensitivity.HIGH,
                                       verbose_name='Følsomhed')
+    match_context = models.CharField(max_length=1152, verbose_name='Kontekst')
+    page_no = models.IntegerField(null=True, verbose_name='Side')
 
     def get_matched_rule_display(self):
         """Return a display name for the rule."""
@@ -964,6 +966,7 @@ class ConversionQueueItem(models.Model):
     file = models.CharField(max_length=4096, verbose_name='Fil')
     type = models.CharField(max_length=256, verbose_name='Type')
     url = models.ForeignKey(Url, null=False, verbose_name='Url')
+    page_no = models.IntegerField(null=True, verbose_name='Side')
 
     # Note that SUCCESS is indicated by just deleting the record
     NEW = "NEW"
