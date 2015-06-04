@@ -25,6 +25,7 @@ from subprocess import Popen
 import re
 import datetime
 import json
+import StringIO
 
 from django.db import models
 from django.contrib.auth.models import User
@@ -701,9 +702,38 @@ class Scan(models.Model):
     def cookie_log(self):
         try:
             with open(self.cookie_log_file, "r") as f:
-                return f.read()
+                raw_log = f.read()
         except IOError:
             return ""
+
+        cookie_counts = {}
+        lines = raw_log.split('\n')
+        for l in lines:
+            if len(l) == 0:
+                continue
+            domain = l.split('|')[0]
+            cookie = l.split('|')[1]
+            if domain in cookie_counts:
+                if cookie in cookie_counts[domain]:
+                    cookie_counts[domain][cookie] += 1
+                else:
+                    cookie_counts[domain][cookie] = 1
+            else:
+                cookie_counts[domain] = {cookie: 1}
+
+        output = StringIO.StringIO()
+        for domain in cookie_counts:
+            output.write("{0}\n".format(domain))
+            for cookie in cookie_counts[domain]:
+                output.write("    {0} Antal: {1}\n".format(
+                    cookie,
+                    cookie_counts[domain][cookie]
+                ))
+
+        result = output.getvalue()
+
+        output.close()
+        return result
 
     @property
     def cookie_log_file(self):
