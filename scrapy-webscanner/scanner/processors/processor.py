@@ -57,7 +57,11 @@ def get_ocr_page_no(ocr_file_name):
 
     # xyz*-d+_d+.png
     # HACK ALERT: This depends on the output from pdftohtml.
-    page_no = int(ocr_file_name.split('_')[-2].split('-')[-1])
+    try:
+        page_no = int(ocr_file_name.split('_')[-2].split('-')[-1])
+    except IndexError:
+        # Non-PDF-extracted file
+        page_no = None
     return page_no
 
 
@@ -143,18 +147,18 @@ class Processor(object):
         if settings.DO_USE_MD5:
             md5str = get_md5_sum(data)
 
-        md5 = Md5Sum(
-            organization=scan.scanner.organization,
-            md5=md5str,
-            is_cpr_scan=scan.do_cpr_scan,
-            is_check_mod11=scan.do_cpr_modulus11,
-            is_ignore_irrelevant=scan.do_cpr_ignore_irrelevant,
-        )
-        try:
-            md5.save()
-        except IntegrityError:
-            # This happens, we now know - but is not actually an error.
-            pass
+            md5 = Md5Sum(
+                organization=scan.scanner.organization,
+                md5=md5str,
+                is_cpr_scan=scan.do_cpr_scan,
+                is_check_mod11=scan.do_cpr_modulus11,
+                is_ignore_irrelevant=scan.do_cpr_ignore_irrelevant,
+            )
+            try:
+                md5.save()
+            except IntegrityError:
+                # This happens, we now know - but is not actually an error.
+                pass
 
 
     def handle_spider_item(self, data, url_object):
@@ -216,7 +220,10 @@ class Processor(object):
                 f = codecs.open(file_path, "r", encoding=encoding)
             else:
                 f = open(file_path, "rb")
-            self.process(f.read(), url)
+            if page_no:
+                self.process(f.read(), url, page_no)
+            else:
+                self.process(f.read(), url)
         except Exception as e:
             url.scan.log_occurrence(
                 "process_file failed for url {0}: {1}".format(url.url, str(e))
