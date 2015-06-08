@@ -43,13 +43,20 @@ Rapport &dash; {{scan.scanner.name}}
           <tbody>
           <tr>
               <td {% if scan.do_ocr %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Scan Billeder?{% if scan.do_ocr %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td> 
+              <td></td>
+              <td></td>
+              <td></td>
+
+          </tr>
+          <tr>
               <td {% if scan.do_last_modified_check %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Check Last-Modified{% if scan.do_last_modified_check %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td> 
-              <td {% if scan.do_last_modified_check_head_request %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Brug HEAD request{% if scan.do_last_modified_check_head_request %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
+              <td {% if scan.do_last_modified_check_head_request and scan.do_last_modified_check %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Brug HEAD request{% if scan.do_last_modified_check_head_request and scan.do_last_modified_check %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
+              <td></td>
           </tr>
           <tr>
               <td {% if scan.do_cpr_scan %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>CPR{% if scan.do_cpr_scan %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
-              <td {% if scan.do_cpr_modulus11 %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Check modulus-11{% if scan.do_cpr_modulus11 %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
-              <td {% if scan.do_cpr_ignore_irrelevant %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Ignorer irrelevante fødselsdatoer{% if scan.do_cpr_ignore_irrelevant %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
+              <td {% if scan.do_cpr_modulus11 and scan.do_cpr_scan %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Check modulus-11{% if scan.do_cpr_modulus11  and scan.do_cpr_scan %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
+              <td {% if scan.do_cpr_ignore_irrelevant and scan.do_cpr_scan %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Ignorer irrelevante fødselsdatoer{% if scan.do_cpr_ignore_irrelevant and scan.do_cpr_scan %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
               <td></td>
           </tr>
           <tr>
