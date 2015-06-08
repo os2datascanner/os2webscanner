@@ -47,7 +47,7 @@ class ScannerTest(TestCase):
     def test_validate_domain(self):
         """Test validating domains."""
         # Make sure Google does not validate in any of the possible methods
-        all_methods = [Domain.ROBOTSTXT, Domain.WEBSCANFILE, Domain.METAFIELD]
+        all_methods = [Domain.WEBSCANFILE, Domain.METAFIELD]
         # Make sure Magenta's website validates using all possible methods
         for validation_method in all_methods:
             domain = Domain(url="http://www.magenta.dk/",
