@@ -698,6 +698,14 @@ class Scan(models.Model):
             f.write("{0}\n".format(string))
 
     @property
+    def no_of_cookies(self):
+        try:
+            with open(self.cookie_log_file, "r") as f:
+                return sum(1 for line in f)
+        except IOError:
+            return 0
+
+    @property
     def cookie_log(self):
         try:
             with open(self.cookie_log_file, "r") as f:
