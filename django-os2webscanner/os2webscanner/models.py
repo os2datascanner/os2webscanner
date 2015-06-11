@@ -307,17 +307,18 @@ class Scanner(models.Model):
     do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
     do_address_scan = models.BooleanField(default=False,
                                           verbose_name='Adresse')
-    do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder?')
+    do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder')
     do_cpr_modulus11 = models.BooleanField(default=True,
                                            verbose_name='Check modulus-11')
     do_cpr_ignore_irrelevant = models.BooleanField(
         default=True,
         verbose_name='Ignorer irrelevante fødselsdatoer')
     do_link_check = models.BooleanField(default=False,
-                                        verbose_name='Linkcheck')
-    do_external_link_check = models.BooleanField(default=False,
-                                                 verbose_name='Check ' +
-                                                              'eksterne links')
+                                        verbose_name='Check links')
+    do_external_link_check = models.BooleanField(
+        default=False,
+        verbose_name='Eksterne links'
+    )
     do_last_modified_check = models.BooleanField(default=True,
                                                  verbose_name='Check ' +
                                                               'Last-Modified')
@@ -326,7 +327,7 @@ class Scanner(models.Model):
         verbose_name='Brug HEAD request'
     )
     do_collect_cookies = models.BooleanField(default=False,
-                                        verbose_name='Collect cookies')
+                                        verbose_name='Saml cookies')
     columns = models.CommaSeparatedIntegerField(max_length=128,
                                                 null=True,
                                                 blank=True)
@@ -535,17 +536,18 @@ class Scan(models.Model):
     do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
     do_address_scan = models.BooleanField(default=False,
                                           verbose_name='Adresse')
-    do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder?')
+    do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder')
     do_cpr_modulus11 = models.BooleanField(default=True,
                                            verbose_name='Check modulus-11')
     do_cpr_ignore_irrelevant = models.BooleanField(
         default=True,
         verbose_name='Ignorer irrelevante fødselsdatoer')
     do_link_check = models.BooleanField(default=False,
-                                        verbose_name='Linkcheck')
-    do_external_link_check = models.BooleanField(default=False,
-                                                 verbose_name='Check ' +
-                                                              'externe links')
+                                        verbose_name='Check links')
+    do_external_link_check = models.BooleanField(
+        default=False,
+        verbose_name='Eksterne links'
+    )
     do_last_modified_check = models.BooleanField(default=True,
                                                  verbose_name='Check ' +
                                                               'Last-Modified')
@@ -554,7 +556,7 @@ class Scan(models.Model):
         verbose_name='Brug HEAD request'
     )
     do_collect_cookies = models.BooleanField(default=False,
-                                        verbose_name='Collect cookies')
+                                        verbose_name='Saml cookies')
 
     columns = models.CommaSeparatedIntegerField(max_length=128,
                                                 null=True,
