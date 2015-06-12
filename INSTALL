@@ -254,11 +254,11 @@ then save the file:
 The system may send out summary reports describing the performance, results,
 etc., of different scanners. 
 
-To have summaries emaild to recipients, edit `crontab` as described in the
+To have summaries emailed to recipients, edit `crontab` as described in the
 previous section, adding the line
 
 ```
-0    7 * * * /home/os2test/os2webscanner/cron/dispatch_summaries.sh
+0    7 * * * /home/os2/os2webscanner/cron/dispatch_summaries.sh
 ```
 
 to have summaries emailed every day at 7AM. You can of course change this as
@@ -271,8 +271,11 @@ cause reports to be sent twice.
 Visit your webscanner site URL + `/admin/` to enter the Django admin interface.
 
 Login with the Django superuser you created (when running `python manage.py
-syncdb`). Add an "Organization", giving it a name, email, and phone number
-and save it.
+syncdb`). Click on "Organization" and hit the button labeled "Tilføj
+Organisation" or "Add Organization" to add an "Organization". This is
+necessary - the system will not work without at least one organization. Give
+your new organization a name, email address and phone number and save it by
+clicking "Gem" or "Save" at the bottom of the page.
 
 Return to the main admin page and click "Brugere".
 Click the username that you would like to add to the organization.
