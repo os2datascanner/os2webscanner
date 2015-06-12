@@ -40,9 +40,13 @@ SPIDER_MIDDLEWARES = {
     'scanner.middlewares.LastModifiedLinkStorageMiddleware': 1100
 }
 
+COOKIES_ENABLED = True
+COOKIES_DEBUG = True
+
 DOWNLOADER_MIDDLEWARES = {
     'scrapy.contrib.downloadermiddleware.redirect.RedirectMiddleware': None,
     'scanner.middlewares.OffsiteRedirectMiddleware': 600,
+    'scanner.middlewares.CookieCollectorMiddleware': 700,
     'scanner.middlewares.OffsiteDownloaderMiddleware': 1000,
     'scanner.middlewares.ExclusionRuleDownloaderMiddleware': 1100,
     'scanner.middlewares.LastModifiedCheckMiddleware': 1200,
