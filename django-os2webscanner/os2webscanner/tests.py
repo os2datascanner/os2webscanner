@@ -13,7 +13,7 @@
 #
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
-"""Unittests for the os2webscanner.
+"""Unit tests for OS2Webscanner.
 
 These will pass when you run "manage.py test os2webscanner".
 """
