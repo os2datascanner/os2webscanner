@@ -52,6 +52,15 @@ def get_md5_sum(data):
     return md5
 
 
+def get_ocr_page_no(ocr_file_name):
+    "Get page number from image file to be OCR'ed."
+
+    # xyz*-d+_d+.png
+    # HACK ALERT: This depends on the output from pdftohtml.
+    page_no = int(ocr_file_name.split('_')[-2].split('-')[-1])
+    return page_no
+
+
 def get_image_dimensions(file_path):
     """Return an image's dimensions as a tuple containing width and height.
 
@@ -112,14 +121,17 @@ class Processor(object):
     def is_md5_known(self, data, scan):
         """Decide if we know a given file by calculating its MD5."""
 
-        md5 = get_md5_sum(data)
-        exists = Md5Sum.objects.filter(
-            organization=scan.scanner.organization,
-            md5=md5,
-            is_cpr_scan=scan.do_cpr_scan,
-            is_check_mod11=scan.do_cpr_modulus11,
-            is_ignore_irrelevant=scan.do_cpr_ignore_irrelevant,
-        ).count() > 0
+        if settings.DO_USE_MD5:
+            md5 = get_md5_sum(data)
+            exists = Md5Sum.objects.filter(
+                organization=scan.scanner.organization,
+                md5=md5,
+                is_cpr_scan=scan.do_cpr_scan,
+                is_check_mod11=scan.do_cpr_modulus11,
+                is_ignore_irrelevant=scan.do_cpr_ignore_irrelevant,
+            ).count() > 0
+        else:
+            exists = False
 
         return exists
 
@@ -128,21 +140,22 @@ class Processor(object):
         """
         Store MD5 sum for these scan parameters & data.
         """
-        md5str = get_md5_sum(data)
+        if settings.DO_USE_MD5:
+            md5str = get_md5_sum(data)
 
-        md5 = Md5Sum(
-            organization=scan.scanner.organization,
+            md5 = Md5Sum(
+                organization=scan.scanner.organization,
                 md5=md5str,
                 is_cpr_scan=scan.do_cpr_scan,
                 is_check_mod11=scan.do_cpr_modulus11,
                 is_ignore_irrelevant=scan.do_cpr_ignore_irrelevant,
             )
-        try:
-            md5.save()
-        except IntegrityError:
-            scan.log_occurrence(
-                "Trying to save MD5 sum twice - shouldn't happen"
-            )
+            try:
+                md5.save()
+            except IntegrityError:
+                scan.log_occurrence(
+                    "Trying to save MD5 sum twice - shouldn't happen"
+                )
 
     def handle_spider_item(self, data, url_object):
         """Process an item from a spider. Must be overridden.
@@ -192,7 +205,7 @@ class Processor(object):
         new_item.save()
         return True
 
-    def process_file(self, file_path, url):
+    def process_file(self, file_path, url, page_no=None):
         """Open the file associated with the item and process the file data.
 
         Calls self.process.
@@ -205,7 +218,10 @@ class Processor(object):
                 if self.is_md5_known(data, scan):
                     return True
                 else:
-                    self.process(data, url)
+                    if page_no:
+                        self.process(data, url, page_no)
+                    else:
+                        self.process(data, url)
                     try:
                         self.store_md5(data, scan)
                     except UnicodeEncodeError:
@@ -395,6 +411,9 @@ class Processor(object):
                             url=item.url,
                             status=ConversionQueueItem.NEW,
                         )
+                        if processor_type == 'ocr':
+                            new_item.page_no = get_ocr_page_no(fname)
+
                         new_item.save()
                     else:
                         os.remove(file_path)

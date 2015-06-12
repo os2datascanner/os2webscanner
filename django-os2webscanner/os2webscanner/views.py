@@ -26,7 +26,7 @@ from django import forms
 from django.template import RequestContext
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.db.models import Count, Q
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, render_to_response
 from django.shortcuts import redirect
 from django.views.generic import View, ListView, TemplateView, DetailView
@@ -1164,6 +1164,7 @@ def file_upload(request):
         if form.is_valid():
             # Perform the scan
             upload_file = request.FILES['scan_file']
+            extension = upload_file.name.split('.')[-1]
             # Get parametes
             params = {}
             params['do_cpr_scan'] = form.cleaned_data['do_cpr_scan']
@@ -1180,10 +1181,12 @@ def file_upload(request):
             params['do_address_replace'] = form.cleaned_data[
                 'do_replace_address'
             ]
+            params['do_ocr'] = form.cleaned_data['do_ocr']
             params['address_replace_text'] = form.cleaned_data[
                 'address_replacement_text'
             ]
-            params['output_spreadsheet_file'] = True
+            params['output_spreadsheet_file'] = (extension != 'pdf')
+
             to_int = lambda L: str(ord(L) - ord('A') + 1) if L else ''
             params['columns'] = ','.join(
                 map(to_int, form.cleaned_data['column_list'].split(','))
@@ -1201,7 +1204,8 @@ def file_upload(request):
                     raise
             # Now create temporary dir, fill with files
             dirname = tempfile.mkdtemp(dir=rpcdir)
-            file_path = os.path.join(dirname, upload_file.name).encode('utf-8')
+            file_path = os.path.join(dirname,
+                                     upload_file.name).encode('utf-8')
             copyfile(path, file_path)
             file_url = 'file://{0}'.format(file_path)
             scan = do_scan(request.user, [file_url], params, blocking=True,
@@ -1214,6 +1218,8 @@ def file_upload(request):
                 raise RuntimeError("Unable to perform scan - check user has"
                                    "organization and valid domain")
             # We now have the scan object
+            if not params['output_spreadsheet_file']:
+                return HttpResponseRedirect('/report/{0}/'.format(scan.pk))
             response = HttpResponse(content_type='text/csv')
             report_file = u'{0}{1}.csv'.format(
                 scan.scanner.organization.name.replace(u' ', u'_'),

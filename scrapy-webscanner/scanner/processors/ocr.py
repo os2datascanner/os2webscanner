@@ -14,10 +14,15 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 """OCR Processors."""
-from processor import Processor
-from text import TextProcessor
+
+
 import os
 import subprocess
+
+from scrapy import log
+
+from processor import Processor
+from text import TextProcessor
 
 
 class OCRProcessor(Processor):
@@ -45,7 +50,8 @@ class OCRProcessor(Processor):
             return False
 
         txt_file += ".txt"
-        self.text_processor.process_file(txt_file, item.url)
+        log.msg("Processing file {0}".format(txt_file))
+        self.text_processor.process_file(txt_file, item.url, item.page_no)
         if os.path.exists(txt_file):
             os.remove(txt_file)
         return return_code == 0

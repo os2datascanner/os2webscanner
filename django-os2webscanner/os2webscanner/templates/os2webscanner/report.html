@@ -127,7 +127,24 @@ Rapport &dash; {{scan.scanner.name}}
                     Følsomhed
                   </small>
                 </strong>
-              </td></tr>
+              </td>
+              <td>
+                <strong>
+                  <small>
+                    Kontekst
+                  </small>
+                </strong>
+              </td>
+              {% if scan.do_ocr %}
+              <td>
+                <strong>
+                  <small>
+                    Side
+                  </small>
+                </strong>
+              </td>a
+              {% endif %}
+    </tr>
           </thead>
           <tbody>
           {% for match in matches %}
@@ -150,6 +167,14 @@ Rapport &dash; {{scan.scanner.name}}
                   <td class="match-sensitivity">
                       <span>{{ match.get_sensitivity_display }}</span>
                   </td>
+                  <td class="match-context">
+                      <span>{{ match.match_context }}</span>
+                  </td>
+                  {% if scan.do_ocr %}
+                  <td class="match-pageno">
+                      <span>{{ match.page_no }}</span>
+                  </td>
+                  {% endif %}
               </tr>
           {% endfor %}
           </tbody>
