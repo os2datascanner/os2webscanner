@@ -42,7 +42,7 @@ Rapport &dash; {{scan.scanner.name}}
       <table class="table table-bordered report">
           <tbody>
           <tr>
-              <td {% if scan.do_ocr %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Scan Billeder?{% if scan.do_ocr %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td> 
+              <td {% if scan.do_ocr %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Scan Billeder{% if scan.do_ocr %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td> 
               <td></td>
               <td></td>
               <td></td>
@@ -60,7 +60,7 @@ Rapport &dash; {{scan.scanner.name}}
               <td></td>
           </tr>
           <tr>
-            <td {% if scan.do_link_check %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Links{% if scan.do_link_check %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
+            <td {% if scan.do_link_check %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Check links{% if scan.do_link_check %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
             <td {% if scan.do_external_link_check %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Eksterne links{% if scan.do_external_link_check %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
               <td></td>
         </tr>
