@@ -43,9 +43,10 @@ class OCRProcessor(Processor):
     def convert(self, item, tmp_dir):
         """Convert the item and immediately run a Text processor on it."""
         txt_file = os.path.join(tmp_dir, "file")
-        return_code = subprocess.call(
-            ["tesseract", item.file_path, txt_file, "-l", "dan+eng"]
-        )
+        return_code = subprocess.call([
+            "tesseract", item.file_path, txt_file,
+            "-psm", "1", "-l", "dan+eng"
+        ])
         if return_code != 0:
             return False
 
