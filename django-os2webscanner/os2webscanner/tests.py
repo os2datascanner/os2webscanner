@@ -13,7 +13,7 @@
 #
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
-"""Unittests for the os2webscanner.
+"""Unit tests for OS2Webscanner.
 
 These will pass when you run "manage.py test os2webscanner".
 """
@@ -33,12 +33,14 @@ install_directory = os.path.abspath(os.path.join(settings.BASE_DIR, '..'))
 class ScannerTest(TestCase):
 
     """Test running a scan and domain validation."""
+    # TODO: Capture the interaction so these tests can work without an
+    # Internet connection! !!!
 
     @classmethod
     def setUpClass(cls):
         """Setup some data to test with."""
-        # Don't change the order of these, because Magenta needs pk = 2 to pass
-        # the validation test
+        # Don't change the order of these, because Magenta needs
+        # pk = 2 to pass the validation test
         cls.magenta = Organization(name="Magenta", pk=1)
         cls.magenta.save()
         cls.google = Organization(name="Google", pk=2)
@@ -47,14 +49,15 @@ class ScannerTest(TestCase):
     def test_validate_domain(self):
         """Test validating domains."""
         # Make sure Google does not validate in any of the possible methods
-        all_methods = [Domain.ROBOTSTXT, Domain.WEBSCANFILE, Domain.METAFIELD]
+        all_methods = [Domain.WEBSCANFILE, Domain.METAFIELD]
         # Make sure Magenta's website validates using all possible methods
-        for validation_method in all_methods:
+        for validation_method in [Domain.WEBSCANFILE, Domain.METAFIELD]:
             domain = Domain(url="http://www.magenta.dk/",
                             validation_method=validation_method,
                             organization=self.magenta,
                             pk=1)
             domain.save()
+            print "VALIDATING", validation_method
             self.assertTrue(validate_domain(domain))
 
         for validation_method in all_methods:

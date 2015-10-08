@@ -28,7 +28,10 @@ border-top-width:0;
 label[for=id_do_name_scan]{
 margin-bottom:7px !important;
 }
-
+#id_whitelisted_names_container {
+padding:0;
+margin-bottom:10px;
+}
 /* DOMAINS */
 
 .btn-sitemap-upload {
@@ -81,6 +84,30 @@ margin-top:.3em;
 padding-left:0;
 }
 
+/* REPORT LIST */
+
+.report-actions .btn.view-report:link {
+color:#333;
+background-color:#fff;
+border-color:#ccc;
+}
+.report-actions .btn.view-report:visited {
+color:#bbb;
+border-color:#e0e0e0;
+}
+.report-actions .btn.view-report:hover {
+color:#333;
+background-color:#ebebeb;
+border-color:#adadad;
+text-decoration:none;
+}
+.report-actions .btn.view-report:active {
+color:#333;
+background-color:#ebebeb;
+border-color:#adadad;
+text-decoration:none;
+}
+
 /* REPORT VIEW */
 
 .table.report td{
@@ -93,10 +120,22 @@ border-color:#fff #fff inherit;
 .table-responsive.domains-regex {
 margin-top:-20px;
 }
+a.download-csv:visited,
+.broken-url-referrers a:visited,
+.broken-url-url a:visited,
+.failed-conversions a:visited,
+.domains-regex a:visited,
+.match-url a:visited {
+color:#ca428b;
+}
 div.failed-conversions {
 margin-bottom:20px;
 }
 
+div.cookies {
+margin-bottom:20px;
+padding:0;
+}
 /* filter_horizontal WIDGET */
 .selector-available h2, .selector-chosen h2 {
     font-size: inherit;

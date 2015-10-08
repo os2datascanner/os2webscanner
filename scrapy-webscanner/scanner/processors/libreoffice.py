@@ -94,7 +94,7 @@ class LibreOfficeProcessor(Processor):
             output_filter = "csv"
         else:
             # Default to converting to HTML
-            output_filter = "htm:HTML"
+            output_filter = "html"
 
         # TODO: Input type to filter mapping?
         output_file = os.path.join(
