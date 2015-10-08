@@ -160,7 +160,6 @@ class Processor(object):
                 # This happens, we now know - but is not actually an error.
                 pass
 
-
     def handle_spider_item(self, data, url_object):
         """Process an item from a spider. Must be overridden.
 
@@ -220,10 +219,7 @@ class Processor(object):
                 f = codecs.open(file_path, "r", encoding=encoding)
             else:
                 f = open(file_path, "rb")
-            if page_no:
-                self.process(f.read(), url, page_no)
-            else:
-                self.process(f.read(), url)
+            self.process(f.read(), url)
         except Exception as e:
             url.scan.log_occurrence(
                 "process_file failed for url {0}: {1}".format(url.url, str(e))
