@@ -45,3 +45,7 @@ done
 pushd django-os2webscanner
 python setup.py develop
 popd
+
+pushd webscanner_client
+python setup.py develop
+popd

@@ -168,10 +168,23 @@ def match_cprs(text, do_modulus11=True, ignore_irrelevant=True,
             valid_modulus11 = modulus11_check(cpr)
         else:
             valid_modulus11 = True
+        original_cpr = m.group(0)
         if mask_digits:
             # Mask last 6 digits
             cpr = cpr[0:4] + "XXXXXX"
+        # Calculate context.
+        low, high = m.span()
+        if low < 50:
+            # Sanity
+            low = 50
+        match_context = text[low - 50:high + 50]
+        match_context = regex.sub(cpr_regex, "XXXXXX-XXXX", match_context)
+
         if valid_date and valid_modulus11:
-            matches.add(
-                MatchItem(matched_data=cpr, sensitivity=Sensitivity.HIGH))
+            matches.add(MatchItem(
+                matched_data=cpr,
+                sensitivity=Sensitivity.HIGH,
+                match_context=match_context,
+                original_matched_data=original_cpr,
+            ))
     return matches

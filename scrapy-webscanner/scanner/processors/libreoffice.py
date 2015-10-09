@@ -94,15 +94,19 @@ class LibreOfficeProcessor(Processor):
             output_filter = "csv"
         else:
             # Default to converting to HTML
-            output_filter = "htm:HTML"
+            output_filter = "html"
 
         # TODO: Input type to filter mapping?
+        output_file = os.path.join(
+            tmp_dir,
+            os.path.basename(item.file_path).split(".")[0] + ".csv"
+        )
         return_code = subprocess.call([
-                                          "libreoffice", "--headless",
-                                          "--convert-to", output_filter,
-                                          item.file_path, "--outdir", tmp_dir
-                                      ], env=self.env)
-
+            "unoconv", "-f", output_filter, "-e",
+            'FilterOptions="59,34,0,1"', "-o", output_file,
+            item.file_path
+        ], env=self.env)
+        print "FILE", output_file
         return return_code == 0
 
 

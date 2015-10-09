@@ -30,7 +30,7 @@ setup(
     packages=['webscanner_client'],
     include_package_data=True,
     license='MPL',  # example license
-    description='XML-RPC client for OS2 web scanner',
+    description='XML-RPC client for OS2Webscanner',
     long_description=README,
     url='http:///magenta.dk',
     author='Magenta ApS',

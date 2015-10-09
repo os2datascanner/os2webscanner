@@ -25,9 +25,9 @@ SITE_URL = 'http://webscanner.magenta-aps.dk'
 SECRET_KEY = 'ld0_g)jhp3v27&od88-_v83ldb!0i^bac=jh+je!!=jbvra7@j'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-TEMPLATE_DEBUG = True
+TEMPLATE_DEBUG = DEBUG
 
 ALLOWED_HOSTS = []
 
@@ -121,6 +121,13 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 DO_USE_GROUPS = False
 
+# Use MD5 sums.
+# This should practically always be true, but we might want to disable it for
+# debugging uses. At some point, this could also become a parameter on the
+# scanner.
+
+DO_USE_MD5 = True
+
 # The threshold for number of OCR conversion queue items per scan above which
 # non-OCR conversion will be paused. The reason to have this feature is that
 # for large scans with OCR enabled, so many OCR items are extracted from
@@ -136,6 +143,9 @@ RESUME_NON_OCR_ITEMS_THRESHOLD = PAUSE_NON_OCR_ITEMS_THRESHOLD - 1000
 
 # Directory to store files transmitted by RPC
 RPC_TMP_PREFIX = '/tmp/os2webscanner'
+
+# Always store temp files on disk
+FILE_UPLOAD_MAX_MEMORY_SIZE = 0
 
 local_settings_file = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),

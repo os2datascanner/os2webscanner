@@ -16,12 +16,19 @@
 # source municipalities ( http://www.os2web.dk/ )
 """Contains Django views."""
 
+import os
 import csv
+import tempfile
+import codecs
+from shutil import copyfile
+
 from django import forms
+from django.template import RequestContext
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.db.models import Count, Q
-from django.http import Http404, HttpResponse
-from django.shortcuts import render, get_object_or_404
+from django.http import Http404, HttpResponse, HttpResponseRedirect
+from django.shortcuts import render, get_object_or_404, render_to_response
+from django.shortcuts import redirect
 from django.views.generic import View, ListView, TemplateView, DetailView
 from django.views.generic.edit import ModelFormMixin, DeleteView
 from django.views.generic.edit import CreateView, UpdateView
@@ -34,16 +41,27 @@ from .validate import validate_domain, get_validation_str
 
 from .models import Scanner, Domain, RegexRule, Scan, Match, UserProfile, Url
 from .models import Organization, ConversionQueueItem, Group, Summary
-from .utils import scans_for_summary_report
+from .utils import scans_for_summary_report, do_scan
+from .forms import FileUploadForm
 
 
 class LoginRequiredMixin(View):
 
-    """Include to require login."""
+    """Include to require login.
+
+    If user is "upload only", redirect to upload page."""
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         """Check for login and dispatch the view."""
+        user = self.request.user
+        try:
+            profile = user.get_profile()
+            if profile.is_upload_only:
+                return redirect('system/upload_file')
+        except UserProfile.DoesNotExist:
+            # User is *not* "upload only", all is good
+            pass
         return super(LoginRequiredMixin, self).dispatch(*args, **kwargs)
 
 
@@ -209,7 +227,7 @@ class ReportList(RestrictedListView):
                 reports = self.model.objects.filter(
                     scanner__organization=None
                 )
-        reports = reports.filter(scanner__is_visible=True)
+        reports = reports.filter(is_visible=True)
         return reports.order_by('-start_time')
 
 
@@ -355,15 +373,35 @@ class RestrictedDeleteView(DeleteView, OrgRestrictedMixin):
     pass
 
 
+class OrganizationUpdate(UpdateView, LoginRequiredMixin):
+
+    """Create an organization update view."""
+
+    model = Organization
+    fields = ['name_whitelist', 'name_blacklist', 'address_whitelist',
+              'address_blacklist']
+
+    def get_object(self):
+        """Get the organization to which the current user belongs."""
+        try:
+            object = self.request.user.get_profile().organization
+        except UserProfile.DoesNotExist:
+            object = None
+        return object
+
+    def get_success_url(self):
+        return "/organization/"
+
+
 class ScannerCreate(RestrictedCreateView):
 
     """Create a scanner view."""
 
     model = Scanner
-    fields = ['name', 'schedule', 'whitelisted_names', 'domains',
+    fields = ['name', 'schedule', 'domains',
               'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
-              'do_name_scan', 'do_ocr',
-              'do_link_check', 'do_external_link_check',
+              'do_name_scan', 'do_ocr', 'do_address_scan',
+              'do_link_check', 'do_external_link_check', 'do_collect_cookies',
               'do_last_modified_check', 'do_last_modified_check_head_request',
               'regex_rules', 'recipients']
 
@@ -414,10 +452,10 @@ class ScannerUpdate(RestrictedUpdateView):
     """Update a scanner view."""
 
     model = Scanner
-    fields = ['name', 'schedule', 'whitelisted_names', 'domains',
+    fields = ['name', 'schedule', 'domains',
               'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
-              'do_name_scan', 'do_ocr',
-              'do_link_check', 'do_external_link_check',
+              'do_name_scan', 'do_ocr', 'do_address_scan',
+              'do_link_check', 'do_external_link_check', 'do_collect_cookies',
               'do_last_modified_check', 'do_last_modified_check_head_request',
               'regex_rules', 'recipients']
 
@@ -1116,3 +1154,93 @@ class SummaryReport(RestrictedDetailView):
         context['to_date'] = to_date
 
         return context
+
+
+@login_required
+def file_upload(request):
+    """Handle upload of file for scanning."""
+    if request.method == 'POST':
+        form = FileUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            # Perform the scan
+            upload_file = request.FILES['scan_file']
+            extension = upload_file.name.split('.')[-1]
+            # Get parametes
+            params = {}
+            params['do_cpr_scan'] = form.cleaned_data['do_cpr_scan']
+            params['do_cpr_replace'] = form.cleaned_data['do_replace_cpr']
+            params['cpr_replace_text'] = form.cleaned_data[
+                'cpr_replacement_text'
+            ]
+            params['do_name_scan'] = form.cleaned_data['do_name_scan']
+            params['do_name_replace'] = form.cleaned_data['do_replace_name']
+            params['name_replace_text'] = form.cleaned_data[
+                'name_replacement_text'
+            ]
+            params['do_address_scan'] = form.cleaned_data['do_address_scan']
+            params['do_address_replace'] = form.cleaned_data[
+                'do_replace_address'
+            ]
+            params['do_ocr'] = form.cleaned_data['do_ocr']
+            params['address_replace_text'] = form.cleaned_data[
+                'address_replacement_text'
+            ]
+            params['output_spreadsheet_file'] = (extension != 'pdf')
+
+            to_int = lambda L: str(ord(L) - ord('A') + 1) if L else ''
+            params['columns'] = ','.join(
+                map(to_int, form.cleaned_data['column_list'].split(','))
+            )
+
+            path = upload_file.temporary_file_path()
+            rpcdir = settings.RPC_TMP_PREFIX
+            try:
+                os.makedirs(rpcdir)
+            except OSError:
+                if os.path.isdir(rpcdir):
+                    pass
+                else:
+                    # There was an error, so make sure we know about it
+                    raise
+            # Now create temporary dir, fill with files
+            dirname = tempfile.mkdtemp(dir=rpcdir)
+            file_path = os.path.join(dirname,
+                                     upload_file.name).encode('utf-8')
+            copyfile(path, file_path)
+            file_url = 'file://{0}'.format(file_path)
+            scan = do_scan(request.user, [file_url], params, blocking=True,
+                           visible=True)
+            scan.scanner.is_visible = False
+            scan.scanner.save()
+
+            #
+            if not isinstance(scan, Scan):
+                raise RuntimeError("Unable to perform scan - check user has"
+                                   "organization and valid domain")
+            # We now have the scan object
+            if not params['output_spreadsheet_file']:
+                return HttpResponseRedirect('/report/{0}/'.format(scan.pk))
+            response = HttpResponse(content_type='text/csv')
+            report_file = u'{0}{1}.csv'.format(
+                scan.scanner.organization.name.replace(u' ', u'_'),
+                scan.id)
+            response[
+                'Content-Disposition'
+            ] = u'attachment; filename={0}'.format(report_file)
+            csv_file = open(scan.scan_output_file, "rb")
+
+            # Load CSV file, write it back to the client
+            response.write(codecs.BOM_UTF8)
+            csv_data = csv_file.read()
+            response.write(csv_data)
+
+            return response
+
+    else:
+        # Request.method == 'GET'
+        form = FileUploadForm()
+
+    return render_to_response(
+        'os2webscanner/file_upload.html',
+        RequestContext(request, {'form': form})
+    )
