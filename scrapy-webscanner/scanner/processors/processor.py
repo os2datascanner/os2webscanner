@@ -160,7 +160,6 @@ class Processor(object):
                 # This happens, we now know - but is not actually an error.
                 pass
 
-
     def handle_spider_item(self, data, url_object):
         """Process an item from a spider. Must be overridden.
 

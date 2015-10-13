@@ -1,3 +1,33 @@
+* Version 1.4.0, October 13, 2015
+
+New in this version:
+
+ - Fix bug in LibreOffice conversion
+
+
+* Version 1.4.0, June 12, 2015
+
+New in this version:
+
+ - Hide ad hoc scanners created for spreadsheet scans.
+ - Introduce job to clean up non-terminating LibreOffice processes.
+ - Consistent branding throughout (the product's name is 'OS2Webscanner'
+   and nothing else).
+ - Include context and page number for CPR matches to make them easier
+   to find.
+ - Check Last-Modified in meta http-equiv HTML headers.
+ - Visibly mark links in reports as visited.
+ - Performance: Save MD5 sums of binary files to avoid scanning the same
+   file several times.
+ - Better diagnostic information when conversion fails.
+ - Collect cookies (so far only server-side cookies are supported).
+ - Fix bugs in and improve installation guide.
+ - Proper OCR of documents that are scanned upside down.
+ - Improve layout of report.
+ - More consistent terminology.
+ - Include information about cookies in summary report.
+
+
 * Version 1.3.3, March 13, 2015
 
 New in this version:

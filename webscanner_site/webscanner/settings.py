@@ -25,9 +25,9 @@ SITE_URL = 'http://webscanner.magenta-aps.dk'
 SECRET_KEY = 'ld0_g)jhp3v27&od88-_v83ldb!0i^bac=jh+je!!=jbvra7@j'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-TEMPLATE_DEBUG = True
+TEMPLATE_DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -126,7 +126,7 @@ DO_USE_GROUPS = False
 # debugging uses. At some point, this could also become a parameter on the
 # scanner.
 
-DO_USE_MD5 = False
+DO_USE_MD5 = True
 
 # The threshold for number of OCR conversion queue items per scan above which
 # non-OCR conversion will be paused. The reason to have this feature is that
