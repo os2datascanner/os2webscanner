@@ -118,6 +118,9 @@ class ScannerApp:
         """Run the scanner, blocking until finished."""
         settings = get_project_settings()
 
+        # job_dir = os.path.join(self.scan_object.scan_dir, 'job')
+        # settings.set('JOBDIR', job_dir)
+
         self.crawler_process = OrderedCrawlerProcess(settings)
 
         # Don't sitemap scan when running over RPC
