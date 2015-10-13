@@ -219,10 +219,7 @@ class Processor(object):
                 f = codecs.open(file_path, "r", encoding=encoding)
             else:
                 f = open(file_path, "rb")
-            if page_no:
-                self.process(f.read(), url, page_no)
-            else:
-                self.process(f.read(), url)
+            self.process(f.read(), url)
         except Exception as e:
             url.scan.log_occurrence(
                 "process_file failed for url {0}: {1}".format(url.url, str(e))
