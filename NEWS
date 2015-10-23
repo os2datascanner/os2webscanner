@@ -1,4 +1,11 @@
-* Version 1.4.0, October 13, 2015
+* Version 1.4.1.1, October 23, 2015
+
+New in this version:
+
+ - Better handling of PDF files in latin-1.
+
+
+* Version 1.4.1, October 13, 2015
 
 New in this version:
 
