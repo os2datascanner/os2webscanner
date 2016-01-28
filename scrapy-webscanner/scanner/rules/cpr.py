@@ -50,7 +50,8 @@ class CPRRule(Rule):
     def execute(self, text):
         """Execute the CPR rule."""
         matches = match_cprs(text, do_modulus11=self.do_modulus11,
-                             ignore_irrelevant=self.ignore_irrelevant)
+                             ignore_irrelevant=self.ignore_irrelevant,
+                             whitelist=self.whitelist)
         return matches
 
 # TODO: Improve
@@ -167,7 +168,7 @@ def modulus11_check(cpr):
 
 
 def match_cprs(text, do_modulus11=True, ignore_irrelevant=True,
-               mask_digits=True):
+               mask_digits=True, whitelist=[]):
     """Return MatchItem objects for each CPR matched in the given text.
 
     If mask_digits is False, then the matches will contain full CPR numbers.
