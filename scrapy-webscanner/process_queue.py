@@ -23,11 +23,13 @@ Pass extra arguments to the processor after the first argument.
 import os
 import sys
 import signal
+import django
 
 # Include the Django app
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(base_dir + "/webscanner_site")
 os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
+django.setup()
 
 from scanner.processors import *
 from scanner.processors.processor import Processor

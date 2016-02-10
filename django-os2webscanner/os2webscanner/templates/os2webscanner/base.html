@@ -41,12 +41,12 @@
       <div class="collapse navbar-collapse">
         <ul class="nav navbar-nav">
             {% if user.is_authenticated %}
-            {% if not user.get_profile.is_upload_only %}
+            {% if not user.profile.is_upload_only %}
           <li {% block scanners_active %}{% endblock %}>
             <a href="/scanners/">Scannere</a>
           </li>
-          {% if user.get_profile.is_groups_enabled %}
-          {% if user.is_superuser or user.get_profile.is_group_admin %}
+          {% if user.profile.is_groups_enabled %}
+          {% if user.is_superuser or user.profile.is_group_admin %}
           <li {% block groups_active %}{% endblock %}>
             <a href="/groups/">Grupper</a>
           </li>
@@ -81,7 +81,7 @@
                 <li>
                 <a href="/system/upload_file/">Scan regneark</a>
                 </li>
-                {% if not user.get_profile.is_upload_only %}
+                {% if not user.profile.is_upload_only %}
                 <li><a href="/organization/">Oplæring</a></li>
                 {% endif %}
                 <li>

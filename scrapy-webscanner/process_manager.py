@@ -34,6 +34,7 @@ from datetime import timedelta
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(base_dir + "/webscanner_site")
 os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
+django.setup()
 
 os.umask(0007)
 

@@ -88,7 +88,7 @@ def do_scan(user, urls, params={}, blocking=False, visible=False):
     parameters and values. Defaults are used for unspecified parameters.
     """
     scanner = models.Scanner()
-    scanner.organization = user.get_profile().organization
+    scanner.organization = user.profile.organization
     scanner.name = user.username + '-' + str(time.time())
     scanner.do_run_synchronously = True
     scanner.do_last_modified_check = False

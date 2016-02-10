@@ -21,11 +21,13 @@ from urlparse import urlparse
 
 import os
 import sys
+import django
 
 # Include the Django app
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(base_dir + "/webscanner_site")
 os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
+django.setup()
 
 os.umask(0007)
 
@@ -67,6 +69,8 @@ signal.signal(signal.SIGINT | signal.SIGTERM, signal_handler)
 class OrderedCrawlerProcess(CrawlerProcess):
 
     """Override CrawlerProcess to use an ordered dict."""
+
+    crawlers = None
 
     def __init__(self, *a, **kw):
         """Initialize the CrawlerProcess with an OrderedDict of crawlers."""
