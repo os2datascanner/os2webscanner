@@ -68,6 +68,7 @@
               Opsummering
             </a>
             </li>
+            <li {% block organization_active %}{% endblock %}><a href="/organization/">Oplæring</a></li>
             {% if user.is_superuser %}
             <li class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">System<span class="caret"></span></a>
@@ -81,9 +82,6 @@
                 <li>
                 <a href="/system/upload_file/">Scan regneark</a>
                 </li>
-                {% if not user.profile.is_upload_only %}
-                <li><a href="/organization/">Oplæring</a></li>
-                {% endif %}
                 <li>
                 <a href="/admin/" target="_NEW">Administration</a>
                 </li>
