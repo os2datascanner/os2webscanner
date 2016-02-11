@@ -98,10 +98,9 @@ class UserProfile(models.Model):
     organization = models.ForeignKey(Organization,
                                      null=False,
                                      verbose_name='Organisation')
-    user = models.ForeignKey(User,
-                             unique=True,
-                             related_name='profile',
-                             verbose_name='Bruger')
+    user = models.OneToOneField(User,
+                                related_name='profile',
+                                verbose_name='Bruger')
     is_group_admin = models.BooleanField(default=False)
     is_upload_only = models.BooleanField(default=False)
 
@@ -120,7 +119,7 @@ class Group(models.Model):
     name = models.CharField(max_length=256, unique=True, verbose_name='Navn')
     contact_email = models.CharField(max_length=256, verbose_name='Email')
     contact_phone = models.CharField(max_length=256, verbose_name='Telefon')
-    user_profiles = models.ManyToManyField(UserProfile, null=True, blank=True,
+    user_profiles = models.ManyToManyField(UserProfile, blank=True,
                                            verbose_name='Brugere',
                                            related_name='groups')
     organization = models.ForeignKey(Organization,
@@ -340,9 +339,8 @@ class Scanner(models.Model):
                                                 blank=True)
     regex_rules = models.ManyToManyField(RegexRule,
                                          blank=True,
-                                         null=True,
                                          verbose_name='Regex regler')
-    recipients = models.ManyToManyField(UserProfile, null=True, blank=True,
+    recipients = models.ManyToManyField(UserProfile, blank=True,
                                         verbose_name='Modtagere')
 
     # Spreadsheet annotation and replacement parameters
@@ -441,7 +439,7 @@ class Scanner(models.Model):
     def has_active_scans(self):
         """Whether the scanner has active scans."""
         active_scanners = Scan.objects.filter(scanner=self, status__in=(
-                        Scan.NEW, Scan.STARTED)).count()
+            Scan.NEW, Scan.STARTED)).count()
         return active_scanners > 0
 
     @property
@@ -477,7 +475,7 @@ class Scanner(models.Model):
         scan = Scan.create(self)
         # Add user as recipient on scan
         if user:
-            scan.recipients.add(user.get_profile())
+            scan.recipients.add(user.profile)
         # Get path to run script
         SCRAPY_WEBSCANNER_DIR = os.path.join(base_dir, "scrapy-webscanner")
 
@@ -536,11 +534,9 @@ class Scan(models.Model):
     blacklisted_names = models.TextField(max_length=4096, blank=True,
                                          default="",
                                          verbose_name='Sortlistede navne')
-    whitelisted_addresses = models.TextField(
-        max_length=4096, blank=True,
-        default="",
-        verbose_name='Godkendte adresser'
-    )
+    whitelisted_addresses = models.TextField(max_length=4096, blank=True,
+                                             default="",
+                                             verbose_name='Godkendte adresser')
     blacklisted_addresses = models.TextField(
         max_length=4096, blank=True,
         default="",
@@ -550,7 +546,6 @@ class Scan(models.Model):
                                         default="",
                                         verbose_name='Godkendte CPR-numre')
     domains = models.ManyToManyField(Domain,
-                                     null=True,
                                      verbose_name='Domæner')
     do_cpr_scan = models.BooleanField(default=True, verbose_name='CPR')
     do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
@@ -583,9 +578,8 @@ class Scan(models.Model):
                                                 blank=True)
     regex_rules = models.ManyToManyField(RegexRule,
                                          blank=True,
-                                         null=True,
                                          verbose_name='Regex regler')
-    recipients = models.ManyToManyField(UserProfile, null=True, blank=True)
+    recipients = models.ManyToManyField(UserProfile, blank=True)
 
     # Spreadsheet annotation and replacement parameters
 
@@ -963,7 +957,7 @@ class Url(models.Model):
                                       verbose_name='Status ' + 'Message')
     referrers = models.ManyToManyField("ReferrerUrl",
                                        related_name='linked_urls',
-                                       null=True, verbose_name='Referrers')
+                                       verbose_name='Referrers')
 
     def __unicode__(self):
         """Return the URL."""
@@ -1089,7 +1083,7 @@ class UrlLastModified(models.Model):
     last_modified = models.DateTimeField(blank=True, null=True,
                                          verbose_name='Last-modified')
     links = models.ManyToManyField("self", symmetrical=False,
-                                   null=True, verbose_name='Links')
+                                   verbose_name='Links')
     scanner = models.ForeignKey(Scanner, null=False, verbose_name='Scanner')
 
     def __unicode__(self):
@@ -1109,9 +1103,9 @@ class Summary(models.Model):
                                verbose_name='Planlagt afvikling')
     last_run = models.DateTimeField(blank=True, null=True,
                                     verbose_name='Sidste kørsel')
-    recipients = models.ManyToManyField(UserProfile, null=True, blank=True,
+    recipients = models.ManyToManyField(UserProfile, blank=True,
                                         verbose_name="Modtagere")
-    scanners = models.ManyToManyField(Scanner, null=True, blank=True,
+    scanners = models.ManyToManyField(Scanner, blank=True,
                                       verbose_name="Scannere")
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')

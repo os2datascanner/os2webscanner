@@ -56,7 +56,7 @@ class LoginRequiredMixin(View):
         """Check for login and dispatch the view."""
         user = self.request.user
         try:
-            profile = user.get_profile()
+            profile = user.profile
             if profile.is_upload_only:
                 return redirect('system/upload_file')
         except UserProfile.DoesNotExist:
@@ -90,7 +90,7 @@ class RestrictedListView(ListView, LoginRequiredMixin):
             return self.model.objects.all()
         else:
             try:
-                profile = user.get_profile()
+                profile = user.profile
                 if profile.organization.do_use_groups:
                     if profile.is_group_admin or self.model == Group:
                         return self.model.objects.filter(
@@ -213,7 +213,7 @@ class ReportList(RestrictedListView):
             reports = self.model.objects.all()
         else:
             try:
-                profile = user.get_profile()
+                profile = user.profile
                 # TODO: Filter by group here if relevant.
                 if (
                     profile.is_group_admin or not
@@ -247,10 +247,10 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
 
         if user.is_superuser:
             fields.append('organization')
-        elif user.get_profile().organization.do_use_groups:
+        elif user.profile.organization.do_use_groups:
             if (
-                user.get_profile().is_group_admin or
-                len(user.get_profile().groups.all()) > 1
+                user.profile.is_group_admin or
+                len(user.profile.groups.all()) > 1
             ):
                 fields.append('group')
 
@@ -265,13 +265,13 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
         form = form_class(**kwargs)
         user = self.request.user
         if 'group' in fields:
-            if user.get_profile().is_group_admin:
+            if user.profile.is_group_admin:
                 queryset = (
-                    user.get_profile().organization.groups.all()
+                    user.profile.organization.groups.all()
                 )
             else:
                 form.fields['group'].queryset = (
-                    user.get_profile().groups.all()
+                    user.profile.groups.all()
                 )
             form.fields['group'].queryset = queryset
         return form
@@ -280,7 +280,7 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
         """Validate the form."""
         if not self.request.user.is_superuser:
             try:
-                user_profile = self.request.user.get_profile()
+                user_profile = self.request.user.profile
             except UserProfile.DoesNotExist:
                 raise PermissionDenied
             self.object = form.save(commit=False)
@@ -310,8 +310,8 @@ class OrgRestrictedMixin(ModelFormMixin, LoginRequiredMixin):
         if organization.do_use_groups:
             if (
                 user.is_superuser or
-                user.get_profile().is_group_admin or
-                len(user.get_profile().groups.all()) > 1
+                user.profile.is_group_admin or
+                len(user.profile.groups.all()) > 1
             ):
                 do_add_group = True
         if do_add_group and self.model != Group:
@@ -327,13 +327,13 @@ class OrgRestrictedMixin(ModelFormMixin, LoginRequiredMixin):
         form = form_class(**kwargs)
         user = self.request.user
         if 'group' in fields:
-            if user.is_superuser or user.get_profile().is_group_admin:
+            if user.is_superuser or user.profile.is_group_admin:
                 form.fields['group'].queryset = (
                     self.object.organization.groups.all()
                 )
             else:
                 form.fields['group'].queryset = (
-                    user.get_profile().groups.all()
+                    user.profile.groups.all()
                 )
         return form
 
@@ -344,7 +344,7 @@ class OrgRestrictedMixin(ModelFormMixin, LoginRequiredMixin):
             organization = None
 
             try:
-                user_profile = self.request.user.get_profile()
+                user_profile = self.request.user.profile
                 organization = user_profile.organization
                 groups = user_profile.groups.all()
             except UserProfile.DoesNotExist:
@@ -395,7 +395,7 @@ class OrganizationUpdate(UpdateView, LoginRequiredMixin):
     def get_object(self):
         """Get the organization to which the current user belongs."""
         try:
-            object = self.request.user.get_profile().organization
+            object = self.request.user.profile.organization
         except UserProfile.DoesNotExist:
             object = None
         return object
@@ -425,8 +425,8 @@ class ScannerCreate(RestrictedCreateView):
         """
         form = super(ScannerCreate, self).get_form(form_class)
         try:
-            organization = self.request.user.get_profile().organization
-            groups = self.request.user.get_profile().groups.all()
+            organization = self.request.user.profile.organization
+            groups = self.request.user.profile.groups.all()
         except UserProfile.DoesNotExist:
             organization = None
             groups = None
@@ -443,7 +443,7 @@ class ScannerCreate(RestrictedCreateView):
                 queryset = form.fields[field_name].queryset
                 queryset = queryset.filter(organization=organization)
                 if (
-                    self.request.user.get_profile().is_group_admin or
+                    self.request.user.profile.is_group_admin or
                     field_name == 'recipients'
                 ):
                     # Already filtered by organization, nothing more to do.
@@ -652,7 +652,7 @@ class DomainUpdate(RestrictedUpdateView):
             self.object.validation_status = Domain.INVALID
 
         if not self.request.user.is_superuser:
-            user_profile = self.request.user.get_profile()
+            user_profile = self.request.user.profile
             self.object = form.save(commit=False)
             self.object.organization = user_profile.organization
 
@@ -855,6 +855,8 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
     context_object_name = "scan"
     full = False
 
+    fields = '__all__'
+
     def get_queryset(self):
         """Get the queryset for the view.
 
@@ -864,7 +866,7 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
         queryset = super(ReportDetails, self).get_queryset()
         if not self.request.user.is_superuser:
             try:
-                user_profile = self.request.user.get_profile()
+                user_profile = self.request.user.profile
                 organization = user_profile.organization
             except UserProfile.DoesNotExist:
                 organization = None
@@ -911,7 +913,7 @@ class ReportDelete(DeleteView, LoginRequiredMixin):
         queryset = super(ReportDelete, self).get_queryset()
         if not self.request.user.is_superuser:
             try:
-                user_profile = self.request.user.get_profile()
+                user_profile = self.request.user.profile
                 organization = user_profile.organization
             except UserProfile.DoesNotExist:
                 organization = None
@@ -963,10 +965,12 @@ class CSVReportDetails(ReportDetails):
                         u'Totalt antal matches', u'Total antal broken links']))
         # Print summary
         writer.writerow(
-            e([str(scan.start_time),
-               str(scan.end_time), scan.get_status_display(),
-               str(context['no_of_matches']),
-               str(context['no_of_broken_links'])])
+            e(
+                [str(scan.start_time),
+                 str(scan.end_time), scan.get_status_display(),
+                 str(context['no_of_matches']),
+                 str(context['no_of_broken_links'])]
+            )
         )
         if all_matches:
             # Print match header
@@ -1058,9 +1062,8 @@ class SystemStatusView(TemplateView, SuperUserRequiredMixin):
 
         def assign_percentages(grouped_totals, total):
             for item in grouped_totals:
-                item[
-                    'percentage'
-                ] = "%.1f" % (float(item['total']) / total * 100.)
+                item['percentage'] = "%.1f" % (float(item['total']) /
+                                               total * 100.)
 
         assign_percentages(totals_by_type, total)
         assign_percentages(totals_by_scan, total)

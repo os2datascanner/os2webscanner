@@ -154,8 +154,10 @@ class AddressRule(Rule):
             full_address = u"%s %s, %s %s" % (street_name, house_number,
                                               zip_code, city)
 
-            if (street_address in self.whitelist or
-                full_address in self.whitelist):
+            if (
+                street_address in self.whitelist or
+                full_address in self.whitelist
+            ):
                 continue
             blacklisted = (street_name in self.blacklist or
                            street_address in self.blacklist or

@@ -16,14 +16,8 @@
 """Contains the base scanner spider."""
 import re
 
-from scrapy import log, Spider
-from scrapy.http import Request, HtmlResponse
-from scrapy.contrib.linkextractors.lxmlhtml import LxmlLinkExtractor
+from scrapy import Spider
 from scrapy.utils.httpobj import urlparse_cached
-
-from ..processors.processor import Processor
-
-from scrapy.utils.response import response_status_message
 
 
 class BaseScannerSpider(Spider):
