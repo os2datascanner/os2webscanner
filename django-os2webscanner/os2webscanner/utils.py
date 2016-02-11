@@ -55,7 +55,7 @@ def notify_user(scan):
         message = EmailMessage(subject, body, settings.ADMIN_EMAIL,
                                to_addresses)
         message.send()
-    except Exception as e:
+    except Exception:
         # TODO: Handle this properly
         raise
 
@@ -70,10 +70,10 @@ def capitalize_first(s):
 def get_supported_rpc_params():
     """Return a list of supported Scanner parameters for the RPC interface."""
     return ["do_cpr_scan", "do_cpr_modulus11",
-           "do_cpr_ignore_irrelevant", "do_ocr", "do_name_scan",
-           "output_spreadsheet_file", "do_cpr_replace", "cpr_replace_text",
-           "do_name_replace", "name_replace_text", "do_address_scan",
-           "do_address_replace", "address_replace_text", "columns"]
+            "do_cpr_ignore_irrelevant", "do_ocr", "do_name_scan",
+            "output_spreadsheet_file", "do_cpr_replace", "cpr_replace_text",
+            "do_name_replace", "name_replace_text", "do_address_scan",
+            "do_address_replace", "address_replace_text", "columns"]
 
 
 def do_scan(user, urls, params={}, blocking=False, visible=False):
@@ -177,7 +177,7 @@ def send_summary_report(summary, from_date=None, to_date=None,
         message.send()
         summary.last_run = datetime.datetime.now()
         summary.save()
-    except Exception as e:
+    except Exception:
         # TODO: Handle this properly
         raise
 
