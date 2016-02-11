@@ -36,8 +36,6 @@ from django.db import transaction, IntegrityError, DatabaseError
 from django import db
 from django.conf import settings
 
-from os2webscanner.models import ConversionQueueItem, Scan
-
 
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(base_dir + "/webscanner_site")
@@ -45,6 +43,9 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 django.setup()
 
 os.umask(0007)
+
+from os2webscanner.models import ConversionQueueItem, Scan
+
 
 var_dir = settings.VAR_DIR
 

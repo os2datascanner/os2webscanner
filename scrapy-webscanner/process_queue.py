@@ -24,13 +24,14 @@ import os
 import sys
 import django
 
-from scanner.processors.processor import Processor
-
 # Include the Django app
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(base_dir + "/webscanner_site")
 os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 django.setup()
+
+from scanner.processors import *  # noqa
+from scanner.processors.processor import Processor
 
 pid = os.getpid()
 
