@@ -216,6 +216,8 @@ class Processor(object):
         try:
             encoding = self.encoding_magic.from_file(file_path)
             if encoding != 'binary':
+                if encoding == 'unknown-8bit':
+                    encoding = 'iso-8859-1'
                 f = codecs.open(file_path, "r", encoding=encoding)
             else:
                 f = open(file_path, "rb")
