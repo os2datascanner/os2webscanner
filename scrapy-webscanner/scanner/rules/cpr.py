@@ -41,7 +41,7 @@ class CPRRule(Rule):
         return matches
 
 # TODO: Improve
-cpr_regex = regex.compile("\\b(\\d{6})[\\s\-/\\.]?(\\d{4})\\b")
+cpr_regex = regex.compile(r"\b(\d{6})[\s\-/\.]?(\d{4})\b")
 
 # As of 11. January 2011, a total of 18 CPR numbers have been assigned
 # without a valid modulus 11 check digit - all men born 1. January 1965
