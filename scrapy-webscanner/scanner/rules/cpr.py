@@ -41,7 +41,9 @@ class CPRRule(Rule):
         return matches
 
 # TODO: Improve
-cpr_regex = regex.compile(r"\b(\d{6})[\s\-/\.]?(\d{4})\b")
+cpr_regex = regex.compile(
+    r"\b(\d{2}[\s]?\d{2}[\s]?\d{2})(?:[\s\-/\.]|\s\-\s)?(\d{4})\b"
+)
 
 # As of 11. January 2011, a total of 18 CPR numbers have been assigned
 # without a valid modulus 11 check digit - all men born 1. January 1965
@@ -162,7 +164,7 @@ def match_cprs(text, do_modulus11=True, ignore_irrelevant=True,
     it = cpr_regex.finditer(text)
     matches = set()
     for m in it:
-        cpr = m.group(1) + m.group(2)
+        cpr = m.group(1).replace(' ', '') + m.group(2)
         valid_date = date_check(cpr, ignore_irrelevant)
         if do_modulus11:
             valid_modulus11 = modulus11_check(cpr)
