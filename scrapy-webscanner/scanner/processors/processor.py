@@ -314,7 +314,7 @@ class Processor(object):
                     result.process_id = self.pid
                     result.process_start_time = ltime
                     result.save()
-            except (DatabaseError, IntegrityError) as e:
+            except (DatabaseError, IntegrityError):
                 # Database transaction failed, we just try again
                 print "".join([
                     "Transaction failed while getting queue item of type ",
@@ -380,8 +380,10 @@ class Processor(object):
                         mime_type)
 
                     # Disable OCR if requested
-                    if (processor_type == 'ocr' and
-                        not item.url.scan.do_ocr):
+                    if (
+                        processor_type == 'ocr' and
+                        not item.url.scan.do_ocr
+                    ):
                         processor_type = None
 
                     # Ignore and delete images which are smaller than
@@ -390,10 +392,12 @@ class Processor(object):
                         dimensions = get_image_dimensions(file_path)
                         if dimensions is not None:
                             (w, h) = dimensions
-                            if not ((w >= MIN_OCR_DIMENSION_BOTH and
-                                     h >= MIN_OCR_DIMENSION_BOTH)
-                                    and (w >= MIN_OCR_DIMENSION_EITHER or
-                                         h >= MIN_OCR_DIMENSION_EITHER)):
+                            if not (
+                                (w >= MIN_OCR_DIMENSION_BOTH and
+                                 h >= MIN_OCR_DIMENSION_BOTH) and
+                                (w >= MIN_OCR_DIMENSION_EITHER or
+                                 h >= MIN_OCR_DIMENSION_EITHER)
+                            ):
                                 ignored_ocr_count += 1
                                 processor_type = None
 
@@ -417,8 +421,8 @@ class Processor(object):
             print "Ignored %d extracted images because the dimensions were" \
                   "small (width AND height must be >= %d) AND (width OR " \
                   "height must be >= %d))" % (ignored_ocr_count,
-                                               MIN_OCR_DIMENSION_BOTH,
-                                               MIN_OCR_DIMENSION_EITHER)
+                                              MIN_OCR_DIMENSION_BOTH,
+                                              MIN_OCR_DIMENSION_EITHER)
 
     @classmethod
     def register_processor(cls, processor_type, processor):

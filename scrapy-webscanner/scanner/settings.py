@@ -72,4 +72,4 @@ local_settings_file = os.path.join(
     'local_settings.py'
 )
 if os.path.exists(local_settings_file):
-    from local_settings import *
+    from local_settings import *  # noqa

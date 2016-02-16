@@ -1,5 +1,7 @@
 {% extends 'os2webscanner/base.html' %}
 
+{% block organization_active %}class="active"{% endblock %}
+
 {% block heading %}Oplæring
 {% endblock %}
 
@@ -88,6 +90,22 @@
       </div>
     </div>
   </div>
+  
+  <div id="{{ form.cpr_whitelist.auto_id }}_container" class="col-sm-12{% if form.cpr_whitelist.errors %} has-error{% endif %}">
+    <div class="form-group">
+      <label class="control-label col-sm-2" for="id_{{ form.cpr_whitelist.name }}">{{ form.cpr_whitelist.label }}</label>
+      <div class="col-sm-10">
+        <textarea class="form-control" name="{{ form.cpr_whitelist.name }}" id="id_{{ form.cpr_whitelist.name }}" rows="3">{% if form.cpr_whitelist.value %}{{ form.cpr_whitelist.value }}{% endif %}</textarea>
+        {% if form.cpr_whitelist.help_text %}
+          <p>
+            <small>{{ form.cpr_whitelist.help_text }}</small>
+          </p>
+        {% endif %}
+        {% if form.cpr_whitelist.errors %}{{ form.cpr_whitelist.errors }}{% endif %}
+      </div>
+    </div>
+  </div>
+
   <!-- Ye olde, famous Save button -->
   <div class="col-sm-offset-2">
     <div class="col-sm-12">

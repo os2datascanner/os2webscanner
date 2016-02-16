@@ -21,7 +21,6 @@ Starts up multiple instances of each processor.
 Restarts processors if they die or if they get stuck processing a single
 item for too long.
 """
-import django
 
 import os
 import shutil
@@ -29,20 +28,24 @@ import sys
 import subprocess
 import time
 import signal
+
+import django
 from datetime import timedelta
-
-base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-sys.path.append(base_dir + "/webscanner_site")
-os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
-
-os.umask(0007)
-
 from django.utils import timezone
 from django.db import transaction, IntegrityError, DatabaseError
 from django import db
 from django.conf import settings
 
+
+base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+sys.path.append(base_dir + "/webscanner_site")
+os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
+django.setup()
+
+os.umask(0007)
+
 from os2webscanner.models import ConversionQueueItem, Scan
+
 
 var_dir = settings.VAR_DIR
 
@@ -62,7 +65,7 @@ process_list = []
 
 def stop_process(p):
     """Stop the process."""
-    if not 'process_handle' in p:
+    if 'process_handle' not in p:
         print "Process %s already stopped" % p['name']
         return
 
@@ -176,7 +179,7 @@ def main():
             program = [
                 'python',
                 os.path.join(base_dir, 'scrapy-webscanner',
-                    'process_queue.py'),
+                             'process_queue.py'),
                 ptype
             ]
             # Libreoffice takes the homedir name as second arg
@@ -194,7 +197,6 @@ def main():
         sys.stderr.flush()
         db.reset_queries()
         for pdata in process_list:
-            result = pdata['process_handle'].poll()
             if pdata['process_handle'].poll() is not None:
                 print "Process %s has terminated, restarting it" % (
                     pdata['name']
@@ -253,7 +255,7 @@ def main():
                             "SCAN FAILED: Process died"
                         )
                         scan.save()
-        except (DatabaseError, IntegrityError) as e:
+        except (DatabaseError, IntegrityError):
             pass
 
         # Cleanup finished scans from the last minute
