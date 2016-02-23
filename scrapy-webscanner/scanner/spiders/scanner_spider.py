@@ -99,14 +99,19 @@ class ScannerSpider(BaseScannerSpider):
         """Return requests for all starting URLs AND sitemap URLs."""
         # Add URLs found in sitemaps
         sitemap_start_urls = self.runner.get_start_urls_from_sitemap()
-        requests = [
-            Request(url["url"],
-                    callback=self.parse,
-                    errback=self.handle_error,
-                    # Add the lastmod date from the sitemap
-                    meta={"lastmod": url.get("lastmod", None)})
-            for url in sitemap_start_urls
-        ]
+        requests = []
+        for url in sitemap_start_urls:
+            try:
+                requests.append(
+                    Request(url["url"],
+                            callback=self.parse,
+                            errback=self.handle_error,
+                            # Add the lastmod date from the sitemap
+                            meta={"lastmod": url.get("lastmod", None)})
+                )
+            except Exception as e:
+                log.msg(u"URL failed: {0} ({1})".format(url, str(e)))
+
         requests.extend([Request(url, callback=self.parse,
                                  errback=self.handle_error)
                          for url in self.start_urls])
