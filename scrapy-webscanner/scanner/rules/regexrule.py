@@ -31,7 +31,7 @@ class RegexRule(Rule):
         The sensitivity is used to assign a sensitivity value to matches.
         """
         self.name = name
-        self.regex = regex.compile(match_string)
+        self.regex = regex.compile(match_string, regex.DOTALL)
         self.sensitivity = sensitivity
 
     def execute(self, text):
