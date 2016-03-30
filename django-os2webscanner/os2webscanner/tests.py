@@ -37,7 +37,7 @@ class ScannerTest(TestCase):
     # Internet connection! !!!
 
     @classmethod
-    def setUpClass(cls):
+    def setUpTestData(cls):
         """Setup some data to test with."""
         # Don't change the order of these, because Magenta needs
         # pk = 2 to pass the validation test
@@ -86,7 +86,7 @@ def pep8_test(filepath):
     """Run a pep8 test on the filepath."""
     def do_test(self):
         # print "PATH:", filepath
-        arglist = ['--exclude=lib', filepath]
+        arglist = ['--exclude=lib,migrations', filepath]
         pep8.process_options(arglist)
         pep8.input_dir(filepath)
         output = pep8.get_statistics()

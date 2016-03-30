@@ -68,17 +68,20 @@ class Organization(models.Model):
                                         editable=settings.DO_USE_GROUPS)
 
     name_whitelist = models.TextField(blank=True,
-                                       default="",
-                                       verbose_name='Godkendte navne')
+                                      default="",
+                                      verbose_name='Godkendte navne')
     name_blacklist = models.TextField(blank=True,
-                                       default="",
-                                       verbose_name='Sortlistede navne')
+                                      default="",
+                                      verbose_name='Sortlistede navne')
     address_whitelist = models.TextField(blank=True,
-                                       default="",
-                                       verbose_name='Godkendte adresser')
+                                         default="",
+                                         verbose_name='Godkendte adresser')
     address_blacklist = models.TextField(blank=True,
-                                       default="",
-                                       verbose_name='Sortlistede adresser')
+                                         default="",
+                                         verbose_name='Sortlistede adresser')
+    cpr_whitelist = models.TextField(blank=True,
+                                     default="",
+                                     verbose_name='Godkendte CPR-numre')
 
     def __unicode__(self):
         """Return the name of the organization."""
@@ -95,10 +98,9 @@ class UserProfile(models.Model):
     organization = models.ForeignKey(Organization,
                                      null=False,
                                      verbose_name='Organisation')
-    user = models.ForeignKey(User,
-                             unique=True,
-                             related_name='profile',
-                             verbose_name='Bruger')
+    user = models.OneToOneField(User,
+                                related_name='profile',
+                                verbose_name='Bruger')
     is_group_admin = models.BooleanField(default=False)
     is_upload_only = models.BooleanField(default=False)
 
@@ -117,7 +119,7 @@ class Group(models.Model):
     name = models.CharField(max_length=256, unique=True, verbose_name='Navn')
     contact_email = models.CharField(max_length=256, verbose_name='Email')
     contact_phone = models.CharField(max_length=256, verbose_name='Telefon')
-    user_profiles = models.ManyToManyField(UserProfile, null=True, blank=True,
+    user_profiles = models.ManyToManyField(UserProfile, blank=True,
                                            verbose_name='Brugere',
                                            related_name='groups')
     organization = models.ForeignKey(Organization,
@@ -219,8 +221,10 @@ class Domain(models.Model):
     def root_url(self):
         """Return the root url of the domain."""
         url = self.url.replace('*.', '')
-        if (not self.url.startswith('http://') and not
-            self.url.startswith('https://')):
+        if (
+            not self.url.startswith('http://') and not
+            self.url.startswith('https://')
+        ):
             return 'http://%s/' % url
         else:
             return url
@@ -298,7 +302,7 @@ class Scanner(models.Model):
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')
     group = models.ForeignKey(Group, null=True, blank=True,
-                                     verbose_name='Gruppe')
+                              verbose_name='Gruppe')
     schedule = RecurrenceField(max_length=1024,
                                verbose_name='Planlagt afvikling')
     domains = models.ManyToManyField(Domain, related_name='scanners',
@@ -326,16 +330,17 @@ class Scanner(models.Model):
         default=True,
         verbose_name='Brug HEAD request'
     )
-    do_collect_cookies = models.BooleanField(default=False,
-                                        verbose_name='Saml cookies')
+    do_collect_cookies = models.BooleanField(
+        default=False,
+        verbose_name='Saml cookies'
+    )
     columns = models.CommaSeparatedIntegerField(max_length=128,
                                                 null=True,
                                                 blank=True)
     regex_rules = models.ManyToManyField(RegexRule,
                                          blank=True,
-                                         null=True,
                                          verbose_name='Regex regler')
-    recipients = models.ManyToManyField(UserProfile, null=True, blank=True,
+    recipients = models.ManyToManyField(UserProfile, blank=True,
                                         verbose_name='Modtagere')
 
     # Spreadsheet annotation and replacement parameters
@@ -434,7 +439,7 @@ class Scanner(models.Model):
     def has_active_scans(self):
         """Whether the scanner has active scans."""
         active_scanners = Scan.objects.filter(scanner=self, status__in=(
-                        Scan.NEW, Scan.STARTED)).count()
+            Scan.NEW, Scan.STARTED)).count()
         return active_scanners > 0
 
     @property
@@ -442,10 +447,14 @@ class Scanner(models.Model):
         return len([d for d in self.domains.all() if d.validation_status]) > 0
 
     # Run error messages
-    ALREADY_RUNNING = ("Scanneren kunne ikke startes," +
-                        " fordi der allerede er en scanning i gang for den.")
-    NO_VALID_DOMAINS = ("Scanneren kunne ikke startes," +
-                         " fordi den ikke har nogen gyldige domæner.")
+    ALREADY_RUNNING = (
+        "Scanneren kunne ikke startes," +
+        " fordi der allerede er en scanning i gang for den."
+    )
+    NO_VALID_DOMAINS = (
+        "Scanneren kunne ikke startes," +
+        " fordi den ikke har nogen gyldige domæner."
+    )
 
     def run(self, test_only=False, blocking=False, user=None):
         """Run a scan with the Scanner.
@@ -466,7 +475,7 @@ class Scanner(models.Model):
         scan = Scan.create(self)
         # Add user as recipient on scan
         if user:
-            scan.recipients.add(user.get_profile())
+            scan.recipients.add(user.profile)
         # Get path to run script
         SCRAPY_WEBSCANNER_DIR = os.path.join(base_dir, "scrapy-webscanner")
 
@@ -526,13 +535,17 @@ class Scan(models.Model):
                                          default="",
                                          verbose_name='Sortlistede navne')
     whitelisted_addresses = models.TextField(max_length=4096, blank=True,
-                                         default="",
-                                         verbose_name='Godkendte adresser')
-    blacklisted_addresses = models.TextField(max_length=4096, blank=True,
-                                         default="",
-                                         verbose_name='Sortlistede adresser')
+                                             default="",
+                                             verbose_name='Godkendte adresser')
+    blacklisted_addresses = models.TextField(
+        max_length=4096, blank=True,
+        default="",
+        verbose_name='Sortlistede adresser'
+    )
+    whitelisted_cprs = models.TextField(max_length=4096, blank=True,
+                                        default="",
+                                        verbose_name='Godkendte CPR-numre')
     domains = models.ManyToManyField(Domain,
-                                     null=True,
                                      verbose_name='Domæner')
     do_cpr_scan = models.BooleanField(default=True, verbose_name='CPR')
     do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
@@ -558,16 +571,15 @@ class Scan(models.Model):
         verbose_name='Brug HEAD request'
     )
     do_collect_cookies = models.BooleanField(default=False,
-                                        verbose_name='Saml cookies')
+                                             verbose_name='Saml cookies')
 
     columns = models.CommaSeparatedIntegerField(max_length=128,
                                                 null=True,
                                                 blank=True)
     regex_rules = models.ManyToManyField(RegexRule,
                                          blank=True,
-                                         null=True,
                                          verbose_name='Regex regler')
-    recipients = models.ManyToManyField(UserProfile, null=True, blank=True)
+    recipients = models.ManyToManyField(UserProfile, blank=True)
 
     # Spreadsheet annotation and replacement parameters
 
@@ -605,6 +617,7 @@ class Scan(models.Model):
             blacklisted_names=scanner.organization.name_blacklist,
             whitelisted_addresses=scanner.organization.address_whitelist,
             blacklisted_addresses=scanner.organization.address_blacklist,
+            whitelisted_cprs=scanner.organization.cpr_whitelist,
             do_cpr_scan=scanner.do_cpr_scan,
             do_name_scan=scanner.do_name_scan,
             do_address_scan=scanner.do_address_scan,
@@ -810,15 +823,19 @@ class Scan(models.Model):
         used by the scan.
         """
         # Pre-save stuff
-        if (self.status in [Scan.DONE, Scan.FAILED] and
-            (self._old_status != self.status)):
+        if (
+            self.status in [Scan.DONE, Scan.FAILED] and
+            (self._old_status != self.status)
+        ):
             self.end_time = datetime.datetime.now()
         # Actual save
         super(Scan, self).save(*args, **kwargs)
         # Post-save stuff
 
-        if (self.status in [Scan.DONE, Scan.FAILED] and
-            (self._old_status != self.status)):
+        if (
+            self.status in [Scan.DONE, Scan.FAILED] and
+            (self._old_status != self.status)
+        ):
             # Send email
             from os2webscanner.utils import notify_user
             try:
@@ -840,7 +857,7 @@ class Scan(models.Model):
             if pending_items.exists():
                 print "Deleting %d remaining conversion queue items from " \
                       "finished scan %s" % (
-                    pending_items.count(), self)
+                          pending_items.count(), self)
 
         pending_items.delete()
 
@@ -940,7 +957,7 @@ class Url(models.Model):
                                       verbose_name='Status ' + 'Message')
     referrers = models.ManyToManyField("ReferrerUrl",
                                        related_name='linked_urls',
-                                       null=True, verbose_name='Referrers')
+                                       verbose_name='Referrers')
 
     def __unicode__(self):
         """Return the URL."""
@@ -1064,9 +1081,9 @@ class UrlLastModified(models.Model):
 
     url = models.CharField(max_length=2048, verbose_name='Url')
     last_modified = models.DateTimeField(blank=True, null=True,
-                                    verbose_name='Last-modified')
+                                         verbose_name='Last-modified')
     links = models.ManyToManyField("self", symmetrical=False,
-                                    null=True, verbose_name='Links')
+                                   verbose_name='Links')
     scanner = models.ForeignKey(Scanner, null=False, verbose_name='Scanner')
 
     def __unicode__(self):
@@ -1085,15 +1102,15 @@ class Summary(models.Model):
     schedule = RecurrenceField(max_length=1024,
                                verbose_name='Planlagt afvikling')
     last_run = models.DateTimeField(blank=True, null=True,
-                                      verbose_name='Sidste kørsel')
-    recipients = models.ManyToManyField(UserProfile, null=True, blank=True,
+                                    verbose_name='Sidste kørsel')
+    recipients = models.ManyToManyField(UserProfile, blank=True,
                                         verbose_name="Modtagere")
-    scanners = models.ManyToManyField(Scanner, null=True, blank=True,
+    scanners = models.ManyToManyField(Scanner, blank=True,
                                       verbose_name="Scannere")
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')
     group = models.ForeignKey(Group, null=True, blank=True,
-                                     verbose_name='Gruppe')
+                              verbose_name='Gruppe')
     do_email_recipients = models.BooleanField(default=False,
                                               verbose_name="Udsend mails")
 
@@ -1124,7 +1141,7 @@ class Md5Sum(models.Model):
 
     class Meta:
         unique_together = ('md5', 'is_cpr_scan', 'is_check_mod11',
-                        'is_ignore_irrelevant', 'organization')
+                           'is_ignore_irrelevant', 'organization')
 
     def __unicode__(self):
         return u"{0}: {1}".format(self.organization.name, self.md5)

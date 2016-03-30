@@ -23,10 +23,9 @@ def check_url(url, method="HEAD"):
     try:
         log.msg("Checking %s" % url)
         request = urllib2.Request(url, headers={"User-Agent":
-                                                    "OS2Webscanner"})
+                                                "OS2Webscanner"})
         request.get_method = lambda: method
-        r = urllib2.urlopen(request,
-                            timeout=LINK_CHECK_TIMEOUT)
+        urllib2.urlopen(request, timeout=LINK_CHECK_TIMEOUT)
         return None
     except (urllib2.HTTPError, urllib2.URLError, socket.timeout, IOError) \
             as e:

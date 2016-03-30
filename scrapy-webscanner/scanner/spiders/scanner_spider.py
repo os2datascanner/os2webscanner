@@ -65,8 +65,10 @@ class ScannerSpider(BaseScannerSpider):
             self.crawl = True
             # Otherwise, use the roots of the domains as starting URLs
             for url in self.allowed_domains:
-                if (not url.startswith('http://')
-                    and not url.startswith('https://')):
+                if (
+                    not url.startswith('http://') and
+                    not url.startswith('https://')
+                ):
                     url = 'http://%s/' % url
                 # Remove wildcards
                 url = url.replace('*.', '')
@@ -160,7 +162,7 @@ class ScannerSpider(BaseScannerSpider):
         """
         if (not self.scanner.scan_object.do_link_check or
                 (isinstance(failure.value, IgnoreRequest) and not isinstance(
-                        failure.value, HttpError))):
+                    failure.value, HttpError))):
             return
         if hasattr(failure.value, "response"):
             response = failure.value.response
@@ -210,7 +212,7 @@ class ScannerSpider(BaseScannerSpider):
 
     def _get_or_create_referrer(self, referrer):
         """Create or get existing ReferrerUrl object."""
-        if not referrer in self.referrer_url_objects:
+        if referrer not in self.referrer_url_objects:
             self.referrer_url_objects[referrer] = ReferrerUrl(
                 url=referrer, scan=self.scanner.scan_object)
             self.referrer_url_objects[referrer].save()
@@ -235,16 +237,19 @@ class ScannerSpider(BaseScannerSpider):
         if hasattr(response, "encoding"):
             try:
                 data = response.body.decode(response.encoding)
-            except UnicodeDecodeError, e:
+            except UnicodeDecodeError:
                 try:
                     # Encoding specified in Content-Type header was wrong, try
                     # to detect the encoding and decode again
                     encoding = chardet.detect(response.body).get('encoding')
                     if encoding is not None:
                         data = response.body.decode(encoding)
-                        log.msg(("Error decoding response as %s. " +
-                                 "Detected the encoding as %s.") % (
-                                    response.encoding, encoding))
+                        log.msg(
+                            (
+                                "Error decoding response as %s. " +
+                                "Detected the encoding as %s.") %
+                            (response.encoding, encoding)
+                        )
                     else:
                         mime_type = self.magic.from_buffer(response.body)
                         data = response.body
@@ -252,7 +257,7 @@ class ScannerSpider(BaseScannerSpider):
                                  "Detected the mime " +
                                  "type as %s.") % (response.encoding,
                                                    mime_type))
-                except UnicodeDecodeError, e:
+                except UnicodeDecodeError:
                     # Could not decode with the detected encoding, so assume
                     # the file is binary and try to guess the mimetype from
                     # the file
@@ -268,14 +273,16 @@ class ScannerSpider(BaseScannerSpider):
             data = response.body
 
         # Save the URL item to the database
-        if (Processor.mimetype_to_processor_type(mime_type) == 'ocr' and not
-            self.scanner.scan_object.do_ocr):
+        if (
+            Processor.mimetype_to_processor_type(mime_type) == 'ocr' and not
+            self.scanner.scan_object.do_ocr
+        ):
             # Ignore this URL
             return
         url_object = Url(url=response.request.url, mime_type=mime_type,
                          scan=self.scanner.scan_object)
         url_object.save()
-        result = self.scanner.scan(data, url_object)
+        self.scanner.scan(data, url_object)
 
 
 def parse_content_type(content_type):

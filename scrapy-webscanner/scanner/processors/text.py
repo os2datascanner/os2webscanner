@@ -17,7 +17,6 @@
 
 from ..scanner.scanner import Scanner
 from processor import Processor
-from scrapy import log
 import os
 
 

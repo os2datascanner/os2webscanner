@@ -45,7 +45,7 @@ def scan_urls(username, password, urls, params={}):
     user = authenticate(username=username, password=password)
     if not user:
         raise RuntimeError("Wrong username or password!")
-    scan = do_scan(user, urls, params)
+    do_scan(user, urls, params)
 
     return do_scan_urls(user, urls, params)
 
@@ -142,9 +142,11 @@ def get_report(username, password, report_url):
     writer.writerow(e([u'Starttidspunkt', u'Sluttidspunkt', u'Status',
                     u'Totalt antal matches']))
     # Print summary
-    writer.writerow(e([str(scan.start_time),
-        str(scan.end_time), scan.get_status_display(),
-        str(len(all_matches))]))
+    writer.writerow(
+        e([str(scan.start_time),
+           str(scan.end_time), scan.get_status_display(),
+           str(len(all_matches))])
+    )
     # Print match header
     writer.writerow(e([u'URL', u'Regel', u'Match', u'Følsomhed']))
     for match in all_matches:

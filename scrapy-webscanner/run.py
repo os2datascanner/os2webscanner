@@ -16,23 +16,24 @@
 # source municipalities ( http://www.os2web.dk/ )
 """Run a scan by Scan ID."""
 import collections
-import urllib2
 from urlparse import urlparse
 
 import os
 import sys
+import django
 
 # Include the Django app
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(base_dir + "/webscanner_site")
 os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
+django.setup()
 
 os.umask(0007)
 
 os.environ["SCRAPY_SETTINGS_MODULE"] = "scanner.settings"
 
 from twisted.internet import reactor
-from scrapy.crawler import Crawler, CrawlerProcess
+from scrapy.crawler import CrawlerProcess
 from scrapy import log, signals
 from scrapy.utils.project import get_project_settings
 from scanner.spiders.scanner_spider import ScannerSpider
@@ -43,11 +44,11 @@ from scrapy.exceptions import DontCloseSpider
 from django.utils import timezone
 
 from scanner.scanner.scanner import Scanner
-from os2webscanner.models import Scan, ConversionQueueItem, Url, ReferrerUrl
+from os2webscanner.models import Scan, ConversionQueueItem, Url
 
 import linkchecker
 
-from scanner.processors import *
+from scanner.processors import *  # noqa
 
 import signal
 
@@ -67,6 +68,8 @@ signal.signal(signal.SIGINT | signal.SIGTERM, signal_handler)
 class OrderedCrawlerProcess(CrawlerProcess):
 
     """Override CrawlerProcess to use an ordered dict."""
+
+    crawlers = None
 
     def __init__(self, *a, **kw):
         """Initialize the CrawlerProcess with an OrderedDict of crawlers."""
