@@ -31,7 +31,7 @@ class RegexRule(Rule):
         The sensitivity is used to assign a sensitivity value to matches.
         """
         self.name = name
-        self.regex = regex.compile(match_string)
+        self.regex = regex.compile(match_string, regex.DOTALL)
         self.sensitivity = sensitivity
 
     def execute(self, text):
@@ -39,6 +39,10 @@ class RegexRule(Rule):
         matches = set()
         re_matches = self.regex.finditer(text)
         for match in re_matches:
-            matches.add(MatchItem(matched_data=match.group(0),
+            matched_data = match.group(0)
+            if len(matched_data) > 1024: 
+                # TODO: Get rid of magic number
+                matched_data = match.group(1)
+            matches.add(MatchItem(matched_data=matched_data,
                                   sensitivity=self.sensitivity))
         return matches
