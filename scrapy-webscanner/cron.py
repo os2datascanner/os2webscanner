@@ -23,16 +23,18 @@ Starts spiders scheduled to run during the current minute.
 import os
 import sys
 
+from os2webscanner.models import Scanner
+
+import datetime
+from dateutil.rrule import *  # noqa
+
+import django
+
 # Include the Django app
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(base_dir + "/webscanner_site")
 os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
-
-from os2webscanner.models import Scanner, Scan
-
-import datetime
-from dateutil.rrule import *
-from dateutil.relativedelta import relativedelta
+django.setup()
 
 
 def strip_seconds(d):
@@ -77,9 +79,8 @@ for scanner in Scanner.objects.exclude(schedule=""):
         current_qhr, next_qhr,
         # Generate recurrences starting from current quarter 2014/01/01
         dtstart=datetime.datetime(
-            2014, 1, 1, current_qhr.hour, current_qhr.minute
-        ),
-        inc=True):
+            2014, 1, 1, current_qhr.hour, current_qhr.minute), inc=True
+    ):
         continue
 
     print "Running scanner %s" % scanner

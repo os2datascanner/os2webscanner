@@ -26,6 +26,7 @@ class ScannerForm(forms.ModelForm):
 
     class Meta:
         model = Scanner
+        fields = '__all__'
 
 
 class FileUploadForm(forms.Form):
@@ -34,13 +35,12 @@ class FileUploadForm(forms.Form):
 
     def validate_filetype(upload_file):
         extension = upload_file.name.split('.')[-1]
-        if not extension in ['odp', 'xls', 'xlsx', 'csv', 'pdf']:
+        if extension not in ['odp', 'xls', 'xlsx', 'csv', 'pdf']:
             raise ValidationError(
                 'Please upload a spreadsheet or a PDF file!'
             )
 
     scan_file = forms.FileField(label="Fil", validators=[validate_filetype])
-    #scan_file = forms.FileField(label="Fil")
     # CPR scan
     do_cpr_scan = forms.BooleanField(label="Scan CPR-numre", initial=True,
                                      required=False)
@@ -57,19 +57,19 @@ class FileUploadForm(forms.Form):
     name_replacement_text = forms.CharField(label="Erstat match med",
                                             required=False,
                                             initial="NAVN",
-                                           )
+                                            )
     # Address scan
     do_address_scan = forms.BooleanField(label="Scan adresser", initial=True,
-                                        required=False)
+                                         required=False)
     do_replace_address = forms.BooleanField(label="Erstat adresser",
                                             initial=False, required=False)
     address_replacement_text = forms.CharField(label="Erstat match med",
                                                required=False,
                                                initial="ADRESSE",
-                                              )
+                                               )
     # OCR scan
     do_ocr = forms.BooleanField(label="OCR scan", initial=False,
-                                     required=False)
+                                required=False)
     # Column list - ignored if left blank
     column_list = forms.RegexField(
         label="Scan kun kolonner",

@@ -18,7 +18,6 @@
 from django.conf import settings
 from django.conf.urls import patterns, url
 from django.views.i18n import javascript_catalog
-from django.views.generic import View, ListView, TemplateView, DetailView
 
 from .views import MainPageView, ScannerList, DomainList, RuleList
 from .views import CSVReportDetails, ReportDetails, ReportList, ReportDelete
@@ -31,7 +30,6 @@ from .views import SummaryList, SummaryCreate, SummaryUpdate, SummaryDelete
 from .views import SummaryReport, DialogSuccess, SystemStatusView
 from .views import file_upload
 from .models import Scanner
-from .forms import FileUploadForm
 
 
 js_info_dict = {
@@ -100,12 +98,12 @@ urlpatterns = patterns(
         'django.contrib.auth.views.password_change',
         {'template_name': 'password_change.html'},
         name='password_change'
-    ),
+        ),
     url(r'^accounts/password_change_done/',
         'django.contrib.auth.views.password_change_done',
         {'template_name': 'password_change_done.html'},
         name='password_change_done'
-    ),
+        ),
 
     # General dialog success handler
     url(r'^(scanners|domains|rules|groups|summaries)/(\d+)/(created)/$',
