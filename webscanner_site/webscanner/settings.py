@@ -18,6 +18,8 @@ LOGS_DIR = os.path.join(VAR_DIR, 'logs')
 # Site URL for calculating absolute URLs in emails.
 SITE_URL = 'http://webscanner.magenta-aps.dk'
 
+SITE_ID = 1
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
 
