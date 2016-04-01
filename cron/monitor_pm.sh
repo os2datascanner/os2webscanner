@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# NB: This script should be run as the user www-data.
 DIR=$(dirname "${BASH_SOURCE[0]}")
 FULL_DIR="$(cd "$DIR" && pwd)"
 BASE_DIR=$(dirname "${FULL_DIR}")
@@ -11,7 +11,7 @@ PSS=$(pgrep -f process_)
 if [ -z "${PSS}" ]; 
 then
     echo "Not running, starting ..."
-    sudo -u www-data -b "${BASE_DIR}/scrapy-webscanner/start_process_manager.sh"
+    "${BASE_DIR}/scrapy-webscanner/start_process_manager.sh" &
     sleep 30
     cat | mail -t ${RECIPIENTS} -s "Process manager genstartet"  << EOF 
 
@@ -26,8 +26,8 @@ then
 
 EOF
 
-else 
-    echo "Running"
+#else 
+#    echo "Running"
 fi
 # Log file must be placed in /var/ dir from Django settings.
 #VAR_DIR=$(${BASE_DIR}/webscanner_site/manage.py get_var_dir)
