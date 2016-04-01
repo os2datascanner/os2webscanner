@@ -1,3 +1,10 @@
+* Version 1.5.1., April 1, 2016
+
+Hotfix:
+
+ - Committed migration for the CPR whitelist fields.
+ - Added new system dependency on mailutils.
+
 * Version 1.5.1, April 1, 2016
 
 New in this version:
