@@ -23,8 +23,6 @@ Starts spiders scheduled to run during the current minute.
 import os
 import sys
 
-from os2webscanner.models import Scanner
-
 import datetime
 from dateutil.rrule import *  # noqa
 
@@ -35,6 +33,9 @@ base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(base_dir + "/webscanner_site")
 os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 django.setup()
+
+
+from os2webscanner.models import Scanner
 
 
 def strip_seconds(d):
