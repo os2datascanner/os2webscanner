@@ -16,6 +16,9 @@
 
 """Utility methods for the OS2Webscanner project."""
 
+import os
+import shutil
+import requests
 import time
 import datetime
 
@@ -198,3 +201,24 @@ def dispatch_pending_summaries():
 
         if today.date() == maybe_today.date():
             send_summary_report(summary)
+
+
+def get_failing_urls(scan_id, target_directory):
+    """Retrieve the physical document that caused conversion errors."""
+    source_file = os.path.join(
+            settings.VAR_DIR,
+            "logs/scans/occurrence_{0}.log".format(scan_id)
+            )
+    with open(source_file, "r") as f:
+        lines = f.readlines()
+
+    urls = [l.split("URL: ")[1].strip() for l in lines if l.find("URL") >= 0]
+
+    for u in set(urls):
+        f = requests.get(u, stream=True)
+        target = os.path.join(
+                target_directory,
+                u.split('/')[-1].split('#')[0].split('?')[0]
+                )
+        with open(target, 'wb') as local_file:
+            shutil.copyfileobj(f.raw, local_file)
