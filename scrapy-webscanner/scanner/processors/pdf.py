@@ -49,7 +49,7 @@ class PDFProcessor(Processor):
             extra_options.append("-i")
 
         command = ["pdftohtml"]
-        command.extend(["-noframes", "-hidden", "-enc",
+        command.extend(["-noframes", "-hidden", "-nodrm", "-enc",
                         "UTF-8", "-q"])
         command.extend(extra_options)
         command.append(new_file_path)
