@@ -7,7 +7,7 @@ arrow==0.7.0
 cffi==1.5.0
 characteristic==14.3.0
 chardet==2.3.0
-cryptography==1.2.2
+cryptography
 cssselect==0.9.1
 django-postgrespool==0.3.0
 django-recurrence==1.2.0
@@ -31,3 +31,5 @@ unicodecsv==0.14.1
 w3lib==1.13.0
 wsgiref==0.1.2
 zope.interface==4.1.3
+ipython==5.0.0
+requests==2.10.0.0
