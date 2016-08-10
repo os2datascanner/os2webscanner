@@ -235,8 +235,9 @@ class Processor(object):
             url.scan.log_occurrence(
                 "process_file failed for url {0}: {1}".format(url.url, str(e))
             )
-            url.scan.log_occurrence(repr(e))
-            url.scan.log_occurrence(traceback.format_exc())
+            if settings.DEBUG:
+                url.scan.log_occurrence(repr(e))
+                url.scan.log_occurrence(traceback.format_exc())
             return False
 
         return True
@@ -282,7 +283,8 @@ class Processor(object):
                                 )
 
                     # Try to find out if something went wrong
-                    item.url.scan.log_occurrence(tb)
+                    if settings.DEBUG:
+                        item.url.scan.log_occurrence(tb)
 
                     item.save()
                     item.delete_tmp_dir()
