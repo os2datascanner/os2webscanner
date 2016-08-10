@@ -288,7 +288,7 @@ class Processor(object):
                     item.delete_tmp_dir()
                 else:
                     item.delete()
-                try: 
+                try:
                     print "(%s): %s" % (
                             item.url.url,
                             "success" if result else "fail"
