@@ -23,6 +23,8 @@ USER_AGENT = 'os2webscanner-measurer (+http://webscanner.magenta-aps.dk)'
 
 LOG_LEVEL = 'INFO'
 
+DOWNLOAD_DELAY = 0.25
+
 # Set up some directories
 SETTINGS_FILE = os.path.abspath(__file__)
 MEASURER_DIR = os.path.dirname(os.path.dirname(SETTINGS_FILE))
