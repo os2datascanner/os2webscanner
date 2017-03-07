@@ -45,7 +45,7 @@ def notify_user(scan):
         scan=scan,
         sensitivity=models.Sensitivity.HIGH
     ).count()
-   
+
     scan_status = "Kritiske matches!" if critical > 0 else scan.status_text
     subject = "Scanning afsluttet: {0}".format(scan_status)
 
