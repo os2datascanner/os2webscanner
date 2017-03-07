@@ -33,7 +33,6 @@ def notify_user(scan):
 
     t = loader.get_template(template)
 
-    subject = "Scanning afsluttet: {0}".format(scan.status_text)
     to_addresses = [p.user.email for p in scan.scanner.recipients.all() if
                     p.user.email]
     if not to_addresses:
@@ -46,18 +45,22 @@ def notify_user(scan):
         scan=scan,
         sensitivity=models.Sensitivity.HIGH
     ).count()
+   
+    scan_status = "Kritiske matches!" if critical > 0 else scan.status_text
+    subject = "Scanning afsluttet: {0}".format(scan_status)
 
     c = Context({'scan': scan, 'domain': settings.SITE_URL,
                  'matches': matches, 'critical': critical})
 
-    try:
-        body = t.render(c)
-        message = EmailMessage(subject, body, settings.ADMIN_EMAIL,
-                               to_addresses)
-        message.send()
-    except Exception:
-        # TODO: Handle this properly
-        raise
+    if scan.scanner.organization.do_notify_all_scans or critical > 0:
+        try:
+            body = t.render(c)
+            message = EmailMessage(subject, body, settings.ADMIN_EMAIL,
+                                   to_addresses)
+            message.send()
+        except Exception:
+            # TODO: Handle this properly
+            raise
 
 
 def capitalize_first(s):
