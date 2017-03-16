@@ -1,4 +1,14 @@
-* Version 1.5.1., April 1, 2016
+* Version 1.5.2, April 1, 2016
+
+New in this version:
+
+ - Change subject of scan mail to include clear warning if critical
+   matches.
+ - It's now possible for organizations to only receive mail if scans
+   have critical matches.
+
+
+* Version 1.5.1.1, April 1, 2016
 
 Hotfix:
 
@@ -6,6 +16,7 @@ Hotfix:
  - Added new system dependency on mailutils.
 
 * Version 1.5.1, April 1, 2016
+
 
 New in this version:
 
