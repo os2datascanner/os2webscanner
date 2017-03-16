@@ -66,6 +66,7 @@ class Organization(models.Model):
     contact_phone = models.CharField(max_length=256, verbose_name='Telefon')
     do_use_groups = models.BooleanField(default=False,
                                         editable=settings.DO_USE_GROUPS)
+    do_notify_all_scans = models.BooleanField(default=True)
 
     name_whitelist = models.TextField(blank=True,
                                       default="",
