@@ -205,6 +205,7 @@ class ReportList(RestrictedListView):
 
     model = Scan
     template_name = 'os2webscanner/reports.html'
+    paginate_by = 20
 
     def get_queryset(self):
         """Restrict to the organization of the logged-in user."""
