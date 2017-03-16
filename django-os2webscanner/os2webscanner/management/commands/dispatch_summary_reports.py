@@ -1,6 +1,6 @@
 """Command for dispatching summary reports from crontab."""
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 
 from os2webscanner.utils import dispatch_pending_summaries
 
