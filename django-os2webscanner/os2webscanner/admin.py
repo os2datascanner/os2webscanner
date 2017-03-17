@@ -46,13 +46,13 @@ class MyUserAdmin(UserAdmin):
     inlines = [ProfileInline]
     can_delete = False
 
-    def queryset(self, request):
+    def get_queryset(self, request):
         """Only allow users belonging to same organization to be edited."""
 
-        qs = super(MyUserAdmin, self).queryset(request)
+        qs = super(MyUserAdmin, self).get_queryset(request)
         if request.user.is_superuser:
             return qs
-        return qs.filter(organization=request.user.organization)
+        return qs.filter(profile__organization=request.user.profile.organization)
 
 
 admin.site.unregister(User)
