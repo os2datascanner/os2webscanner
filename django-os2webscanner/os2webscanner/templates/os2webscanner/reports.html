@@ -7,24 +7,21 @@ Rapporter
 {% block body %}
 <div class="container">
 {% if is_paginated %}
-<div class="pagination">
-    <span class="page-links">
+    <ul class="reports-pager pager">
         {% if page_obj.has_previous %}
-        <a
-            href="/reports?page={{ page_obj.previous_page_number }}">Forrige</a>
+        <li><a
+            href="/reports?page={{ page_obj.previous_page_number }}">&larr; Forrige</a></li>
         {% endif %}
-        <span
-            class="page-current">
-            Page
+        <li class="disabled">
+            Side
             {{ page_obj.number }}
-            of
-            {{ page_obj.paginator.num_pages }}.
-        </span>
+            af
+            {{ page_obj.paginator.num_pages }}
+        </li>
         {% if page_obj.has_next %}
-        <a href="/reports?page={{ page_obj.next_page_number }}">Næste</a>
+        <li><a href="/reports?page={{ page_obj.next_page_number }}">Næste &rarr;</a></li>
         {% endif %}
-    </span>
-</div>
+    </ul>
 {% endif %}
 
       <div class="table-responsive">
