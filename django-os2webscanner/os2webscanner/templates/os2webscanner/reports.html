@@ -50,7 +50,7 @@ Rapporter
           </thead>
           <tbody>
           {% for scan in scan_list %}
-            <tr>
+          <tr {% if scanner.no_of_critical_matches > 0 %}class="danger"{% endif %}>
               <td class="report-domain">
                 <span>
                     {{ scan.scanner.name }}

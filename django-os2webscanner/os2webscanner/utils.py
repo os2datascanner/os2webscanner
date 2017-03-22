@@ -41,10 +41,7 @@ def notify_user(scan):
     matches += models.Url.objects.filter(
         scan=scan
     ).exclude(status_code__isnull=True).count()
-    critical = models.Match.objects.filter(
-        scan=scan,
-        sensitivity=models.Sensitivity.HIGH
-    ).count()
+    critical = scan.no_of_critical_matches()
 
     scan_status = "Kritiske matches!" if critical > 0 else scan.status_text
     subject = "Scanning afsluttet: {0}".format(scan_status)
