@@ -45,7 +45,7 @@ def notify_user(scan):
     critical = scan.no_of_critical_matches
 
     if scan.no_of_critical_matches > 0:
-        scan_status = "Kritiske matches!" 
+        scan_status = "Kritiske matches!"
     elif scan.no_of_broken_links > 0:
         scan_status = "Døde links"
     else:
