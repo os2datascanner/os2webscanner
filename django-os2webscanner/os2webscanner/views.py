@@ -41,6 +41,7 @@ from .validate import validate_domain, get_validation_str
 
 from .models import Scanner, Domain, RegexRule, Scan, Match, UserProfile, Url
 from .models import Organization, ConversionQueueItem, Group, Summary
+from .models import ReferrerUrl
 from .utils import scans_for_summary_report, do_scan
 from .forms import FileUploadForm
 
@@ -884,9 +885,12 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
             scan=self.get_object()
         ).exclude(status_code__isnull=True).order_by('url')
 
+        referrer_urls = ReferrerUrl.objects.filter(scan=self.get_object())
+
         context['full_report'] = self.full
         context['broken_urls'] = broken_urls
         context['no_of_broken_links'] = broken_urls.count()
+        context['referrer_urls'] = referrer_urls
         context['matches'] = all_matches[:100]
         context['all_matches'] = all_matches
         context['no_of_matches'] = all_matches.count() + broken_urls.count()
@@ -1178,6 +1182,10 @@ class SummaryReport(RestrictedDetailView):
 
         return context
 
+@login_required
+def referrer_content(request, pk):
+    u = ReferrerUrl.objects.get(id=int(pk))
+    return HttpResponse(u.content)
 
 @login_required
 def file_upload(request):

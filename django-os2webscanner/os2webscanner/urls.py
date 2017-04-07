@@ -28,7 +28,7 @@ from .views import GroupList, GroupCreate, GroupUpdate, GroupDelete
 from .views import RuleCreate, RuleUpdate, RuleDelete, OrganizationList
 from .views import SummaryList, SummaryCreate, SummaryUpdate, SummaryDelete
 from .views import SummaryReport, DialogSuccess, SystemStatusView
-from .views import file_upload
+from .views import file_upload, referrer_content
 from .models import Scanner
 
 
@@ -115,7 +115,11 @@ urlpatterns = patterns(
     url(r'^system/status/?$', SystemStatusView.as_view()),
     url(r'^system/orgs_and_domains/$', OrganizationList.as_view(),
         name='orgs_and_domains'),
-    url(r'system/upload_file', file_upload, name='file_upload')
+    url(r'system/upload_file', file_upload, name='file_upload'),
+
+    # Referrer DOM content
+    url(r'referrer/(?P<pk>[0-9]+)/$', referrer_content, name='referrer_content')
+    
 )
 
 if settings.DO_USE_GROUPS:
