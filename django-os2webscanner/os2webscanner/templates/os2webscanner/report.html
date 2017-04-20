@@ -260,53 +260,6 @@ Rapport &dash; {{scan.scanner.name}}
 
                 </tr>
             {% endfor %}
-
-            {% comment %}{% for url in broken_urls %}
-            <tr class="danger">
-                <td class="broken-url-referrers">
-                    {% with url.referrers.all as referrers %}
-                        {% for referrer in referrers|slice:":5" %}
-                        <p>
-                            <button type="button" class="btn btn-default" data-toggle="modal"
-                                    data-target="#view-deadlinks-modal" onclick="showReferrerUrl('{{referrer.id}}','{{referrer.url}}','{{url.url}}')">
-                            <span class="glyphicon glyphicon-eye-open"></span>
-                            </button>
-                            
-                            <a href="{{referrer}}" target="_NEW">{{ referrer }}</a>
-                        </p>
-                        {% endfor %}
-                        {% if referrers|length > 5 %}
-                            {% if full_report %}
-                                {% for referrer in referrers|slice:"5:" %}
-                                <p>
-                                    <a href="{{referrer}}" target="_NEW">{{ referrer }}</a>
-                                </p>
-                                {% endfor %}
-                            {% else %}
-                                <p>
-                                    <a href="full/#broken_url{{url.id}}">
-                                        {{ referrers|length|add:-5 }}
-                                        flere referrers...
-                                    </a>
-                                </p>
-                            {% endif %}
-                        {%  endif %}
-                    {% endwith %}
-                </td>
-                <td class="broken-url-url">
-                        <span>
-                            <a href="{{ url.url }}" target="_NEW"
-                               name="broken_url{{url.id}}">{{ url.url }}</a>
-                        </span>
-                </td>
-                <td class="broken-url-status">
-                    <span>{{ url.status_message }}</span>
-                </td>
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>{% endcomment %}
-
     </div>
     {% endif %}
       
@@ -347,7 +300,7 @@ Rapport &dash; {{scan.scanner.name}}
 	        &times;
 	    </button>
 	<h4 class="modal-title" id="create-summary-modal-title">
-	  Broken links på <span></span>
+	  Broken links på <span id='refUrl'></span>
 	</h4>
       </div>
       <div class="modal-body">
@@ -384,8 +337,7 @@ Rapport &dash; {{scan.scanner.name}}
 
            if(typeof targ[0]=='undefined')
            {
-               targ = internalBrokenLink(href);
-
+               targ = resolveIssue(href);
            }
 
            targ.addClass('webscanner-dead-link');
@@ -402,6 +354,22 @@ Rapport &dash; {{scan.scanner.name}}
         $("#list-links").html(linkMarkup);
     }
 
+    function resolveIssue(href) {
+        var newHref;
+
+        newHref = linkContainsEncoding(href);
+
+        if(typeof newHref[0]=='undefined') {
+            newHref = internalBrokenLink(href);
+        }
+
+        if(typeof newHref[0]=='undefined') {
+            newHref = linkWithUnorderedParams(href);
+        }
+
+        return newHref;
+    }
+
     function internalBrokenLink(href) {
         var internalTarget;
 
@@ -416,7 +384,11 @@ Rapport &dash; {{scan.scanner.name}}
             var url = scanUrls[i].replace(/\/$/, ''); //remove trailing slash
             var hrefAlt = href.replace(url, "");
 
-            console.log(hrefAlt);
+            if(hrefAlt.startsWith("/page/")) {
+                hrefAlt = hrefAlt.substring(5);
+                hrefAlt = '..' + hrefAlt;
+            }
+
             internalTarget = $("#iframe").contents().find("[href=\"" + hrefAlt + "\"]");
 
             if(typeof internalTarget[0]!='undefined') {
@@ -427,8 +399,54 @@ Rapport &dash; {{scan.scanner.name}}
         return internalTarget;
     }
 
-    function linkWithUnorderedParams() {
+    function linkContainsEncoding(href) {
+        var src = $("#refUrl > a").attr('href');
+        href = href.replace(src,'');
+        href = decodeURI(href);
 
+        var newTarget = $("#iframe").contents().find("[href=\"" + href + "\"]");
+
+        return newTarget;
+    }
+
+    function linkWithUnorderedParams(href) {
+        var newTarget;
+        href = href.split('?');
+        var params = href[1].split('&');
+        var perms = permutator(params);
+
+        for(var i=0;i<perms.length;i++) {
+            p = perms[i];
+            var newHref = href[0] + '?' + p[0] + '&' + p[1] + '&' + p[2];
+            newTarget = $("#iframe").contents().find("[href=\"" + newHref + "\"]");
+
+            if(typeof newTarget[0]!='undefined') {
+                break;
+            }
+        }
+        
+        return newTarget;
+    }
+
+    function permutator(inputArr) {
+        var results = [];
+
+        function permute(arr, memo) {
+            var cur, memo = memo || [];
+
+            for (var i = 0; i < arr.length; i++) {
+            cur = arr.splice(i, 1);
+            if (arr.length === 0) {
+             results.push(memo.concat(cur));
+            }
+            permute(arr.slice(), memo.concat(cur));
+            arr.splice(i, 0, cur[0]);
+            }
+
+            return results;
+        }
+
+        return permute(inputArr);
     }
 
     function showReferrerUrl(id, url, broken_link) {
