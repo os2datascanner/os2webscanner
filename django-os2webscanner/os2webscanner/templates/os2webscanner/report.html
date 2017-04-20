@@ -373,15 +373,22 @@ Rapport &dash; {{scan.scanner.name}}
 
     document.getElementById('iframe').onload = function(){
          var ifr = $("#iframe").contents();
+          $("#iframe").contents().find('head').append('<style type="text/css">.webscanner-dead-link {display: inline-block;border: 1px solid #ebcccc;border-radius: 0.25rem;background: #f2dede;color: #a94442;padding: .75rem 1.25rem;}</style>');
 
          $("#list-links").on("click", "a", function(e){
            e.preventDefault();
            var href = $(this).attr("data-href");
            var targ = $("#iframe").contents().find("[href=\"" + href + "\"]");
 
-           $("#iframe").contents().find('head').append('<style type="text/css">.webscanner-dead-link {display: inline-block;border: 1px solid #ebcccc;border-radius: 0.25rem;background: #f2dede;color: #a94442;padding: .75rem 1.25rem;}</style>');
            $("#iframe").contents().find("a").removeClass('webscanner-dead-link');
-           $("#iframe").contents().find("[href=\"" + href + "\"]").addClass('webscanner-dead-link');
+
+           if(typeof targ[0]=='undefined')
+           {
+               targ = internalBrokenLink(href);
+
+           }
+
+           targ.addClass('webscanner-dead-link');
 
            var offset = document.getElementById('iframe-container').clientHeight * 0.5;
            ifr.scrollTop(targ.offset().top - offset);
@@ -393,17 +400,46 @@ Rapport &dash; {{scan.scanner.name}}
          });
 
         $("#list-links").html(linkMarkup);
-       }
+    }
+
+    function internalBrokenLink(href) {
+        var internalTarget;
+
+        var scanUrls = '{{ scan.domains.all }}';
+        scanUrls = scanUrls.replace(/(&lt;Domain: )/g,'')
+                           .replace(/(&gt;)/g,'')
+                           .replace('[','')
+                           .replace(']','')
+                           .split(',');
+
+        for(var i=0;i<scanUrls.length;i++) {
+            var url = scanUrls[i].replace(/\/$/, ''); //remove trailing slash
+            var hrefAlt = href.replace(url, "");
+
+            console.log(hrefAlt);
+            internalTarget = $("#iframe").contents().find("[href=\"" + hrefAlt + "\"]");
+
+            if(typeof internalTarget[0]!='undefined') {
+                break;
+            }
+        }
+
+        return internalTarget;
+    }
+
+    function linkWithUnorderedParams() {
+
+    }
 
     function showReferrerUrl(id, url, broken_link) {
         var url_mask = "{% url 'referrer_content' pk=12345 %}".replace(/12345/, id.toString());
         document.getElementById("iframe").src = url_mask;
 
-        tmp = broken_link.replace(/<Url: /g,'');
-        tmp = tmp.replace('[','');
-        tmp = tmp.replace('>]','');
-        tmp = tmp.replace(/>, /g,',');
-        tmp = tmp.split(',');
+        tmp = broken_link.replace(/<Url: /g,'')
+                         .replace('[','')
+                         .replace('>]','')
+                         .replace(/>, /g,',')
+                         .split(',')
 
         $("#create-summary-modal-title span").html('<a href="' + url + '">' + url + '</a>');
 
