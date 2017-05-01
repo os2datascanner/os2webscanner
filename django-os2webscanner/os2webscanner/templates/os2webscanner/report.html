@@ -361,7 +361,11 @@ Rapport &dash; {{scan.scanner.name}}
     function resolveIssue(href) {
         var newHref;
 
-        newHref = linkContainsEncoding(href);
+        var src = $("#refUrl > a").attr('href');
+        href = href.replace(src,'');
+        href = decodeURI(href);
+
+        newHref = $("#iframe").contents().find("[href=\"" + href + "\"]");
 
         if(typeof newHref[0]=='undefined') {
             newHref = internalBrokenLink(href);
@@ -388,19 +392,35 @@ Rapport &dash; {{scan.scanner.name}}
         for(var i=0;i<scanUrls.length;i++) {
             var url = scanUrls[i].replace(/\/$/, ''); //remove trailing slash
             var hrefAlt = href.replace(url, "");
+            console.log('hej');
             console.log(hrefAlt);
 
-            if(hrefAlt.startsWith("/page/")) {
-                hrefAlt = hrefAlt.substring(5);
-                hrefAlt = '..' + hrefAlt;
+            var removeFirstLastSlash = hrefAlt.replace(/^\/|\/$/g, '');;
+            var subfolders = removeFirstLastSlash.split('/');
+
+            //find urls in subfolders ../../../
+            for(var j=0;j<subfolders.length;j++) {
+                var back = '../';
+                var s = back.repeat(j) + subfolders.slice(j).join('/');
+                console.log(s);
+                internalTarget = $("#iframe").contents().find("[href*=\"" + s + "\"]");
+                console.log(internalTarget[0]);
+
+                if(typeof internalTarget[0] != 'undefined'){
+                    break;
+                }
             }
 
-            internalTarget = $("#iframe").contents().find("[href=\"" + hrefAlt + "\"]");
-
+            //find urls in subdomains *.example.dk
             if(scanUrls[i].startsWith('*')) {
                 console.log(scanUrls[i]);
-                internalTarget = $("#iframe").contents().find('a[href*="' + hrefAlt + '"]');
-                console.log(internalTarget);
+                var temp = hrefAlt.split('/');
+                var index = temp.indexOf(temp[2],3);
+                var newHref = temp.slice(index).join('/');
+                
+                console.log(newHref);
+
+                internalTarget = $("#iframe").contents().find('a[href*="' + newHref + '"]');
             }
 
             if(typeof internalTarget[0]!='undefined') {
@@ -409,16 +429,6 @@ Rapport &dash; {{scan.scanner.name}}
         }
 
         return internalTarget;
-    }
-
-    function linkContainsEncoding(href) {
-        var src = $("#refUrl > a").attr('href');
-        href = href.replace(src,'');
-        href = decodeURI(href);
-
-        var newTarget = $("#iframe").contents().find("[href=\"" + href + "\"]");
-
-        return newTarget;
     }
 
     function linkWithUnorderedParams(href) {
