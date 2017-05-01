@@ -330,7 +330,6 @@ Rapport &dash; {{scan.scanner.name}}
     document.getElementById('iframe').onload = function(){
          var ifr = $("#iframe").contents();
          $("#iframe").contents().find('head').append('<style type="text/css">.webscanner-dead-link {display: inline;border: 0px;border-radius: 0.25rem;background: #d9534f;color: #fff !important;padding: .2em .6em .3em;}</style>');
-         //$("#iframe").contents().find('head').append('<style type="text/css">.webscanner-dead-link {display: inline-block;border: 1px solid #ebcccc;border-radius: 0.25rem;background: #f2dede;color: #a94442;padding: .75rem 1.25rem;}</style>');
 
          $("#list-links").on("click", "a", function(e){
            e.preventDefault();
@@ -359,13 +358,8 @@ Rapport &dash; {{scan.scanner.name}}
     }
 
     function resolveIssue(href) {
-        var newHref;
-
-        var src = $("#refUrl > a").attr('href');
-        href = href.replace(src,'');
-        href = decodeURI(href);
-
-        newHref = $("#iframe").contents().find("[href=\"" + href + "\"]");
+        href = formatUrl(href);
+        var newHref = findLink(href);
 
         if(typeof newHref[0]=='undefined') {
             newHref = internalBrokenLink(href);
@@ -379,7 +373,6 @@ Rapport &dash; {{scan.scanner.name}}
     }
 
     function internalBrokenLink(href) {
-        console.log(href);
         var internalTarget;
 
         var scanUrls = '{{ scan.domains.all }}';
@@ -391,20 +384,15 @@ Rapport &dash; {{scan.scanner.name}}
 
         for(var i=0;i<scanUrls.length;i++) {
             var url = scanUrls[i].replace(/\/$/, ''); //remove trailing slash
-            var hrefAlt = href.replace(url, "");
-            console.log('hej');
-            console.log(hrefAlt);
+            href = href.replace(url, "").replace(/^\/|\/$/g, '');
 
-            var removeFirstLastSlash = hrefAlt.replace(/^\/|\/$/g, '');;
-            var subfolders = removeFirstLastSlash.split('/');
+            var subfolders = href.split('/');
 
             //find urls in subfolders ../../../
             for(var j=0;j<subfolders.length;j++) {
                 var back = '../';
                 var s = back.repeat(j) + subfolders.slice(j).join('/');
-                console.log(s);
-                internalTarget = $("#iframe").contents().find("[href*=\"" + s + "\"]");
-                console.log(internalTarget[0]);
+                internalTarget = findLink(s);
 
                 if(typeof internalTarget[0] != 'undefined'){
                     break;
@@ -413,17 +401,16 @@ Rapport &dash; {{scan.scanner.name}}
 
             //find urls in subdomains *.example.dk
             if(scanUrls[i].startsWith('*')) {
-                console.log(scanUrls[i]);
-                var temp = hrefAlt.split('/');
-                var index = temp.indexOf(temp[2],3);
-                var newHref = temp.slice(index).join('/');
-                
-                console.log(newHref);
-
-                internalTarget = $("#iframe").contents().find('a[href*="' + newHref + '"]');
+                internalTarget = linkInSubdomain(href);
             }
 
-            if(typeof internalTarget[0]!='undefined') {
+            if(typeof internalTarget[0] == 'undefined') {
+                internalTarget = decodeComma(href);
+            }
+
+            //if link is found
+            if(typeof internalTarget[0] != 'undefined')
+            {
                 break;
             }
         }
@@ -431,7 +418,50 @@ Rapport &dash; {{scan.scanner.name}}
         return internalTarget;
     }
 
+    function formatUrl(href) {
+        var src = $("#refUrl > a").attr('href');
+        console.log(src);
+        href = href.replace(src,'');
+        href = decodeURI(href);
+        return href;
+    }
+
+    function decodeComma(href) {
+        console.log('decode comma');
+        href = splitUrl(href);
+        console.log(href);
+        var comma = '%3A';
+        href = href.replace(/^(http\:\/\/)/,"").replace(/^(https\:\/\/)/,"");
+        var reg = new RegExp(':', 'g');
+        href = href.replace(reg, comma);
+        return findLink(href);
+    }
+
+    function linkInSubfolder(href) {
+
+    }
+
+    function linkInSubdomain(href) {
+        console.log('links in subdomain');
+        href = splitUrl(href);
+
+        return findLink(href);
+    }
+
+    function splitUrl(href) {
+        var hrefSplit = href.split('/');
+        var index = hrefSplit.indexOf(hrefSplit[2],3);
+        href = '/' + hrefSplit.slice(3).join('/');
+
+        if(index > 0) {
+            href = hrefSplit.slice(index).join('/');
+        }
+
+        return href;
+    }
+
     function linkWithUnorderedParams(href) {
+        console.log('is link with unordered params');
         var newTarget;
         href = href.split('?');
         var params = href[1].split('&');
@@ -440,8 +470,9 @@ Rapport &dash; {{scan.scanner.name}}
         for(var i=0;i<perms.length;i++) {
             p = perms[i];
             var newHref = href[0] + '?' + p[0] + '&' + p[1] + '&' + p[2];
-            newTarget = $("#iframe").contents().find("[href=\"" + newHref + "\"]");
+            newTarget = findLink(newHref);
 
+            //if it finds a match, break and return
             if(typeof newTarget[0]!='undefined') {
                 break;
             }
@@ -455,26 +486,25 @@ Rapport &dash; {{scan.scanner.name}}
 
         function permute(arr, memo) {
             var cur, memo = memo || [];
-
             for (var i = 0; i < arr.length; i++) {
-            cur = arr.splice(i, 1);
-            if (arr.length === 0) {
-             results.push(memo.concat(cur));
+                cur = arr.splice(i, 1);
+                if (arr.length === 0) {
+                    results.push(memo.concat(cur));
+                }
+                permute(arr.slice(), memo.concat(cur));
+                arr.splice(i, 0, cur[0]);
             }
-            permute(arr.slice(), memo.concat(cur));
-            arr.splice(i, 0, cur[0]);
-            }
-
             return results;
         }
-
         return permute(inputArr);
     }
 
-    function showReferrerUrl(id, url, broken_link,error) {
-        console.log('fejl her');
-        console.log(error);
+    function findLink(href) {
+        console.log('find link ' + href);
+        return $("#iframe").contents().find('a[href*="' + href + '"]');
+    }
 
+    function showReferrerUrl(id, url, broken_link,error) {
         var url_mask = "{% url 'referrer_content' pk=12345 %}".replace(/12345/, id.toString());
         document.getElementById("iframe").src = url_mask;
 
