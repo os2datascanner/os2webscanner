@@ -47,7 +47,6 @@ Rapport &dash; {{scan.scanner.name}}
               <td {% if scan.do_ocr %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Scan Billeder{% if scan.do_ocr %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td> 
               <td></td>
               <td></td>
-              <td></td>
 
           </tr>
           <tr>
@@ -59,7 +58,6 @@ Rapport &dash; {{scan.scanner.name}}
               <td {% if scan.do_cpr_scan %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>CPR{% if scan.do_cpr_scan %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
               <td {% if scan.do_cpr_modulus11 and scan.do_cpr_scan %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Check modulus-11{% if scan.do_cpr_modulus11  and scan.do_cpr_scan %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
               <td {% if scan.do_cpr_ignore_irrelevant and scan.do_cpr_scan %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Ignorer irrelevante fødselsdatoer{% if scan.do_cpr_ignore_irrelevant and scan.do_cpr_scan %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
-              <td></td>
           </tr>
           <tr>
             <td {% if scan.do_link_check %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Check links{% if scan.do_link_check %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
@@ -70,10 +68,9 @@ Rapport &dash; {{scan.scanner.name}}
             <td {% if scan.do_collect_cookies %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Saml cookies{% if scan.do_collect_cookies %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
             <td></td>
             <td></td>
-            <td></td>
 
         <tr>
-            <td colspan="4"><b>Modtagere:</b> {% for profile in scan.recipients.all %}
+            <td colspan="3"><b>Modtagere:</b> {% for profile in scan.recipients.all %}
                                       {% if profile.user.email %}{{profile.user.email}}{% else %}{{profile.user.username}}{% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}
             </td>
         </tr>
@@ -238,6 +235,9 @@ Rapport &dash; {{scan.scanner.name}}
             </tr>
             </thead>
             <tbody>
+                <script>
+                    var status_messages = [];
+                </script>
             {% for referrer in referrer_urls %}
                 <tr class="danger">
                 <td class="broken-url-referrers">
@@ -250,8 +250,11 @@ Rapport &dash; {{scan.scanner.name}}
 
                 <td class="broken-url-show">
                     <p>
-                        <button type="button" class="btn btn-default" data-toggle="modal"
-                                data-target="#view-deadlinks-modal" onclick="showReferrerUrl('{{referrer.id}}','{{referrer.url}}','{{referrer.broken_urls.all}}')">
+                        <script>
+                            var get_messages = '{% for broken in referrer.broken_urls %}{{broken.status_message}};{% endfor %}';
+                            status_messages.push(get_messages.split(';'));
+                        </script>
+                        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#view-deadlinks-modal" onclick="showReferrerUrl('{{referrer.id}}','{{referrer.url}}','{{referrer.broken_urls.all}}',status_messages[{{ forloop.counter0 }}])">
                         <span class="glyphicon glyphicon-eye-open"></span>
                         Inspicér
                         </button>
@@ -326,7 +329,8 @@ Rapport &dash; {{scan.scanner.name}}
 
     document.getElementById('iframe').onload = function(){
          var ifr = $("#iframe").contents();
-          $("#iframe").contents().find('head').append('<style type="text/css">.webscanner-dead-link {display: inline-block;border: 1px solid #ebcccc;border-radius: 0.25rem;background: #f2dede;color: #a94442;padding: .75rem 1.25rem;}</style>');
+         $("#iframe").contents().find('head').append('<style type="text/css">.webscanner-dead-link {display: inline;border: 0px;border-radius: 0.25rem;background: #d9534f;color: #fff !important;padding: .2em .6em .3em;}</style>');
+         //$("#iframe").contents().find('head').append('<style type="text/css">.webscanner-dead-link {display: inline-block;border: 1px solid #ebcccc;border-radius: 0.25rem;background: #f2dede;color: #a94442;padding: .75rem 1.25rem;}</style>');
 
          $("#list-links").on("click", "a", function(e){
            e.preventDefault();
@@ -371,6 +375,7 @@ Rapport &dash; {{scan.scanner.name}}
     }
 
     function internalBrokenLink(href) {
+        console.log(href);
         var internalTarget;
 
         var scanUrls = '{{ scan.domains.all }}';
@@ -383,6 +388,7 @@ Rapport &dash; {{scan.scanner.name}}
         for(var i=0;i<scanUrls.length;i++) {
             var url = scanUrls[i].replace(/\/$/, ''); //remove trailing slash
             var hrefAlt = href.replace(url, "");
+            console.log(hrefAlt);
 
             if(hrefAlt.startsWith("/page/")) {
                 hrefAlt = hrefAlt.substring(5);
@@ -390,6 +396,12 @@ Rapport &dash; {{scan.scanner.name}}
             }
 
             internalTarget = $("#iframe").contents().find("[href=\"" + hrefAlt + "\"]");
+
+            if(scanUrls[i].startsWith('*')) {
+                console.log(scanUrls[i]);
+                internalTarget = $("#iframe").contents().find('a[href*="' + hrefAlt + '"]');
+                console.log(internalTarget);
+            }
 
             if(typeof internalTarget[0]!='undefined') {
                 break;
@@ -449,7 +461,10 @@ Rapport &dash; {{scan.scanner.name}}
         return permute(inputArr);
     }
 
-    function showReferrerUrl(id, url, broken_link) {
+    function showReferrerUrl(id, url, broken_link,error) {
+        console.log('fejl her');
+        console.log(error);
+
         var url_mask = "{% url 'referrer_content' pk=12345 %}".replace(/12345/, id.toString());
         document.getElementById("iframe").src = url_mask;
 
@@ -463,7 +478,8 @@ Rapport &dash; {{scan.scanner.name}}
 
         linkMarkup = '';
         for (var i = 0; i < tmp.length; i++) {
-            linkMarkup += "<a class='list-group-item list-group-item-action' data-href='"+tmp[i]+"'>"+ tmp[i] +"</a>";
+            linkMarkup += "<a class='list-group-item list-group-item-action' data-href='"+tmp[i]+"'>"+ tmp[i] +"<br>";
+            linkMarkup += "<span class='label label-danger'>"+ error[i] +"</span></a>";
         }
 
         $("#list-links").html('Finder links...');
