@@ -2,6 +2,7 @@
 
 import socket
 import urllib2
+import httplib
 from os2webscanner.utils import capitalize_first
 import regex
 from scrapy import log
@@ -27,8 +28,11 @@ def check_url(url, method="HEAD"):
         request.get_method = lambda: method
         urllib2.urlopen(request, timeout=LINK_CHECK_TIMEOUT)
         return None
-    except (urllib2.HTTPError, urllib2.URLError, socket.timeout, IOError) \
-            as e:
+    except (urllib2.HTTPError,
+            urllib2.URLError,
+            httplib.InvalidURL,
+            socket.timeout,
+            IOError) as e:
         log.msg("Error %s" % e, level=log.DEBUG)
         code = getattr(e, "code", 0)
         if code == 405:
