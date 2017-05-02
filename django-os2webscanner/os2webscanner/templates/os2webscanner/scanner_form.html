@@ -233,23 +233,23 @@
         </div>
         <div class="tab-pane" id="interval">
             <div class="col-sm-12 form-group">
-                <div id="{{ form.schedule.auto_id }}_container">
-                    <div>{{ form.schedule.help_text }}</div>
-                    <div>
-                        <div>{{ form.schedule.label_tag }}</div>
-                        {{ form.schedule }}
-                    </div>
-                    <div id="{{ form.schedule.auto_id }}_errors">
-                        {{ form.schedule.errors }}
-                    </div>
-                </div>
-                {% if object.pk %}
-                <p>
-                Scanneren vil starte på følgende tidspunkt på de valgte dage:<br />
-                {{ object.get_start_time }}
-                </p>
-                {% endif %}
             </div>
+            <div id="{{ form.schedule.auto_id }}_container">
+                <div>{{ form.schedule.help_text }}</div>
+                <div>
+                    <div>{{ form.schedule.label_tag }}</div>
+                    {{ form.schedule }}
+                </div>
+                <div id="{{ form.schedule.auto_id }}_errors">
+                    {{ form.schedule.errors }}
+                </div>
+            </div>
+            {% if object.pk %}
+            <p>
+            Scanneren vil starte på følgende tidspunkt på de valgte dage:<br />
+            {{ object.get_start_time }}
+            </p>
+            {% endif %}
         </div>
         <div class="tab-pane" id="recipients">
             <div id="{{ form.recipients.auto_id }}_container" class="col-sm-12{% if form.recipients.errors %} has-error{% endif %}">

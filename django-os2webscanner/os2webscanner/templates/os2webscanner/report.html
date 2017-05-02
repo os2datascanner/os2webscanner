@@ -5,9 +5,11 @@ Rapport &dash; {{scan.scanner.name}}
 {% endblock %}
 
 {% block body %}
+
       <p class="lead">
 	<a href="{{ reports_url }}">&larr; Klik her for at vise listen over rapporter</a>
       </p>
+
       <div class="table-responsive">
         <table class="table table-bordered report">
             <tbody>
@@ -45,7 +47,6 @@ Rapport &dash; {{scan.scanner.name}}
               <td {% if scan.do_ocr %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Scan Billeder{% if scan.do_ocr %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td> 
               <td></td>
               <td></td>
-              <td></td>
 
           </tr>
           <tr>
@@ -57,7 +58,6 @@ Rapport &dash; {{scan.scanner.name}}
               <td {% if scan.do_cpr_scan %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>CPR{% if scan.do_cpr_scan %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
               <td {% if scan.do_cpr_modulus11 and scan.do_cpr_scan %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Check modulus-11{% if scan.do_cpr_modulus11  and scan.do_cpr_scan %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
               <td {% if scan.do_cpr_ignore_irrelevant and scan.do_cpr_scan %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Ignorer irrelevante fødselsdatoer{% if scan.do_cpr_ignore_irrelevant and scan.do_cpr_scan %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
-              <td></td>
           </tr>
           <tr>
             <td {% if scan.do_link_check %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Check links{% if scan.do_link_check %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
@@ -68,10 +68,9 @@ Rapport &dash; {{scan.scanner.name}}
             <td {% if scan.do_collect_cookies %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Saml cookies{% if scan.do_collect_cookies %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
             <td></td>
             <td></td>
-            <td></td>
 
         <tr>
-            <td colspan="4"><b>Modtagere:</b> {% for profile in scan.recipients.all %}
+            <td colspan="3"><b>Modtagere:</b> {% for profile in scan.recipients.all %}
                                       {% if profile.user.email %}{{profile.user.email}}{% else %}{{profile.user.username}}{% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}
             </td>
         </tr>
@@ -157,7 +156,7 @@ Rapport &dash; {{scan.scanner.name}}
                 </strong>
               </td>
               {% endif %}
-    </tr>
+            </tr>
           </thead>
           <tbody>
           {% for match in matches %}
@@ -215,68 +214,55 @@ Rapport &dash; {{scan.scanner.name}}
                 <td>
                     <strong>
                         <small>
-                            Referrers
+                            Sider med broken links
                         </small>
                     </strong>
                 </td>
                 <td>
                     <strong>
                         <small>
-                            URL
+                            Antal
                         </small>
                     </strong>
                 </td>
                 <td>
                     <strong>
                         <small>
-                            Status
+                            
                         </small>
                     </strong>
                 </td>
             </tr>
             </thead>
             <tbody>
-            {% for url in broken_urls %}
-            <tr class="danger">
+                <script>
+                    var status_messages = [];
+                </script>
+            {% for referrer in referrer_urls %}
+                <tr class="danger">
                 <td class="broken-url-referrers">
-                    {% with url.referrers.all as referrers %}
-                        {% for referrer in referrers|slice:":5" %}
-                        <p>
-                            <a href="{{referrer}}" target="_NEW">{{ referrer }}</a>
-                        </p>
-                        {% endfor %}
-                        {% if referrers|length > 5 %}
-                            {% if full_report %}
-                                {% for referrer in referrers|slice:"5:" %}
-                                <p>
-                                    <a href="{{referrer}}" target="_NEW">{{ referrer }}</a>
-                                </p>
-                                {% endfor %}
-                            {% else %}
-                                <p>
-                                    <a href="full/#broken_url{{url.id}}">
-                                        {{ referrers|length|add:-5 }}
-                                        flere referrers...
-                                    </a>
-                                </p>
-                            {% endif %}
-                        {%  endif %}
-                    {% endwith %}
+                    <a href="{{referrer}}" target="_NEW">{{ referrer }}</a>
                 </td>
-                <td class="broken-url-url">
-                        <span>
-                            <a href="{{ url.url }}" target="_NEW"
-                               name="broken_url{{url.id}}">{{ url.url }}</a>
-                        </span>
-                </td>
-                <td class="broken-url-status">
-                    <span>{{ url.status_message }}</span>
-                </td>
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
 
+                <td class="broken-url-count">
+                    <span class="badge">{{referrer.broken_urls.count}}</span>
+                </td>
+
+                <td class="broken-url-show">
+                    <p>
+                        <script>
+                            var get_messages = '{% for broken in referrer.broken_urls %}{{broken.status_message}};{% endfor %}';
+                            status_messages.push(get_messages.split(';'));
+                        </script>
+                        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#view-deadlinks-modal" onclick="showReferrerUrl('{{referrer.id}}','{{referrer.url}}','{{referrer.broken_urls.all}}',status_messages[{{ forloop.counter0 }}])">
+                        <span class="glyphicon glyphicon-eye-open"></span>
+                        Inspicér
+                        </button>
+                    </p>
+                </td>
+
+                </tr>
+            {% endfor %}
     </div>
     {% endif %}
       
@@ -301,10 +287,243 @@ Rapport &dash; {{scan.scanner.name}}
         </pre>
     </div>
     {% endif %}
-
-
 {% endblock %}
 
 {% block heading %}
 Rapport &dash; {{scan.scanner.name}}
+{% endblock %}
+
+{% block modal %}
+<div class="modal iframe" id="view-deadlinks-modal" role="dialog"
+  aria-labelledby="view-deadlinks-modal-title" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+	    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+	        &times;
+	    </button>
+	<h4 class="modal-title" id="create-summary-modal-title">
+	  Broken links på <span id='refUrl'></span>
+	</h4>
+      </div>
+      <div class="modal-body">
+        <div class='row'>
+            <div class='col-md-3'>
+                <div id="list-links" class="list-group">
+                    <!--this is where the broken links will be shown-->
+                </div>
+                <ul id='test-thing'>
+                
+                </ul>
+            </div>
+            <div class='col-md-9' id="iframe-container">
+                 <iframe frameborder="0" id="iframe"></iframe>
+            </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    var linkMarkup = '';
+
+    document.getElementById('iframe').onload = function(){
+         var ifr = $("#iframe").contents();
+         $("#iframe").contents().find('head').append('<style type="text/css">.webscanner-dead-link {display: inline;border: 0px;border-radius: 0.25rem;background: #d9534f;color: #fff !important;padding: .2em .6em .3em;}</style>');
+
+         $("#list-links").on("click", "a", function(e){
+           e.preventDefault();
+           var href = $(this).attr("data-href");
+           var targ = $("#iframe").contents().find("[href=\"" + href + "\"]");
+
+           $("#iframe").contents().find("a").removeClass('webscanner-dead-link');
+
+           if(typeof targ[0]=='undefined')
+           {
+               targ = resolveIssue(href);
+           }
+
+           targ.addClass('webscanner-dead-link');
+
+           var offset = document.getElementById('iframe-container').clientHeight * 0.5;
+           ifr.scrollTop(targ.offset().top - offset);
+
+            $("#list-links a").removeClass("active");
+            $("#list-links a").addClass("list-group-item-action");
+            $(this).removeClass("list-group-item-action");
+            $(this).addClass("active");
+         });
+
+        $("#list-links").html(linkMarkup);
+    }
+
+    function resolveIssue(href) {
+        href = formatUrl(href);
+        var newHref = findLink(href);
+
+        if(typeof newHref[0]=='undefined') {
+            newHref = internalBrokenLink(href);
+        }
+
+        if(typeof newHref[0]=='undefined') {
+            newHref = linkWithUnorderedParams(href);
+        }
+
+        return newHref;
+    }
+
+    function internalBrokenLink(href) {
+        var internalTarget;
+
+        var scanUrls = '{{ scan.domains.all }}';
+        scanUrls = scanUrls.replace(/(&lt;Domain: )/g,'')
+                           .replace(/(&gt;)/g,'')
+                           .replace('[','')
+                           .replace(']','')
+                           .split(',');
+
+        for(var i=0;i<scanUrls.length;i++) {
+            var url = scanUrls[i].replace(/\/$/, ''); //remove trailing slash
+            href = href.replace(url, "").replace(/^\/|\/$/g, '');
+
+            var subfolders = href.split('/');
+
+            //find urls in subfolders ../../../
+            for(var j=0;j<subfolders.length;j++) {
+                var back = '../';
+                var s = back.repeat(j) + subfolders.slice(j).join('/');
+                internalTarget = findLink(s);
+
+                if(typeof internalTarget[0] != 'undefined'){
+                    break;
+                }
+            }
+
+            //find urls in subdomains *.example.dk
+            if(scanUrls[i].startsWith('*')) {
+                internalTarget = linkInSubdomain(href);
+            }
+
+            if(typeof internalTarget[0] == 'undefined') {
+                internalTarget = decodeComma(href);
+            }
+
+            //if link is found
+            if(typeof internalTarget[0] != 'undefined')
+            {
+                break;
+            }
+        }
+
+        return internalTarget;
+    }
+
+    function formatUrl(href) {
+        var src = $("#refUrl > a").attr('href');
+        console.log(src);
+        href = href.replace(src,'');
+        href = decodeURI(href);
+        return href;
+    }
+
+    function decodeComma(href) {
+        console.log('decode comma');
+        href = splitUrl(href);
+        console.log(href);
+        var comma = '%3A';
+        href = href.replace(/^(http\:\/\/)/,"").replace(/^(https\:\/\/)/,"");
+        var reg = new RegExp(':', 'g');
+        href = href.replace(reg, comma);
+        return findLink(href);
+    }
+
+    function linkInSubfolder(href) {
+
+    }
+
+    function linkInSubdomain(href) {
+        console.log('links in subdomain');
+        href = splitUrl(href);
+
+        return findLink(href);
+    }
+
+    function splitUrl(href) {
+        var hrefSplit = href.split('/');
+        var index = hrefSplit.indexOf(hrefSplit[2],3);
+        href = '/' + hrefSplit.slice(3).join('/');
+
+        if(index > 0) {
+            href = hrefSplit.slice(index).join('/');
+        }
+
+        return href;
+    }
+
+    function linkWithUnorderedParams(href) {
+        console.log('is link with unordered params');
+        var newTarget;
+        href = href.split('?');
+        var params = href[1].split('&');
+        var perms = permutator(params);
+
+        for(var i=0;i<perms.length;i++) {
+            p = perms[i];
+            var newHref = href[0] + '?' + p[0] + '&' + p[1] + '&' + p[2];
+            newTarget = findLink(newHref);
+
+            //if it finds a match, break and return
+            if(typeof newTarget[0]!='undefined') {
+                break;
+            }
+        }
+        
+        return newTarget;
+    }
+
+    function permutator(inputArr) {
+        var results = [];
+
+        function permute(arr, memo) {
+            var cur, memo = memo || [];
+            for (var i = 0; i < arr.length; i++) {
+                cur = arr.splice(i, 1);
+                if (arr.length === 0) {
+                    results.push(memo.concat(cur));
+                }
+                permute(arr.slice(), memo.concat(cur));
+                arr.splice(i, 0, cur[0]);
+            }
+            return results;
+        }
+        return permute(inputArr);
+    }
+
+    function findLink(href) {
+        console.log('find link ' + href);
+        return $("#iframe").contents().find('a[href*="' + href + '"]');
+    }
+
+    function showReferrerUrl(id, url, broken_link,error) {
+        var url_mask = "{% url 'referrer_content' pk=12345 %}".replace(/12345/, id.toString());
+        document.getElementById("iframe").src = url_mask;
+
+        tmp = broken_link.replace(/<Url: /g,'')
+                         .replace('[','')
+                         .replace('>]','')
+                         .replace(/>, /g,',')
+                         .split(',')
+
+        $("#create-summary-modal-title span").html('<a href="' + url + '">' + url + '</a>');
+
+        linkMarkup = '';
+        for (var i = 0; i < tmp.length; i++) {
+            linkMarkup += "<a class='list-group-item list-group-item-action' data-href='"+tmp[i]+"'>"+ tmp[i] +"<br>";
+            linkMarkup += "<span class='label label-danger'>"+ error[i] +"</span></a>";
+        }
+
+        $("#list-links").html('Finder links...');
+        prevTarg = null;
+    }
+</script>
 {% endblock %}

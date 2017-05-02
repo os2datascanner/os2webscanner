@@ -6,6 +6,24 @@ Rapporter
 
 {% block body %}
 <div class="container">
+{% if is_paginated %}
+    <ul class="reports-pager pager">
+        {% if page_obj.has_previous %}
+        <li><a
+            href="/reports?page={{ page_obj.previous_page_number }}">&larr; Forrige</a></li>
+        {% endif %}
+        <li class="disabled">
+            Side
+            {{ page_obj.number }}
+            af
+            {{ page_obj.paginator.num_pages }}
+        </li>
+        {% if page_obj.has_next %}
+        <li><a href="/reports?page={{ page_obj.next_page_number }}">Næste &rarr;</a></li>
+        {% endif %}
+    </ul>
+{% endif %}
+
       <div class="table-responsive">
 		<table class="table table-striped">
           <thead>
@@ -50,7 +68,7 @@ Rapporter
           </thead>
           <tbody>
           {% for scan in scan_list %}
-            <tr>
+          <tr {% if scan.no_of_critical_matches > 0 %}class="danger"{% elif scan.no_of_broken_links > 0 %}class="warning"{% endif %}>
               <td class="report-domain">
                 <span>
                     {{ scan.scanner.name }}

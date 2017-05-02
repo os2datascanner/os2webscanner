@@ -1,4 +1,17 @@
-* Version 1.5.2, April 1, 2016
+* Version 1.6.0, Miay 2, 2017
+
+New in this version:
+
+ - User administration for site superusers and reset password function
+   for all users.
+ - Reports page is paginated to reduce load time.
+ - Visual cue if report has broken links or critical matches.
+ - Better indication of how to find broken links on the scanned pages.
+ - Bug fix: Scan no longer fails if broken link scan is on and an
+   invalid URL is encountered.
+
+
+* Version 1.5.2, March 16, 2017
 
 New in this version:
 

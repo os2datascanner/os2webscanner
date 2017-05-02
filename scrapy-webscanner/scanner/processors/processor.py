@@ -57,7 +57,11 @@ def get_ocr_page_no(ocr_file_name):
 
     # xyz*-d+_d+.png
     # HACK ALERT: This depends on the output from pdftohtml.
-    page_no = int(ocr_file_name.split('_')[-2].split('-')[-1])
+    try:
+        page_no = int(ocr_file_name.split('_')[-2].split('-')[-1])
+    except IndexError:
+        # Non-PDF-extracted file
+        page_no = None
     return page_no
 
 

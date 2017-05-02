@@ -19,7 +19,9 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
 
-# Register your models here.
+from django.utils.translation import ugettext, ugettext_lazy as _
+
+from django.conf import settings
 
 from .models import Organization, UserProfile, Domain, RegexRule, Scanner
 from .models import Scan, Match, Url, ConversionQueueItem
@@ -37,6 +39,23 @@ class ProfileInline(admin.TabularInline):
 
     model = UserProfile
     extra = 1
+    if not settings.DO_USE_GROUPS:
+        exclude = ['is_group_admin']
+    can_delete = False
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        field = super(
+            ProfileInline, self
+        ).formfield_for_foreignkey(db_field, request, **kwargs)
+
+        if db_field.name == 'organization':
+            if not request.user.is_superuser:
+                field.queryset = Organization.objects.filter(
+                    name=request.user.profile.organization.name
+                )
+                field.empty_label = None
+
+        return field
 
 
 class MyUserAdmin(UserAdmin):
@@ -45,6 +64,33 @@ class MyUserAdmin(UserAdmin):
 
     inlines = [ProfileInline]
     can_delete = False
+
+    def get_form(self, request, obj=None, **kwargs):
+        if not request.user.is_superuser:
+            self.fieldsets = (
+                (None,
+                 {'fields': ('username', 'password', 'is_active', 'is_staff')}
+                ),
+                (_('Personal info'),
+                 {'fields': ('first_name', 'last_name', 'email')}),
+                (_('Important dates'), {'fields': ('last_login',
+                                                   'date_joined')}),
+            )
+
+            self.exclude = ['is_superuser', 'permissions', 'groups']
+        return super(MyUserAdmin, self).get_form(request, obj, **kwargs)
+
+    def get_queryset(self, request):
+        """Only allow users belonging to same organization to be edited."""
+
+        qs = super(MyUserAdmin, self).get_queryset(request)
+
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(
+            profile__organization=request.user.profile.organization
+        )
+
 
 admin.site.unregister(User)
 admin.site.register(User, MyUserAdmin)

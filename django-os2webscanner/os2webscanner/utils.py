@@ -1,3 +1,4 @@
+# encoding: utf-8
 # The contents of this file are subject to the Mozilla Public License
 # Version 2.0 (the "License"); you may not use this file except in
 # compliance with the License. You may obtain a copy of the License at
@@ -41,12 +42,15 @@ def notify_user(scan):
     matches += models.Url.objects.filter(
         scan=scan
     ).exclude(status_code__isnull=True).count()
-    critical = models.Match.objects.filter(
-        scan=scan,
-        sensitivity=models.Sensitivity.HIGH
-    ).count()
+    critical = scan.no_of_critical_matches
 
-    scan_status = "Kritiske matches!" if critical > 0 else scan.status_text
+    if scan.no_of_critical_matches > 0:
+        scan_status = "Kritiske matches!"
+    elif scan.no_of_broken_links > 0:
+        scan_status = "Døde links"
+    else:
+        scan_status = scan.status_text
+
     subject = "Scanning afsluttet: {0}".format(scan_status)
 
     c = Context({'scan': scan, 'domain': settings.SITE_URL,
