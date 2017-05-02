@@ -1183,10 +1183,12 @@ class SummaryReport(RestrictedDetailView):
 
         return context
 
+
 @login_required
 def referrer_content(request, pk):
     u = ReferrerUrl.objects.get(id=int(pk))
     return HttpResponse(u.content)
+
 
 @login_required
 def file_upload(request):

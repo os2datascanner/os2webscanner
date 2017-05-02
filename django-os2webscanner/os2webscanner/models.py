@@ -969,14 +969,14 @@ class Url(models.Model):
     def tmp_dir(self):
         """The path to the temporary directory associated with this url."""
         return os.path.join(self.scan.scan_dir, 'url_item_%d' % (self.pk))
-    
-    @property 
-    def content(self): 
+
+    @property
+    def content(self):
         try:
-            file = urllib2.urlopen(self.url) 
+            file = urllib2.urlopen(self.url)
             return file.read()
         except Exception as e:
-            return str(e) 
+            return str(e)
 
 
 class Match(models.Model):
@@ -1079,8 +1079,6 @@ class ReferrerUrl(models.Model):
 
     url = models.CharField(max_length=2048, verbose_name='Url')
     scan = models.ForeignKey(Scan, null=False, verbose_name='Scan')
-    
-
 
     def __unicode__(self):
         """Return the URL."""
@@ -1097,11 +1095,14 @@ class ReferrerUrl(models.Model):
 
     @property
     def broken_urls(self):
-        result = self.linked_urls.exclude(status_code__isnull=True).order_by('url')
+        result = self.linked_urls.exclude(
+            status_code__isnull=True
+        ).order_by('url')
 
         return result
         # .filter(status=None)
         # Url.objects.filter(referrerurls__contains=self, status=None)
+
 
 class UrlLastModified(models.Model):
 

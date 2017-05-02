@@ -139,8 +139,9 @@ urlpatterns = patterns(
     url(r'system/upload_file', file_upload, name='file_upload'),
 
     # Referrer DOM content
-    url(r'referrer/(?P<pk>[0-9]+)/$', referrer_content, name='referrer_content')
-    
+    url(r'referrer/(?P<pk>[0-9]+)/$',
+        referrer_content, name='referrer_content')
+
 )
 
 if settings.DO_USE_GROUPS:
