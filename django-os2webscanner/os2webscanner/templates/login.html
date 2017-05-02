@@ -13,7 +13,9 @@ Login
       <li>{{ error }}</li>
     {% endfor %}
   </ul>
+Har du glemt dit password? <a href="{% url 'password_reset' %}">Klik her</a>.
 </div>
+
 {% endif %}
 {% if form.errors  %}
 {% if not '__all__' in form.errors %}
