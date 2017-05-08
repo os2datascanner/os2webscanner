@@ -889,7 +889,7 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
         referrer_urls = ReferrerUrl.objects.filter(scan=self.get_object())
 
         context['full_report'] = self.full
-        context['broken_urls'] = broken_urls
+        context['broken_urls'] = broken_urls[:100]
         context['no_of_broken_links'] = broken_urls.count()
         context['referrer_urls'] = referrer_urls
         context['matches'] = all_matches[:100]

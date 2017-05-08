@@ -3,7 +3,7 @@
 DIR=$(dirname "${BASH_SOURCE[0]}")
 FULL_DIR="$(cd "$DIR" && pwd)"
 BASE_DIR=$(dirname "${FULL_DIR}")
-RECIPIENTS=carstena@magenta.dk
+RECIPIENTS=carstena@magenta.dk,danni@magenta.dk
 
 # Check if process manager is running or not.
 PSS=$(pgrep -f process_)
