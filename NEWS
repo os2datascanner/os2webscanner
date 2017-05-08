@@ -1,4 +1,14 @@
-* Version 1.6.0, Miay 2, 2017
+* Version 1.6.0.1, May 8, 2017
+
+Hotfix:
+
+ - Limit broken links to 100 for consistency with critical matches (and
+   performance).
+ - Don't allow customer's user admin to set the "is_staff" flag (for
+   now).
+
+
+* Version 1.6.0, May 2, 2017
 
 New in this version:
 
