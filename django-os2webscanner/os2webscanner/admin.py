@@ -69,7 +69,7 @@ class MyUserAdmin(UserAdmin):
         if not request.user.is_superuser:
             self.fieldsets = (
                 (None,
-                 {'fields': ('username', 'password', 'is_active', 'is_staff')}
+                 {'fields': ('username', 'password', 'is_active')}
                 ),
                 (_('Personal info'),
                  {'fields': ('first_name', 'last_name', 'email')}),
