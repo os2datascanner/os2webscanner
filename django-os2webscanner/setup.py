@@ -34,7 +34,7 @@ setup(
     long_description=README,
     url='http:///magenta.dk',
     author='Magenta ApS',
-    author_email='info@magenta.dk',
+    author_email='os2webscanner@magenta.dk',
     classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',
