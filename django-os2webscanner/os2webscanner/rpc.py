@@ -197,7 +197,7 @@ def do_scan_documents(user, data, params={}):
         binary, filename = data_item
         full_path = os.path.join(dirname, filename)
         with open(full_path, "wb") as f:
-            f.write(binary.data)
+            f.write(binary)
         return full_path
     documents = map(writefile, data)
     file_url = lambda f: 'file://{0}'.format(f)
