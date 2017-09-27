@@ -171,15 +171,6 @@ class ScannerSpider(BaseScannerSpider):
                               errback=self.handle_error) for x in files)
         return r
 
-    # def folder_extractor(self, folderpath):
-    #     r = []
-    #     for (dirpath, dirnames, filenames) in walk(folderpath.replace('file://', '')):
-    #         for dirname in dirnames:
-    #             dirname = folderpath + '/' + dirname
-    #             r.append(dirname)
-    #         break;
-    #     return r
-
     def file_extractor(self, filepath):
         path = filepath.replace('file://', '')
         r = []
