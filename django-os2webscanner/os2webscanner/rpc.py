@@ -19,6 +19,7 @@ import re
 import StringIO
 import csv
 import tempfile
+import xmlrpclib
 
 from django.contrib.auth import authenticate
 from django.conf import settings
@@ -194,10 +195,12 @@ def do_scan_documents(user, data, params={}):
 
     # Save files on disk
     def writefile(data_item):
+        binary_decoder = xmlrpclib.Binary()
         binary, filename = data_item
+        binary_decoder.decode(binary)
         full_path = os.path.join(dirname, filename)
         with open(full_path, "wb") as f:
-            f.write(binary)
+            f.write(binary_decoder.data)
         return full_path
     documents = map(writefile, data)
     file_url = lambda f: 'file://{0}'.format(f)
