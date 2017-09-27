@@ -75,7 +75,6 @@ class ScannerSpider(BaseScannerSpider):
                     url = 'http://%s/' % url
                 # Remove wildcards
                 url = url.replace('*.', '')
-                print 'URL: ' + url
                 self.start_urls.append(url)
 
         self.link_extractor = LxmlLinkExtractor(

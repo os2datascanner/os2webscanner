@@ -1,6 +1,10 @@
 /**
  * Created by danni on 9/27/17.
  */
+/**
+ * Function to scan a file using OS2Webscanner xmlrpc interface.
+ * Is dependent on jQuery xmlrpc lib. https://plugins.jquery.com/xmlrpc/
+ */
 function scanFile() {
     var username = prompt("Indtast dit OS2Webscanner brugernavn", "");
     var password = prompt("Indtast dit OS2Webscanner kodeord", "");

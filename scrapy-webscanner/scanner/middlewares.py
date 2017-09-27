@@ -136,7 +136,6 @@ class OffsiteDownloaderMiddleware(object):
             return parse_result.path.startswith(django_settings.RPC_TMP_PREFIX)
         # File scanner
         elif scheme == 'file' and getattr(spider, "crawl", True):
-            print 'Parse result: ' + str(parse_result)
             return True
         return bool(regex.search(host))
 
