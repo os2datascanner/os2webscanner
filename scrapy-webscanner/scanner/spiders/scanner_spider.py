@@ -21,11 +21,13 @@ import regex
 from scrapy import log
 from scrapy.contrib.spidermiddleware.httperror import HttpError
 from scrapy.exceptions import IgnoreRequest
-from scrapy.http import Request, HtmlResponse
+from scrapy.http import Request, HtmlResponse, TextResponse
 import re
 import chardet
 import magic
-
+import errno
+import os
+from os import walk
 
 # Use our monkey-patched link extractor
 from ..linkextractor import LxmlLinkExtractor
@@ -67,11 +69,13 @@ class ScannerSpider(BaseScannerSpider):
             for url in self.allowed_domains:
                 if (
                     not url.startswith('http://') and
-                    not url.startswith('https://')
+                    not url.startswith('https://') and
+                    not url.startswith('file://')
                 ):
                     url = 'http://%s/' % url
                 # Remove wildcards
                 url = url.replace('*.', '')
+                print 'URL: ' + url
                 self.start_urls.append(url)
 
         self.link_extractor = LxmlLinkExtractor(
@@ -114,9 +118,16 @@ class ScannerSpider(BaseScannerSpider):
             except Exception as e:
                 log.msg(u"URL failed: {0} ({1})".format(url, str(e)))
 
-        requests.extend([Request(url, callback=self.parse,
-                                 errback=self.handle_error)
-                         for url in self.start_urls])
+        for url in self.start_urls:
+            if url.startswith('file://'):
+                files = self.file_extractor(url)
+                requests.extend([Request(file, callback=self.parse,
+                                         errback=self.handle_error)
+                                 for file in files])
+            else:
+                requests.append([Request(url, callback=self.parse,
+                                         errback=self.handle_error)])
+
         return requests
 
     def parse(self, response):
@@ -153,6 +164,35 @@ class ScannerSpider(BaseScannerSpider):
             # log.msg("Extracted links: %s" % links, level=log.DEBUG)
             r.extend(Request(x.url, callback=self.parse,
                              errback=self.handle_error) for x in links)
+        elif isinstance(response, TextResponse):
+            # extract altid folder og parse filer
+            files = self.file_extractor(response.request.url)
+            r.extend(Request(x.url, callback=self.parse,
+                              errback=self.handle_error) for x in files)
+        return r
+
+    # def folder_extractor(self, folderpath):
+    #     r = []
+    #     for (dirpath, dirnames, filenames) in walk(folderpath.replace('file://', '')):
+    #         for dirname in dirnames:
+    #             dirname = folderpath + '/' + dirname
+    #             r.append(dirname)
+    #         break;
+    #     return r
+
+    def file_extractor(self, filepath):
+        path = filepath.replace('file://', '')
+        r = []
+        if os.path.isdir(path) is not True:
+            return r
+        for (dirpath, dirnames, filenames) in walk(path):
+            for filename in filenames:
+                filename = filepath + '/' + filename
+                r.append(filename)
+            for dirname in dirnames:
+                dirname = filepath + '/' + dirname
+                r.append(dirname)
+            break;
         return r
 
     def handle_error(self, failure):
@@ -160,6 +200,14 @@ class ScannerSpider(BaseScannerSpider):
 
         If link checking is enabled, saves the broken URL and referrers.
         """
+        if isinstance(failure.value, IOError) \
+                and failure.value.errno == errno.EISDIR:
+            files = self.file_extractor('file://' + failure.value.filename)
+            request = []
+            request.extend([Request(url, callback=self.parse,
+                                    errback=self.handle_error)
+                            for url in files])
+            return request
         if (not self.scanner.scan_object.do_link_check or
                 (isinstance(failure.value, IgnoreRequest) and not isinstance(
                     failure.value, HttpError))):

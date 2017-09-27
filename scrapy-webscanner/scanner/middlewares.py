@@ -131,8 +131,13 @@ class OffsiteDownloaderMiddleware(object):
         parse_result = urlparse_cached(request)
         host = parse_result.hostname or ''
         scheme = parse_result.scheme or ''
+        # XMLRPC call
         if scheme == 'file' and not getattr(spider, "crawl", False):
             return parse_result.path.startswith(django_settings.RPC_TMP_PREFIX)
+        # File scanner
+        elif scheme == 'file' and getattr(spider, "crawl", True):
+            print 'Parse result: ' + str(parse_result)
+            return True
         return bool(regex.search(host))
 
     def get_host_regex(self, spider):

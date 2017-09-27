@@ -1,5 +1,5 @@
 # Turn on debug logging: useful for development
-#LOG_LEVEL = 'DEBUG'
+LOG_LEVEL = 'DEBUG'
 
 # Set to True in testing to avoid pegging websites, if only testing processing
 #HTTPCACHE_ENABLED = True

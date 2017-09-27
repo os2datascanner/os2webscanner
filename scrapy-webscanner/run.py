@@ -127,6 +127,7 @@ class ScannerApp:
         self.crawler_process = OrderedCrawlerProcess(settings)
 
         # Don't sitemap scan when running over RPC
+        # TODO: Maybe differ between file scanner and website scanner
         if not self.scan_object.scanner.process_urls:
             self.sitemap_spider = self.setup_sitemap_spider()
         self.scanner_spider = self.setup_scanner_spider()
