@@ -411,7 +411,7 @@ class LastModifiedCheckMiddleware(object):
                         last_modified_header_date = arrow.get(lm).datetime
                     except:
                         log.msg(
-                            "Date format error on last modied: {0}".format(lm)
+                            "Date format error on last modified: {0}".format(lm)
                         )
         # lastmod comes from a sitemap.xml file
         sitemap_lastmod_date = request.meta.get("lastmod", None)
