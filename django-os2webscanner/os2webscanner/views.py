@@ -24,7 +24,7 @@ from shutil import copyfile
 
 from django import forms
 from django.template import RequestContext
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db.models import Count, Q
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render_to_response
@@ -645,6 +645,10 @@ class DomainUpdate(RestrictedUpdateView):
                 )
                 vm_field.widget.attrs['class'] = 'validateradio'
 
+        if ' ' in form['url'].value():
+            form.add_error('url', u'Mellemrum er ikke tilladt i domænenavnet.')
+        import pdb
+        pdb.set_trace()
         return form
 
     def form_valid(self, form):
