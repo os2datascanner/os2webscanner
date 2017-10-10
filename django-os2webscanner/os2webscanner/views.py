@@ -42,7 +42,7 @@ from .validate import validate_domain, get_validation_str
 from .models import Scanner, Domain, RegexRule, Scan, Match, UserProfile, Url
 from .models import Organization, ConversionQueueItem, Group, Summary
 from .models import ReferrerUrl
-from .utils import scans_for_summary_report, do_scan
+from .utils import scans_for_summary_report, do_scan, domain_form_manipulate
 from .forms import FileUploadForm
 
 
@@ -591,17 +591,10 @@ class DomainCreate(RestrictedCreateView):
         return fields
 
     def get_form(self, form_class):
-        """Get the form for the view.
-
-        All form widgets will have added the css class 'form-control'.
-        """
+        """Get the form for the view."""
         form = super(DomainCreate, self).get_form(form_class)
 
-        for fname in form.fields:
-            f = form.fields[fname]
-            f.widget.attrs['class'] = 'form-control'
-
-        return form
+        return domain_form_manipulate(form)
 
     def get_success_url(self):
         """The URL to redirect to after successful creation."""
@@ -633,10 +626,6 @@ class DomainUpdate(RestrictedUpdateView):
         """
         form = super(DomainUpdate, self).get_form(form_class)
 
-        for fname in form.fields:
-            f = form.fields[fname]
-            f.widget.attrs['class'] = 'form-control'
-
         if 'validation_method' in form.fields:
             vm_field = form.fields['validation_method']
             if vm_field:
@@ -645,11 +634,7 @@ class DomainUpdate(RestrictedUpdateView):
                 )
                 vm_field.widget.attrs['class'] = 'validateradio'
 
-        if ' ' in form['url'].value():
-            form.add_error('url', u'Mellemrum er ikke tilladt i domænenavnet.')
-        import pdb
-        pdb.set_trace()
-        return form
+        return domain_form_manipulate(form)
 
     def form_valid(self, form):
         """Validate the submitted form."""
