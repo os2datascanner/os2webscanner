@@ -193,7 +193,7 @@ width:33%;
 }
 .table.report td.head {
 padding:0;
-border-color:#fff #fff inherit;
+border-color:#fff #fff #ddd;
 }
 .table-responsive.domains-regex {
 margin-top:-20px;
