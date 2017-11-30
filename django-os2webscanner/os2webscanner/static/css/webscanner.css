@@ -7,6 +7,33 @@ opacity:.5;
 margin-bottom:-15px;
 }
 
+/* FRONT PAGE */
+
+ul.cards {
+  list-style:none;
+  padding:0;
+}
+ul.cards a.panel {
+  display:block;
+}
+ul.cards a.panel:hover,
+ul.cards a.panel:focus {
+  text-decoration:none;
+  background-color:#eee;
+  cursor:pointer;
+}
+ul.cards span.h2 {
+  display:block;
+  text-align:center;
+}
+ul.cards span.glyphicon {
+  font-size:calc(200% + 5vw);
+  display:block;
+  margin:2rem 0;
+  text-align:center;
+}
+
+
 /* SCANNERS */
 
 .scanner-status {
