@@ -7,6 +7,12 @@ opacity:.5;
 margin-bottom:-15px;
 }
 
+/* SECONDARY HEADINGS ON TABULATED PAGES */
+p.h2 + .page-action button {
+  margin-top:-.75em;
+  margin-left:1.5em;
+}
+
 /* FRONT PAGE */
 
 ul.cards {
