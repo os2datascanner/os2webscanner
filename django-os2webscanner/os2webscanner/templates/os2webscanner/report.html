@@ -56,8 +56,8 @@ Rapport &dash; {{scan.scanner.name}}
           </tr>
           <tr>
               <td {% if not scan.do_cpr_scan %} class="text-muted" {% endif %}>CPR{% if scan.do_cpr_scan %} <span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
-              <td {% if not scan.do_cpr_modulus11 and not scan.do_cpr_scan %} class="text-muted" {% endif %}>Tjek modulus-11{% if scan.do_cpr_modulus11 and scan.do_cpr_scan %} <span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
-              <td {% if not scan.do_cpr_ignore_irrelevant and not scan.do_cpr_scan %} class="text-muted" {% endif %}>Ignorer ugyldige fødselsdatoer{% if scan.do_cpr_ignore_irrelevant and scan.do_cpr_scan %} <span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
+              <td {% if not scan.do_cpr_modulus11 %} class="text-muted" {% endif %}>Tjek modulus-11{% if scan.do_cpr_modulus11 and scan.do_cpr_scan %} <span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
+              <td {% if not scan.do_cpr_ignore_irrelevant %} class="text-muted" {% endif %}>Ignorer ugyldige fødselsdatoer{% if scan.do_cpr_ignore_irrelevant and scan.do_cpr_scan %} <span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
           </tr>
           <tr>
             <td {% if not scan.do_link_check %} class="text-muted" {% endif %}>Tjek links{% if scan.do_link_check %} <span class="glyphicon glyphicon-ok"></span>{% endif %}</td>

@@ -8,209 +8,204 @@ Rapporter
 
 
 <div class="container">
-  <p class="lead">Se rapporter for specifikke scanninger eller få en overbliksrapport for flere scanninger.</p>
+  <p class="lead">Se rapporter for specifikke scannerjob eller få en overbliksrapport for flere scannerjob.</p>
   <ul class="nav nav-tabs" role="tablist">
-    <li role="presentation" class="active"><a href="#reports" aria-controls="reports" role="tab" data-toggle="tab">Scanninger</a></li>
+    <li role="presentation" class="active"><a href="#reports" aria-controls="reports" role="tab" data-toggle="tab">Scannerjob</a></li>
     <li role="presentation"><a href="#summaries" aria-controls="summaries" role="tab" data-toggle="tab">Overblik</a></li>
   </ul>
   <div class="tab-content">
     <div role="tabpanel" class="tab-pane active" id="reports">
-      <p class="h2">Scanninger</p>
-      <div class="container">
-        {% if is_paginated %}
-        <ul class="reports-pager pager">
-          {% if page_obj.has_previous %}
-          <li><a href="/reports?page={{ page_obj.previous_page_number }}">&larr; Forrige</a></li>
-          {% endif %}
-          <li class="disabled">
-            Side
-            {{ page_obj.number }}
-            af
-            {{ page_obj.paginator.num_pages }}
-          </li>
-          {% if page_obj.has_next %}
-          <li><a href="/reports?page={{ page_obj.next_page_number }}">Næste &rarr;</a></li>
-          {% endif %}
-        </ul>
+    <p class="h2">Scannerjob</p>
+      {% if is_paginated %}
+      <ul class="reports-pager pager">
+        {% if page_obj.has_previous %}
+        <li><a href="/reports?page={{ page_obj.previous_page_number }}">&larr; Forrige</a></li>
         {% endif %}
-        <div class="table-responsive">
-          <table class="table table-striped">
-            <thead>
-              <tr>
-                <td>
-                  <strong>
-                  <small>
-                  Scanner
-                  </small>
-                  </strong>
-                </td>
-                {% if user.is_superuser %}
-                <td>
-                  <strong>
-                  <small>
-                  Organisation
-                  </small>
-                  </strong>
-                </td>
-                {% endif %}
-                <td>
-                  <strong>
-                  <small>
-                  Udført
-                  </small>
-                  </strong>
-                </td>
-                <td>
-                  <strong>
-                  <small>
-                  Status
-                  </small>
-                  </strong>
-                </td>
-                <td>
-                  <strong>
-                  <small>
-                  Handling
-                  </small>
-                  </strong>
-                </td>
-              </tr>
-            </thead>
-            <tbody>
-              {% for scan in scan_list %}
-              <tr {% if scan.no_of_critical_matches > 0 %}class="danger"{% elif scan.no_of_broken_links > 0 %}class="warning"{% endif %}>
-                <td class="report-domain">
-                  <span>
-                  {{ scan.scanner.name }}
-                  </span>
-                </td>
-                {% if user.is_superuser %}
-                <td class="report-domain">
-                  <span>
-                  {{ scan.scanner.organization }}
-                  </span>
-                </td>
-                {% endif %}
-                <td class="report-scandate">
-                  <span>{{ scan.start_time }}</span>
-                </td>
-                <td class="report-status">
-                  <span>{{ scan.get_status_display }}</span>
-                </td>
-                <td class="report-actions">
-                  <a class="btn btn-sm btn-default view-report"
-                    href="/report/{{scan.pk}}"><span class="glyphicon glyphicon-tasks"></span> Vis rapport</a>
-                  <a href="/report/{{scan.pk}}/delete/" class="btn btn-default btn-sm">
-                  <span class="glyphicon glyphicon-remove"></span>
-                  <span>Slet rapport</span>
-                  </a>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
+        <li class="disabled">
+          Side
+          {{ page_obj.number }}
+          af
+          {{ page_obj.paginator.num_pages }}
+        </li>
+        {% if page_obj.has_next %}
+        <li><a href="/reports?page={{ page_obj.next_page_number }}">Næste &rarr;</a></li>
+        {% endif %}
+      </ul>
+      {% endif %}
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <td>
+                <strong>
+                <small>
+                Scanner
+                </small>
+                </strong>
+              </td>
+              {% if user.is_superuser %}
+              <td>
+                <strong>
+                <small>
+                Organisation
+                </small>
+                </strong>
+              </td>
+              {% endif %}
+              <td>
+                <strong>
+                <small>
+                Udført
+                </small>
+                </strong>
+              </td>
+              <td>
+                <strong>
+                <small>
+                Status
+                </small>
+                </strong>
+              </td>
+              <td>
+                <strong>
+                <small>
+                Handling
+                </small>
+                </strong>
+              </td>
+            </tr>
+          </thead>
+          <tbody>
+            {% for scan in scan_list %}
+            <tr {% if scan.no_of_critical_matches > 0 %}class="danger"{% elif scan.no_of_broken_links > 0 %}class="warning"{% endif %}>
+              <td class="report-domain">
+                <span>
+                {{ scan.scanner.name }}
+                </span>
+              </td>
+              {% if user.is_superuser %}
+              <td class="report-domain">
+                <span>
+                {{ scan.scanner.organization }}
+                </span>
+              </td>
+              {% endif %}
+              <td class="report-scandate">
+                <span>{{ scan.start_time }}</span>
+              </td>
+              <td class="report-status">
+                <span>{{ scan.get_status_display }}</span>
+              </td>
+              <td class="report-actions">
+                <a class="btn btn-sm btn-default view-report"
+                  href="/report/{{scan.pk}}"><span class="glyphicon glyphicon-tasks"></span> Vis rapport</a>
+                <a href="/report/{{scan.pk}}/delete/" class="btn btn-default btn-sm">
+                <span class="glyphicon glyphicon-remove"></span>
+                <span>Slet rapport</span>
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
     </div>
     <div role="tabpanel" class="tab-pane" id="summaries">
       <p class="h2" style="display:inline-block;">Overblik</p>
       <span class="page-action">
-      <button type="button" class="btn btn-default" data-toggle="modal" data-target="#create-summary-modal">
-      Tilføj ny 
-      <span style="position:relative;top:.15em;" class="glyphicon glyphicon-plus-sign">
+        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#create-summary-modal">
+          Tilføj ny 
+          <span style="position:relative;top:.15em;" class="glyphicon glyphicon-plus-sign"></span>
+        </button>
       </span>
-      </button>
-      </span>
-      <div class="container">
-        <div class="table-responsive">
-          <table class="table table-striped">
-            <thead>
-              <tr>
-                <td>
-                  <strong>
-                  <small>
-                  Navn
-                  </small>
-                  </strong>
-                </td>
-                {% if user.is_superuser %}
-                <td>
-                  <strong>
-                  <small>
-                  Organisation
-                  </small>
-                  </strong>
-                </td>
-                {% endif %}
-                <td>
-                  <strong>
-                  <small>
-                  Sidste kørsel
-                  </small>
-                  </strong>
-                </td>
-                <td>
-                  <strong>
-                  <small>
-                  Modtagere
-                  </small>
-                  </strong>
-                </td>
-                <td>
-                  <strong>
-                  <small>
-                  Handling
-                  </small>
-                  </strong>
-                </td>
-              </tr>
-            </thead>
-            <tbody>
-              {% for summary in summary_list %}
-              <tr>
-                <td class="summary-name">
-                  <span>
-                  {{ summary.name }}
-                  </span>
-                </td>
-                {% if user.is_superuser %}
-                <td class="summary-organization">
-                  <span>
-                  {{summary.organization}}
-                  </span>
-                </td>
-                {% endif %}
-                <td class="summary-lastrun">
-                  <span>{{ summary.last_run }}</span>
-                </td>
-                <td class="summary-recipients">
-                  <span>{% for profile in  summary.recipients.all %}
-                  {% if profile.user.email %}{{profile.user.email}}{% else %}{{profile.user.username}}{% endif %}
-                  {% if not forloop.last %}, {% endif %}{% endfor %}</span>
-                </td>
-                <td class="summary-actions">
-                  <a class="btn btn-xs btn-default"
-                    onclick="os2web.iframeDialog(
-                    &quot;#edit-summary-modal&quot;,
-                    &quot;/summary/{{summary.pk}}&quot;,
-                    &quot;Redigér opsummeringsrapport '{{summary.name}}'&quot;
-                    )"
-                    title="Redigér opsummeringsrapport">
-                  <span class="glyphicon glyphicon-cog"></span> <span>Redigér</span></a>
-                  <a href="/summary/{{summary.pk}}/report/" class="btn btn-default btn-xs"
-                    title="Læs rapport">
-                  <span class="glyphicon glyphicon-book"></span> <span>Læs</span>
-                  </a>
-                  <a href="/summary/{{summary.pk}}/delete/" class="btn btn-default btn-xs"
-                    title="Slet opsummeringsrapport">
-                  <span class="glyphicon glyphicon-remove"></span> <span>Slet</span>
-                  </a>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <td>
+                <strong>
+                <small>
+                Navn
+                </small>
+                </strong>
+              </td>
+              {% if user.is_superuser %}
+              <td>
+                <strong>
+                <small>
+                Organisation
+                </small>
+                </strong>
+              </td>
+              {% endif %}
+              <td>
+                <strong>
+                <small>
+                Sidste kørsel
+                </small>
+                </strong>
+              </td>
+              <td>
+                <strong>
+                <small>
+                Modtagere
+                </small>
+                </strong>
+              </td>
+              <td>
+                <strong>
+                <small>
+                Handling
+                </small>
+                </strong>
+              </td>
+            </tr>
+          </thead>
+          <tbody>
+            {% for summary in summary_list %}
+            <tr>
+              <td class="summary-name">
+                <span>
+                {{ summary.name }}
+                </span>
+              </td>
+              {% if user.is_superuser %}
+              <td class="summary-organization">
+                <span>
+                {{summary.organization}}
+                </span>
+              </td>
+              {% endif %}
+              <td class="summary-lastrun">
+                <span>{{ summary.last_run }}</span>
+              </td>
+              <td class="summary-recipients">
+                <span>{% for profile in  summary.recipients.all %}
+                {% if profile.user.email %}{{profile.user.email}}{% else %}{{profile.user.username}}{% endif %}
+                {% if not forloop.last %}, {% endif %}{% endfor %}</span>
+              </td>
+              <td class="summary-actions">
+                <a class="btn btn-xs btn-default"
+                  onclick="os2web.iframeDialog(
+                  &quot;#edit-summary-modal&quot;,
+                  &quot;/summary/{{summary.pk}}&quot;,
+                  &quot;Redigér opsummeringsrapport '{{summary.name}}'&quot;
+                  )"
+                  title="Redigér opsummeringsrapport">
+                <span class="glyphicon glyphicon-cog"></span> <span>Redigér</span></a>
+                <a href="/summary/{{summary.pk}}/report/" class="btn btn-default btn-xs"
+                  title="Læs rapport">
+                <span class="glyphicon glyphicon-book"></span> <span>Læs</span>
+                </a>
+                <a href="/summary/{{summary.pk}}/delete/" class="btn btn-default btn-xs"
+                  title="Slet opsummeringsrapport">
+                <span class="glyphicon glyphicon-remove"></span> <span>Slet</span>
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
