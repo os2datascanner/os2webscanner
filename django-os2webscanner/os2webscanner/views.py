@@ -403,7 +403,7 @@ class OrganizationUpdate(UpdateView, LoginRequiredMixin):
         return object
 
     def get_success_url(self):
-        return "/organization/"
+        return "/rules/organization/"
 
 
 class ScannerCreate(RestrictedCreateView):

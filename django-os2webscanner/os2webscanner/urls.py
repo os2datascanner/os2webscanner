@@ -68,6 +68,8 @@ urlpatterns = patterns(
         name='rule_update'),
     url(r'^rules/(?P<pk>\d+)/delete/$', RuleDelete.as_view(),
         name='rule_delete'),
+    url(r"^rules/organization/$", OrganizationUpdate.as_view(),
+	name='organization_update'),
     url(r'^reports/$', ReportList.as_view(), name='reports'),
     url(r'^report/(?P<pk>[0-9]+)/$', ReportDetails.as_view(),
         name='report'),
@@ -87,8 +89,6 @@ urlpatterns = patterns(
         name='summary_report'),
     url(r'^summary/(?P<pk>\d+)/delete/$', SummaryDelete.as_view(),
         name='summary_delete'),
-    # url(r"^organization/$", OrganizationUpdate.as_view(),
-    #    name='organization_update'),
     # Login/logout stuff
     url(r'^accounts/login/', 'django.contrib.auth.views.login',
         {'template_name': 'login.html'}, name='login'),
