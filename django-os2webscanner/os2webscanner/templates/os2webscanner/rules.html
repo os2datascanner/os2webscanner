@@ -6,12 +6,7 @@ Regler
 
 {% block body %}
 <div class="container">
-  <p class="lead">Definér ad hoc-regler til brug på et eller flere specifikke scannerjob. Faste regler gælder for alle scannerjob.</p>
-  <ul class="nav nav-tabs" role="tablist">
-    <li role="presentation" class="active"><a href="/rules/" role="tab">Ad hoc-regler</a></li>
-    <li role="presentation"><a href="/rules/organization/" role="tab">Faste regler</a></li>
-  </ul>
-
+  {% include 'os2webscanner/rules_above_content.html' with active='adhoc' %}
   <div class="tab-content">
     <div role="tabpanel" class="tab-pane active" id="adhoc">
       <p class="h2" style="display:inline-block;">Ad hoc-regler</p>
@@ -119,12 +114,8 @@ Regler
         </table>
       </div>
     </div>
-    </div>
   </div>
 </div>
-
-
-
 {% endblock %}
 
 {% block heading %} 
