@@ -1012,7 +1012,7 @@ class DialogSuccess(TemplateView):
         'scanners': Scanner,
         'rules': RegexRule,
         'groups': Group,
-        'summaries': Summary,
+        'reports/summaries': Summary,
     }
 
     def get_context_data(self, **kwargs):
@@ -1109,7 +1109,7 @@ class SummaryCreate(RestrictedCreateView):
 
     def get_success_url(self):
         """The URL to redirect to after successful creation."""
-        return '/summaries/{0}/created/'.format(self.object.id)
+        return '/reports/summaries/{0}/created/'.format(self.object.id)
 
 
 class SummaryUpdate(RestrictedUpdateView):
@@ -1152,7 +1152,7 @@ class SummaryUpdate(RestrictedUpdateView):
 
     def get_success_url(self):
         """The URL to redirect to after successful update."""
-        return '/summaries/%s/saved/' % self.object.pk
+        return '/reports/summaries/%s/saved/' % self.object.pk
 
 
 class SummaryDelete(RestrictedDeleteView):
@@ -1160,7 +1160,7 @@ class SummaryDelete(RestrictedDeleteView):
     """Delete summary."""
 
     model = Summary
-    success_url = '/summaries/'
+    success_url = '/reports/summaries/'
 
 
 class SummaryReport(RestrictedDetailView):

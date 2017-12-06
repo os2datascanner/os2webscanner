@@ -81,13 +81,13 @@ urlpatterns = patterns(
         name='logreport'),
     url(r'^report/(?P<pk>[0-9]+)/delete/$', ReportDelete.as_view(),
         name='report_delete'),
-    url(r'^summaries/$', SummaryList.as_view(), name='summaries'),
-    url(r'^summaries/add/$', SummaryCreate.as_view(), name='summary_add'),
-    url(r'^summary/(?P<pk>\d+)/$', SummaryUpdate.as_view(),
+    url(r'^reports/summaries/$', SummaryList.as_view(), name='summaries'),
+    url(r'^reports/summaries/add/$', SummaryCreate.as_view(), name='summary_add'),
+    url(r'^reports/summary/(?P<pk>\d+)/$', SummaryUpdate.as_view(),
         name='summary_update'),
-    url(r'^summary/(?P<pk>\d+)/report/$', SummaryReport.as_view(),
+    url(r'^reports/summary/(?P<pk>\d+)/report/$', SummaryReport.as_view(),
         name='summary_report'),
-    url(r'^summary/(?P<pk>\d+)/delete/$', SummaryDelete.as_view(),
+    url(r'^reports/summary/(?P<pk>\d+)/delete/$', SummaryDelete.as_view(),
         name='summary_delete'),
     # Login/logout stuff
     url(r'^accounts/login/', 'django.contrib.auth.views.login',
@@ -127,9 +127,9 @@ urlpatterns = patterns(
         ),
 
     # General dialog success handler
-    url(r'^(scanners|domains|rules|groups|summaries)/(\d+)/(created)/$',
+    url(r'^(scanners|domains|rules|groups|reports/summaries)/(\d+)/(created)/$',
         DialogSuccess.as_view()),
-    url(r'^(scanners|domains|rules|groups|summaries)/(\d+)/(saved)/$',
+    url(r'^(scanners|domains|rules|groups|reports/summaries)/(\d+)/(saved)/$',
         DialogSuccess.as_view()),
     url(r'^jsi18n/$', javascript_catalog, js_info_dict),
     # System functions
