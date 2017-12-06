@@ -51,7 +51,7 @@ Rapport &dash; {{scan.scanner.name}}
           </tr>
           <tr>
               <td {% if not scan.do_last_modified_check %} class="text-muted" {% endif %}>Tjek Last-Modified{% if scan.do_last_modified_check %} <span class="glyphicon glyphicon-ok"></span>{% endif %}</td> 
-              <td {% if not scan.do_last_modified_check_head_request and not scan.do_last_modified_check %} class="text-muted" {% endif %}>Brug HEAD request{% if scan.do_last_modified_check_head_request and scan.do_last_modified_check %} <span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
+              <td {% if not scan.do_last_modified_check_head_request and not scan.do_last_modified_check or not scan.do_last_modified_check and scan.do_last_modified_check_head_request %} class="text-muted" {% endif %}>Brug HEAD request{% if scan.do_last_modified_check_head_request and scan.do_last_modified_check %} <span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
               <td></td>
           </tr>
           <tr>
