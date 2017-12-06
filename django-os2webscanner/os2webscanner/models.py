@@ -315,18 +315,18 @@ class Scanner(models.Model):
                                           verbose_name='Adresse')
     do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder')
     do_cpr_modulus11 = models.BooleanField(default=True,
-                                           verbose_name='Check modulus-11')
+                                           verbose_name='Tjek modulus-11')
     do_cpr_ignore_irrelevant = models.BooleanField(
         default=True,
-        verbose_name='Ignorer irrelevante fødselsdatoer')
+        verbose_name='Ignorer ugyldige fødselsdatoer')
     do_link_check = models.BooleanField(default=False,
-                                        verbose_name='Check links')
+                                        verbose_name='Tjek links')
     do_external_link_check = models.BooleanField(
         default=False,
         verbose_name='Eksterne links'
     )
     do_last_modified_check = models.BooleanField(default=True,
-                                                 verbose_name='Check ' +
+                                                 verbose_name='Tjek ' +
                                                               'Last-Modified')
     do_last_modified_check_head_request = models.BooleanField(
         default=True,
@@ -555,18 +555,18 @@ class Scan(models.Model):
                                           verbose_name='Adresse')
     do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder')
     do_cpr_modulus11 = models.BooleanField(default=True,
-                                           verbose_name='Check modulus-11')
+                                           verbose_name='Tjek modulus-11')
     do_cpr_ignore_irrelevant = models.BooleanField(
         default=True,
-        verbose_name='Ignorer irrelevante fødselsdatoer')
+        verbose_name='Ignorer ugyldige fødselsdatoer')
     do_link_check = models.BooleanField(default=False,
-                                        verbose_name='Check links')
+                                        verbose_name='Tjek links')
     do_external_link_check = models.BooleanField(
         default=False,
         verbose_name='Eksterne links'
     )
     do_last_modified_check = models.BooleanField(default=True,
-                                                 verbose_name='Check ' +
+                                                 verbose_name='Tjek ' +
                                                               'Last-Modified')
     do_last_modified_check_head_request = models.BooleanField(
         default=True,

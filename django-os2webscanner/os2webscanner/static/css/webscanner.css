@@ -7,6 +7,40 @@ opacity:.5;
 margin-bottom:-15px;
 }
 
+/* SECONDARY HEADINGS ON TABULATED PAGES */
+p.h2 + .page-action button {
+  margin-top:-.75em;
+  margin-left:1.5em;
+}
+
+/* FRONT PAGE */
+
+ul.cards {
+  margin-top:2em;
+  list-style:none;
+  padding:0;
+}
+ul.cards a.panel {
+  display:block;
+}
+ul.cards a.panel:hover,
+ul.cards a.panel:focus {
+  text-decoration:none;
+  background-color:#eee;
+  cursor:pointer;
+}
+ul.cards span.h2 {
+  display:block;
+  text-align:center;
+}
+ul.cards span.glyphicon {
+  font-size:calc(200% + 5vw);
+  display:block;
+  margin:2rem 0;
+  text-align:center;
+}
+
+
 /* SCANNERS */
 
 .scanner-status {
@@ -160,7 +194,7 @@ width:33%;
 }
 .table.report td.head {
 padding:0;
-border-color:#fff #fff inherit;
+border-color:#fff #fff #ddd;
 }
 .table-responsive.domains-regex {
 margin-top:-20px;

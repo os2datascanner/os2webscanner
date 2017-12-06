@@ -44,28 +44,28 @@ Rapport &dash; {{scan.scanner.name}}
       <table class="table table-bordered report">
           <tbody>
           <tr>
-              <td {% if scan.do_ocr %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Scan Billeder{% if scan.do_ocr %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td> 
+              <td {% if not scan.do_ocr %} class="text-muted" {% endif %}>Scan Billeder{% if scan.do_ocr %} <span class="glyphicon glyphicon-ok"></span>{% endif %}</td> 
               <td></td>
               <td></td>
 
           </tr>
           <tr>
-              <td {% if scan.do_last_modified_check %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Check Last-Modified{% if scan.do_last_modified_check %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td> 
-              <td {% if scan.do_last_modified_check_head_request and scan.do_last_modified_check %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Brug HEAD request{% if scan.do_last_modified_check_head_request and scan.do_last_modified_check %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
+              <td {% if not scan.do_last_modified_check %} class="text-muted" {% endif %}>Tjek Last-Modified{% if scan.do_last_modified_check %} <span class="glyphicon glyphicon-ok"></span>{% endif %}</td> 
+              <td {% if not scan.do_last_modified_check_head_request and not scan.do_last_modified_check or not scan.do_last_modified_check and scan.do_last_modified_check_head_request %} class="text-muted" {% endif %}>Brug HEAD request{% if scan.do_last_modified_check_head_request and scan.do_last_modified_check %} <span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
               <td></td>
           </tr>
           <tr>
-              <td {% if scan.do_cpr_scan %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>CPR{% if scan.do_cpr_scan %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
-              <td {% if scan.do_cpr_modulus11 and scan.do_cpr_scan %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Check modulus-11{% if scan.do_cpr_modulus11  and scan.do_cpr_scan %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
-              <td {% if scan.do_cpr_ignore_irrelevant and scan.do_cpr_scan %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Ignorer irrelevante fødselsdatoer{% if scan.do_cpr_ignore_irrelevant and scan.do_cpr_scan %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
+              <td {% if not scan.do_cpr_scan %} class="text-muted" {% endif %}>CPR{% if scan.do_cpr_scan %} <span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
+              <td {% if not scan.do_cpr_modulus11 %} class="text-muted" {% endif %}>Tjek modulus-11{% if scan.do_cpr_modulus11 and scan.do_cpr_scan %} <span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
+              <td {% if not scan.do_cpr_ignore_irrelevant %} class="text-muted" {% endif %}>Ignorer ugyldige fødselsdatoer{% if scan.do_cpr_ignore_irrelevant and scan.do_cpr_scan %} <span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
           </tr>
           <tr>
-            <td {% if scan.do_link_check %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Check links{% if scan.do_link_check %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
-            <td {% if scan.do_external_link_check %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Eksterne links{% if scan.do_external_link_check %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
+            <td {% if not scan.do_link_check %} class="text-muted" {% endif %}>Tjek links{% if scan.do_link_check %} <span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
+            <td {% if not scan.do_external_link_check %} class="text-muted" {% endif %}>Eksterne links{% if scan.do_external_link_check %} <span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
               <td></td>
         </tr>
         <tr>
-            <td {% if scan.do_collect_cookies %} class="bg-success text-success" {% else %} class="text-muted" {% endif %}>Saml cookies{% if scan.do_collect_cookies %} <span class="glyphicon glyphicon-ok text-success"></span>{% endif %}</td>
+            <td {% if not scan.do_collect_cookies %} class="text-muted" {% endif %}>Saml cookies{% if scan.do_collect_cookies %} <span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
             <td></td>
             <td></td>
 
