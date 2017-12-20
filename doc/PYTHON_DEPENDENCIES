@@ -1,4 +1,4 @@
-Django==1.11.6
+Django==2.1.0
 SQLAlchemy==1.1.14
 Scrapy==1.4.0
 Twisted==15.5.0
