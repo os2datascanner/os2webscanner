@@ -1,10 +1,10 @@
-Django==2.1.0
+Django==2.0
 SQLAlchemy==1.1.14
 Scrapy==1.4.0
 Twisted==15.5.0
 argparse==1.4.0
 arrow==0.10.0
-cffi==1.11.2
+cffi>=1.11.2
 characteristic==14.3.0
 chardet==3.0.4
 cryptography==2.1.2
