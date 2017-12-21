@@ -16,7 +16,7 @@
 
 import os
 import re
-import StringIO
+from io import StringIO
 import csv
 import tempfile
 
@@ -130,7 +130,7 @@ def get_report(username, password, report_url):
     except Exception:
         raise RuntimeError("Report not found")
     # We now have the scan object
-    output = StringIO.StringIO()
+    output = six.moves.StringIO()
     writer = csv.writer(output)
 
     all_matches = Match.objects.filter(scan=scan).order_by(
