@@ -25,7 +25,7 @@ from django.conf import settings
 from django.core.mail import EmailMessage
 from django.template import loader, Context
 
-import models
+from .models import models
 
 
 def notify_user(scan):
