@@ -16,7 +16,7 @@
 """URL mappings."""
 
 from django.conf import settings
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from django.views.i18n import javascript_catalog
 
 from .views import MainPageView, ScannerList, DomainList, RuleList
@@ -36,7 +36,7 @@ js_info_dict = {
     'packages': ('os2webscanner', 'recurrence')
 }
 
-urlpatterns = patterns(
+urlpatterns = [
     '',
     # App URLs
     url(r'^$', MainPageView.as_view(), name='index'),
@@ -142,7 +142,7 @@ urlpatterns = patterns(
     url(r'referrer/(?P<pk>[0-9]+)/$',
         referrer_content, name='referrer_content')
 
-)
+]
 
 if settings.DO_USE_GROUPS:
     urlpatterns += patterns(
