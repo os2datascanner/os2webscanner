@@ -17,7 +17,7 @@
 
 """Contains Django models for the Webscanner."""
 from django.db.models.aggregates import Count
-from urlparse import urljoin
+from urllib.parse import urljoin
 
 import os
 import shutil
@@ -25,8 +25,12 @@ from subprocess import Popen
 import re
 import datetime
 import json
-import StringIO
-import urllib2
+
+# https://github.com/blue-yonder/tsfresh/issues/26
+from io import StringIO
+
+# https://stackoverflow.com/questions/2792650/python3-error-import-error-no-module-name-urllib2
+from urllib.request import urlopen
 
 from django.db import models
 from django.contrib.auth.models import User
@@ -315,18 +319,18 @@ class Scanner(models.Model):
                                           verbose_name='Adresse')
     do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder')
     do_cpr_modulus11 = models.BooleanField(default=True,
-                                           verbose_name='Check modulus-11')
+                                           verbose_name='Tjek modulus-11')
     do_cpr_ignore_irrelevant = models.BooleanField(
         default=True,
-        verbose_name='Ignorer irrelevante fødselsdatoer')
+        verbose_name='Ignorer ugyldige fødselsdatoer')
     do_link_check = models.BooleanField(default=False,
-                                        verbose_name='Check links')
+                                        verbose_name='Tjek links')
     do_external_link_check = models.BooleanField(
         default=False,
         verbose_name='Eksterne links'
     )
     do_last_modified_check = models.BooleanField(default=True,
-                                                 verbose_name='Check ' +
+                                                 verbose_name='Tjek ' +
                                                               'Last-Modified')
     do_last_modified_check_head_request = models.BooleanField(
         default=True,
@@ -499,7 +503,7 @@ class Scanner(models.Model):
             if blocking:
                 process.communicate()
         except Exception as e:
-            print e
+            print (e)
             return None
         return scan
 
@@ -555,18 +559,18 @@ class Scan(models.Model):
                                           verbose_name='Adresse')
     do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder')
     do_cpr_modulus11 = models.BooleanField(default=True,
-                                           verbose_name='Check modulus-11')
+                                           verbose_name='Tjek modulus-11')
     do_cpr_ignore_irrelevant = models.BooleanField(
         default=True,
-        verbose_name='Ignorer irrelevante fødselsdatoer')
+        verbose_name='Ignorer ugyldige fødselsdatoer')
     do_link_check = models.BooleanField(default=False,
-                                        verbose_name='Check links')
+                                        verbose_name='Tjek links')
     do_external_link_check = models.BooleanField(
         default=False,
         verbose_name='Eksterne links'
     )
     do_last_modified_check = models.BooleanField(default=True,
-                                                 verbose_name='Check ' +
+                                                 verbose_name='Tjek ' +
                                                               'Last-Modified')
     do_last_modified_check_head_request = models.BooleanField(
         default=True,
@@ -857,16 +861,16 @@ class Scan(models.Model):
         )
         if log:
             if pending_items.exists():
-                print "Deleting %d remaining conversion queue items from " \
+                print ("Deleting %d remaining conversion queue items from " \
                       "finished scan %s" % (
-                          pending_items.count(), self)
+                          pending_items.count(), self))
 
         pending_items.delete()
 
         # remove all files associated with the scan
         if self.is_scan_dir_writable():
             if log:
-                print "Deleting scan directory: %s" % self.scan_dir
+                print ("Deleting scan directory: %s" % self.scan_dir)
             shutil.rmtree(self.scan_dir, True)
 
     @classmethod
@@ -910,20 +914,20 @@ class Scan(models.Model):
             num_ocr_items = items["total"]
             if (not scan.pause_non_ocr_conversions and
                     num_ocr_items > settings.PAUSE_NON_OCR_ITEMS_THRESHOLD):
-                print "Pausing non-OCR conversions for scan <%s> (%d) " \
+                print ("Pausing non-OCR conversions for scan <%s> (%d) " \
                       "because it has %d OCR items which is over the " \
                       "threshold of %d" % \
                       (scan, scan.pk, num_ocr_items,
-                       settings.PAUSE_NON_OCR_ITEMS_THRESHOLD)
+                       settings.PAUSE_NON_OCR_ITEMS_THRESHOLD))
                 scan.pause_non_ocr_conversions = True
                 scan.save()
             elif (scan.pause_non_ocr_conversions and
                   num_ocr_items < settings.RESUME_NON_OCR_ITEMS_THRESHOLD):
-                print "Resuming non-OCR conversions for scan <%s> (%d) " \
+                print ("Resuming non-OCR conversions for scan <%s> (%d) " \
                       "because it has %d OCR items which is under the " \
                       "threshold of %d" % \
                       (scan, scan.pk, num_ocr_items,
-                       settings.RESUME_NON_OCR_ITEMS_THRESHOLD)
+                       settings.RESUME_NON_OCR_ITEMS_THRESHOLD))
                 scan.pause_non_ocr_conversions = False
                 scan.save()
 
