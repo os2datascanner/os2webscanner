@@ -16,7 +16,7 @@
 """Domain validation functions."""
 
 import re
-import urllib2
+import urllib
 import urlparse
 import hashlib
 from os2webscanner.models import Domain
@@ -28,7 +28,8 @@ def _do_request(url):
         request = urllib2.Request(url, headers={"User-Agent": "OS2Webscanner"})
         r = urllib2.urlopen(request)
         return r.read()
-    except urllib2.URLError, urllib2.HTTPError:
+    #except urllib2.URLError, urllib2.HTTPError:
+    except URLError:
         return None
 
 
