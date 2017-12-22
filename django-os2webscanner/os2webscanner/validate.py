@@ -25,11 +25,11 @@ from os2webscanner.models import Domain
 def _do_request(url):
     """Make a request and return the data."""
     try:
-        request = urllib2.Request(url, headers={"User-Agent": "OS2Webscanner"})
-        r = urllib2.urlopen(request)
+        request = urllib.Request(url, headers={"User-Agent": "OS2Webscanner"})
+        r = urllib.urlopen(request)
         return r.read()
     #except urllib2.URLError, urllib2.HTTPError:
-    except URLError:
+    except urllib.URLError:
         return None
 
 
