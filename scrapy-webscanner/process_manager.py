@@ -42,7 +42,7 @@ sys.path.append(base_dir + "/webscanner_site")
 os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 django.setup()
 
-os.umask(0007)
+os.umask(0o007)
 
 from os2webscanner.models import ConversionQueueItem, Scan
 
@@ -66,7 +66,7 @@ process_list = []
 def stop_process(p):
     """Stop the process."""
     if 'process_handle' not in p:
-        print "Process %s already stopped" % p['name']
+        print ("Process %s already stopped" % p['name'])
         return
 
     phandle = p['process_handle']
@@ -74,7 +74,7 @@ def stop_process(p):
     pid = phandle.pid
     # If running, stop it
     if phandle.poll() is None:
-        print "Terminating process %s" % p['name']
+        print ("Terminating process %s" % p['name'])
         phandle.terminate()
         phandle.wait()
     # Remove pid from process map
@@ -123,9 +123,9 @@ def start_process(p):
             "Program %s is already running" % p['name']
         )
 
-    print "Starting process %s, (%s)" % (
+    print ("Starting process %s, (%s)" % (
         p['name'], " ".join(p['program_args'])
-    )
+    ))
 
     log_file = os.path.join(log_dir, p['name'] + '.log')
     log_fh = open(log_file, 'a')
@@ -139,11 +139,11 @@ def start_process(p):
     pid = process_handle.pid
 
     if process_handle.poll() is None:
-        print "Process %s started successfully, pid = %s" % (
+        print ("Process %s started successfully, pid = %s" % (
             p['name'], pid
-        )
+        ))
     else:
-        print "Failed to start process %s, exiting" % p['name']
+        print ("Failed to start process %s, exiting" % p['name'])
         exit_handler()
 
     p['log_fh'] = log_fh
@@ -198,9 +198,9 @@ def main():
         db.reset_queries()
         for pdata in process_list:
             if pdata['process_handle'].poll() is not None:
-                print "Process %s has terminated, restarting it" % (
+                print ("Process %s has terminated, restarting it" % (
                     pdata['name']
-                )
+                ))
                 restart_process(pdata)
 
         stuck_processes = ConversionQueueItem.objects.filter(
@@ -213,7 +213,7 @@ def main():
         for p in stuck_processes:
             pid = p.process_id
             if pid in process_map:
-                print "Process with pid %s is stuck, restarting" % pid
+                print ("Process with pid %s is stuck, restarting" % pid)
                 stuck_process = process_map[pid]
                 restart_process(stuck_process)
             else:
@@ -270,4 +270,4 @@ try:
 except KeyboardInterrupt:
     pass
 except django.db.utils.InternalError as e:
-    print e
+    print (e)
