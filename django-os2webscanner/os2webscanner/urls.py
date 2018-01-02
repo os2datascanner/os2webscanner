@@ -18,6 +18,7 @@
 from django.conf import settings
 from django.conf.urls import url
 from django.views.i18n import javascript_catalog
+import django.contrib.auth.views
 
 from .views import MainPageView, ScannerList, DomainList, RuleList
 from .views import CSVReportDetails, ReportDetails, ReportList, ReportDelete
@@ -37,7 +38,7 @@ js_info_dict = {
 }
 
 urlpatterns = [
-    '',
+#    '',
     # App URLs
     url(r'^$', MainPageView.as_view(), name='index'),
     url(r'^scanners/$', ScannerList.as_view(), name='scanners'),
@@ -90,38 +91,38 @@ urlpatterns = [
     url(r"^organization/$", OrganizationUpdate.as_view(),
         name='organization_update'),
     # Login/logout stuff
-    url(r'^accounts/login/', 'django.contrib.auth.views.login',
+    url(r'^accounts/login/', django.contrib.auth.views.login,
         {'template_name': 'login.html'}, name='login'),
-    url(r'^accounts/logout/', 'django.contrib.auth.views.logout',
+    url(r'^accounts/logout/', django.contrib.auth.views.logout,
         {'template_name': 'logout.html'}, name='logout'),
     url(r'^accounts/password_change/',
-        'django.contrib.auth.views.password_change',
+        django.contrib.auth.views.password_change,
         {'template_name': 'password_change.html'},
         name='password_change'
         ),
     url(r'^accounts/password_change_done/',
-        'django.contrib.auth.views.password_change_done',
+        django.contrib.auth.views.password_change_done,
         {'template_name': 'password_change_done.html'},
         name='password_change_done'
         ),
     url(r'^accounts/password_reset/$',
-        'django.contrib.auth.views.password_reset',
+        django.contrib.auth.views.password_reset,
         {'template_name': 'password_reset_form.html'},
         name='password_reset'
         ),
     url(r'^accounts/password_reset/done/',
-        'django.contrib.auth.views.password_reset_done',
+        django.contrib.auth.views.password_reset_done,
         {'template_name': 'password_reset_done.html'},
         name='password_reset_done'
         ),
     url(r'^accounts/reset/(?P<uidb64>[0-9A-Za-z_\-]+)/' +
         '(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
-        'django.contrib.auth.views.password_reset_confirm',
+        django.contrib.auth.views.password_reset_confirm,
         {'template_name': 'password_reset_confirm.html'},
         name='password_reset_confirm'
         ),
     url(r'^accounts/reset/complete',
-        'django.contrib.auth.views.password_reset_complete',
+        django.contrib.auth.views.password_reset_complete,
         {'template_name': 'password_reset_complete.html'},
         name='password_reset_complete'
         ),
