@@ -29,7 +29,7 @@ Har du glemt dit password? <a href="{% url 'password_reset' %}">Klik her</a>.
   </div>
 {% endif %}
 {% endif %}
-      <form role="form-horizontal" method="post" action="{% url 'django.contrib.auth.views.login' %}">
+      <form role="form-horizontal" method="post" action="{% url 'login' %}">
           {% csrf_token %}
 	<div class="form-group{% if form.username.errors %} has-error{% endif %}">
           <label class="control-label" for="id_{{ form.username.name }}">{{ form.username.label }}</label>
