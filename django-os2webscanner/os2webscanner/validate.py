@@ -17,7 +17,7 @@
 
 import re
 import urllib
-import urlparse
+from urllib.parse import urlparse
 import hashlib
 from os2webscanner.models import Domain
 
