@@ -15,6 +15,26 @@ PROJECT_DIR = os.path.dirname(BASE_DIR)
 VAR_DIR = os.path.join(PROJECT_DIR, 'var')
 LOGS_DIR = os.path.join(VAR_DIR, 'logs')
 
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': 
+        [
+            'BASE_DIR/django-os2webscanner/os2webscanner/templates'
+        ],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+            'django.template.context_processors.debug',
+            'django.template.context_processors.request',
+            'django.contrib.auth.context_processors.auth',
+            'django.contrib.messages.context_processors.messages',
+             ],
+         },
+    },
+]
+
 # Site URL for calculating absolute URLs in emails.
 SITE_URL = 'http://webscanner.magenta-aps.dk'
 
