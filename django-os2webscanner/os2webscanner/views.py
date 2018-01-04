@@ -258,14 +258,18 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
 
         return fields
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Get the form for the view."""
+        if form_class is None:
+            form_class = self.get_form_class()
+
         fields = self.get_form_fields()
         form_class = modelform_factory(self.model, fields=fields)
         kwargs = self.get_form_kwargs()
 
         form = form_class(**kwargs)
         user = self.request.user
+
         if 'group' in fields:
             if user.profile.is_group_admin:
                 queryset = (
@@ -320,14 +324,18 @@ class OrgRestrictedMixin(ModelFormMixin, LoginRequiredMixin):
             fields.append('group')
         return fields
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Get the form for the view."""
+        if form_class is None:
+            form_class = self.get_form_class()
+        
         fields = self.get_form_fields()
         form_class = modelform_factory(self.model, fields=fields)
         kwargs = self.get_form_kwargs()
 
         form = form_class(**kwargs)
         user = self.request.user
+
         if 'group' in fields:
             if user.is_superuser or user.profile.is_group_admin:
                 form.fields['group'].queryset = (
@@ -418,13 +426,16 @@ class ScannerCreate(RestrictedCreateView):
               'do_last_modified_check', 'do_last_modified_check_head_request',
               'regex_rules', 'recipients']
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Get the form for the view.
 
         Querysets used for choices in the 'domains' and 'regex_rules' fields
         will be limited by the user's organiztion unless the user is a
         superuser.
         """
+        if form_class is None:
+            form_class = self.get_form_class()
+
         form = super(ScannerCreate, self).get_form(form_class)
         try:
             organization = self.request.user.profile.organization
@@ -478,13 +489,17 @@ class ScannerUpdate(RestrictedUpdateView):
         """The URL to redirect to after successful update."""
         return '/scanners/%s/saved/' % self.object.pk
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Get the form for the view.
 
         Querysets used for choices in the 'domains' and 'regex_rules' fields
         will be limited by the user's organiztion unless the user is a
         superuser.
         """
+        
+        if form_class is None:
+            form_class = self.get_form_class()
+
         self.fields = self.get_form_fields()
         form = super(ScannerUpdate, self).get_form(form_class)
 
@@ -590,11 +605,14 @@ class DomainCreate(RestrictedCreateView):
             fields.append('validation_status')
         return fields
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Get the form for the view.
 
         All form widgets will have added the css class 'form-control'.
         """
+        if form_class is None:
+            form_class = self.get_form_class()
+        
         form = super(DomainCreate, self).get_form(form_class)
 
         for fname in form.fields:
@@ -628,9 +646,12 @@ class DomainUpdate(RestrictedUpdateView):
         self.fields = fields
         return fields
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Get the form for the view.
         """
+        if form_class is None:
+            form_class = self.get_form_class()
+
         form = super(DomainUpdate, self).get_form(form_class)
 
         for fname in form.fields:
@@ -728,13 +749,16 @@ class GroupCreate(RestrictedCreateView):
 
         return fields
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Get the form for the view.
 
         Querysets used for choices in the 'domains' and 'regex_rules' fields
         will be limited by the user's organiztion unless the user is a
         superuser.
         """
+        if form_class is None:
+            form_class = self.get_form_class()
+
         form = super(GroupCreate, self).get_form(form_class)
 
         field_name = 'user_profiles'
@@ -756,13 +780,16 @@ class GroupUpdate(RestrictedUpdateView):
     model = Group
     fields = ['name', 'contact_email', 'contact_phone', 'user_profiles']
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Get the form for the view.
 
         Querysets used for choices in the 'domains' and 'regex_rules' fields
         will be limited by the user's organiztion unless the user is a
         superuser.
         """
+        if form_class is None:
+            form_class = self.get_form_class()
+
         form = super(GroupUpdate, self).get_form(form_class)
         group = self.get_object()
         field_name = 'user_profiles'
@@ -795,11 +822,14 @@ class RuleCreate(RestrictedCreateView):
     model = RegexRule
     fields = ['name', 'match_string', 'description', 'sensitivity']
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Get the form for the view.
 
         All form fields will have the css class 'form-control' added.
         """
+        if form_class is None:
+            form_class = self.get_form_class()
+
         form = super(RuleCreate, self).get_form(form_class)
 
         for fname in form.fields:
@@ -820,11 +850,14 @@ class RuleUpdate(RestrictedUpdateView):
     model = RegexRule
     fields = ['name', 'match_string', 'description', 'sensitivity']
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Get the form for the view.
 
         All form fields will have the css class 'form-control' added.
         """
+        if form_class is None:
+            form_class = self.get_form_class()
+
         form = super(RuleUpdate, self).get_form(form_class)
 
         for fname in form.fields:
@@ -1095,8 +1128,11 @@ class SummaryCreate(RestrictedCreateView):
     fields = ['name', 'description', 'schedule', 'last_run', 'recipients',
               'scanners']
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Set up fields and return form."""
+        if form_class is None:
+            form_class = self.get_form_class()
+
         form = super(SummaryCreate, self).get_form(form_class)
 
         field_names = ['recipients', 'scanners']
@@ -1120,13 +1156,16 @@ class SummaryUpdate(RestrictedUpdateView):
     fields = ['name', 'description', 'schedule', 'last_run', 'recipients',
               'scanners', 'do_email_recipients']
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Get the form for the view.
 
         Querysets for selecting the field 'recipients' must be limited by the
         summary's organization - i.e., there must be an organization set on
         the object.
         """
+        if form_class is None:
+            form_class = self.get_form_class()
+
         form = super(SummaryUpdate, self).get_form(form_class)
         summary = self.get_object()
         # Limit recipients to organization
