@@ -70,7 +70,7 @@ def notify_user(scan):
 def capitalize_first(s):
     """Capitalize the first letter of a string, leaving the others alone."""
     if s is None or len(s) < 1:
-        return u""
+        return ""
     return s.replace(s[0], s[0].upper(), 1)
 
 
