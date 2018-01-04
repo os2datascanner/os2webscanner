@@ -25,7 +25,7 @@ from django.test import TestCase
 from django.conf import settings
 
 from os2webscanner.models import Domain, Organization, Scanner, Scan
-from validate import validate_domain
+from .validate import validate_domain
 
 install_directory = os.path.abspath(os.path.join(settings.BASE_DIR, '..'))
 
@@ -57,7 +57,7 @@ class ScannerTest(TestCase):
                             organization=self.magenta,
                             pk=1)
             domain.save()
-            print "VALIDATING", validation_method
+            print("VALIDATING", validation_method)
             self.assertTrue(validate_domain(domain))
 
         for validation_method in all_methods:
