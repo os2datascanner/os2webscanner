@@ -30,7 +30,7 @@ from .models import ReferrerUrl, UrlLastModified, Group, Md5Sum
 ar = admin.site.register
 classes = [Organization, Domain, RegexRule, Scanner, Scan, Match, Url,
            ConversionQueueItem, ReferrerUrl, UrlLastModified, Group, Md5Sum]
-map(ar, classes)
+list(map(ar, classes))
 
 
 class ProfileInline(admin.TabularInline):
