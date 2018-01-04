@@ -16,7 +16,7 @@
 """Domain validation functions."""
 
 import re
-import urllib
+import urllib.request, urllib.parse, urllib.error
 from urllib.parse import urlparse
 import hashlib
 from os2webscanner.models import Domain
@@ -26,7 +26,7 @@ def _do_request(url):
     """Make a request and return the data."""
     try:
         request = urllib.Request(url, headers={"User-Agent": "OS2Webscanner"})
-        r = urllib.urlopen(request)
+        r = urllib.request.urlopen(request)
         return r.read()
     #except urllib2.URLError, urllib2.HTTPError:
     except urllib.URLError:
