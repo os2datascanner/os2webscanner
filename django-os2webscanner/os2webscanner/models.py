@@ -53,9 +53,9 @@ class Sensitivity:
     OK = 0
 
     choices = (
-        (OK, u'Grøn'),
-        (LOW, u'Gul'),
-        (HIGH, u'Rød'),
+        (OK, 'Grøn'),
+        (LOW, 'Gul'),
+        (HIGH, 'Rød'),
     )
 
 
@@ -437,9 +437,9 @@ class Scanner(models.Model):
         rules = [r for r in self.schedule.rrules]  # Use r.to_text() to render
         dates = [d for d in self.schedule.rdates]
         if len(rules) > 0 or len(dates) > 0:
-            return u"Ja"
+            return "Ja"
         else:
-            return u"Nej"
+            return "Nej"
 
     @property
     def has_active_scans(self):
@@ -861,16 +861,16 @@ class Scan(models.Model):
         )
         if log:
             if pending_items.exists():
-                print ("Deleting %d remaining conversion queue items from " \
+                print(("Deleting %d remaining conversion queue items from " \
                       "finished scan %s" % (
-                          pending_items.count(), self))
+                          pending_items.count(), self)))
 
         pending_items.delete()
 
         # remove all files associated with the scan
         if self.is_scan_dir_writable():
             if log:
-                print ("Deleting scan directory: %s" % self.scan_dir)
+                print(("Deleting scan directory: %s" % self.scan_dir))
             shutil.rmtree(self.scan_dir, True)
 
     @classmethod
@@ -914,20 +914,20 @@ class Scan(models.Model):
             num_ocr_items = items["total"]
             if (not scan.pause_non_ocr_conversions and
                     num_ocr_items > settings.PAUSE_NON_OCR_ITEMS_THRESHOLD):
-                print ("Pausing non-OCR conversions for scan <%s> (%d) " \
+                print(("Pausing non-OCR conversions for scan <%s> (%d) " \
                       "because it has %d OCR items which is over the " \
                       "threshold of %d" % \
                       (scan, scan.pk, num_ocr_items,
-                       settings.PAUSE_NON_OCR_ITEMS_THRESHOLD))
+                       settings.PAUSE_NON_OCR_ITEMS_THRESHOLD)))
                 scan.pause_non_ocr_conversions = True
                 scan.save()
             elif (scan.pause_non_ocr_conversions and
                   num_ocr_items < settings.RESUME_NON_OCR_ITEMS_THRESHOLD):
-                print ("Resuming non-OCR conversions for scan <%s> (%d) " \
+                print(("Resuming non-OCR conversions for scan <%s> (%d) " \
                       "because it has %d OCR items which is under the " \
                       "threshold of %d" % \
                       (scan, scan.pk, num_ocr_items,
-                       settings.RESUME_NON_OCR_ITEMS_THRESHOLD))
+                       settings.RESUME_NON_OCR_ITEMS_THRESHOLD)))
                 scan.pause_non_ocr_conversions = False
                 scan.save()
 
@@ -977,7 +977,7 @@ class Url(models.Model):
     @property
     def content(self):
         try:
-            file = urllib2.urlopen(self.url)
+            file = urllib.request.urlopen(self.url)
             return file.read()
         except Exception as e:
             return str(e)
@@ -1025,7 +1025,7 @@ class Match(models.Model):
 
     def __unicode__(self):
         """Return a string representation of the match."""
-        return u"Match: %s; [%s] %s <%s>" % (self.get_sensitivity_display(),
+        return "Match: %s; [%s] %s <%s>" % (self.get_sensitivity_display(),
                                              self.matched_rule,
                                              self.matched_data, self.url)
 
@@ -1092,7 +1092,7 @@ class ReferrerUrl(models.Model):
     def content(self):
         """Return the content of the target url"""
         try:
-            file = urllib2.urlopen(self.url)
+            file = urllib.request.urlopen(self.url)
             return file.read()
         except Exception as e:
             return str(e)
@@ -1177,4 +1177,4 @@ class Md5Sum(models.Model):
                            'is_ignore_irrelevant', 'organization')
 
     def __unicode__(self):
-        return u"{0}: {1}".format(self.organization.name, self.md5)
+        return "{0}: {1}".format(self.organization.name, self.md5)
