@@ -937,7 +937,7 @@ class ScanReportLog(ReportDetails):
         log_file = "scan{0}_log.txt".format(scan.id)
         response[
             'Content-Disposition'
-        ] = u'attachment; filename={0}'.format(log_file)
+        ] = 'attachment; filename={0}'.format(log_file)
 
         with open(scan.scan_log_file, "r") as f:
             response.write(f.read())
@@ -952,12 +952,12 @@ class CSVReportDetails(ReportDetails):
         """Generate a CSV file and return it as the http response."""
         scan = self.get_object()
         response = HttpResponse(content_type='text/csv')
-        report_file = u'{0}{1}.csv'.format(
-            scan.scanner.organization.name.replace(u' ', u'_'),
+        report_file = '{0}{1}.csv'.format(
+            scan.scanner.organization.name.replace(' ', '_'),
             scan.id)
         response[
             'Content-Disposition'
-        ] = u'attachment; filename={0}'.format(report_file)
+        ] = 'attachment; filename={0}'.format(report_file)
         writer = csv.writer(response)
         all_matches = context['all_matches']
 
@@ -966,8 +966,8 @@ class CSVReportDetails(ReportDetails):
             return ([f.encode('utf-8') for f in fields])
 
         # Print summary header
-        writer.writerow(e([u'Starttidspunkt', u'Sluttidspunkt', u'Status',
-                        u'Totalt antal matches', u'Total antal broken links']))
+        writer.writerow(e(['Starttidspunkt', 'Sluttidspunkt', 'Status',
+                        'Totalt antal matches', 'Total antal broken links']))
         # Print summary
         writer.writerow(
             e(
@@ -979,7 +979,7 @@ class CSVReportDetails(ReportDetails):
         )
         if all_matches:
             # Print match header
-            writer.writerow(e([u'URL', u'Regel', u'Match', u'Følsomhed']))
+            writer.writerow(e(['URL', 'Regel', 'Match', 'Følsomhed']))
             for match in all_matches:
                 writer.writerow(
                     e([match.url.url,
@@ -990,7 +990,7 @@ class CSVReportDetails(ReportDetails):
         broken_urls = context['broken_urls']
         if broken_urls:
             # Print broken link header
-            writer.writerow(e([u'Referrers', u'URL', u'Status']))
+            writer.writerow(e(['Referrers', 'URL', 'Status']))
             for url in broken_urls:
                 for referrer in url.referrers.all():
                     writer.writerow(
@@ -1256,12 +1256,12 @@ def file_upload(request):
             if not params['output_spreadsheet_file']:
                 return HttpResponseRedirect('/report/{0}/'.format(scan.pk))
             response = HttpResponse(content_type='text/csv')
-            report_file = u'{0}{1}.csv'.format(
-                scan.scanner.organization.name.replace(u' ', u'_'),
+            report_file = '{0}{1}.csv'.format(
+                scan.scanner.organization.name.replace(' ', '_'),
                 scan.id)
             response[
                 'Content-Disposition'
-            ] = u'attachment; filename={0}'.format(report_file)
+            ] = 'attachment; filename={0}'.format(report_file)
             csv_file = open(scan.scan_output_file, "rb")
 
             # Load CSV file, write it back to the client
