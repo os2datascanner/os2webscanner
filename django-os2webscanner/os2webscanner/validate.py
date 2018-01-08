@@ -38,7 +38,7 @@ def _get_validation_hash(domain):
 
     The validation hash is based on the domain's organization's primary key.
     """
-    return hashlib.md5(str(domain.organization.pk)).hexdigest()
+    return hashlib.md5(str(domain.organization.pk).encode('utf-8')).hexdigest()
 
 
 def get_validation_str(domain, method=None):
