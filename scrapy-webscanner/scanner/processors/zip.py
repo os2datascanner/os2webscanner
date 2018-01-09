@@ -15,7 +15,7 @@
 # source municipalities ( http://www.os2web.dk/ )
 """Zip file processors."""
 
-from processor import Processor
+from .processor import Processor
 import subprocess
 
 

@@ -30,7 +30,7 @@ import magic
 # Use our monkey-patched link extractor
 from ..linkextractor import LxmlLinkExtractor
 
-from base_spider import BaseScannerSpider
+from .base_spider import BaseScannerSpider
 
 from ..processors.processor import Processor
 
@@ -112,7 +112,7 @@ class ScannerSpider(BaseScannerSpider):
                             meta={"lastmod": url.get("lastmod", None)})
                 )
             except Exception as e:
-                log.msg(u"URL failed: {0} ({1})".format(url, str(e)))
+                log.msg("URL failed: {0} ({1})".format(url, str(e)))
 
         requests.extend([Request(url, callback=self.parse,
                                  errback=self.handle_error)

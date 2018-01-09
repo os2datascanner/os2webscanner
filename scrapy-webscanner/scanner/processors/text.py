@@ -16,7 +16,7 @@
 """Text Processors."""
 
 from ..scanner.scanner import Scanner
-from processor import Processor
+from .processor import Processor
 import os
 
 

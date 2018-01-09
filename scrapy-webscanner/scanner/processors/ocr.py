@@ -21,8 +21,8 @@ import subprocess
 
 from scrapy import log
 
-from processor import Processor
-from text import TextProcessor
+from .processor import Processor
+from .text import TextProcessor
 
 
 class OCRProcessor(Processor):

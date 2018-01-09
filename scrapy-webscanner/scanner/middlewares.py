@@ -399,7 +399,7 @@ class LastModifiedCheckMiddleware(object):
                 # TODO: Check meta tag.
                 # TODO: This is correct, but find out where it goes :-)
                 body_html = html.fromstring(response.body)
-                meta_dict = {el.values()[0]: el.values()[1]
+                meta_dict = {list(el.values())[0]: list(el.values())[1]
                              for el in body_html.findall('head/meta')}
                 if 'last-modified' in meta_dict:
                     lm = meta_dict['last-modified']

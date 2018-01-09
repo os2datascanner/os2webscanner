@@ -21,7 +21,7 @@ import regex
 import os
 import codecs
 
-from rule import Rule
+from .rule import Rule
 from os2webscanner.models import Sensitivity
 from ..items import MatchItem
 
@@ -91,7 +91,7 @@ def load_name_file(file_name):
     """
     names = []
     for line in codecs.open(file_name, "r", "latin-1"):
-        names.append(unicode(line.strip().upper()))
+        names.append(str(line.strip().upper()))
     return names
 
 
@@ -150,8 +150,8 @@ class AddressRule(Rule):
             zip_code = address[2].upper() if address[2] else ''
             city = address[3].upper()if address[3] else ''
 
-            street_address = u"%s %s" % (street_name, house_number)
-            full_address = u"%s %s, %s %s" % (street_name, house_number,
+            street_address = "%s %s" % (street_name, house_number)
+            full_address = "%s %s, %s %s" % (street_name, house_number,
                                               zip_code, city)
 
             if (

@@ -18,7 +18,7 @@
 import regex
 from datetime import datetime
 
-from rule import Rule
+from .rule import Rule
 from os2webscanner.models import Sensitivity
 from ..items import MatchItem
 

@@ -56,7 +56,7 @@ class BaseScannerSpider(Spider):
             match_against += "#" + url.fragment
 
         for rule in self.exclusion_rules:
-            if isinstance(rule, basestring):
+            if isinstance(rule, str):
                 # Do case-insensitive substring search
                 if match_against.lower().find(rule.lower()) != -1:
                     return True

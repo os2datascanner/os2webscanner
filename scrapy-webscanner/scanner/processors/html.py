@@ -15,10 +15,10 @@
 # source municipalities ( http://www.os2web.dk/ )
 """HTML Processors."""
 
-from processor import Processor
+from .processor import Processor
 from w3lib.html import replace_entities, remove_tags_with_content
 
-from text import TextProcessor
+from .text import TextProcessor
 from scrapy import log
 import os
 

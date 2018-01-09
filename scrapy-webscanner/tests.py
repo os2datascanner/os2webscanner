@@ -47,7 +47,7 @@ class ExternalLinkCheckerTest(unittest.TestCase):
             "http://google.com/asdasdfasdgfr4rter.html")
         self.assertIsNotNone(res)
         # Check status code is correct
-        self.assertEquals(res["status_code"], 404)
+        self.assertEqual(res["status_code"], 404)
 
         # Random domain is not OK
         self.assertIsNotNone(linkchecker.check_url(
@@ -76,7 +76,7 @@ class NameTest(unittest.TestCase):
         invalid_names = ['sdfsdsad Asdfsddsfasd']
         matches = name.NameRule().execute(text)
         matches = [re.sub('\s+', ' ', m['matched_data']) for m in matches]
-        print matches
+        print(matches)
         for valid_name in valid_names:
             self.assertTrue(any(m == valid_name for m in matches),
                             valid_name + " is valid")
@@ -92,7 +92,7 @@ class CPRTest(unittest.TestCase):
     def check_matches(self, matches, valid_matches, invalid_matches):
         """Check that the matches contains the given valid matches and none
         of the given invalid matches."""
-        print matches
+        print(matches)
         for valid_match in valid_matches:
             self.assertTrue(
                 any(m['matched_data'] == valid_match for m in matches))

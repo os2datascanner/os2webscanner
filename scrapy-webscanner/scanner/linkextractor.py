@@ -1,6 +1,6 @@
 """Monkey-patch the LxmlParserLinkExtractor."""
 
-from urlparse import urljoin
+from urllib.parse import urljoin
 
 from scrapy import log
 from scrapy.contrib.linkextractors.lxmlhtml import LxmlParserLinkExtractor
@@ -37,12 +37,12 @@ def _extract_links(self, selector, response_url, response_encoding, base_url):
             url = self.process_attr(attr_val)
             if url is None:
                 continue
-            if isinstance(url, unicode):
+            if isinstance(url, str):
                 url = url.encode(response_encoding)
             # to fix relative links after process_value
             url = urljoin(response_url, url)
             link = Link(
-                url, _collect_string_content(el) or u'',
+                url, _collect_string_content(el) or '',
                 nofollow=True if el.get('rel') == 'nofollow' else False
             )
             links.append(link)

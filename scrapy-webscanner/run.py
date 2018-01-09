@@ -16,7 +16,7 @@
 # source municipalities ( http://www.os2web.dk/ )
 """Run a scan by Scan ID."""
 import collections
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 import os
 import sys
@@ -28,7 +28,7 @@ sys.path.append(base_dir + "/webscanner_site")
 os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 django.setup()
 
-os.umask(0007)
+os.umask(0o007)
 
 os.environ["SCRAPY_SETTINGS_MODULE"] = "scanner.settings"
 
@@ -189,14 +189,14 @@ class ScannerApp:
 
     def external_link_check(self, external_urls):
         """Perform external link checking."""
-        print "Link checking %d external URLs..." % len(external_urls)
+        print("Link checking %d external URLs..." % len(external_urls))
         for url in external_urls:
             url_parse = urlparse(url)
             if url_parse.scheme not in ("http", "https"):
                 # We don't want to allow external URL checking of other
                 # schemes (file:// for example)
                 continue
-            print "Checking external URL %s" % url
+            print("Checking external URL %s" % url)
             result = linkchecker.check_url(url)
             if result is not None:
                 broken_url = Url(url=url, scan=self.scan_object,

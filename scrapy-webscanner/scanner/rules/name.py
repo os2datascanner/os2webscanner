@@ -21,7 +21,7 @@ import regex
 import os
 import codecs
 
-from rule import Rule
+from .rule import Rule
 from os2webscanner.models import Sensitivity
 from ..items import MatchItem
 
@@ -74,7 +74,7 @@ def load_name_file(file_name):
         # Skip beginning lines which are not in uppercase
         if len(line) > 0 and not line[1].isupper():
             continue
-        names.append(unicode(line[:line.index('\t')]))
+        names.append(str(line[:line.index('\t')]))
     return names
 
 
@@ -173,11 +173,11 @@ class NameRule(Rule):
                 matched_text = matched_text.rstrip()
 
             if middle_names:
-                full_name = u"%s %s %s" % (
+                full_name = "%s %s %s" % (
                     first_name, " ".join(middle_names), last_name
                 )
             else:
-                full_name = u"%s %s" % (first_name, last_name)
+                full_name = "%s %s" % (first_name, last_name)
 
             if full_name in self.whitelist:
                 continue

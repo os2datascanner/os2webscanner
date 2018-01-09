@@ -7,7 +7,7 @@ from scrapy.utils.sitemap import Sitemap, sitemap_urls_from_robots
 from scrapy.http import Request
 from scrapy import log
 
-from base_spider import BaseScannerSpider
+from .base_spider import BaseScannerSpider
 
 import dateutil.parser
 import datetime
