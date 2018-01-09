@@ -89,7 +89,7 @@ class Organization(models.Model):
                                      default="",
                                      verbose_name='Godkendte CPR-numre')
 
-    def __unicode__(self):
+    def __str__(self):
         """Return the name of the organization."""
         return self.name
 
@@ -115,7 +115,7 @@ class UserProfile(models.Model):
         """Whether to activate groups in GUI."""
         return settings.DO_USE_GROUPS
 
-    def __unicode__(self):
+    def __str__(self):
         """Return the user's username."""
         return self.user.username
 
@@ -133,7 +133,7 @@ class Group(models.Model):
                                      related_name='groups',
                                      verbose_name='Organisation')
 
-    def __unicode__(self):
+    def __str__(self):
         """Return the name of the group."""
         return self.name
 
@@ -144,7 +144,7 @@ class Group(models.Model):
     @property
     def display_name(self):
         """The name used when displaying the domain on the web page."""
-        return "Group '%s'" % self.__unicode__()
+        return "Group '%s'" % self.__str__()
 
 
 class Domain(models.Model):
@@ -262,7 +262,7 @@ class Domain(models.Model):
         """Get the absolute URL for domains."""
         return '/domains/'
 
-    def __unicode__(self):
+    def __str__(self):
         """Return the URL for the domain."""
         return self.url
 
@@ -294,7 +294,7 @@ class RegexRule(models.Model):
         """Get the absolute URL for rules."""
         return '/rules/'
 
-    def __unicode__(self):
+    def __str__(self):
         """Return the name of the rule."""
         return self.name
 
@@ -511,7 +511,7 @@ class Scanner(models.Model):
         """Get the absolute URL for scanners."""
         return '/scanners/'
 
-    def __unicode__(self):
+    def __str__(self):
         """Return the name of the scanner."""
         return self.name
 
@@ -814,7 +814,7 @@ class Scan(models.Model):
         """Return the number of broken links for this scan."""
         return self.urls.exclude(status_code__isnull=True).count()
 
-    def __unicode__(self):
+    def __str__(self):
         """Return the name of the scan's scanner."""
         try:
             return "SCAN: " + self.scanner.name
@@ -965,7 +965,7 @@ class Url(models.Model):
                                        related_name='linked_urls',
                                        verbose_name='Referrers')
 
-    def __unicode__(self):
+    def __str__(self):
         """Return the URL."""
         return self.url
 
@@ -1023,7 +1023,7 @@ class Match(models.Model):
         elif self.sensitivity == Sensitivity.OK:
             return "success"
 
-    def __unicode__(self):
+    def __str__(self):
         """Return a string representation of the match."""
         return "Match: %s; [%s] %s <%s>" % (self.get_sensitivity_display(),
                                              self.matched_rule,
@@ -1084,7 +1084,7 @@ class ReferrerUrl(models.Model):
     url = models.CharField(max_length=2048, verbose_name='Url')
     scan = models.ForeignKey(Scan, null=False, verbose_name='Scan')
 
-    def __unicode__(self):
+    def __str__(self):
         """Return the URL."""
         return self.url
 
@@ -1119,7 +1119,7 @@ class UrlLastModified(models.Model):
                                    verbose_name='Links')
     scanner = models.ForeignKey(Scanner, null=False, verbose_name='Scanner')
 
-    def __unicode__(self):
+    def __str__(self):
         """Return the URL and last modified date."""
         return "<%s %s>" % (self.url, self.last_modified)
 
@@ -1147,7 +1147,7 @@ class Summary(models.Model):
     do_email_recipients = models.BooleanField(default=False,
                                               verbose_name="Udsend mails")
 
-    def __unicode__(self):
+    def __str__(self):
         """Return the name as a text representation of this summary object."""
         return self.name
 
@@ -1176,5 +1176,5 @@ class Md5Sum(models.Model):
         unique_together = ('md5', 'is_cpr_scan', 'is_check_mod11',
                            'is_ignore_irrelevant', 'organization')
 
-    def __unicode__(self):
+    def __str__(self):
         return "{0}: {1}".format(self.organization.name, self.md5)
