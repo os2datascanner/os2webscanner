@@ -544,6 +544,7 @@ class ScannerAskRun(RestrictedDetailView):
 
     """Prompt for starting scan, validate first."""
     model = Scanner
+    fields = ['name']
 
     def get_context_data(self, **kwargs):
         """Check that user is allowed to run this scanner."""
@@ -569,6 +570,7 @@ class ScannerRun(RestrictedDetailView):
     """View that handles starting of a scanner run."""
 
     model = Scanner
+    fields = ['name']
     template_name = 'os2webscanner/scanner_run.html'
 
     def get(self, request, *args, **kwargs):
