@@ -15,7 +15,7 @@
 # source municipalities ( http://www.os2web.dk/ )
 """PDF Processors."""
 
-from processor import Processor
+from .processor import Processor
 import shutil
 import os
 import subprocess

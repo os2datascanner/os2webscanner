@@ -75,7 +75,7 @@ def get_image_dimensions(file_path):
         dimensions = subprocess.check_output(["identify", "-format", "%wx%h",
                                               file_path])
     except subprocess.CalledProcessError as e:
-        print e
+        print(e)
         return None
     return tuple(int(dim.strip()) for dim in dimensions.split("x"))
 
@@ -241,9 +241,9 @@ class Processor(object):
         If there are no items to process, waits 1 second before trying
         to get the next queue item.
         """
-        print "Starting processing queue items of type %s, pid %s" % (
+        print("Starting processing queue items of type %s, pid %s" % (
             self.item_type, self.pid
-        )
+        ))
         sys.stdout.flush()
         executions = 0
 
@@ -266,11 +266,11 @@ class Processor(object):
                     item.delete_tmp_dir()
                 else:
                     item.delete()
-                print "%s (%s): %s" % (
+                print("%s (%s): %s" % (
                     item.file_path,
                     item.url.url,
                     "success" if result else "fail"
-                )
+                ))
                 sys.stdout.flush()
 
     @transaction.atomic
@@ -316,10 +316,10 @@ class Processor(object):
                     result.save()
             except (DatabaseError, IntegrityError):
                 # Database transaction failed, we just try again
-                print "".join([
+                print("".join([
                     "Transaction failed while getting queue item of type ",
                     "'" + self.item_type + "'"
-                ])
+                ]))
                 result = None
             except IndexError:
                 # Nothing in the queue, return None
@@ -418,11 +418,11 @@ class Processor(object):
                 except ValueError:
                     continue
         if ignored_ocr_count > 0:
-            print "Ignored %d extracted images because the dimensions were" \
+            print("Ignored %d extracted images because the dimensions were" \
                   "small (width AND height must be >= %d) AND (width OR " \
                   "height must be >= %d))" % (ignored_ocr_count,
                                               MIN_OCR_DIMENSION_BOTH,
-                                              MIN_OCR_DIMENSION_EITHER)
+                                              MIN_OCR_DIMENSION_EITHER))
 
     @classmethod
     def register_processor(cls, processor_type, processor):
