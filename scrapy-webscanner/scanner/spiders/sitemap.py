@@ -1,7 +1,7 @@
 """Sitemap spider which gathers URLs contained in sitemap files."""
 
-from scrapy.contrib.spiders import SitemapSpider
-from scrapy.contrib.spiders.sitemap import iterloc
+from scrapy.spiders import SitemapSpider
+from scrapy.spiders.sitemap import iterloc
 from scrapy.utils.sitemap import Sitemap, sitemap_urls_from_robots
 
 from scrapy.http import Request
