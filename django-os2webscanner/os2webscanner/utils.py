@@ -23,10 +23,9 @@ import datetime
 
 from django.conf import settings
 from django.core.mail import EmailMessage
-from django.template import loader, Context
+from django.template import loader
 
-from .models import models
-
+import os2webscanner.models as models
 
 def notify_user(scan):
     """Notify user about completed scan - including success and failure."""
@@ -53,8 +52,8 @@ def notify_user(scan):
 
     subject = "Scanning afsluttet: {0}".format(scan_status)
 
-    c = Context({'scan': scan, 'domain': settings.SITE_URL,
-                 'matches': matches, 'critical': critical})
+    c = {'scan': scan, 'domain': settings.SITE_URL,
+                 'matches': matches, 'critical': critical}
 
     if scan.scanner.organization.do_notify_all_scans or critical > 0:
         try:
