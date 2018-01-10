@@ -537,6 +537,7 @@ class ScannerDelete(RestrictedDeleteView):
     """Delete a scanner view."""
 
     model = Scanner
+    fields = ['name']
     success_url = '/scanners/'
 
 
