@@ -19,7 +19,7 @@ import mimetypes
 from os2webscanner.utils import capitalize_first
 import regex
 from scrapy import log
-from scrapy.contrib.spidermiddleware.httperror import HttpError
+from scrapy.spidermiddlewares.httperror import HttpError
 from scrapy.exceptions import IgnoreRequest
 from scrapy.http import Request, HtmlResponse
 import re
