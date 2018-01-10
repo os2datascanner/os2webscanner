@@ -3,9 +3,9 @@
 from urllib.parse import urljoin
 
 from scrapy import log
-from scrapy.contrib.linkextractors.lxmlhtml import LxmlParserLinkExtractor
-from scrapy.contrib.linkextractors.lxmlhtml import LxmlLinkExtractor  # noqa
-from scrapy.contrib.linkextractors.lxmlhtml import _collect_string_content
+from scrapy.linkextractors.lxmlhtml import LxmlParserLinkExtractor
+from scrapy.linkextractors.lxmlhtml import LxmlLinkExtractor  # noqa
+from scrapy.linkextractors.lxmlhtml import _collect_string_content
 from scrapy.utils.python import unique as unique_list
 from scrapy.link import Link
 
