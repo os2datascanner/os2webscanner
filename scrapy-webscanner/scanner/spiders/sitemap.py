@@ -18,7 +18,7 @@ class SitemapURLGathererSpider(BaseScannerSpider, SitemapSpider):
 
     """A sitemap spider that stores URLs found in the sitemaps provided."""
 
-    name = 'sitemap_url_gatherer'
+    name = 'sitemap'
 
     def __init__(self, scanner, sitemap_urls, uploaded_sitemap_urls,
                  sitemap_alternate_links,
