@@ -20,8 +20,8 @@ class SitemapURLGathererSpider(BaseScannerSpider, SitemapSpider):
 
     name = 'sitemap'
 
-    def __init__(self, scanner, sitemap_urls, uploaded_sitemap_urls,
-                 sitemap_alternate_links,
+    def __init__(self, scanner, sitemap_urls="", uploaded_sitemap_urls="",
+                 sitemap_alternate_links=None,
                  *a,
                  **kw):
         """Initialize the sitemap spider."""
