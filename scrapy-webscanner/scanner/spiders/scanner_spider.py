@@ -45,7 +45,7 @@ class ScannerSpider(BaseScannerSpider):
     name = 'scanner'
     magic = magic.Magic(mime=True)
 
-    def __init__(self, scanner, runner, *a, **kw):
+    def __init__(self, scanner, runner="", *a, **kw):
         """Initialize the ScannerSpider with a Scanner object.
 
         The configuration will be loaded from the Scanner.
