@@ -23,9 +23,9 @@ import arrow
 
 from scrapy import Request
 from scrapy import log, signals
-from scrapy.contrib.downloadermiddleware.redirect import RedirectMiddleware
-from scrapy.contrib.downloadermiddleware.cookies import CookiesMiddleware
-from scrapy.contrib.spidermiddleware.offsite import OffsiteMiddleware
+from scrapy.downloadermiddlewares.redirect import RedirectMiddleware
+from scrapy.downloadermiddlewares.cookies import CookiesMiddleware
+from scrapy.spidermiddlewares.offsite import OffsiteMiddleware
 from scrapy.exceptions import IgnoreRequest
 from scrapy.utils.httpobj import urlparse_cached
 from scrapy.utils.url import canonicalize_url
