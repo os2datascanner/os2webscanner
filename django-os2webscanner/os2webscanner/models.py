@@ -503,7 +503,7 @@ class Scanner(models.Model):
             if blocking:
                 process.communicate()
         except Exception as e:
-            print (e)
+            print(e)
             return None
         return scan
 
@@ -861,7 +861,7 @@ class Scan(models.Model):
         )
         if log:
             if pending_items.exists():
-                print(("Deleting %d remaining conversion queue items from " \
+                print(("Deleting %d remaining conversion queue items from "
                       "finished scan %s" % (
                           pending_items.count(), self)))
 
@@ -977,7 +977,7 @@ class Url(models.Model):
     @property
     def content(self):
         try:
-            file = urllib.request.urlopen(self.url)
+            file = urlopen(self.url)
             return file.read()
         except Exception as e:
             return str(e)
@@ -1092,7 +1092,7 @@ class ReferrerUrl(models.Model):
     def content(self):
         """Return the content of the target url"""
         try:
-            file = urllib.request.urlopen(self.url)
+            file = urlopen(self.url)
             return file.read()
         except Exception as e:
             return str(e)
