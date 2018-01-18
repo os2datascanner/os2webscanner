@@ -100,7 +100,7 @@ class Pep8Test(TestCase):
 
     """Test that django app and scrapy webscanner are PEP8-compliant."""
 
-    j = lambda dir: os.path.join(install_directory, dir)
+    def j(dir): os.path.join(install_directory, dir)
 
     test_os2webscanner = pep8_test(j('django-os2webscanner'))
     test_scrapywebscanner = pep8_test(j('scrapy-webscanner'))
