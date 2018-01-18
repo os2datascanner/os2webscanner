@@ -38,7 +38,6 @@ js_info_dict = {
 }
 
 urlpatterns = [
-#    '',
     # App URLs
     url(r'^$', MainPageView.as_view(), name='index'),
     url(r'^scanners/$', ScannerList.as_view(), name='scanners'),
@@ -146,7 +145,7 @@ urlpatterns = [
 ]
 
 if settings.DO_USE_GROUPS:
-    urlpatterns += patterns(
+    urlpatterns += [
         '',
         url(r'^groups/$', GroupList.as_view(), name='groups'),
         url(r'^groups/add/$', GroupCreate.as_view(), name='group_add'),
@@ -155,4 +154,4 @@ if settings.DO_USE_GROUPS:
             name='group_update'),
         url(r'^groups/(?P<pk>\d+)/delete/$', GroupDelete.as_view(),
             name='group_delete'),
-    )
+    ]
