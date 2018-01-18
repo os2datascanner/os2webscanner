@@ -914,18 +914,18 @@ class Scan(models.Model):
             num_ocr_items = items["total"]
             if (not scan.pause_non_ocr_conversions and
                     num_ocr_items > settings.PAUSE_NON_OCR_ITEMS_THRESHOLD):
-                print(("Pausing non-OCR conversions for scan <%s> (%d) " \
-                      "because it has %d OCR items which is over the " \
-                      "threshold of %d" % \
+                print(("Pausing non-OCR conversions for scan <%s> (%d) "
+                       "because it has %d OCR items which is over the "
+                       "threshold of %d" %
                       (scan, scan.pk, num_ocr_items,
                        settings.PAUSE_NON_OCR_ITEMS_THRESHOLD)))
                 scan.pause_non_ocr_conversions = True
                 scan.save()
             elif (scan.pause_non_ocr_conversions and
                   num_ocr_items < settings.RESUME_NON_OCR_ITEMS_THRESHOLD):
-                print(("Resuming non-OCR conversions for scan <%s> (%d) " \
-                      "because it has %d OCR items which is under the " \
-                      "threshold of %d" % \
+                print(("Resuming non-OCR conversions for scan <%s> (%d) "
+                       "because it has %d OCR items which is under the "
+                       "threshold of %d" %
                       (scan, scan.pk, num_ocr_items,
                        settings.RESUME_NON_OCR_ITEMS_THRESHOLD)))
                 scan.pause_non_ocr_conversions = False
@@ -1026,8 +1026,8 @@ class Match(models.Model):
     def __str__(self):
         """Return a string representation of the match."""
         return "Match: %s; [%s] %s <%s>" % (self.get_sensitivity_display(),
-                                             self.matched_rule,
-                                             self.matched_data, self.url)
+                                            self.matched_rule,
+                                            self.matched_data, self.url)
 
 
 class ConversionQueueItem(models.Model):
