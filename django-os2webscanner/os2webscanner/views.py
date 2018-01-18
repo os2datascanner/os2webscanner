@@ -328,7 +328,7 @@ class OrgRestrictedMixin(ModelFormMixin, LoginRequiredMixin):
         """Get the form for the view."""
         if form_class is None:
             form_class = self.get_form_class()
-        
+
         fields = self.get_form_fields()
         form_class = modelform_factory(self.model, fields=fields)
         kwargs = self.get_form_kwargs()
@@ -496,7 +496,6 @@ class ScannerUpdate(RestrictedUpdateView):
         will be limited by the user's organiztion unless the user is a
         superuser.
         """
-        
         if form_class is None:
             form_class = self.get_form_class()
 
@@ -615,7 +614,7 @@ class DomainCreate(RestrictedCreateView):
         """
         if form_class is None:
             form_class = self.get_form_class()
-        
+
         form = super(DomainCreate, self).get_form(form_class)
 
         for fname in form.fields:
