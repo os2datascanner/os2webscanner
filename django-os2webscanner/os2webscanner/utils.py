@@ -27,6 +27,7 @@ from django.template import loader
 
 import os2webscanner.models as models
 
+
 def notify_user(scan):
     """Notify user about completed scan - including success and failure."""
     template = 'os2webscanner/email/scan_report.html'
@@ -53,7 +54,7 @@ def notify_user(scan):
     subject = "Scanning afsluttet: {0}".format(scan_status)
 
     c = {'scan': scan, 'domain': settings.SITE_URL,
-                 'matches': matches, 'critical': critical}
+         'matches': matches, 'critical': critical}
 
     if scan.scanner.organization.do_notify_all_scans or critical > 0:
         try:
@@ -171,7 +172,7 @@ def send_summary_report(summary, from_date=None, to_date=None,
     if not to_addresses:
         # TODO: In the end, of course, when no email addresses are found no
         # mail should be sent. This is just for debugging.
-        to_addresses = ['carstena@magenta.dk', ]
+        to_addresses = ['ann@magenta.dk', ]
 
     if extra_email:
         to_addresses.append(extra_email)
