@@ -137,7 +137,7 @@ def get_report(username, password, report_url):
         '-sensitivity', 'url', 'matched_rule', 'matched_data'
     )
     # CSV utilities
-    e(fields): ([f.encode('utf-8') for f in fields])
+    e = lambda fields: ([f.encode('utf-8') for f in fields])
     # Print summary header
     writer.writerow(e(['Starttidspunkt', 'Sluttidspunkt', 'Status',
                     'Totalt antal matches']))
@@ -200,7 +200,7 @@ def do_scan_documents(user, data, params={}):
             f.write(binary.data)
         return full_path
     documents = list(map(writefile, data))
-    file_url(f): 'file://{0}'.format(f)
+    file_url = lambda f: 'file://{0}'.format(f)
     scan = do_scan(user, list(map(file_url, documents)), params, blocking=True)
     # map(os.remove, documents)
     if not isinstance(scan, Scan):
