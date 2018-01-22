@@ -24,7 +24,7 @@ class BaseScannerSpider(Spider):
 
     """A base spider which is setup to filter offsite domains/excluded URLs."""
 
-    name = 'scanner'
+    name = 'base_scanner'
 
     def __init__(self, scanner, *a, **kw):
         """Initialize the ScannerSpider with a Scanner object.
