@@ -5,7 +5,7 @@ scrapy-djangoitem==1.1.1
 Twisted==15.5.0
 argparse==1.4.0
 arrow==0.10.0
-cffi>=1.11.2
+cffi==1.11.4
 characteristic==14.3.0
 chardet==3.0.4
 cryptography==2.1.2
