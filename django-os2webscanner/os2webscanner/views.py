@@ -23,7 +23,6 @@ import codecs
 from shutil import copyfile
 
 from django import forms
-from django.template import RequestContext
 from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Q
 from django.http import Http404, HttpResponse, HttpResponseRedirect
@@ -1318,5 +1317,5 @@ def file_upload(request):
 
     return render_to_response(
         'os2webscanner/file_upload.html',
-        RequestContext(request, {'form': form})
+        {'form': form}
     )
