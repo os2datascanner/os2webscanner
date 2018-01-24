@@ -73,7 +73,7 @@ class OrderedCrawlerProcess(CrawlerProcess):
 
     def __init__(self, *a, **kw):
         """Initialize the CrawlerProcess with an OrderedDict of crawlers."""
-        super(OrderedCrawlerProcess, self).__init__(*a, **kw)
+        super().__init__(*a, **kw)
         self.crawlers = collections.OrderedDict()
 
     def _start_crawler(self):
@@ -95,7 +95,6 @@ class OrderedCrawlerProcess(CrawlerProcess):
 
 
 class ScannerApp:
-
     """A scanner application which can be run."""
 
     def __init__(self):
@@ -131,6 +130,7 @@ class ScannerApp:
             self.sitemap_spider = self.setup_sitemap_spider()
         self.scanner_spider = self.setup_scanner_spider()
 
+        import pdb; pdb.set_trace()
         # Run the crawlers and block
         self.crawler_process.start()
 
@@ -159,26 +159,25 @@ class ScannerApp:
 
     def setup_sitemap_spider(self):
         """Setup the sitemap spider."""
-        crawler = self.crawler_process.create_crawler("sitemap")
-        sitemap_spider = SitemapURLGathererSpider(
+        crawler = self.crawler_process.create_crawler(SitemapURLGathererSpider)
+        crawler.crawl(
             scanner=self.scanner,
             sitemap_urls=self.scanner.get_sitemap_urls(),
             uploaded_sitemap_urls=self.scanner.get_uploaded_sitemap_urls(),
             sitemap_alternate_links=True
-        )
-        crawler.crawl(sitemap_spider)
-        return sitemap_spider
+	)
+        return crawler.spider
 
     def setup_scanner_spider(self):
         """Setup the scanner spider."""
-        crawler = self.crawler_process.create_crawler("scanner")
+        crawler = self.crawler_process.create_crawler(ScannerSpider)
         spider = ScannerSpider(self.scanner, self)
         crawler.signals.connect(self.handle_closed,
                                 signal=signals.spider_closed)
         crawler.signals.connect(self.handle_error, signal=signals.spider_error)
         crawler.signals.connect(self.handle_idle, signal=signals.spider_idle)
-        crawler.crawl(spider)
-        return spider
+        crawler.crawl(scanner=self.scanner, runner=self)
+        return crawler.spider
 
     def get_start_urls_from_sitemap(self):
         """Return the URLs found by the sitemap spider."""
