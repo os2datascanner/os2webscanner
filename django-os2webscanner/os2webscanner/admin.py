@@ -44,9 +44,7 @@ class ProfileInline(admin.TabularInline):
     can_delete = False
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        field = super(
-            ProfileInline, self
-        ).formfield_for_foreignkey(db_field, request, **kwargs)
+        field = super().formfield_for_foreignkey(db_field, request, **kwargs)
 
         if db_field.name == 'organization':
             if not request.user.is_superuser:
@@ -77,12 +75,12 @@ class MyUserAdmin(UserAdmin):
             )
 
             self.exclude = ['is_superuser', 'permissions', 'groups']
-        return super(MyUserAdmin, self).get_form(request, obj, **kwargs)
+        return super().get_form(request, obj, **kwargs)
 
     def get_queryset(self, request):
         """Only allow users belonging to same organization to be edited."""
 
-        qs = super(MyUserAdmin, self).get_queryset(request)
+        qs = super().get_queryset(request)
 
         if request.user.is_superuser:
             return qs

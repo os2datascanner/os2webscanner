@@ -835,7 +835,7 @@ class Scan(models.Model):
         ):
             self.end_time = datetime.datetime.now()
         # Actual save
-        super(Scan, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
         # Post-save stuff
 
         if (
@@ -940,7 +940,7 @@ class Scan(models.Model):
 
         Stores the old status of the scan for later use.
         """
-        super(Scan, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._old_status = self.status
 
     def get_absolute_url(self):

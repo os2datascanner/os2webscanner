@@ -50,7 +50,7 @@ class ScannerSpider(BaseScannerSpider):
 
         The configuration will be loaded from the Scanner.
         """
-        super(ScannerSpider, self).__init__(scanner=scanner, *a, **kw)
+        super().__init__(scanner=scanner, *a, **kw)
 
         self.runner = runner
 

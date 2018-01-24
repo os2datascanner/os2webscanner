@@ -42,7 +42,7 @@ class LibreOfficeProcessor(Processor):
 
     def __init__(self):
         """Initialize the processor, setting an empty home directory."""
-        super(Processor, self).__init__()
+        super().__init__()
         self.home_dir = None
 
     def setup_home_dir(self):
@@ -65,7 +65,7 @@ class LibreOfficeProcessor(Processor):
 
     def setup_queue_processing(self, pid, *args):
         """Setup the home directory as the first argument."""
-        super(LibreOfficeProcessor, self).setup_queue_processing(
+        super().setup_queue_processing(
             pid, *args
         )
         self.set_home_dir(os.path.join(home_root_dir, args[0]))

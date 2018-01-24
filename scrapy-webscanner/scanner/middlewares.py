@@ -84,10 +84,7 @@ class CookieCollectorMiddleware(CookiesMiddleware):
         """Collect cookie, store on scan object."""
 
         # First, extract cookies as needed - call superclass.
-        response = super(
-            CookieCollectorMiddleware,
-            self
-        ).process_response(request, response, spider)
+        response = super().process_response(request, response, spider)
 
         # Now collect cookie
         current_scan = spider.scanner.scan_object
