@@ -34,7 +34,7 @@ os.environ["SCRAPY_SETTINGS_MODULE"] = "scanner.settings"
 
 from twisted.internet import reactor
 from scrapy.crawler import CrawlerProcess
-from scrapy import log, signals
+from scrapy import signals
 from scrapy.utils.project import get_project_settings
 from scanner.spiders.scanner_spider import ScannerSpider
 from scanner.spiders.sitemap import SitemapURLGathererSpider
@@ -47,6 +47,7 @@ from scanner.scanner.scanner import Scanner
 from os2webscanner.models import Scan, ConversionQueueItem, Url
 
 import linkchecker
+import logging
 
 from scanner.processors import *  # noqa
 
@@ -83,7 +84,7 @@ class OrderedCrawlerProcess(CrawlerProcess):
 
         name, crawler = self.crawlers.popitem(last=False)
         self._active_crawler = crawler
-        sflo = log.start_from_crawler(crawler)
+        sflo = logging.start_from_crawler(crawler)
         crawler.configure()
         crawler.install()
         crawler.signals.connect(crawler.uninstall, signals.engine_stopped)
@@ -130,7 +131,6 @@ class ScannerApp:
             self.sitemap_spider = self.setup_sitemap_spider()
         self.scanner_spider = self.setup_scanner_spider()
 
-        import pdb; pdb.set_trace()
         # Run the crawlers and block
         self.crawler_process.start()
 
@@ -151,8 +151,8 @@ class ScannerApp:
         self.scan_object = Scan.objects.get(pk=self.scan_id)
         self.scan_object.pid = None
         self.scan_object.status = Scan.FAILED
-        self.scan.log_occurrence("SCANNER FAILED: Killed")
-        log.error("Killed")
+        self.scan.logging_occurrence("SCANNER FAILED: Killed")
+        logging.error("Killed")
         self.scan_object.reason = "Killed"
         # TODO: Remove all non-processed conversion queue items.
         self.scan_object.save()
@@ -211,7 +211,7 @@ class ScannerApp:
 
     def handle_error(self, failure, response, spider):
         """Handle spider errors, updating scan status."""
-        log.msg("Scan failed: %s" % failure.getErrorMessage(), level=log.ERROR)
+        logging.msg("Scan failed: %s" % failure.getErrorMessage(), level=logging.ERROR)
         scan_object = Scan.objects.get(pk=self.scan_id)
         scan_object.reason = failure.getErrorMessage()
         scan_object.save()
@@ -221,7 +221,7 @@ class ScannerApp:
 
         Keep it open if there are still queue items to be processed.
         """
-        log.msg("Spider Idle...")
+        logging.msg("Spider Idle...")
         # Keep spider alive if there are still queue items to be processed
         remaining_queue_items = ConversionQueueItem.objects.filter(
             status__in=[ConversionQueueItem.NEW,
@@ -230,13 +230,13 @@ class ScannerApp:
         ).count()
 
         if remaining_queue_items > 0:
-            log.msg(
+            logging.msg(
                 "Keeping spider alive: %d remaining queue items to process" %
                 remaining_queue_items
             )
             raise DontCloseSpider
         else:
-            log.msg("No more active processors, closing spider...")
+            logging.msg("No more active processors, closing spider...")
 
 
 scanner_app = ScannerApp()
