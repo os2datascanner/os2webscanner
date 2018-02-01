@@ -165,7 +165,7 @@ class ScannerApp:
             sitemap_urls=self.scanner.get_sitemap_urls(),
             uploaded_sitemap_urls=self.scanner.get_uploaded_sitemap_urls(),
             sitemap_alternate_links=True
-	)
+            )
         return crawler.spider
 
     def setup_scanner_spider(self):
@@ -211,7 +211,8 @@ class ScannerApp:
 
     def handle_error(self, failure, response, spider):
         """Handle spider errors, updating scan status."""
-        logging.msg("Scan failed: %s" % failure.getErrorMessage(), level=logging.ERROR)
+        logging.msg("Scan failed: %s" % failure.getErrorMessage(),
+                    level=logging.ERROR)
         scan_object = Scan.objects.get(pk=self.scan_id)
         scan_object.reason = failure.getErrorMessage()
         scan_object.save()
