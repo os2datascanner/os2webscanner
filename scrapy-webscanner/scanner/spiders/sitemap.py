@@ -5,7 +5,7 @@ from scrapy.spiders.sitemap import iterloc
 from scrapy.utils.sitemap import Sitemap, sitemap_urls_from_robots
 
 from scrapy.http import Request
-from scrapy import log
+import logging
 
 from .base_spider import BaseScannerSpider
 
@@ -47,15 +47,15 @@ class SitemapURLGathererSpider(BaseScannerSpider, SitemapSpider):
         return requests
 
     def _parse_sitemap(self, response):
-        log.msg("Parsing sitemap %s" % response)
+        logging.msg("Parsing sitemap %s" % response)
         if response.url.endswith('/robots.txt'):
             for url in sitemap_urls_from_robots(response.body):
                 yield Request(url, callback=self._parse_sitemap)
         else:
             body = self._get_sitemap_body(response)
             if body is None:
-                log.msg(format="Ignoring invalid sitemap: %(response)s",
-                        level=log.WARNING, spider=self, response=response)
+                logging.msg(format="Ignoring invalid sitemap: %(response)s",
+                        level=logging.WARNING, spider=self, response=response)
                 return
             s = Sitemap(body)
             if s.type == 'sitemapindex':
