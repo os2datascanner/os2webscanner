@@ -49,4 +49,5 @@ class TextProcessor(Processor):
             match.save()
         return True
 
+
 Processor.register_processor(TextProcessor.item_type, TextProcessor)

@@ -68,4 +68,5 @@ class PDFProcessor(Processor):
         os.remove(new_file_path)
         return return_code == 0
 
+
 Processor.register_processor(PDFProcessor.item_type, PDFProcessor)

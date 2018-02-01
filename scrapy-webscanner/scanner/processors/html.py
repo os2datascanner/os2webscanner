@@ -75,4 +75,5 @@ class HTMLProcessor(Processor):
 
         return self.text_processor.process(replace_tags_text, url_object)
 
+
 Processor.register_processor(HTMLProcessor.item_type, HTMLProcessor)

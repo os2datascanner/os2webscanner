@@ -40,4 +40,5 @@ class ZipProcessor(Processor):
         )
         return return_code == 0
 
+
 Processor.register_processor(ZipProcessor.item_type, ZipProcessor)

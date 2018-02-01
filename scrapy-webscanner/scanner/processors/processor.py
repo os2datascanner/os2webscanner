@@ -418,8 +418,8 @@ class Processor(object):
                 except ValueError:
                     continue
         if ignored_ocr_count > 0:
-            print("Ignored %d extracted images because the dimensions were" \
-                  "small (width AND height must be >= %d) AND (width OR " \
+            print("Ignored %d extracted images because the dimensions were"
+                  "small (width AND height must be >= %d) AND (width OR "
                   "height must be >= %d))" % (ignored_ocr_count,
                                               MIN_OCR_DIMENSION_BOTH,
                                               MIN_OCR_DIMENSION_EITHER))

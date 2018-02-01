@@ -159,4 +159,5 @@ class CSVProcessor(Processor):
         # print "*** 5 ***"
         return True
 
+
 Processor.register_processor(CSVProcessor.item_type, CSVProcessor)
