@@ -33,7 +33,7 @@ from django import db
 from django.utils import timezone
 from django.conf import settings
 
-from scrapy import log
+import logging
 
 
 # Minimum width and height an image must have to be scanned
@@ -226,7 +226,7 @@ class Processor(object):
             url.scan.log_occurrence(
                 "process_file failed for url {0}: {1}".format(url.url, str(e))
             )
-            log.msg(repr(e))
+            logging.msg(repr(e))
             return False
 
         return True
