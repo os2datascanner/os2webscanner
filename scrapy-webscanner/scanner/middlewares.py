@@ -117,9 +117,9 @@ class OffsiteDownloaderMiddleware(object):
         else:
             domain = urlparse_cached(request).hostname
             logging.msg(format="Filtered offsite request to " +
-                    "%(domain)r: %(request)s",
-                    level=logging.DEBUG, spider=spider, domain=domain,
-                    request=request)
+                        "%(domain)r: %(request)s",
+                        level=logging.DEBUG, spider=spider, domain=domain,
+                        request=request)
             raise IgnoreRequest
 
     def should_follow(self, request, spider):
@@ -180,11 +180,11 @@ class OffsiteRedirectMiddleware(RedirectMiddleware,
                     return result
                 else:
                     logging.msg("Excluding redirect due to exclusion rule %s" %
-                            result.url)
+                                result.url)
                     raise IgnoreRequest
             else:
                 logging.msg("Excluding redirect due to no offsite domains %s" %
-                        result.url)
+                            result.url)
                 raise IgnoreRequest
         else:
             return result
@@ -215,7 +215,8 @@ class LastModifiedLinkStorageMiddleware(object):
             # shouldn't happen.
             return result
 
-        logging.msg("Updating links for %s" % url_last_modified, level=logging.DEBUG)
+        logging.msg("Updating links for %s" % url_last_modified,
+                    level=logging.DEBUG)
 
         # Clear existing links
         url_last_modified.links.clear()
@@ -288,7 +289,7 @@ class LastModifiedCheckMiddleware(object):
                 self.get_stored_last_modified_date(request.url, spider) is not
                 None):
             logging.msg("Replacing with HEAD request %s" % request,
-                    level=logging.DEBUG)
+                        level=logging.DEBUG)
             return request.replace(method='HEAD')
         else:
             return None
@@ -308,11 +309,13 @@ class LastModifiedCheckMiddleware(object):
         # Check the Last-Modified header to see if the content has been
         # updated since the last time we checked it.
         if self.has_been_modified(request, response, spider):
-            logging.msg("Page has been modified since Last-Modified %s" % response,
-                    level=logging.DEBUG)
+            logging.msg("Page has been modified since Last-Modified %s"
+                        % response,
+                        level=logging.DEBUG)
             if request.method == 'HEAD':
                 # Issue a new GET request, since the data was updated
-                logging.msg("Issuing a new GET for %s" % request, level=logging.DEBUG)
+                logging.msg("Issuing a new GET for %s" % request,
+                            level=logging.DEBUG)
 
                 # Skip the modified check, since we just did the check
                 meta = request.meta
@@ -411,23 +414,25 @@ class LastModifiedCheckMiddleware(object):
         sitemap_lastmod_date = request.meta.get("lastmod", None)
         if sitemap_lastmod_date is None:
             last_modified = last_modified_header_date
-            logging.msg("Using header's last-modified date: %s" % last_modified,
-                    level=logging.DEBUG)
+            logging.msg("Using header's last-modified date: %s"
+                        % last_modified,
+                        level=logging.DEBUG)
         else:
             if last_modified_header_date is None:
                 # No Last-Modified header, use the lastmod from the sitemap
                 last_modified = sitemap_lastmod_date
                 logging.msg("Using lastmod from sitemap %s" % last_modified,
-                        level=logging.DEBUG)
+                            level=logging.DEBUG)
             else:
                 # Take the most recent of the two
-                logging.msg("Taking most recent of (header) %s and (sitemap) %s" %
-                        (last_modified_header_date, sitemap_lastmod_date),
-                        level=logging.DEBUG)
+                logging.msg("Taking most recent of (header) %sand (sitemap) %s"
+                            % (last_modified_header_date,
+                                sitemap_lastmod_date),
+                            level=logging.DEBUG)
                 last_modified = max(last_modified_header_date,
                                     sitemap_lastmod_date)
                 logging.msg("Last modified %s" % last_modified,
-                        level=logging.DEBUG)
+                            level=logging.DEBUG)
 
         # logging.msg("Last modified header: %s" % last_modified_header)
         if last_modified is not None:
@@ -451,14 +456,14 @@ class LastModifiedCheckMiddleware(object):
                     return True
             except UrlLastModified.DoesNotExist:
                 logging.msg("No stored Last-Modified header found.",
-                        level=logging.DEBUG)
+                            level=logging.DEBUG)
                 url_last_modified = UrlLastModified(
                     url=canonical_url,
                     last_modified=last_modified,
                     scanner=self.get_scanner_object(spider)
                 )
                 logging.msg("Saving new last-modified value %s" %
-                        url_last_modified, level=logging.DEBUG)
+                            url_last_modified, level=logging.DEBUG)
                 url_last_modified.save()
                 return True
         else:
