@@ -1,13 +1,12 @@
 """URL patterns."""
 
-import django_xmlrpc.views 
+import django_xmlrpc.views
 from django.conf.urls import include, url
 
 from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = [
-#    '',
     # Include webscanner URLs
     url(r'^', include('os2webscanner.urls')),
     # Enable admin
