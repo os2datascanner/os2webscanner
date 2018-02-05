@@ -65,7 +65,7 @@ def match_full_address(text):
         except IndexError:
             city = ''
 
-        if not house_number is None:
+        if house_number is not None:
             house_number = house_number.lstrip()
         else:
             house_number = ''
@@ -152,7 +152,7 @@ class AddressRule(Rule):
 
             street_address = "%s %s" % (street_name, house_number)
             full_address = "%s %s, %s %s" % (street_name, house_number,
-                                              zip_code, city)
+                                             zip_code, city)
 
             if (
                 street_address in self.whitelist or
