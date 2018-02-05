@@ -16,12 +16,12 @@
 
 import os
 import re
-from io import StringIO
 import csv
 import tempfile
 
 from django.contrib.auth import authenticate
 from django.conf import settings
+from django.utils import six
 
 from .utils import do_scan
 from .models import Match, Scan
