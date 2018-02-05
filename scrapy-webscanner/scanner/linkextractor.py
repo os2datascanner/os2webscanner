@@ -50,4 +50,6 @@ def _extract_links(self, selector, response_url, response_encoding, base_url):
         if self.unique else links
 
 # Monkey-patch link extractor to ignore links with certain schemes
+
+
 LxmlParserLinkExtractor._extract_links = _extract_links
