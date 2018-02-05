@@ -1,7 +1,9 @@
 """A link checker using urllib2."""
 
 import socket
-import urllib.request, urllib.error, urllib.parse
+import urllib.request
+import urllib.error
+import urllib.parse
 import http.client
 from os2webscanner.utils import capitalize_first
 import regex
@@ -24,7 +26,7 @@ def check_url(url, method="HEAD"):
     try:
         logging.msg("Checking %s" % url)
         request = urllib.request.Request(url, headers={"User-Agent":
-                                                "OS2Webscanner"})
+                                                       "OS2Webscanner"})
         request.get_method = lambda: method
         urllib.request.urlopen(request, timeout=LINK_CHECK_TIMEOUT)
         return None
