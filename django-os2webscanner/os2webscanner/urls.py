@@ -19,7 +19,7 @@ from django.conf import settings
 from django.conf.urls import patterns, url
 from django.views.i18n import javascript_catalog
 
-from .views import MainPageView, ScannerList, DomainList, RuleList
+from .views import MainPageView, ScannerList, FileScannerList, DomainList, RuleList
 from .views import CSVReportDetails, ReportDetails, ReportList, ReportDelete
 from .views import ScannerCreate, ScannerUpdate, ScannerDelete, ScannerRun
 from .views import ScannerAskRun, ScanReportLog, OrganizationUpdate
@@ -53,6 +53,19 @@ urlpatterns = patterns(
         name='scanner_askrun'),
     url(r'^scanners/(?P<pk>\d+)/$', ScannerUpdate.as_view(),
         name='scanner_update'),
+    url(r'^filescanners/$', FileScannerList.as_view(), name='filescanners'),
+    url(r'^filescanners/add/$', ScannerCreate.as_view(), name='scanner_add'),
+    url(r'^filescanners/(?P<pk>\d+)/delete/$', ScannerDelete.as_view(),
+        name='scanner_delete'),
+    url(r'^filescanners/(?P<pk>\d+)/run/$', ScannerRun.as_view(),
+        name='scanner_run'),
+    url(r'^filescanners/(?P<pk>\d+)/askrun/$',
+        ScannerAskRun.as_view(
+            template_name='os2webscanner/scanner_askrun.html',
+            model=Scanner),
+        name='scanner_askrun'),
+    url(r'^filescanners/(?P<pk>\d+)/$', ScannerUpdate.as_view(),
+        name='scanner_update'),
     url(r'^domains/$', DomainList.as_view(), name='domains'),
     url(r'^domains/add/$', DomainCreate.as_view(), name='domain_add'),
     url(r'^domains/(?P<pk>\d+)/validate/$', DomainValidate.as_view(),
@@ -69,7 +82,7 @@ urlpatterns = patterns(
     url(r'^rules/(?P<pk>\d+)/delete/$', RuleDelete.as_view(),
         name='rule_delete'),
     url(r"^rules/organization/$", OrganizationUpdate.as_view(),
-	name='organization_update'),
+        name='organization_update'),
     url(r'^reports/$', ReportList.as_view(), name='reports'),
     url(r'^report/(?P<pk>[0-9]+)/$', ReportDetails.as_view(),
         name='report'),

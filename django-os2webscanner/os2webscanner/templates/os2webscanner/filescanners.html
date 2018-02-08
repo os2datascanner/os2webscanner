@@ -9,12 +9,12 @@ class="active"
 
 {% block body %}
 <div class="container">
-    {% include 'os2webscanner/scanner_above_content.html' with active='webscan' %}
+    {% include 'os2webscanner/scanner_above_content.html' with active='filescan' %}
     <div class="tab-content">
-        <div role="tabpanel" class="tab-pane active" id="webscan">
-            <p class="h2" style="display:inline-block;">Web scanner</p>
+        <div role="tabpanel" class="tab-pane active" id="filescan">
+            <p class="h2" style="display:inline-block;">Fil scanner</p>
             <span class="page-action">
-            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#create-scanner-modal">
+            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#create-filescanner-modal">
               Tilføj ny
               <span style="position:relative;top:.15em;" class="glyphicon glyphicon-plus-sign"></span>
             </button>

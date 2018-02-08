@@ -168,6 +168,21 @@ class ScannerList(RestrictedListView):
         return qs
 
 
+class FileScannerList(RestrictedListView):
+
+    """Displays list of file scanners."""
+
+    model = Scanner
+    template_name = 'os2webscanner/filescanners.html'
+
+    def get_queryset(self):
+        """Get queryset, don't include non-visible scanners."""
+        qs = super(FileScannerList, self).get_queryset()
+        # Dismiss scans that are not visible
+        qs = qs.filter(is_visible=True)
+        return qs
+
+
 class DomainList(RestrictedListView):
 
     """Displays list of domains."""
