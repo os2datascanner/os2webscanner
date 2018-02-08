@@ -147,6 +147,9 @@ RESUME_NON_OCR_ITEMS_THRESHOLD = PAUSE_NON_OCR_ITEMS_THRESHOLD - 1000
 # Directory to store files transmitted by RPC
 RPC_TMP_PREFIX = '/tmp/os2webscanner'
 
+# Directory to mount network drives
+NETWORKDRIVE_TMP_PREFIX = '/tmp/mnt/os2webscanner/'
+
 # Always store temp files on disk
 FILE_UPLOAD_MAX_MEMORY_SIZE = 0
 
