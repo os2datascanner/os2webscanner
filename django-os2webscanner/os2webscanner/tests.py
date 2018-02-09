@@ -20,6 +20,9 @@ These will pass when you run "manage.py test os2webscanner".
 
 import os
 import pep8
+import random
+import string
+import aescipher
 
 from django.test import TestCase
 from django.conf import settings
@@ -105,3 +108,16 @@ class Pep8Test(TestCase):
     test_os2webscanner = pep8_test(j('django-os2webscanner'))
     test_scrapywebscanner = pep8_test(j('scrapy-webscanner'))
     test_webscanner_client = pep8_test(j('webscanner_client'))
+
+
+class AESCipherTest(TestCase):
+
+    """Test case to verify that aes cipher encrypt and decrypt works as expected."""
+
+    def test_encrypt_decrypt(self):
+        password = ''.join([random.choice(
+            string.ascii_letters + string.digits
+        ) for n in xrange(14)])
+        iv, cipher = aescipher.encrypt(password)
+        print password
+        self.assertEqual(password, aescipher.decrypt(iv, cipher))
