@@ -29,7 +29,7 @@ from .views import RuleCreate, RuleUpdate, RuleDelete, OrganizationList
 from .views import SummaryList, SummaryCreate, SummaryUpdate, SummaryDelete
 from .views import SummaryReport, DialogSuccess, SystemStatusView
 from .views import file_upload, referrer_content
-from .models import Scanner
+from .models import WebScanner
 
 
 js_info_dict = {
@@ -40,18 +40,18 @@ urlpatterns = patterns(
     '',
     # App URLs
     url(r'^$', MainPageView.as_view(), name='index'),
-    url(r'^scanners/$', ScannerList.as_view(), name='scanners'),
-    url(r'^scanners/add/$', ScannerCreate.as_view(), name='scanner_add'),
-    url(r'^scanners/(?P<pk>\d+)/delete/$', ScannerDelete.as_view(),
-        name='scanner_delete'),
-    url(r'^scanners/(?P<pk>\d+)/run/$', ScannerRun.as_view(),
-        name='scanner_run'),
-    url(r'^scanners/(?P<pk>\d+)/askrun/$',
+    url(r'^webscanners/$', ScannerList.as_view(), name='scanners'),
+    url(r'^webscanners/add/$', ScannerCreate.as_view(), name='scanner_add'),
+    url(r'^webscanners/(?P<pk>\d+)/delete/$', ScannerDelete.as_view(),
+        name='webscanner_delete'),
+    url(r'^webscanners/(?P<pk>\d+)/run/$', ScannerRun.as_view(),
+        name='webscanner_run'),
+    url(r'^webscanners/(?P<pk>\d+)/askrun/$',
         ScannerAskRun.as_view(
             template_name='os2webscanner/scanner_askrun.html',
-            model=Scanner),
+            model=WebScanner),
         name='scanner_askrun'),
-    url(r'^scanners/(?P<pk>\d+)/$', ScannerUpdate.as_view(),
+    url(r'^webscanners/(?P<pk>\d+)/$', ScannerUpdate.as_view(),
         name='scanner_update'),
     url(r'^filescanners/$', FileScannerList.as_view(), name='filescanners'),
     url(r'^filescanners/add/$', ScannerCreate.as_view(), name='scanner_add'),
@@ -62,7 +62,7 @@ urlpatterns = patterns(
     url(r'^filescanners/(?P<pk>\d+)/askrun/$',
         ScannerAskRun.as_view(
             template_name='os2webscanner/scanner_askrun.html',
-            model=Scanner),
+            model=WebScanner),
         name='scanner_askrun'),
     url(r'^filescanners/(?P<pk>\d+)/$', ScannerUpdate.as_view(),
         name='scanner_update'),

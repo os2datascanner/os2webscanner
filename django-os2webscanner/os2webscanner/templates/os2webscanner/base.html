@@ -43,7 +43,7 @@
             {% if user.is_authenticated %}
             {% if not user.profile.is_upload_only %}
           <li {% block scanners_active %}{% endblock %}>
-            <a href="/scanners/">Scannerjob</a>
+            <a href="/webscanners/">Scannerjob</a>
           </li>
           {% if user.profile.is_groups_enabled %}
           {% if user.is_superuser or user.profile.is_group_admin %}

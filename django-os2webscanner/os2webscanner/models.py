@@ -31,6 +31,7 @@ import urllib2
 from django.db import models
 from django.contrib.auth.models import User
 from recurrence.fields import RecurrenceField
+from django.contrib.contenttypes.models import ContentType
 
 from django.conf import settings
 
@@ -295,47 +296,48 @@ class RegexRule(models.Model):
         return self.name
 
 
+class ScannerLogin(models.Model):
+
+    username = models.CharField(max_length=1024, unique=False, null=False,
+                                verbose_name='BrugerNavn')
+    # One of the two encryption keys
+    iv = models.CharField(max_length=32, unique=False, null=False,
+                          verbose_name='InitialiseringsVektor')
+    # The encrypted password
+    ciphertext = models.CharField(max_length=1024, unique=False, null=False,
+                                  verbose_name='CipherTekst')
+
+
 class Scanner(models.Model):
 
     """A scanner, i.e. a template for actual scanning jobs."""
 
+    CONCRETE_CLASSES = ('webscanner', 'filescanner',)
+
     name = models.CharField(max_length=256, unique=True, null=False,
                             verbose_name='Navn')
+    scannerlogin = models.ForeignKey(ScannerLogin, null=True,
+                                     verbose_name='ScannerLogin')
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')
     group = models.ForeignKey(Group, null=True, blank=True,
                               verbose_name='Gruppe')
     schedule = RecurrenceField(max_length=1024,
                                verbose_name='Planlagt afvikling')
-    domains = models.ManyToManyField(Domain, related_name='scanners',
+    domains = models.ManyToManyField(Domain, related_name='%(app_label)s_%(class)s_related',
                                      null=False, verbose_name='Domæner')
     do_cpr_scan = models.BooleanField(default=True, verbose_name='CPR')
     do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
     do_address_scan = models.BooleanField(default=False,
                                           verbose_name='Adresse')
     do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder')
+    do_last_modified_check = models.BooleanField(default=True,
+                                                 verbose_name='Tjek sidst ændret dato')
     do_cpr_modulus11 = models.BooleanField(default=True,
                                            verbose_name='Tjek modulus-11')
     do_cpr_ignore_irrelevant = models.BooleanField(
         default=True,
         verbose_name='Ignorer ugyldige fødselsdatoer')
-    do_link_check = models.BooleanField(default=False,
-                                        verbose_name='Tjek links')
-    do_external_link_check = models.BooleanField(
-        default=False,
-        verbose_name='Eksterne links'
-    )
-    do_last_modified_check = models.BooleanField(default=True,
-                                                 verbose_name='Tjek ' +
-                                                              'Last-Modified')
-    do_last_modified_check_head_request = models.BooleanField(
-        default=True,
-        verbose_name='Brug HEAD request'
-    )
-    do_collect_cookies = models.BooleanField(
-        default=False,
-        verbose_name='Saml cookies'
-    )
     columns = models.CommaSeparatedIntegerField(max_length=128,
                                                 null=True,
                                                 blank=True)
@@ -368,6 +370,37 @@ class Scanner(models.Model):
     # Text to replace addresses with
     address_replace_text = models.CharField(max_length=2048, null=True,
                                             blank=True)
+    @property
+    def schedule_description(self):
+        """A lambda for creating schedule description strings."""
+        rules = [r for r in self.schedule.rrules]  # Use r.to_text() to render
+        dates = [d for d in self.schedule.rdates]
+        if len(rules) > 0 or len(dates) > 0:
+            return u"Ja"
+        else:
+            return u"Nej"
+
+    @property
+    def has_active_scans(self):
+        """Whether the scanner has active scans."""
+        active_scanners = Scan.objects.filter(scanner=self, status__in=(
+            Scan.NEW, Scan.STARTED)).count()
+        return active_scanners > 0
+
+    @property
+    def has_valid_domains(self):
+        return len([d for d in self.domains.all() if d.validation_status]) > 0
+
+    # Run error messages
+    ALREADY_RUNNING = (
+        "Scanneren kunne ikke startes," +
+        " fordi der allerede er en scanning i gang for den."
+    )
+    NO_VALID_DOMAINS = (
+        "Scanneren kunne ikke startes," +
+        " fordi den ikke har nogen gyldige domæner."
+    )
+
 
     # DON'T USE DIRECTLY !!!
     # Use process_urls property instead.
@@ -414,7 +447,7 @@ class Scanner(models.Model):
 
         The modulo value can be used to search the database for scanners that
         should be started at the given time by filtering a query with:
-            (Scanner.pk % Scanner.STARTTIME_QUARTERS) == <modulo_value>
+            (WebScanner.pk % WebScanner.STARTTIME_QUARTERS) == <modulo_value>
         """
         if(time < cls.FIRST_START_TIME):
             return None
@@ -425,38 +458,11 @@ class Scanner(models.Model):
     @property
     def display_name(self):
         """The name used when displaying the scanner on the web page."""
-        return "Scanner '%s'" % self.name
+        return "WebScanner '%s'" % self.name
 
-    @property
-    def schedule_description(self):
-        """A lambda for creating schedule description strings."""
-        rules = [r for r in self.schedule.rrules]  # Use r.to_text() to render
-        dates = [d for d in self.schedule.rdates]
-        if len(rules) > 0 or len(dates) > 0:
-            return u"Ja"
-        else:
-            return u"Nej"
-
-    @property
-    def has_active_scans(self):
-        """Whether the scanner has active scans."""
-        active_scanners = Scan.objects.filter(scanner=self, status__in=(
-            Scan.NEW, Scan.STARTED)).count()
-        return active_scanners > 0
-
-    @property
-    def has_valid_domains(self):
-        return len([d for d in self.domains.all() if d.validation_status]) > 0
-
-    # Run error messages
-    ALREADY_RUNNING = (
-        "Scanneren kunne ikke startes," +
-        " fordi der allerede er en scanning i gang for den."
-    )
-    NO_VALID_DOMAINS = (
-        "Scanneren kunne ikke startes," +
-        " fordi den ikke har nogen gyldige domæner."
-    )
+    def __unicode__(self):
+            """Return the name of the scanner."""
+            return self.name
 
     def run(self, test_only=False, blocking=False, user=None):
         """Run a scan with the Scanner.
@@ -503,23 +509,56 @@ class Scanner(models.Model):
             return None
         return scan
 
-    def get_absolute_url(self):
-        """Get the absolute URL for scanners."""
-        return '/scanners/'
-
-    def __unicode__(self):
-        """Return the name of the scanner."""
-        return self.name
-
     class Meta:
+        abstract = True
         ordering = ['name']
 
+
+class WebScanner(Scanner):
+
+    """Webscanner for scanning websites."""
+
+    do_link_check = models.BooleanField(default=False,
+                                        verbose_name='Tjek links')
+    do_external_link_check = models.BooleanField(
+        default=False,
+        verbose_name='Eksterne links'
+    )
+    do_last_modified_check_head_request = models.BooleanField(
+        default=True,
+        verbose_name='Brug HTTP HEAD request'
+    )
+    do_collect_cookies = models.BooleanField(
+        default=False,
+        verbose_name='Saml cookies'
+    )
+
+    def get_absolute_url(self):
+        """Get the absolute URL for scanners."""
+        return '/webscanners/'
+
+    class Meta:
+        db_table = 'scanner_web'
+
+
+class FileScanner(Scanner):
+
+    """File scanner for scanning network drives and folders"""
+
+    def get_absolute_url(self):
+        """Get the absolute URL for scanners."""
+        return '/filescanners/'
+
+    class Meta:
+        db_table = 'scanner_file'
 
 class Scan(models.Model):
 
     """An actual instance of the scanning process done by a scanner."""
 
-    scanner = models.ForeignKey(Scanner, null=False, verbose_name='Scanner',
+    scanner = models.ForeignKey(ContentType,
+                                limit_choices_to={'name__in': Scanner.CONCRETE_CLASSES},
+                                null=False, verbose_name='Scanner',
                                 related_name='scans')
     start_time = models.DateTimeField(blank=True, null=True,
                                       verbose_name='Starttidspunkt')
@@ -566,11 +605,10 @@ class Scan(models.Model):
         verbose_name='Eksterne links'
     )
     do_last_modified_check = models.BooleanField(default=True,
-                                                 verbose_name='Tjek ' +
-                                                              'Last-Modified')
+                                                 verbose_name='Tjek sidst ændret dato')
     do_last_modified_check_head_request = models.BooleanField(
         default=True,
-        verbose_name='Brug HEAD request'
+        verbose_name='Brug HTTP HEAD request'
     )
     do_collect_cookies = models.BooleanField(default=False,
                                              verbose_name='Saml cookies')
@@ -1113,7 +1151,7 @@ class UrlLastModified(models.Model):
                                          verbose_name='Last-modified')
     links = models.ManyToManyField("self", symmetrical=False,
                                    verbose_name='Links')
-    scanner = models.ForeignKey(Scanner, null=False, verbose_name='Scanner')
+    scanner = models.ForeignKey(WebScanner, null=False, verbose_name='WebScanner')
 
     def __unicode__(self):
         """Return the URL and last modified date."""
@@ -1134,7 +1172,7 @@ class Summary(models.Model):
                                     verbose_name='Sidste kørsel')
     recipients = models.ManyToManyField(UserProfile, blank=True,
                                         verbose_name="Modtagere")
-    scanners = models.ManyToManyField(Scanner, blank=True,
+    scanners = models.ManyToManyField(WebScanner, blank=True,
                                       verbose_name="Scannere")
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')
