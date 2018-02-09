@@ -27,6 +27,7 @@ import datetime
 import json
 import StringIO
 import urllib2
+import aescipher
 
 from django.db import models
 from django.contrib.auth.models import User
@@ -296,18 +297,6 @@ class RegexRule(models.Model):
         return self.name
 
 
-class ScannerLogin(models.Model):
-
-    username = models.CharField(max_length=1024, unique=False, null=False,
-                                verbose_name='BrugerNavn')
-    # One of the two encryption keys
-    iv = models.CharField(max_length=32, unique=False, null=False,
-                          verbose_name='InitialiseringsVektor')
-    # The encrypted password
-    ciphertext = models.CharField(max_length=1024, unique=False, null=False,
-                                  verbose_name='CipherTekst')
-
-
 class Scanner(models.Model):
 
     """A scanner, i.e. a template for actual scanning jobs."""
@@ -316,8 +305,16 @@ class Scanner(models.Model):
 
     name = models.CharField(max_length=256, unique=True, null=False,
                             verbose_name='Navn')
-    scannerlogin = models.ForeignKey(ScannerLogin, null=True,
-                                     verbose_name='ScannerLogin')
+    # User login for websites, network drives etc.
+    username = models.CharField(max_length=1024, unique=False, null=True,
+                                verbose_name='BrugerNavn')
+    # One of the two encryption keys for decrypting the password
+    iv = models.CharField(max_length=32, unique=False, null=True,
+                          verbose_name='InitialiseringsVektor')
+    # The encrypted password
+    ciphertext = models.CharField(max_length=1024, unique=False, null=True,
+                                  verbose_name='CipherTekst')
+
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')
     group = models.ForeignKey(Group, null=True, blank=True,
@@ -370,6 +367,11 @@ class Scanner(models.Model):
     # Text to replace addresses with
     address_replace_text = models.CharField(max_length=2048, null=True,
                                             blank=True)
+
+    @property
+    def password_encrypt(self, password):
+        return aescipher.encrypt(password)
+
     @property
     def schedule_description(self):
         """A lambda for creating schedule description strings."""
@@ -538,7 +540,7 @@ class WebScanner(Scanner):
         return '/webscanners/'
 
     class Meta:
-        db_table = 'scanner_web'
+        db_table = 'webscanner'
 
 
 class FileScanner(Scanner):
@@ -550,7 +552,8 @@ class FileScanner(Scanner):
         return '/filescanners/'
 
     class Meta:
-        db_table = 'scanner_file'
+        db_table = 'filescanner'
+
 
 class Scan(models.Model):
 
