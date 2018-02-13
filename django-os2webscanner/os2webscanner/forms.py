@@ -17,15 +17,24 @@
 
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Scanner
+from .models import WebScanner, FileScanner
 
 
-class ScannerForm(forms.ModelForm):
+class WebScannerForm(forms.ModelForm):
 
-    """A form for creating or updating scanners."""
+    """A form for creating or updating webscanners."""
 
     class Meta:
-        model = Scanner
+        model = WebScanner
+        fields = '__all__'
+
+
+class FileScannerForm(forms.ModelForm):
+
+    """A form for creating or updating filescanners."""
+
+    class Meta:
+        model = FileScanner
         fields = '__all__'
 
 
