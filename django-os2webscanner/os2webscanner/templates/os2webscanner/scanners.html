@@ -9,10 +9,10 @@ class="active"
 
 {% block body %}
 <div class="container">
-    {% include 'os2webscanner/scanner_above_content.html' with active='webscan' %}
+    {% include 'os2webscanner/scanner_above_content.html' with active=view.type %}
     <div class="tab-content">
-        <div role="tabpanel" class="tab-pane active" id="webscan">
-            <p class="h2" style="display:inline-block;">Web scanner</p>
+        <div role="tabpanel" class="tab-pane active" id="{{view.type}}scan">
+            <p class="h2" style="display:inline-block;">{% if view.type == 'web' %} Web {% else %} Fil {% endif %} scanner</p>
             <span class="page-action">
             <button type="button" class="btn btn-default" data-toggle="modal" data-target="#create-scanner-modal">
               Tilføj ny
@@ -89,7 +89,7 @@ class="active"
                     class="btn btn-default btn-xs btn-scanner-settings"
                     onclick="os2web.iframeDialog(
                     &quot;#run-scanner-modal&quot;,
-                    &quot;/scanners/{{scanner.pk}}/askrun/&quot;,
+                    &quot;/{{ view.type }}scanners/{{scanner.pk}}/askrun/&quot;,
                             &quot;Kør scanner '{{scanner.name}}'&quot;)">
                     <span class="glyphicon glyphicon-play">
                     </span> <span>Kør</span>
@@ -98,7 +98,7 @@ class="active"
                     class="btn btn-default btn-xs btn-scanner-settings"
                     onclick="os2web.iframeDialog(
                     &quot;#edit-scanner-modal&quot;,
-                    &quot;/scanners/{{scanner.pk}}&quot;,
+                    &quot;/{{ view.type }}scanners/{{scanner.pk}}&quot;,
                     &quot;Redigér scannerjob '{{scanner.name}}'&quot;
                     )"
                   >
@@ -110,7 +110,7 @@ class="active"
                     </span>
 
                   </button>
-                  <a href="/scanners/{{scanner.pk}}/delete/" class="btn btn-default btn-xs">
+                  <a href="/{{ view.type }}scanners/{{scanner.pk}}/delete/" class="btn btn-default btn-xs">
                       <span class="glyphicon glyphicon-remove"></span>
                       <span>Slet</span>
                   </a>
@@ -132,7 +132,7 @@ Scannerjob
 {% block modal %}
 <div class="modal iframe" id="create-scanner-modal" tabindex="-1" role="dialog"
     aria-labelledby="create-scanner-modal-title" aria-hidden="true"
-    data-href="/scanners/add/">
+    data-href="/{{ view.type }}scanners/add/">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
@@ -151,7 +151,7 @@ Scannerjob
 </div>
 <div class="modal iframe" id="edit-scanner-modal" tabindex="-1" role="dialog"
     aria-labelledby="edit-scanner-modal-title" aria-hidden="true"
-    data-href="/scanners/add/">
+    data-href="/{{ view.type }}scanners/add/">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
@@ -171,7 +171,7 @@ Scannerjob
 
 <div class="modal iframe" id="run-scanner-modal" tabindex="-1" role="dialog"
     aria-labelledby="run-scanner-modal-title" aria-hidden="true"
-    data-href="/scanners/add/">
+    data-href="/{{ view.type }}scanners/add/">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
