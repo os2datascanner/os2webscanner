@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 # encoding: utf-8
 # The contents of this file are subject to the Mozilla Public License
 # Version 2.0 (the "License"); you may not use this file except in
@@ -306,14 +307,18 @@ class Scanner(models.Model):
     name = models.CharField(max_length=256, unique=True, null=False,
                             verbose_name='Navn')
     # User login for websites, network drives etc.
-    username = models.CharField(max_length=1024, unique=False, null=True,
-                                verbose_name='BrugerNavn')
+    username = models.CharField(max_length=1024, unique=False, blank=True, default='',
+                                verbose_name='Bruger navn')
     # One of the two encryption keys for decrypting the password
-    iv = models.CharField(max_length=32, unique=False, null=True,
-                          verbose_name='InitialiseringsVektor')
+    iv = models.BinaryField(max_length=32, unique=False, blank=True,
+                            verbose_name='InitialiseringsVektor')
+
     # The encrypted password
-    ciphertext = models.CharField(max_length=1024, unique=False, null=True,
-                                  verbose_name='CipherTekst')
+    ciphertext = models.BinaryField(max_length=1024, unique=False, blank=True,
+                                    verbose_name='Password')
+
+    password = models.CharField(max_length=1024, unique=False, blank=True, default='',
+                                  verbose_name='Password')
 
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')
@@ -369,8 +374,14 @@ class Scanner(models.Model):
                                             blank=True)
 
     @property
-    def password_encrypt(self, password):
+    def set_password(self, password):
         return aescipher.encrypt(password)
+
+    @property
+    def get_password(self, iv, cipher):
+        return aescipher.decrypt(iv, cipher)
+
+
 
     @property
     def schedule_description(self):
@@ -535,6 +546,9 @@ class WebScanner(Scanner):
         verbose_name='Saml cookies'
     )
 
+    def get_type(self):
+        return 'web'
+
     def get_absolute_url(self):
         """Get the absolute URL for scanners."""
         return '/webscanners/'
@@ -546,6 +560,9 @@ class WebScanner(Scanner):
 class FileScanner(Scanner):
 
     """File scanner for scanning network drives and folders"""
+
+    def get_type(self):
+        return 'file'
 
     def get_absolute_url(self):
         """Get the absolute URL for scanners."""

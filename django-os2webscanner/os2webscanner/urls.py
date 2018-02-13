@@ -19,9 +19,9 @@ from django.conf import settings
 from django.conf.urls import patterns, url
 from django.views.i18n import javascript_catalog
 
-from .views import MainPageView, ScannerList, FileScannerList, DomainList, RuleList
+from .views import MainPageView, WebScannerList, FileScannerList, DomainList, RuleList
 from .views import CSVReportDetails, ReportDetails, ReportList, ReportDelete
-from .views import ScannerCreate, ScannerUpdate, ScannerDelete, ScannerRun
+from .views import WebScannerCreate, WebScannerUpdate, FileScannerCreate, FileScannerUpdate, ScannerDelete, ScannerRun
 from .views import ScannerAskRun, ScanReportLog, OrganizationUpdate
 from .views import DomainCreate, DomainUpdate, DomainValidate, DomainDelete
 from .views import GroupList, GroupCreate, GroupUpdate, GroupDelete
@@ -40,8 +40,8 @@ urlpatterns = patterns(
     '',
     # App URLs
     url(r'^$', MainPageView.as_view(), name='index'),
-    url(r'^webscanners/$', ScannerList.as_view(), name='scanners'),
-    url(r'^webscanners/add/$', ScannerCreate.as_view(), name='scanner_add'),
+    url(r'^webscanners/$', WebScannerList.as_view(), name='scanners'),
+    url(r'^webscanners/add/$', WebScannerCreate.as_view(), name='scanner_add'),
     url(r'^webscanners/(?P<pk>\d+)/delete/$', ScannerDelete.as_view(),
         name='webscanner_delete'),
     url(r'^webscanners/(?P<pk>\d+)/run/$', ScannerRun.as_view(),
@@ -51,10 +51,10 @@ urlpatterns = patterns(
             template_name='os2webscanner/scanner_askrun.html',
             model=WebScanner),
         name='scanner_askrun'),
-    url(r'^webscanners/(?P<pk>\d+)/$', ScannerUpdate.as_view(),
+    url(r'^webscanners/(?P<pk>\d+)/$', WebScannerUpdate.as_view(),
         name='scanner_update'),
     url(r'^filescanners/$', FileScannerList.as_view(), name='filescanners'),
-    url(r'^filescanners/add/$', ScannerCreate.as_view(), name='scanner_add'),
+    url(r'^filescanners/add/$', FileScannerCreate.as_view(), name='filescanner_add'),
     url(r'^filescanners/(?P<pk>\d+)/delete/$', ScannerDelete.as_view(),
         name='scanner_delete'),
     url(r'^filescanners/(?P<pk>\d+)/run/$', ScannerRun.as_view(),
@@ -64,7 +64,7 @@ urlpatterns = patterns(
             template_name='os2webscanner/scanner_askrun.html',
             model=WebScanner),
         name='scanner_askrun'),
-    url(r'^filescanners/(?P<pk>\d+)/$', ScannerUpdate.as_view(),
+    url(r'^filescanners/(?P<pk>\d+)/$', FileScannerUpdate.as_view(),
         name='scanner_update'),
     url(r'^domains/$', DomainList.as_view(), name='domains'),
     url(r'^domains/add/$', DomainCreate.as_view(), name='domain_add'),
@@ -140,9 +140,14 @@ urlpatterns = patterns(
         ),
 
     # General dialog success handler
-    url(r'^(scanners|domains|rules|groups|reports/summaries)/(\d+)/(created)/$',
+    url(r'^(webscanners|domains|rules|groups|reports/summaries)/(\d+)/(created)/$',
         DialogSuccess.as_view()),
-    url(r'^(scanners|domains|rules|groups|reports/summaries)/(\d+)/(saved)/$',
+    url(r'^(webscanners|domains|rules|groups|reports/summaries)/(\d+)/(saved)/$',
+        DialogSuccess.as_view()),
+    # General dialog success handler
+    url(r'^(filescanners|domains|rules|groups|reports/summaries)/(\d+)/(created)/$',
+        DialogSuccess.as_view()),
+    url(r'^(filescanners|domains|rules|groups|reports/summaries)/(\d+)/(saved)/$',
         DialogSuccess.as_view()),
     url(r'^jsi18n/$', javascript_catalog, js_info_dict),
     # System functions

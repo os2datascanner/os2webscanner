@@ -20,6 +20,7 @@ import os
 import csv
 import tempfile
 import codecs
+import aescipher
 from shutil import copyfile
 
 from django import forms
@@ -39,7 +40,7 @@ from django.conf import settings
 
 from .validate import validate_domain, get_validation_str
 
-from .models import Scanner, Domain, RegexRule, Scan, Match, UserProfile, Url
+from .models import WebScanner, FileScanner, Domain, RegexRule, Scan, Match, UserProfile, Url
 from .models import Organization, ConversionQueueItem, Group, Summary
 from .models import ReferrerUrl
 from .utils import scans_for_summary_report, do_scan
@@ -157,8 +158,8 @@ class ScannerList(RestrictedListView):
 
     """Displays list of scanners."""
 
-    model = Scanner
     template_name = 'os2webscanner/scanners.html'
+    context_object_name = 'scanner_list'
 
     def get_queryset(self):
         """Get queryset, don't include non-visible scanners."""
@@ -168,19 +169,30 @@ class ScannerList(RestrictedListView):
         return qs
 
 
-class FileScannerList(RestrictedListView):
+class WebScannerList(ScannerList):
+
+    """Displays list of webscanners."""
+
+    model = WebScanner
+    type = 'web'
+
+    def get_context_data(self, **kwargs):
+        context = super(WebScannerList, self).get_context_data(**kwargs)
+        context['type'] = 'web'
+        return context
+
+
+class FileScannerList(ScannerList):
 
     """Displays list of file scanners."""
 
-    model = Scanner
-    template_name = 'os2webscanner/filescanners.html'
+    model = FileScanner
+    type = 'file'
 
-    def get_queryset(self):
-        """Get queryset, don't include non-visible scanners."""
-        qs = super(FileScannerList, self).get_queryset()
-        # Dismiss scans that are not visible
-        qs = qs.filter(is_visible=True)
-        return qs
+    def get_context_data(self, **kwargs):
+        context = super(FileScannerList, self).get_context_data(**kwargs)
+        context['type'] = 'file'
+        return context
 
 
 class DomainList(RestrictedListView):
@@ -423,15 +435,7 @@ class OrganizationUpdate(UpdateView, LoginRequiredMixin):
 
 class ScannerCreate(RestrictedCreateView):
 
-    """Create a scanner view."""
-
-    model = Scanner
-    fields = ['name', 'schedule', 'domains',
-              'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
-              'do_name_scan', 'do_ocr', 'do_address_scan',
-              'do_link_check', 'do_external_link_check', 'do_collect_cookies',
-              'do_last_modified_check', 'do_last_modified_check_head_request',
-              'regex_rules', 'recipients']
+    template_name = 'os2webscanner/scanner_form.html'
 
     def get_form(self, form_class):
         """Get the form for the view.
@@ -460,8 +464,8 @@ class ScannerCreate(RestrictedCreateView):
                 queryset = form.fields[field_name].queryset
                 queryset = queryset.filter(organization=organization)
                 if (
-                    self.request.user.profile.is_group_admin or
-                    field_name == 'recipients'
+                            self.request.user.profile.is_group_admin or
+                                field_name == 'recipients'
                 ):
                     # Already filtered by organization, nothing more to do.
                     pass
@@ -472,16 +476,12 @@ class ScannerCreate(RestrictedCreateView):
                 form.fields[field_name].queryset = queryset
         return form
 
-    def get_success_url(self):
-        """The URL to redirect to after successful creation."""
-        return '/scanners/%s/created/' % self.object.pk
 
+class WebScannerCreate(ScannerCreate):
 
-class ScannerUpdate(RestrictedUpdateView):
+    """Create a webscanner view."""
 
-    """Update a scanner view."""
-
-    model = Scanner
+    model = WebScanner
     fields = ['name', 'schedule', 'domains',
               'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
               'do_name_scan', 'do_ocr', 'do_address_scan',
@@ -489,9 +489,39 @@ class ScannerUpdate(RestrictedUpdateView):
               'do_last_modified_check', 'do_last_modified_check_head_request',
               'regex_rules', 'recipients']
 
+
     def get_success_url(self):
-        """The URL to redirect to after successful update."""
-        return '/scanners/%s/saved/' % self.object.pk
+        """The URL to redirect to after successful creation."""
+        return '/webscanners/%s/created/' % self.object.pk
+
+
+class FileScannerCreate(ScannerCreate):
+
+    """Create a file scanner view."""
+
+    model = FileScanner
+    fields = ['name', 'schedule', 'domains', 'username', 'password',
+              'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
+              'do_name_scan', 'do_ocr', 'do_address_scan', 'do_last_modified_check',
+              'regex_rules', 'recipients']
+
+    def form_valid(self, form):
+        filescanner = form.save(commit=False)
+        if len(filescanner.password) > 0:
+            iv, ciphertext = aescipher.encrypt(str(filescanner.password))
+            filescanner.ciphertext = ciphertext
+            filescanner.iv = iv
+        filescanner.save()
+        return super(FileScannerCreate, self).form_valid(form)
+
+    def get_success_url(self):
+        """The URL to redirect to after successful creation."""
+        return '/filescanners/%s/created/' % self.object.pk
+
+
+class ScannerUpdate(RestrictedUpdateView):
+
+    """Update a scanner view."""
 
     def get_form(self, form_class):
         """Get the form for the view.
@@ -529,21 +559,54 @@ class ScannerUpdate(RestrictedUpdateView):
                         Q(group=scanner.group) | Q(group__isnull=True)
                     )
             form.fields[field_name].queryset = queryset
+
         return form
+
+
+class WebScannerUpdate(ScannerUpdate):
+
+    """Update a scanner view."""
+
+    model = WebScanner
+    fields = ['name', 'schedule', 'domains',
+              'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
+              'do_name_scan', 'do_ocr', 'do_address_scan',
+              'do_link_check', 'do_external_link_check', 'do_collect_cookies',
+              'do_last_modified_check', 'do_last_modified_check_head_request',
+              'regex_rules', 'recipients']
+
+    def get_success_url(self):
+        """The URL to redirect to after successful update."""
+        return '/webscanners/%s/saved/' % self.object.pk
+
+
+class FileScannerUpdate(ScannerUpdate):
+
+    """Update a scanner view."""
+
+    model = FileScanner
+    fields = ['name', 'schedule', 'domains', 'username', 'password',
+              'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
+              'do_name_scan', 'do_ocr', 'do_address_scan', 'do_last_modified_check',
+              'regex_rules', 'recipients']
+
+    def get_success_url(self):
+        """The URL to redirect to after successful update."""
+        return '/filescanners/%s/saved/' % self.object.pk
 
 
 class ScannerDelete(RestrictedDeleteView):
 
     """Delete a scanner view."""
 
-    model = Scanner
-    success_url = '/scanners/'
+    model = WebScanner
+    success_url = '/webscanners/'
 
 
 class ScannerAskRun(RestrictedDetailView):
 
     """Prompt for starting scan, validate first."""
-    model = Scanner
+    model = WebScanner
 
     def get_context_data(self, **kwargs):
         """Check that user is allowed to run this scanner."""
@@ -551,10 +614,10 @@ class ScannerAskRun(RestrictedDetailView):
 
         if self.object.has_active_scans:
             ok = False
-            error_message = Scanner.ALREADY_RUNNING
+            error_message = WebScanner.ALREADY_RUNNING
         elif not self.object.has_valid_domains:
             ok = False
-            error_message = Scanner.NO_VALID_DOMAINS
+            error_message = WebScanner.NO_VALID_DOMAINS
         else:
             ok = True
         context['ok'] = ok
@@ -568,7 +631,7 @@ class ScannerRun(RestrictedDetailView):
 
     """View that handles starting of a scanner run."""
 
-    model = Scanner
+    model = WebScanner
     template_name = 'os2webscanner/scanner_run.html'
 
     def get(self, request, *args, **kwargs):
@@ -1024,7 +1087,7 @@ class DialogSuccess(TemplateView):
 
     type_map = {
         'domains': Domain,
-        'scanners': Scanner,
+        'scanners': WebScanner,
         'rules': RegexRule,
         'groups': Group,
         'reports/summaries': Summary,
