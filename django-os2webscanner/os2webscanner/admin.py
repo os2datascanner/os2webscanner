@@ -23,12 +23,13 @@ from django.utils.translation import ugettext, ugettext_lazy as _
 
 from django.conf import settings
 
-from .models import Organization, UserProfile, Domain, RegexRule, Scanner
+from .models import Organization, UserProfile, Domain, RegexRule, \
+    WebScanner, FileScanner
 from .models import Scan, Match, Url, ConversionQueueItem
 from .models import ReferrerUrl, UrlLastModified, Group, Md5Sum
 
 ar = admin.site.register
-classes = [Organization, Domain, RegexRule, Scanner, Scan, Match, Url,
+classes = [Organization, Domain, RegexRule, WebScanner, FileScanner, Scan, Match, Url,
            ConversionQueueItem, ReferrerUrl, UrlLastModified, Group, Md5Sum]
 map(ar, classes)
 
