@@ -1096,7 +1096,8 @@ class DialogSuccess(TemplateView):
 
     type_map = {
         'domains': Domain,
-        'scanners': WebScanner,
+        'webscanners': WebScanner,
+        'filescanners': FileScanner,
         'rules': RegexRule,
         'groups': Group,
         'reports/summaries': Summary,
