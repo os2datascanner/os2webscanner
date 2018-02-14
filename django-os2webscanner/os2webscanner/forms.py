@@ -17,25 +17,6 @@
 
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import WebScanner, FileScanner
-
-
-class WebScannerForm(forms.ModelForm):
-
-    """A form for creating or updating webscanners."""
-
-    class Meta:
-        model = WebScanner
-        fields = '__all__'
-
-
-class FileScannerForm(forms.ModelForm):
-
-    """A form for creating or updating filescanners."""
-
-    class Meta:
-        model = FileScanner
-        fields = '__all__'
 
 
 class FileUploadForm(forms.Form):
