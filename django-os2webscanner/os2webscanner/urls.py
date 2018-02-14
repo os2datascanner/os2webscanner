@@ -29,7 +29,7 @@ from .views import RuleCreate, RuleUpdate, RuleDelete, OrganizationList
 from .views import SummaryList, SummaryCreate, SummaryUpdate, SummaryDelete
 from .views import SummaryReport, DialogSuccess, SystemStatusView
 from .views import file_upload, referrer_content
-from .models import WebScanner
+from .models import WebScanner, FileScanner
 
 
 js_info_dict = {
@@ -40,8 +40,8 @@ urlpatterns = patterns(
     '',
     # App URLs
     url(r'^$', MainPageView.as_view(), name='index'),
-    url(r'^webscanners/$', WebScannerList.as_view(), name='scanners'),
-    url(r'^webscanners/add/$', WebScannerCreate.as_view(), name='scanner_add'),
+    url(r'^webscanners/$', WebScannerList.as_view(), name='webscanners'),
+    url(r'^webscanners/add/$', WebScannerCreate.as_view(), name='webscanner_add'),
     url(r'^webscanners/(?P<pk>\d+)/delete/$', ScannerDelete.as_view(),
         name='webscanner_delete'),
     url(r'^webscanners/(?P<pk>\d+)/run/$', ScannerRun.as_view(),
@@ -62,7 +62,7 @@ urlpatterns = patterns(
     url(r'^filescanners/(?P<pk>\d+)/askrun/$',
         ScannerAskRun.as_view(
             template_name='os2webscanner/scanner_askrun.html',
-            model=WebScanner),
+            model=FileScanner),
         name='scanner_askrun'),
     url(r'^filescanners/(?P<pk>\d+)/$', FileScannerUpdate.as_view(),
         name='scanner_update'),
