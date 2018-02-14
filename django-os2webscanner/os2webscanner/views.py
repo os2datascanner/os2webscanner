@@ -171,15 +171,10 @@ class ScannerList(RestrictedListView):
 
 class WebScannerList(ScannerList):
 
-    """Displays list of webscanners."""
+    """Displays list of web scanners."""
 
     model = WebScanner
     type = 'web'
-
-    def get_context_data(self, **kwargs):
-        context = super(WebScannerList, self).get_context_data(**kwargs)
-        context['type'] = 'web'
-        return context
 
 
 class FileScannerList(ScannerList):
@@ -188,11 +183,6 @@ class FileScannerList(ScannerList):
 
     model = FileScanner
     type = 'file'
-
-    def get_context_data(self, **kwargs):
-        context = super(FileScannerList, self).get_context_data(**kwargs)
-        context['type'] = 'file'
-        return context
 
 
 class DomainList(RestrictedListView):
@@ -474,6 +464,7 @@ class ScannerCreate(RestrictedCreateView):
                         Q(group__in=groups) | Q(group__isnull=True)
                     )
                 form.fields[field_name].queryset = queryset
+
         return form
 
 
@@ -500,15 +491,22 @@ class FileScannerCreate(ScannerCreate):
     """Create a file scanner view."""
 
     model = FileScanner
-    fields = ['name', 'schedule', 'domains', 'username', 'password',
+    fields = ['name', 'schedule', 'domains', 'username',
               'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
               'do_name_scan', 'do_ocr', 'do_address_scan', 'do_last_modified_check',
               'regex_rules', 'recipients']
 
+    def get_form(self, form_class):
+        """Adds special field password."""
+        form = super(FileScannerCreate, self).get_form(form_class)
+        form.fields['password'] = forms.CharField(max_length=50)
+        return form
+
     def form_valid(self, form):
+        """Makes sure password gets encrypted before stored in db."""
         filescanner = form.save(commit=False)
-        if len(filescanner.password) > 0:
-            iv, ciphertext = aescipher.encrypt(str(filescanner.password))
+        if len(form.cleaned_data['password']) > 0:
+            iv, ciphertext = aescipher.encrypt(str(form.cleaned_data['password']))
             filescanner.ciphertext = ciphertext
             filescanner.iv = iv
         filescanner.save()
@@ -522,6 +520,7 @@ class FileScannerCreate(ScannerCreate):
 class ScannerUpdate(RestrictedUpdateView):
 
     """Update a scanner view."""
+    template_name = 'os2webscanner/scanner_form.html'
 
     def get_form(self, form_class):
         """Get the form for the view.
@@ -585,10 +584,20 @@ class FileScannerUpdate(ScannerUpdate):
     """Update a scanner view."""
 
     model = FileScanner
-    fields = ['name', 'schedule', 'domains', 'username', 'password',
+    fields = ['name', 'schedule', 'domains', 'username',
               'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
               'do_name_scan', 'do_ocr', 'do_address_scan', 'do_last_modified_check',
               'regex_rules', 'recipients']
+
+    def get_form(self, form_class):
+        """Adds special field password and decrypts password."""
+        form = super(FileScannerUpdate, self).get_form(form_class)
+        scanner = self.get_object()
+        form.fields['password'] = forms.CharField(max_length=50)
+        if len(scanner.ciphertext) > 0:
+            password = aescipher.decrypt(str(scanner.iv), str(scanner.ciphertext))
+            form.fields['password'].initial = password
+        return form
 
     def get_success_url(self):
         """The URL to redirect to after successful update."""
