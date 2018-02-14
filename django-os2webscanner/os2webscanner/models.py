@@ -317,9 +317,6 @@ class Scanner(models.Model):
     ciphertext = models.BinaryField(max_length=1024, unique=False, blank=True,
                                     verbose_name='Password')
 
-    password = models.CharField(max_length=1024, unique=False, blank=True, default='',
-                                  verbose_name='Password')
-
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')
     group = models.ForeignKey(Group, null=True, blank=True,
