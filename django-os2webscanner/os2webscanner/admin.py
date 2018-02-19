@@ -23,14 +23,31 @@ from django.utils.translation import ugettext, ugettext_lazy as _
 
 from django.conf import settings
 
-from .models import Organization, UserProfile, Domain, RegexRule, \
-    WebScanner, FileScanner
-from .models import Scan, Match, Url, ConversionQueueItem
-from .models import ReferrerUrl, UrlLastModified, Group, Md5Sum
+from models.organization_model import Organization
+from models.userprofile_model import UserProfile
+from models.webdomain_model import WebDomain
+from models.filedomain_model import FileDomain
+from models.regexrule_model import RegexRule
+from models.webscanner_model import WebScanner
+from models.filescanner_model import FileScanner
+from models.webscan_model import WebScan
+from models.filescan_model import FileScan
+from models.filematch_model import FileMatch
+from models.webmatch_model import WebMatch
+from models.fileurl_model import FileUrl
+from models.weburl_model import WebUrl
+from models.fileconversionqueueitem_model import FileConversionQueueItem
+from models.webconversionqueueitem_model import WebConversionQueueItem
+from models.referrerurl_model import ReferrerUrl
+from models.urllastmodified_model import UrlLastModified
+from models.group_model import Group
+from models.md5sum_model import Md5Sum
 
 ar = admin.site.register
-classes = [Organization, Domain, RegexRule, WebScanner, FileScanner, Scan, Match, Url,
-           ConversionQueueItem, ReferrerUrl, UrlLastModified, Group, Md5Sum]
+classes = [Organization, WebDomain, FileDomain, RegexRule,
+           WebScanner, FileScanner, WebScan, FileScan, FileMatch, WebMatch, FileUrl, WebUrl,
+           FileConversionQueueItem, WebConversionQueueItem, ReferrerUrl,
+           UrlLastModified, Group, Md5Sum]
 map(ar, classes)
 
 

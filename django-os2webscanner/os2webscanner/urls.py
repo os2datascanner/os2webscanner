@@ -19,7 +19,7 @@ from django.conf import settings
 from django.conf.urls import patterns, url
 from django.views.i18n import javascript_catalog
 
-from .views import MainPageView, WebScannerList, FileScannerList, DomainList, RuleList
+from .views import MainPageView, WebScannerList, WebDomainList, FileScannerList, FileDomainList, RuleList
 from .views import CSVReportDetails, ReportDetails, ReportList, ReportDelete
 from .views import WebScannerCreate, WebScannerUpdate, FileScannerCreate, FileScannerUpdate, ScannerDelete, ScannerRun
 from .views import ScannerAskRun, ScanReportLog, OrganizationUpdate
@@ -29,7 +29,8 @@ from .views import RuleCreate, RuleUpdate, RuleDelete, OrganizationList
 from .views import SummaryList, SummaryCreate, SummaryUpdate, SummaryDelete
 from .views import SummaryReport, DialogSuccess, SystemStatusView
 from .views import file_upload, referrer_content
-from .models import WebScanner, FileScanner
+from .models.webscanner_model import WebScanner
+from .models.filescanner_model import FileScanner
 
 
 js_info_dict = {
@@ -66,15 +67,24 @@ urlpatterns = patterns(
         name='scanner_askrun'),
     url(r'^filescanners/(?P<pk>\d+)/$', FileScannerUpdate.as_view(),
         name='scanner_update'),
-    url(r'^domains/$', DomainList.as_view(), name='domains'),
-    url(r'^domains/add/$', DomainCreate.as_view(), name='domain_add'),
-    url(r'^domains/(?P<pk>\d+)/validate/$', DomainValidate.as_view(),
-        name='domain_validate'),
-    url(r'^(domains)/(\d+)/(success)/$', DialogSuccess.as_view()),
-    url(r'^domains/(?P<pk>\d+)/$', DomainUpdate.as_view(),
-        name='domain_update'),
-    url(r'^domains/(?P<pk>\d+)/delete/$', DomainDelete.as_view(),
-        name='domain_delete'),
+    url(r'^filedomains/$', FileDomainList.as_view(), name='filedomains'),
+    url(r'^filedomains/add/$', DomainCreate.as_view(), name='filedomain_add'),
+    url(r'^filedomains/(?P<pk>\d+)/validate/$', DomainValidate.as_view(),
+        name='file_domain_validate'),
+    url(r'^(filedomains)/(\d+)/(success)/$', DialogSuccess.as_view()),
+    url(r'^filedomains/(?P<pk>\d+)/$', DomainUpdate.as_view(),
+        name='file_domain_update'),
+    url(r'^filedomains/(?P<pk>\d+)/delete/$', DomainDelete.as_view(),
+        name='file_domain_delete'),
+    url(r'^webdomains/$', WebDomainList.as_view(), name='webdomains'),
+    url(r'^webdomains/add/$', DomainCreate.as_view(), name='webdomain_add'),
+    url(r'^webdomains/(?P<pk>\d+)/validate/$', DomainValidate.as_view(),
+        name='web_domain_validate'),
+    url(r'^(webdomains)/(\d+)/(success)/$', DialogSuccess.as_view()),
+    url(r'^webdomains/(?P<pk>\d+)/$', DomainUpdate.as_view(),
+        name='web_domain_update'),
+    url(r'^webdomains/(?P<pk>\d+)/delete/$', DomainDelete.as_view(),
+        name='web_domain_delete'),
     url(r'^rules/$', RuleList.as_view(), name='rules'),
     url(r'^rules/add/$', RuleCreate.as_view(), name='rule_add'),
     url(r'^rules/(?P<pk>\d+)/$', RuleUpdate.as_view(),

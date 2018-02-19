@@ -19,7 +19,8 @@ import re
 import urllib2
 import urlparse
 import hashlib
-from os2webscanner.models import Domain
+
+from models.domain_model import Domain
 
 
 def _do_request(url):

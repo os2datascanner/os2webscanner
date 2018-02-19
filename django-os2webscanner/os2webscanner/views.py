@@ -40,9 +40,22 @@ from django.conf import settings
 
 from .validate import validate_domain, get_validation_str
 
-from .models import WebScanner, FileScanner, Domain, RegexRule, Scan, Match, UserProfile, Url
-from .models import Organization, ConversionQueueItem, Group, Summary
-from .models import ReferrerUrl
+from models.scanner_model import Scanner
+from models.domain_model import Domain
+from models.organization_model import Organization
+from models.userprofile_model import UserProfile
+from models.webdomain_model import WebDomain
+from models.filedomain_model import FileDomain
+from models.regexrule_model import RegexRule
+from models.webscanner_model import WebScanner
+from models.filescanner_model import FileScanner
+from models.scan_model import Scan
+from models.match_model import Match
+from models.url_model import Url
+from models.conversionqueueitem_model import ConversionQueueItem
+from models.referrerurl_model import ReferrerUrl
+from models.group_model import Group
+from models.summary_model import Summary
 from .utils import scans_for_summary_report, do_scan
 from .forms import FileUploadForm
 
@@ -189,7 +202,6 @@ class DomainList(RestrictedListView):
 
     """Displays list of domains."""
 
-    model = Domain
     template_name = 'os2webscanner/domains.html'
 
     def get_queryset(self):
@@ -200,6 +212,22 @@ class DomainList(RestrictedListView):
             query_set = query_set.order_by('url', 'pk')
 
         return query_set
+
+
+class WebDomainList(DomainList):
+
+    """Displays list of domains."""
+
+    model = WebDomain
+    type = 'web'
+
+
+class FileDomainList(DomainList):
+
+    """Displays list of domains."""
+
+    model = FileDomain
+    type = 'file'
 
 
 class GroupList(RestrictedListView):
@@ -614,8 +642,7 @@ class ScannerDelete(RestrictedDeleteView):
 
 class ScannerAskRun(RestrictedDetailView):
 
-    """Prompt for starting scan, validate first."""
-    model = WebScanner
+    """Base class for prompt before starting scan, validate first."""
 
     def get_context_data(self, **kwargs):
         """Check that user is allowed to run this scanner."""
@@ -623,10 +650,10 @@ class ScannerAskRun(RestrictedDetailView):
 
         if self.object.has_active_scans:
             ok = False
-            error_message = WebScanner.ALREADY_RUNNING
+            error_message = Scanner.ALREADY_RUNNING
         elif not self.object.has_valid_domains:
             ok = False
-            error_message = WebScanner.NO_VALID_DOMAINS
+            error_message = Scanner.NO_VALID_DOMAINS
         else:
             ok = True
         context['ok'] = ok
@@ -636,11 +663,24 @@ class ScannerAskRun(RestrictedDetailView):
         return context
 
 
-class ScannerRun(RestrictedDetailView):
+class WebScannerAskRun(ScannerAskRun):
 
-    """View that handles starting of a scanner run."""
+    """Prompt for starting web scan, validate first."""
 
     model = WebScanner
+
+
+class FileScannerAskRun(ScannerAskRun):
+
+    """Prompt for starting file scan, validate first."""
+
+    model = FileScanner
+
+
+class ScannerRun(RestrictedDetailView):
+
+    """Base class for view that handles starting of a scanner run."""
+
     template_name = 'os2webscanner/scanner_run.html'
 
     def get(self, request, *args, **kwargs):
@@ -656,6 +696,20 @@ class ScannerRun(RestrictedDetailView):
             context['scan'] = result
 
         return self.render_to_response(context)
+
+
+class WebScannerRun(ScannerRun):
+
+    """View that handles starting of a web scanner run."""
+
+    model = WebScanner
+
+
+class FileScannerRun(ScannerRun):
+
+    """View that handles starting of a file scanner run."""
+
+    model = FileScanner
 
 
 class DomainCreate(RestrictedCreateView):

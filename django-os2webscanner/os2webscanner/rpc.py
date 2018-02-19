@@ -25,7 +25,8 @@ from django.contrib.auth import authenticate
 from django.conf import settings
 
 from .utils import do_scan
-from .models import Match, Scan
+from .models.match_model import Match
+from .models.scan_model import Scan
 
 from django_xmlrpc.decorators import xmlrpc_func
 
