@@ -6,6 +6,16 @@ Domæner
 
 {% block body %}
 <div class="container">
+    {% include 'os2webscanner/domain_above_content.html' with active=view.type %}
+    <div class="tab-content">
+    <div role="tabpanel" class="tab-pane active" id="{{view.type}}scan">
+        <p class="h2" style="display:inline-block;">{% if view.type == 'web' %} Web {% else %} Fil {% endif %} domæne</p>
+        <span class="page-action">
+            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#create-domain-modal">
+              Tilføj ny
+              <span style="position:relative;top:.15em;" class="glyphicon glyphicon-plus-sign"></span>
+            </button>
+          </span>
      <div class="table-responsive">
 	<table class="table table-striped">
           <thead>
@@ -95,17 +105,11 @@ Domæner
         </table>
       </div>
    </div>
+   </div>
 {% endblock %}
 
 {% block heading %} 
-Domæner 
-<span class="page-action" style="margin-left:.5em">
-    <button type="button" class="btn btn-default" data-toggle="modal" data-target="#create-domain-modal">
-        Tilføj nyt 
-        <span style="position:relative;top:.15em;" class="glyphicon glyphicon-plus-sign">
-        </span>
-    </button>
-</span>
+Domæner
 {% endblock %}
 
 {% block modal %}
