@@ -89,12 +89,12 @@ Domæner
 		  class="btn btn-default btn-xs btn-domain-settings"
 		  onclick="os2web.iframeDialog(
 		      &quot;#edit-domain-modal&quot;,
-		      &quot;/domains/{{domain.pk}}&quot;,
+		      &quot;/{{ view.type }}domains/{{domain.pk}}&quot;,
 		      &quot;Redigér domæne '{{domain.url}}'&quot;
 		  )">
               	  <span class="glyphicon glyphicon-cog"></span> <span>Redigér</span>
 		</button>
-                <a href="/domains/{{domain.pk}}/delete/" class="btn btn-default btn-xs">
+                <a href="/{{ view.type }}domains/{{domain.pk}}/delete/" class="btn btn-default btn-xs">
                     <span class="glyphicon glyphicon-remove"></span>
                     <span>Slet </span>
                 </a>
@@ -115,7 +115,7 @@ Domæner
 {% block modal %}
 <div class="modal iframe" id="create-domain-modal" tabindex="-1" role="dialog"
   aria-labelledby="create-domain-modal-title" aria-hidden="true"
-  data-href="/domains/add/">
+  data-href="/{{ view.type }}domains/add/">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
@@ -134,7 +134,7 @@ Domæner
 </div>
 <div class="modal iframe" id="edit-domain-modal" tabindex="-1" role="dialog"
   aria-labelledby="edit-domain-modal-title" aria-hidden="true"
-  data-href="/domains/add/">
+  data-href="/{{ view.type }}domains/add/">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">

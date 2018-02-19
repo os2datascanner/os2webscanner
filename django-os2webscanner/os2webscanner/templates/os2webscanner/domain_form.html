@@ -154,7 +154,7 @@
     </div>
   </div>
 
-
+  {% if form.download_sitemap %}
   <div id="{{ form.download_sitemap.auto_id }}_container" class="col-sm-12{% if form.download_sitemap.errors %} has-error{% endif %}">
       <div class="form-group">
           <label class="control-label col-sm-3" for="id_{{ form.download_sitemap.name }}">{{ form.download_sitemap.label }}</label>
@@ -171,7 +171,9 @@
           </div>
       </div>
   </div>
+  {% endif %}
 
+  {% if form.sitemap_url %}
     <div id="{{ form.sitemap_url.auto_id }}_container" class="col-sm-12{% if form.sitemap_url.errors %} has-error{% endif %}">
         <div class="form-group">
             <label class="control-label col-sm-3" for="id_{{ form.sitemap_url.name }}">{{ form.sitemap_url.label }}</label>
@@ -190,7 +192,9 @@
             </div>
         </div>
     </div>
+    {% endif %}
 
+    {% if form.sitemap %}
     <div id="{{ form.sitemap.auto_id }}_container" class="col-sm-12{% if form.sitemap.errors %} has-error{% endif %}">
         <div class="form-group">
             <label class="control-label col-sm-3"
@@ -216,6 +220,7 @@
             </div>
         </div>
     </div>
+    {% endif %}
 
   <div class="col-sm-offset-3">
     <div class="col-sm-12">
