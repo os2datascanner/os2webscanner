@@ -19,16 +19,18 @@ from django.conf import settings
 from django.conf.urls import patterns, url
 from django.views.i18n import javascript_catalog
 
-from .views import MainPageView, WebScannerList, WebDomainList, FileScannerList, FileDomainList, RuleList
-from .views import CSVReportDetails, ReportDetails, ReportList, ReportDelete
-from .views import WebScannerCreate, WebScannerUpdate, FileScannerCreate, FileScannerUpdate, ScannerDelete, ScannerRun
-from .views import ScannerAskRun, ScanReportLog, OrganizationUpdate
-from .views import DomainCreate, DomainUpdate, DomainValidate, DomainDelete
-from .views import GroupList, GroupCreate, GroupUpdate, GroupDelete
-from .views import RuleCreate, RuleUpdate, RuleDelete, OrganizationList
-from .views import SummaryList, SummaryCreate, SummaryUpdate, SummaryDelete
-from .views import SummaryReport, DialogSuccess, SystemStatusView
-from .views import file_upload, referrer_content
+from .views.views import MainPageView, RuleList
+from .views.views import CSVReportDetails, ReportDetails, ReportList, ReportDelete
+from .views.scanner_views import WebScannerCreate, WebScannerUpdate, FileScannerCreate, FileScannerUpdate, \
+    ScannerDelete, ScannerRun, ScannerAskRun, WebScannerList, FileScannerList
+from .views.views import ScanReportLog, OrganizationUpdate
+from .views.domain_views import DomainUpdate, DomainValidate, DomainDelete, \
+    WebDomainList, FileDomainList, WebDomainCreate, FileDomainCreate
+from .views.views import GroupList, GroupCreate, GroupUpdate, GroupDelete
+from .views.views import RuleCreate, RuleUpdate, RuleDelete, OrganizationList
+from .views.views import SummaryList, SummaryCreate, SummaryUpdate, SummaryDelete
+from .views.views import SummaryReport, DialogSuccess, SystemStatusView
+from .views.views import file_upload, referrer_content
 from .models.webscanner_model import WebScanner
 from .models.filescanner_model import FileScanner
 
@@ -68,7 +70,7 @@ urlpatterns = patterns(
     url(r'^filescanners/(?P<pk>\d+)/$', FileScannerUpdate.as_view(),
         name='scanner_update'),
     url(r'^filedomains/$', FileDomainList.as_view(), name='filedomains'),
-    url(r'^filedomains/add/$', DomainCreate.as_view(), name='filedomain_add'),
+    url(r'^filedomains/add/$', FileDomainCreate.as_view(), name='filedomain_add'),
     url(r'^filedomains/(?P<pk>\d+)/validate/$', DomainValidate.as_view(),
         name='file_domain_validate'),
     url(r'^(filedomains)/(\d+)/(success)/$', DialogSuccess.as_view()),
@@ -77,7 +79,7 @@ urlpatterns = patterns(
     url(r'^filedomains/(?P<pk>\d+)/delete/$', DomainDelete.as_view(),
         name='file_domain_delete'),
     url(r'^webdomains/$', WebDomainList.as_view(), name='webdomains'),
-    url(r'^webdomains/add/$', DomainCreate.as_view(), name='webdomain_add'),
+    url(r'^webdomains/add/$', WebDomainCreate.as_view(), name='webdomain_add'),
     url(r'^webdomains/(?P<pk>\d+)/validate/$', DomainValidate.as_view(),
         name='web_domain_validate'),
     url(r'^(webdomains)/(\d+)/(success)/$', DialogSuccess.as_view()),
