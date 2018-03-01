@@ -24,7 +24,7 @@ from .views.views import CSVReportDetails, ReportDetails, ReportList, ReportDele
 from .views.scanner_views import WebScannerCreate, WebScannerUpdate, FileScannerCreate, FileScannerUpdate, \
     ScannerDelete, ScannerRun, ScannerAskRun, WebScannerList, FileScannerList
 from .views.views import ScanReportLog, OrganizationUpdate
-from .views.domain_views import DomainUpdate, DomainValidate, DomainDelete, \
+from .views.domain_views import WebDomainUpdate, FileDomainUpdate, DomainValidate, DomainDelete, \
     WebDomainList, FileDomainList, WebDomainCreate, FileDomainCreate
 from .views.views import GroupList, GroupCreate, GroupUpdate, GroupDelete
 from .views.views import RuleCreate, RuleUpdate, RuleDelete, OrganizationList
@@ -74,7 +74,7 @@ urlpatterns = patterns(
     url(r'^filedomains/(?P<pk>\d+)/validate/$', DomainValidate.as_view(),
         name='file_domain_validate'),
     url(r'^(filedomains)/(\d+)/(success)/$', DialogSuccess.as_view()),
-    url(r'^filedomains/(?P<pk>\d+)/$', DomainUpdate.as_view(),
+    url(r'^filedomains/(?P<pk>\d+)/$', FileDomainUpdate.as_view(),
         name='file_domain_update'),
     url(r'^filedomains/(?P<pk>\d+)/delete/$', DomainDelete.as_view(),
         name='file_domain_delete'),
@@ -83,7 +83,7 @@ urlpatterns = patterns(
     url(r'^webdomains/(?P<pk>\d+)/validate/$', DomainValidate.as_view(),
         name='web_domain_validate'),
     url(r'^(webdomains)/(\d+)/(success)/$', DialogSuccess.as_view()),
-    url(r'^webdomains/(?P<pk>\d+)/$', DomainUpdate.as_view(),
+    url(r'^webdomains/(?P<pk>\d+)/$', WebDomainUpdate.as_view(),
         name='web_domain_update'),
     url(r'^webdomains/(?P<pk>\d+)/delete/$', DomainDelete.as_view(),
         name='web_domain_delete'),
@@ -152,14 +152,14 @@ urlpatterns = patterns(
         ),
 
     # General dialog success handler
-    url(r'^(webscanners|domains|rules|groups|reports/summaries)/(\d+)/(created)/$',
+    url(r'^(webscanners|webdomains|rules|groups|reports/summaries)/(\d+)/(created)/$',
         DialogSuccess.as_view()),
-    url(r'^(webscanners|domains|rules|groups|reports/summaries)/(\d+)/(saved)/$',
+    url(r'^(webscanners|webdomains|rules|groups|reports/summaries)/(\d+)/(saved)/$',
         DialogSuccess.as_view()),
     # General dialog success handler
-    url(r'^(filescanners|domains|rules|groups|reports/summaries)/(\d+)/(created)/$',
+    url(r'^(filescanners|filedomains|rules|groups|reports/summaries)/(\d+)/(created)/$',
         DialogSuccess.as_view()),
-    url(r'^(filescanners|domains|rules|groups|reports/summaries)/(\d+)/(saved)/$',
+    url(r'^(filescanners|filedomains|rules|groups|reports/summaries)/(\d+)/(saved)/$',
         DialogSuccess.as_view()),
     url(r'^jsi18n/$', javascript_catalog, js_info_dict),
     # System functions
