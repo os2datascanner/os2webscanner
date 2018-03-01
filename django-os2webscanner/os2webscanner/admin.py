@@ -23,6 +23,7 @@ from django.utils.translation import ugettext, ugettext_lazy as _
 
 from django.conf import settings
 
+from models.authentication_model import Authentication
 from models.organization_model import Organization
 from models.userprofile_model import UserProfile
 from models.webdomain_model import WebDomain
@@ -44,7 +45,7 @@ from models.group_model import Group
 from models.md5sum_model import Md5Sum
 
 ar = admin.site.register
-classes = [Organization, WebDomain, FileDomain, RegexRule,
+classes = [Authentication, Organization, WebDomain, FileDomain, RegexRule,
            WebScanner, FileScanner, WebScan, FileScan, FileMatch, WebMatch, FileUrl, WebUrl,
            FileConversionQueueItem, WebConversionQueueItem, ReferrerUrl,
            UrlLastModified, Group, Md5Sum]
