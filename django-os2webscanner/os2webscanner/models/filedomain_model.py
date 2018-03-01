@@ -23,5 +23,17 @@ class FileDomain(Domain):
 
     """Represents a file domain to be scanned."""
 
+    @property
+    def root_url(self):
+        """Return the root url of the domain."""
+        url = self.url.replace('*.', '')
+        if (
+                    not self.url.startswith('file://') and not
+                self.url.startswith('file:///')
+        ):
+            return 'file://%s/' % url
+        else:
+            return url
+
     class Meta:
         db_table = 'os2webscanner_filedomain'
