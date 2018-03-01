@@ -43,15 +43,16 @@ class Domain(models.Model):
 
     url = models.CharField(max_length=2048, verbose_name='Url')
 
-    authentication = models.ForeignKey(Authentication,
-                                       null=True,
-                                       related_name='%(app_label)s_%(class)s_authentication',
-                                       verbose_name='Login oplysninger')
+    authentication = models.OneToOneField(Authentication,
+                                          null=True,
+                                          related_name='%(app_label)s_%(class)s_authentication',
+                                          verbose_name='Bruger navn')
 
     organization = models.ForeignKey(Organization,
                                      null=False,
                                      related_name='%(app_label)s_%(class)s_organization',
                                      verbose_name='Organisation')
+
     group = models.ForeignKey(Group,
                               null=True,
                               blank=True,
