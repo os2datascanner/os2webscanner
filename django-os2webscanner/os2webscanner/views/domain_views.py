@@ -1,3 +1,5 @@
+from django import forms
+
 from ..validate import validate_domain, get_validation_str
 
 from views import RestrictedListView, RestrictedCreateView, \
@@ -6,6 +8,8 @@ from views import RestrictedListView, RestrictedCreateView, \
 from ..models.domain_model import Domain
 from ..models.webdomain_model import WebDomain
 from ..models.filedomain_model import FileDomain
+from ..models.authentication_model import Authentication
+from ..aescipher import encrypt, decrypt
 
 
 class DomainList(RestrictedListView):
@@ -13,6 +17,7 @@ class DomainList(RestrictedListView):
     """Displays list of domains."""
 
     template_name = 'os2webscanner/domains.html'
+    context_object_name = 'domain_list'
 
     def get_queryset(self):
         """Get queryset, ordered by url followed by primary key."""
@@ -81,7 +86,7 @@ class WebDomainCreate(DomainCreate):
 
     def get_success_url(self):
         """The URL to redirect to after successful creation."""
-        return '/webdomains/%s/created/' % self.object.pkclass
+        return '/webdomains/%s/created/' % self.object.pk
 
 
 class FileDomainCreate(DomainCreate):
@@ -91,6 +96,29 @@ class FileDomainCreate(DomainCreate):
     model = FileDomain
     fields = ['url', 'exclusion_rules']
 
+    def get_form(self, form_class):
+        """Adds special field password."""
+        form = super(FileDomainCreate, self).get_form(form_class)
+        form.fields['username'] = forms.CharField(max_length=1024)
+        form.fields['password'] = forms.CharField(max_length=50)
+        return form
+
+    def form_valid(self, form):
+        """Makes sure password gets encrypted before stored in db."""
+        filedomain = form.save(commit=False)
+        authentication = Authentication()
+        if len(form.cleaned_data['username']) > 0:
+            username = str(form.cleaned_data['username'])
+            authentication.username = username
+        if len(form.cleaned_data['password']) > 0:
+            iv, ciphertext = encrypt(str(form.cleaned_data['password']))
+            authentication.ciphertext = ciphertext
+            authentication.iv = iv
+        authentication.save()
+        filedomain.authentication = authentication
+        filedomain.save()
+        return super(FileDomainCreate, self).form_valid(form)
+
     def get_success_url(self):
         """The URL to redirect to after successful creation."""
         return '/filedomains/%s/created/' % self.object.pk
@@ -99,10 +127,8 @@ class FileDomainCreate(DomainCreate):
 class DomainUpdate(RestrictedUpdateView):
 
     """Update a domain view."""
-
-    model = Domain
-    fields = ['url', 'exclusion_rules', 'download_sitemap', 'sitemap_url',
-              'sitemap']
+    template_name = 'os2webscanner/domain_form.html'
+    old_url = ''
 
     def get_form_fields(self):
         """Get the list of form fields."""
@@ -121,6 +147,8 @@ class DomainUpdate(RestrictedUpdateView):
         """
         form = super(DomainUpdate, self).get_form(form_class)
 
+        self.old_url = self.get_object().url
+
         for fname in form.fields:
             f = form.fields[fname]
             f.widget.attrs['class'] = 'form-control'
@@ -137,8 +165,7 @@ class DomainUpdate(RestrictedUpdateView):
 
     def form_valid(self, form):
         """Validate the submitted form."""
-        old_obj = Domain.objects.get(pk=self.object.pk)
-        if old_obj.url != self.object.url:
+        if self.old_url != self.object.url:
             self.object.validation_status = Domain.INVALID
 
         if not self.request.user.is_superuser:
@@ -146,14 +173,20 @@ class DomainUpdate(RestrictedUpdateView):
             self.object = form.save(commit=False)
             self.object.organization = user_profile.organization
 
-        result = super(DomainUpdate, self).form_valid(form)
+        return super(DomainUpdate, self).form_valid(form)
 
-        return result
+
+class WebDomainUpdate(DomainUpdate):
+    """Update a web domain view."""
+
+    model = WebDomain
+    fields = ['url', 'exclusion_rules', 'download_sitemap',
+              'sitemap_url', 'sitemap']
 
     def get_context_data(self, **kwargs):
         """Get the context used when rendering the template."""
-        context = super(DomainUpdate, self).get_context_data(**kwargs)
-        for value, desc in Domain.validation_method_choices:
+        context = super(WebDomainUpdate, self).get_context_data(**kwargs)
+        for value, desc in WebDomain.validation_method_choices:
             key = 'valid_txt_' + str(value)
             context[key] = get_validation_str(self.object, value)
         return context
@@ -167,7 +200,50 @@ class DomainUpdate(RestrictedUpdateView):
         if 'save_and_validate' in self.request.POST:
             return 'validate/'
         else:
-            return '/domains/%s/saved/' % self.object.pk
+            return '/webdomains/%s/saved/' % self.object.pk
+
+
+class FileDomainUpdate(DomainUpdate):
+    """Update a file domain view."""
+
+    model = FileDomain
+    fields = ['url', 'exclusion_rules']
+
+    def get_form(self, form_class):
+        """Adds special field password and decrypts password."""
+        form = super(FileDomainUpdate, self).get_form(form_class)
+        filedomain = self.get_object()
+        authentication = filedomain.authentication
+        form.fields['username'] = forms.CharField(max_length=1024)
+        form.fields['password'] = forms.CharField(max_length=50)
+        if len(authentication.username) > 0:
+            form.fields['username'].initial = authentication.username
+        if len(authentication.ciphertext) > 0:
+            password = decrypt(str(authentication.iv), str(authentication.ciphertext))
+            form.fields['password'].initial = password
+        return form
+
+    def form_valid(self, form):
+        """Makes sure password gets encrypted before stored in db."""
+        filedomain = form.save(commit=False)
+        authentication = filedomain.authentication
+        authentication.username = str(form.cleaned_data['username'])
+        iv, ciphertext = encrypt(str(form.cleaned_data['password']))
+        authentication.ciphertext = ciphertext
+        authentication.iv = iv
+        authentication.save()
+        return super(FileDomainUpdate, self).form_valid(form)
+
+    def get_success_url(self):
+        """The URL to redirect to after successful updating.
+
+        Will redirect the user to the validate view if the form was submitted
+        with the 'save_and_validate' button.
+        """
+        if 'save_and_validate' in self.request.POST:
+            return 'validate/'
+        else:
+            return '/filedomains/%s/saved/' % self.object.pk
 
 
 class DomainValidate(RestrictedDetailView):
