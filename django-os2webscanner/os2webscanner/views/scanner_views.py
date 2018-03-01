@@ -51,7 +51,7 @@ class ScannerCreate(RestrictedCreateView):
         """Get the form for the view.
 
         Querysets used for choices in the 'domains' and 'regex_rules' fields
-        will be limited by the user's organiztion unless the user is a
+        will be limited by the user's organization unless the user is a
         superuser.
         """
         form = super(ScannerCreate, self).get_form(form_class)
@@ -99,7 +99,6 @@ class WebScannerCreate(ScannerCreate):
               'do_link_check', 'do_external_link_check', 'do_collect_cookies',
               'do_last_modified_check', 'do_last_modified_check_head_request',
               'regex_rules', 'recipients']
-
 
     def get_success_url(self):
         """The URL to redirect to after successful creation."""
