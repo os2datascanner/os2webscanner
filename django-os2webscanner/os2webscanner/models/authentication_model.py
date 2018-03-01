@@ -20,6 +20,6 @@ class Authentication(models.Model):
                                     verbose_name='Password')
 
     models.ForeignKey(AuthenticationMethods,
-                      null=False,
+                      null=True,
                       related_name='authentication_method',
-                      verbose_name='Login etode')
+                      verbose_name='Login Metode')
