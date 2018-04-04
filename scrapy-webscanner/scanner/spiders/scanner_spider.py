@@ -167,7 +167,6 @@ class ScannerSpider(BaseScannerSpider):
 
         If link checking is enabled, saves the broken URL and referrers.
         """
-        logging.info("Handle error")
         if (not self.scanner.scan_object.do_link_check or
                 (isinstance(failure.value, IgnoreRequest) and not isinstance(
                     failure.value, HttpError))):
