@@ -16,6 +16,7 @@
 # source municipalities ( http://www.os2web.dk/ )
 
 """Contains Django models for the Webscanner."""
+from django.utils import timezone
 from django.db.models.aggregates import Count
 from urllib.parse import urljoin
 
@@ -833,7 +834,7 @@ class Scan(models.Model):
             self.status in [Scan.DONE, Scan.FAILED] and
             (self._old_status != self.status)
         ):
-            self.end_time = datetime.datetime.now()
+            self.end_time = timezone.now()
         # Actual save
         super().save(*args, **kwargs)
         # Post-save stuff
