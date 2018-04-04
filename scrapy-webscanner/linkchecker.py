@@ -24,7 +24,7 @@ def check_url(url, method="HEAD"):
     :return:
     """
     try:
-        logging.msg("Checking %s" % url)
+        logging.info("Checking %s" % url)
         request = urllib.request.Request(url, headers={"User-Agent":
                                                        "OS2Webscanner"})
         request.get_method = lambda: method
@@ -35,7 +35,7 @@ def check_url(url, method="HEAD"):
             http.client.InvalidURL,
             socket.timeout,
             IOError) as e:
-        logging.msg("Error %s" % e, level=logging.DEBUG)
+        logging.debug("Error %s" % e)
         code = getattr(e, "code", 0)
         if code == 405:
             # Method not allowed, try with GET instead
