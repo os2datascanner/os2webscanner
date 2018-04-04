@@ -49,8 +49,6 @@ from os2webscanner.models import Scan, ConversionQueueItem, Url
 import linkchecker
 import logging
 
-from scanner.processors import *  # noqa
-
 import signal
 
 # Activate timezone from settings
@@ -124,7 +122,7 @@ class ScannerApp:
         # job_dir = os.path.join(self.scan_object.scan_dir, 'job')
         # settings.set('JOBDIR', job_dir)
 
-        self.crawler_process = OrderedCrawlerProcess(settings)
+        self.crawler_process = CrawlerProcess(settings)
 
         # Don't sitemap scan when running over RPC
         if not self.scan_object.scanner.process_urls:
@@ -132,8 +130,9 @@ class ScannerApp:
         self.scanner_spider = self.setup_scanner_spider()
 
         # Run the crawlers and block
+        logging.info('Starting crawler process.')
         self.crawler_process.start()
-
+        logging.info('Crawler process started.')
         if (self.scanner.scan_object.do_link_check
                 and self.scanner.scan_object.do_external_link_check):
             # Do external link check
@@ -171,12 +170,11 @@ class ScannerApp:
     def setup_scanner_spider(self):
         """Setup the scanner spider."""
         crawler = self.crawler_process.create_crawler(ScannerSpider)
-        spider = ScannerSpider(self.scanner, self)
         crawler.signals.connect(self.handle_closed,
                                 signal=signals.spider_closed)
         crawler.signals.connect(self.handle_error, signal=signals.spider_error)
         crawler.signals.connect(self.handle_idle, signal=signals.spider_idle)
-        crawler.crawl(scanner=self.scanner, runner=self)
+        self.crawler_process.crawl(crawler, scanner=self.scanner, runner=self)
         return crawler.spider
 
     def get_start_urls_from_sitemap(self):
@@ -211,8 +209,7 @@ class ScannerApp:
 
     def handle_error(self, failure, response, spider):
         """Handle spider errors, updating scan status."""
-        logging.msg("Scan failed: %s" % failure.getErrorMessage(),
-                    level=logging.ERROR)
+        logging.error("Scan failed: %s" % failure.getErrorMessage())
         scan_object = Scan.objects.get(pk=self.scan_id)
         scan_object.reason = failure.getErrorMessage()
         scan_object.save()
@@ -222,7 +219,7 @@ class ScannerApp:
 
         Keep it open if there are still queue items to be processed.
         """
-        logging.msg("Spider Idle...")
+        logging.debug("Spider Idle...")
         # Keep spider alive if there are still queue items to be processed
         remaining_queue_items = ConversionQueueItem.objects.filter(
             status__in=[ConversionQueueItem.NEW,
@@ -231,13 +228,13 @@ class ScannerApp:
         ).count()
 
         if remaining_queue_items > 0:
-            logging.msg(
+            logging.info(
                 "Keeping spider alive: %d remaining queue items to process" %
                 remaining_queue_items
             )
             raise DontCloseSpider
         else:
-            logging.msg("No more active processors, closing spider...")
+            logging.info("No more active processors, closing spider...")
 
 
 scanner_app = ScannerApp()
