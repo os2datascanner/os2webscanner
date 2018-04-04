@@ -237,8 +237,7 @@ class ScannerSpider(BaseScannerSpider):
                 logging.debug("Guessing mime-type based on file contents")
                 mime_type = self.magic.from_buffer(response.body)
 
-        data = response.body
-
+        data, mime_type = self.check_encoding(mime_type, response)
         # Save the URL item to the database
         if (
             Processor.mimetype_to_processor_type(mime_type) == 'ocr' and not
@@ -250,6 +249,47 @@ class ScannerSpider(BaseScannerSpider):
                          scan=self.scanner.scan_object)
         url_object.save()
         self.scanner.scan(data, url_object)
+
+    def check_encoding(self, mime_type, response):
+        if hasattr(response, "encoding"):
+            try:
+                data = response.body.decode(response.encoding)
+            except UnicodeDecodeError:
+                try:
+                    # Encoding specified in Content-Type header was wrong, try
+                    # to detect the encoding and decode again
+                    encoding = chardet.detect(response.body).get('encoding')
+                    if encoding is not None:
+                        data = response.body.decode(encoding)
+                        logging.warning(
+                            (
+                                "Error decoding response as %s. " +
+                                "Detected the encoding as %s.") %
+                            (response.encoding, encoding)
+                        )
+                    else:
+                        mime_type = self.magic.from_buffer(response.body)
+                        data = response.body
+                        logging.warning(("Error decoding response as %s. " +
+                                 "Detected the mime " +
+                                 "type as %s.") % (response.encoding,
+                                                   mime_type))
+                except UnicodeDecodeError:
+                    # Could not decode with the detected encoding, so assume
+                    # the file is binary and try to guess the mimetype from
+                    # the file
+                    mime_type = self.magic.from_buffer(response.body)
+                    data = response.body
+                    logging.warning(
+                        ("Error decoding response as %s. Detected the "
+                         "mime type as %s.") % (response.encoding,
+                                                mime_type)
+                    )
+
+        else:
+            data = response.body
+
+        return data, mime_type
 
 
 def parse_content_type(content_type):
