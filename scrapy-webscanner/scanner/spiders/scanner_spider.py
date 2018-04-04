@@ -127,7 +127,6 @@ class ScannerSpider(BaseScannerSpider):
 
     def parse(self, response):
         """Process a response and follow all links."""
-        logging.info("Ready to parse")
         if self.crawl:
             requests = self._extract_requests(response)
         else:
@@ -231,7 +230,6 @@ class ScannerSpider(BaseScannerSpider):
         content_type = response.headers.get('content-type')
         if content_type:
             mime_type = parse_content_type(content_type)
-            logging.debug("Content-Type: " + str(content_type))
         else:
             logging.debug("Guessing mime-type based on file extension")
             mime_type, encoding = mimetypes.guess_type(response.url)
@@ -256,5 +254,10 @@ class ScannerSpider(BaseScannerSpider):
 
 def parse_content_type(content_type):
     """Return the mime-type from the given "Content-Type" header value."""
-    m = re.search('([^/]+/[^;\s]+)', str(content_type))
+    # For some reason content_type can be a binary string.
+    if type(content_type) is not str:
+        content_type = content_type.decode('utf8')
+
+    logging.debug("Content-Type: " + content_type)
+    m = re.search('([^/]+/[^;\s]+)', content_type)
     return m.group(1)
