@@ -194,7 +194,7 @@ class Processor(object):
         if file_name == '':
             file_name = url_object.pk + ".data"
         tmp_file_path = os.path.join(tmp_dir, file_name)
-        f = open(tmp_file_path, 'w')
+        f = open(tmp_file_path, 'wb')
         f.write(data)
         f.close()
 
