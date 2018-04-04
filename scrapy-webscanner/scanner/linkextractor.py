@@ -17,7 +17,7 @@ def _is_valid_link(url):
     """
     parts = url.strip().split(':', 1)
     if len(parts) > 1 and parts[0] not in ('http', 'https'):
-        logging.msg("Ignoring link %s" % url)
+        logging.info("Ignoring link %s" % url)
         return False
     else:
         return True
@@ -26,9 +26,9 @@ def _is_valid_link(url):
 def _extract_links(self, selector, response_url, response_encoding, base_url):
     links = []
     # hacky way to get the underlying lxml parsed document
-    for el, attr, attr_val in self._iter_links(selector._root):
+    for el, attr, attr_val in self._iter_links(selector.root):
         if self.scan_tag(el.tag) and self.scan_attr(attr):
-            # pseudo _root.make_links_absolute(base_url)
+            # pseudo root.make_links_absolute(base_url)
             # START PATCH: Added check to filter links before making absolute
             if not _is_valid_link(attr_val):
                 continue
@@ -37,8 +37,6 @@ def _extract_links(self, selector, response_url, response_encoding, base_url):
             url = self.process_attr(attr_val)
             if url is None:
                 continue
-            if isinstance(url, str):
-                url = url.encode(response_encoding)
             # to fix relative links after process_value
             url = urljoin(response_url, url)
             link = Link(
