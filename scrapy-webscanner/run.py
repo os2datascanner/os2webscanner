@@ -159,8 +159,10 @@ class ScannerApp:
     def setup_sitemap_spider(self):
         """Setup the sitemap spider."""
         crawler = self.crawler_process.create_crawler(SitemapURLGathererSpider)
-        crawler.crawl(
+        self.crawler_process.crawl(
+            crawler,
             scanner=self.scanner,
+            runner=self,
             sitemap_urls=self.scanner.get_sitemap_urls(),
             uploaded_sitemap_urls=self.scanner.get_uploaded_sitemap_urls(),
             sitemap_alternate_links=True
@@ -179,7 +181,8 @@ class ScannerApp:
 
     def get_start_urls_from_sitemap(self):
         """Return the URLs found by the sitemap spider."""
-        if hasattr(self, "sitemap_spider"):
+        if self.sitemap_spider is not None:
+            logging.debug('Sitemap spider found')
             return self.sitemap_spider.get_urls()
         else:
             return []
