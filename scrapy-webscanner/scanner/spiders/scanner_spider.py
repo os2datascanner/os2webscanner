@@ -26,7 +26,6 @@ import re
 import chardet
 import magic
 
-
 # Use our monkey-patched link extractor
 from ..linkextractor import LxmlLinkExtractor
 
@@ -45,12 +44,12 @@ class ScannerSpider(BaseScannerSpider):
     name = 'scanner'
     magic = magic.Magic(mime=True)
 
-    def __init__(self, scanner, runner="", *a, **kw):
+    def __init__(self, scanner, runner, *a, **kw):
         """Initialize the ScannerSpider with a Scanner object.
 
         The configuration will be loaded from the Scanner.
         """
-        super().__init__(scanner=scanner, *a, **kw)
+        super(ScannerSpider, self).__init__(scanner=scanner, *a, **kw)
 
         self.runner = runner
 
@@ -64,6 +63,7 @@ class ScannerSpider(BaseScannerSpider):
         else:
             self.crawl = True
             # Otherwise, use the roots of the domains as starting URLs
+            logging.info("Initializing spider")
             for url in self.allowed_domains:
                 if (
                     not url.startswith('http://') and
@@ -72,6 +72,7 @@ class ScannerSpider(BaseScannerSpider):
                     url = 'http://%s/' % url
                 # Remove wildcards
                 url = url.replace('*.', '')
+                logging.info("Start url %s" % str(url))
                 self.start_urls.append(url)
 
         self.link_extractor = LxmlLinkExtractor(
@@ -100,6 +101,7 @@ class ScannerSpider(BaseScannerSpider):
     def start_requests(self):
         """Return requests for all starting URLs AND sitemap URLs."""
         # Add URLs found in sitemaps
+        logging.info("Starting requests")
         sitemap_start_urls = self.runner.get_start_urls_from_sitemap()
         requests = []
         for url in sitemap_start_urls:
@@ -112,15 +114,20 @@ class ScannerSpider(BaseScannerSpider):
                             meta={"lastmod": url.get("lastmod", None)})
                 )
             except Exception as e:
-                logging.msg("URL failed: {0} ({1})".format(url, str(e)))
+                logging.error("URL failed: {0} ({1})".format(url, str(e)))
 
+        logging.info("Number of urls to scan %s" % str(len(self.start_urls)))
+        #yield Request(self.start_urls[0], callback=self.parse,
+         #       errback=self.handle_error)
         requests.extend([Request(url, callback=self.parse,
                                  errback=self.handle_error)
                          for url in self.start_urls])
+        logging.info("Number of requests %s" % str(len(requests)))
         return requests
 
     def parse(self, response):
         """Process a response and follow all links."""
+        logging.info("Ready to parse")
         if self.crawl:
             requests = self._extract_requests(response)
         else:
@@ -147,10 +154,11 @@ class ScannerSpider(BaseScannerSpider):
 
     def _extract_requests(self, response):
         """Extract requests from the response."""
+        logging.info("Extract request.")
         r = []
         if isinstance(response, HtmlResponse):
             links = self.link_extractor.extract_links(response)
-            # logging.msg("Extracted links: %s" % links, level=logging.DEBUG)
+            logging.debug("Extracted links: %s" % links)
             r.extend(Request(x.url, callback=self.parse,
                              errback=self.handle_error) for x in links)
         return r
@@ -160,6 +168,7 @@ class ScannerSpider(BaseScannerSpider):
 
         If link checking is enabled, saves the broken URL and referrers.
         """
+        logging.info("Handle error")
         if (not self.scanner.scan_object.do_link_check or
                 (isinstance(failure.value, IgnoreRequest) and not isinstance(
                     failure.value, HttpError))):
@@ -181,7 +190,7 @@ class ScannerSpider(BaseScannerSpider):
             status_message = "%s" % failure.value
             referer_header = None
 
-        logging.msg("Handle Error: %s %s" % (status_message, url))
+        logging.info("Handle Error: %s %s" % (status_message, url))
 
         status_message = regex.sub("\[.+\] ", "", status_message)
         status_message = capitalize_first(status_message)
@@ -207,7 +216,6 @@ class ScannerSpider(BaseScannerSpider):
     def associate_url_referrer(self, referrer, url_object):
         """Associate referrer with Url object."""
         referrer_url_object = self._get_or_create_referrer(referrer)
-        # logging.msg("Associating referrer %s" % referrer_url_object)
         url_object.referrers.add(referrer_url_object)
 
     def _get_or_create_referrer(self, referrer):
@@ -223,54 +231,15 @@ class ScannerSpider(BaseScannerSpider):
         content_type = response.headers.get('content-type')
         if content_type:
             mime_type = parse_content_type(content_type)
-            logging.msg("Content-Type: " + content_type, level=logging.DEBUG)
+            logging.debug("Content-Type: " + str(content_type))
         else:
-            logging.msg("Guessing mime-type based on file extension",
-                    level=logging.DEBUG)
+            logging.debug("Guessing mime-type based on file extension")
             mime_type, encoding = mimetypes.guess_type(response.url)
             if not mime_type:
-                logging.msg("Guessing mime-type based on file contents",
-                        level=logging.DEBUG)
+                logging.debug("Guessing mime-type based on file contents")
                 mime_type = self.magic.from_buffer(response.body)
-            # Scrapy already guesses the encoding.. we don't need it
 
-        if hasattr(response, "encoding"):
-            try:
-                data = response.body.decode(response.encoding)
-            except UnicodeDecodeError:
-                try:
-                    # Encoding specified in Content-Type header was wrong, try
-                    # to detect the encoding and decode again
-                    encoding = chardet.detect(response.body).get('encoding')
-                    if encoding is not None:
-                        data = response.body.decode(encoding)
-                        logging.msg(
-                            (
-                                "Error decoding response as %s. " +
-                                "Detected the encoding as %s.") %
-                            (response.encoding, encoding)
-                        )
-                    else:
-                        mime_type = self.magic.from_buffer(response.body)
-                        data = response.body
-                        logging.msg(("Error decoding response as %s. " +
-                                 "Detected the mime " +
-                                 "type as %s.") % (response.encoding,
-                                                   mime_type))
-                except UnicodeDecodeError:
-                    # Could not decode with the detected encoding, so assume
-                    # the file is binary and try to guess the mimetype from
-                    # the file
-                    mime_type = self.magic.from_buffer(response.body)
-                    data = response.body
-                    logging.msg(
-                        ("Error decoding response as %s. Detected the "
-                         "mime type as %s.") % (response.encoding,
-                                                mime_type)
-                    )
-
-        else:
-            data = response.body
+        data = response.body
 
         # Save the URL item to the database
         if (
@@ -287,5 +256,5 @@ class ScannerSpider(BaseScannerSpider):
 
 def parse_content_type(content_type):
     """Return the mime-type from the given "Content-Type" header value."""
-    m = re.search('([^/]+/[^;\s]+)', content_type)
+    m = re.search('([^/]+/[^;\s]+)', str(content_type))
     return m.group(1)
