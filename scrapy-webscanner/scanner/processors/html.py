@@ -58,7 +58,7 @@ class HTMLProcessor(Processor):
         Replaces entities and removes tags (except comments) before
         processing with TextProcessor.
         """
-        logging.msg("Process HTML %s" % url_object.url)
+        logging.info("Process HTML %s" % url_object.url)
 
         # Remove style tags to avoid false positives from inline styles
         data = remove_tags_with_content(data, which_ones=('style',))
