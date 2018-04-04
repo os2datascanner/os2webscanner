@@ -265,9 +265,10 @@ def main():
 
         time.sleep(10)
 
-    try:
-        main()
-    except KeyboardInterrupt:
-        pass
-    except django.db.utils.InternalError as e:
-        print(e)
+
+try:
+    main()
+except KeyboardInterrupt:
+    pass
+except django.db.utils.InternalError as e:
+    print(e)
