@@ -226,7 +226,7 @@ class Processor(object):
             url.scan.log_occurrence(
                 "process_file failed for url {0}: {1}".format(url.url, str(e))
             )
-            logging.msg(repr(e))
+            logging.error(repr(e))
             return False
 
         return True
