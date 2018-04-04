@@ -20,8 +20,8 @@ class SitemapURLGathererSpider(BaseScannerSpider, SitemapSpider):
 
     name = 'sitemap'
 
-    def __init__(self, scanner, sitemap_urls="", uploaded_sitemap_urls="",
-                 sitemap_alternate_links=None,
+    def __init__(self, scanner, sitemap_urls, uploaded_sitemap_urls,
+                 sitemap_alternate_links,
                  *a,
                  **kw):
         """Initialize the sitemap spider."""
@@ -47,15 +47,13 @@ class SitemapURLGathererSpider(BaseScannerSpider, SitemapSpider):
         return requests
 
     def _parse_sitemap(self, response):
-        logging.msg("Parsing sitemap %s" % response)
         if response.url.endswith('/robots.txt'):
             for url in sitemap_urls_from_robots(response.body):
                 yield Request(url, callback=self._parse_sitemap)
         else:
             body = self._get_sitemap_body(response)
             if body is None:
-                logging.msg(format="Ignoring invalid sitemap: %(response)s",
-                        level=logging.WARNING, spider=self, response=response)
+                logging.warning("Ignoring invalid sitemap: %(response)s", response=response)
                 return
             s = Sitemap(body)
             if s.type == 'sitemapindex':
