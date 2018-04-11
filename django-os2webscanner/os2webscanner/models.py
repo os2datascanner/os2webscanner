@@ -314,32 +314,34 @@ class Scanner(models.Model):
                                verbose_name='Planlagt afvikling')
     domains = models.ManyToManyField(Domain, related_name='scanners',
                                      null=False, verbose_name='Domæner')
-    do_cpr_scan = models.BooleanField(default=True, verbose_name='CPR')
+    do_cpr_scan = models.BooleanField(default=True, verbose_name='Scan efter CPR-numre')
     do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
     do_address_scan = models.BooleanField(default=False,
                                           verbose_name='Adresse')
     do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder')
     do_cpr_modulus11 = models.BooleanField(default=True,
-                                           verbose_name='Tjek modulus-11')
+                                           verbose_name='Tjek om CPR-nummer opfylder modulus-11')
     do_cpr_ignore_irrelevant = models.BooleanField(
         default=True,
-        verbose_name='Ignorer ugyldige fødselsdatoer')
+        verbose_name='Tjek om CPR-nummer indeholder ugyldige fødselsdatoer')
     do_link_check = models.BooleanField(default=False,
-                                        verbose_name='Tjek links')
+                                        verbose_name='Tjek om interne links virker.')
     do_external_link_check = models.BooleanField(
         default=False,
-        verbose_name='Eksterne links'
+        verbose_name='Tjek om eksterne links virker'
     )
     do_last_modified_check = models.BooleanField(default=True,
-                                                 verbose_name='Tjek ' +
-                                                              'Last-Modified')
+                                                 verbose_name=
+                                                 'Scan kun fil eller html-side '
+                                                 'hvis der er blevet foretaget ændringer '
+                                                 'siden sidste scan.')
     do_last_modified_check_head_request = models.BooleanField(
         default=True,
-        verbose_name='Brug HEAD request'
+        verbose_name='Forsøg at spare båndbredde (via HTTP Head request).'
     )
     do_collect_cookies = models.BooleanField(
         default=False,
-        verbose_name='Saml cookies'
+        verbose_name='Indsaml cookies'
     )
     columns = models.CommaSeparatedIntegerField(max_length=128,
                                                 null=True,
