@@ -21,7 +21,7 @@ class DomainList(RestrictedListView):
 
     def get_queryset(self):
         """Get queryset, ordered by url followed by primary key."""
-        query_set = super(DomainList, self).get_queryset()
+        query_set = super().get_queryset()
 
         if query_set:
             query_set = query_set.order_by('url', 'pk')
@@ -57,7 +57,7 @@ class DomainCreate(RestrictedCreateView):
         The 'validation_status' field will be added to the form if the
         user is a superuser.
         """
-        fields = super(DomainCreate, self).get_form_fields()
+        fields = super().get_form_fields()
         if self.request.user.is_superuser:
             fields.append('validation_status')
         return fields
@@ -67,7 +67,7 @@ class DomainCreate(RestrictedCreateView):
 
         All form widgets will have added the css class 'form-control'.
         """
-        form = super(DomainCreate, self).get_form(form_class)
+        form = super().get_form(form_class)
 
         for fname in form.fields:
             f = form.fields[fname]
@@ -98,7 +98,7 @@ class FileDomainCreate(DomainCreate):
 
     def get_form(self, form_class):
         """Adds special field password."""
-        form = super(FileDomainCreate, self).get_form(form_class)
+        form = super().get_form(form_class)
         form.fields['username'] = forms.CharField(max_length=1024)
         form.fields['password'] = forms.CharField(max_length=50)
         return form
@@ -117,7 +117,7 @@ class FileDomainCreate(DomainCreate):
         authentication.save()
         filedomain.authentication = authentication
         filedomain.save()
-        return super(FileDomainCreate, self).form_valid(form)
+        return super().form_valid(form)
 
     def get_success_url(self):
         """The URL to redirect to after successful creation."""
@@ -132,7 +132,7 @@ class DomainUpdate(RestrictedUpdateView):
 
     def get_form_fields(self):
         """Get the list of form fields."""
-        fields = super(DomainUpdate, self).get_form_fields()
+        fields = super().get_form_fields()
 
         if self.request.user.is_superuser:
             fields.append('validation_status')
@@ -145,7 +145,7 @@ class DomainUpdate(RestrictedUpdateView):
     def get_form(self, form_class):
         """Get the form for the view.
         """
-        form = super(DomainUpdate, self).get_form(form_class)
+        form = super().get_form(form_class)
 
         self.old_url = self.get_object().url
 
@@ -173,7 +173,7 @@ class DomainUpdate(RestrictedUpdateView):
             self.object = form.save(commit=False)
             self.object.organization = user_profile.organization
 
-        return super(DomainUpdate, self).form_valid(form)
+        return super().form_valid(form)
 
 
 class WebDomainUpdate(DomainUpdate):
@@ -185,7 +185,7 @@ class WebDomainUpdate(DomainUpdate):
 
     def get_context_data(self, **kwargs):
         """Get the context used when rendering the template."""
-        context = super(WebDomainUpdate, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         for value, desc in WebDomain.validation_method_choices:
             key = 'valid_txt_' + str(value)
             context[key] = get_validation_str(self.object, value)
@@ -211,7 +211,7 @@ class FileDomainUpdate(DomainUpdate):
 
     def get_form(self, form_class):
         """Adds special field password and decrypts password."""
-        form = super(FileDomainUpdate, self).get_form(form_class)
+        form = super().get_form(form_class)
         filedomain = self.get_object()
         authentication = filedomain.authentication
         form.fields['username'] = forms.CharField(max_length=1024)
@@ -232,7 +232,7 @@ class FileDomainUpdate(DomainUpdate):
         authentication.ciphertext = ciphertext
         authentication.iv = iv
         authentication.save()
-        return super(FileDomainUpdate, self).form_valid(form)
+        return super().form_valid(form)
 
     def get_success_url(self):
         """The URL to redirect to after successful updating.
@@ -254,7 +254,7 @@ class DomainValidate(RestrictedDetailView):
 
     def get_context_data(self, **kwargs):
         """Perform validation and populate the template context."""
-        context = super(DomainValidate, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['validation_status'] = self.object.validation_status
         if not self.object.validation_status:
             result = validate_domain(self.object)

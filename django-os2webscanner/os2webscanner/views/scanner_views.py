@@ -21,7 +21,7 @@ class ScannerList(RestrictedListView):
 
     def get_queryset(self):
         """Get queryset, don't include non-visible scanners."""
-        qs = super(ScannerList, self).get_queryset()
+        qs = super().get_queryset()
         # Dismiss scans that are not visible
         qs = qs.filter(is_visible=True)
         return qs
@@ -54,7 +54,11 @@ class ScannerCreate(RestrictedCreateView):
         will be limited by the user's organization unless the user is a
         superuser.
         """
-        form = super(ScannerCreate, self).get_form(form_class)
+        if form_class is None:
+            form_class = self.get_form_class()
+
+        form = super().get_form(form_class)
+        form.fields['schedule'].required = False
         try:
             organization = self.request.user.profile.organization
             groups = self.request.user.profile.groups.all()
@@ -117,7 +121,7 @@ class FileScannerCreate(ScannerCreate):
 
     def get_form(self, form_class):
         """Adds special field password."""
-        form = super(FileScannerCreate, self).get_form(form_class)
+        form = super().get_form(form_class)
         form.fields['password'] = forms.CharField(max_length=50)
         return form
 
@@ -148,8 +152,12 @@ class ScannerUpdate(RestrictedUpdateView):
         will be limited by the user's organiztion unless the user is a
         superuser.
         """
+        if form_class is None:
+            form_class = self.get_form_class()
+
         self.fields = self.get_form_fields()
-        form = super(ScannerUpdate, self).get_form(form_class)
+        form = super().get_form(form_class)
+        form.fields['schedule'].required = False
 
         scanner = self.get_object()
 
@@ -210,7 +218,7 @@ class FileScannerUpdate(ScannerUpdate):
 
     def get_form(self, form_class):
         """Adds special field password and decrypts password."""
-        form = super(FileScannerUpdate, self).get_form(form_class)
+        form = super().get_form(form_class)
         scanner = self.get_object()
         form.fields['password'] = forms.CharField(max_length=50)
         if len(scanner.ciphertext) > 0:
@@ -237,7 +245,7 @@ class ScannerAskRun(RestrictedDetailView):
 
     def get_context_data(self, **kwargs):
         """Check that user is allowed to run this scanner."""
-        context = super(ScannerAskRun, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
         if self.object.has_active_scans:
             ok = False
