@@ -48,9 +48,9 @@ class ScannerSpider(BaseScannerSpider):
     magic = magic.Magic(mime=True)
 
     def __init__(self, scanner, runner, *a, **kw):
-        """Initialize the ScannerSpider with a Scanner object.
+        """Initialize the ScannerSpider with a WebScanner object.
 
-        The configuration will be loaded from the Scanner.
+        The configuration will be loaded from the WebScanner.
         """
         super(ScannerSpider, self).__init__(scanner=scanner, *a, **kw)
 
@@ -83,7 +83,7 @@ class ScannerSpider(BaseScannerSpider):
             attrs=('href', 'src')
         )
 
-        # Read from Scanner settings
+        # Read from WebScanner settings
         scan_object = self.scanner.scan_object
         self.do_last_modified_check = getattr(
             scan_object, "do_last_modified_check"
