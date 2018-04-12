@@ -13,8 +13,9 @@
 #
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
+
 """Contains a WebScanner."""
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 from ..rules.name import NameRule
 from ..rules.address import AddressRule

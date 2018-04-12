@@ -15,7 +15,7 @@
 # source municipalities ( http://www.os2web.dk/ )
 """Zip file processors."""
 
-from processor import Processor
+from .processor import Processor
 import subprocess
 
 
@@ -39,5 +39,6 @@ class ZipProcessor(Processor):
             ["unzip", "-o", "-q", "-d", tmp_dir, item.file_path]
         )
         return return_code == 0
+
 
 Processor.register_processor(ZipProcessor.item_type, ZipProcessor)

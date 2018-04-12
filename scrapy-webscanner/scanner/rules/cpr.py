@@ -18,7 +18,7 @@
 import regex
 from datetime import datetime
 
-from rule import Rule
+from .rule import Rule
 from os2webscanner.models import Sensitivity
 from ..items import MatchItem
 
@@ -55,6 +55,8 @@ class CPRRule(Rule):
         return matches
 
 # TODO: Improve
+
+
 cpr_regex = regex.compile(
     r"\b(\d{2}[\s]?\d{2}[\s]?\d{2})(?:[\s\-/\.]|\s\-\s)?(\d{4})\b"
 )

@@ -18,11 +18,10 @@
 
 import os
 import subprocess
+import logging
 
-from scrapy import log
-
-from processor import Processor
-from text import TextProcessor
+from .processor import Processor
+from .text import TextProcessor
 
 
 class OCRProcessor(Processor):
@@ -51,7 +50,7 @@ class OCRProcessor(Processor):
             return False
 
         txt_file += ".txt"
-        log.msg("Processing file {0}".format(txt_file))
+        logging.info("Processing file {0}".format(txt_file))
         self.text_processor.process_file(txt_file, item.url, item.page_no)
         if os.path.exists(txt_file):
             os.remove(txt_file)

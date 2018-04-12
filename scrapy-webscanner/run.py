@@ -16,7 +16,7 @@
 # source municipalities ( http://www.os2web.dk/ )
 """Run a scan by Scan ID."""
 import collections
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 import os
 import sys
@@ -28,13 +28,13 @@ sys.path.append(base_dir + "/webscanner_site")
 os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 django.setup()
 
-os.umask(0007)
+os.umask(0o007)
 
 os.environ["SCRAPY_SETTINGS_MODULE"] = "scanner.settings"
 
 from twisted.internet import reactor
 from scrapy.crawler import CrawlerProcess
-from scrapy import log, signals
+from scrapy import signals
 from scrapy.utils.project import get_project_settings
 from scanner.spiders.scanner_spider import ScannerSpider
 from scanner.spiders.sitemap import SitemapURLGathererSpider
@@ -47,8 +47,7 @@ from scanner.scanner.scanner import Scanner
 from os2webscanner.models import Scan, ConversionQueueItem, Url
 
 import linkchecker
-
-from scanner.processors import *  # noqa
+import logging
 
 import signal
 
@@ -73,7 +72,7 @@ class OrderedCrawlerProcess(CrawlerProcess):
 
     def __init__(self, *a, **kw):
         """Initialize the CrawlerProcess with an OrderedDict of crawlers."""
-        super(OrderedCrawlerProcess, self).__init__(*a, **kw)
+        super().__init__(*a, **kw)
         self.crawlers = collections.OrderedDict()
 
     def _start_crawler(self):
@@ -83,7 +82,7 @@ class OrderedCrawlerProcess(CrawlerProcess):
 
         name, crawler = self.crawlers.popitem(last=False)
         self._active_crawler = crawler
-        sflo = log.start_from_crawler(crawler)
+        sflo = logging.start_from_crawler(crawler)
         crawler.configure()
         crawler.install()
         crawler.signals.connect(crawler.uninstall, signals.engine_stopped)
@@ -95,7 +94,6 @@ class OrderedCrawlerProcess(CrawlerProcess):
 
 
 class ScannerApp:
-
     """A scanner application which can be run."""
 
     def __init__(self):
@@ -124,7 +122,7 @@ class ScannerApp:
         # job_dir = os.path.join(self.scan_object.scan_dir, 'job')
         # settings.set('JOBDIR', job_dir)
 
-        self.crawler_process = OrderedCrawlerProcess(settings)
+        self.crawler_process = CrawlerProcess(settings)
 
         # Don't sitemap scan when running over RPC
         # TODO: Maybe differ between file scanner and website scanner
@@ -133,8 +131,9 @@ class ScannerApp:
         self.scanner_spider = self.setup_scanner_spider()
 
         # Run the crawlers and block
+        logging.info('Starting crawler process.')
         self.crawler_process.start()
-
+        logging.info('Crawler process started.')
         if (self.scanner.scan_object.do_link_check
                 and self.scanner.scan_object.do_external_link_check):
             # Do external link check
@@ -152,52 +151,53 @@ class ScannerApp:
         self.scan_object = Scan.objects.get(pk=self.scan_id)
         self.scan_object.pid = None
         self.scan_object.status = Scan.FAILED
-        self.scan.log_occurrence("SCANNER FAILED: Killed")
-        log.error("Killed")
+        self.scan.logging_occurrence("SCANNER FAILED: Killed")
+        logging.error("Killed")
         self.scan_object.reason = "Killed"
         # TODO: Remove all non-processed conversion queue items.
         self.scan_object.save()
 
     def setup_sitemap_spider(self):
         """Setup the sitemap spider."""
-        crawler = self.crawler_process.create_crawler("sitemap")
-        sitemap_spider = SitemapURLGathererSpider(
+        crawler = self.crawler_process.create_crawler(SitemapURLGathererSpider)
+        self.crawler_process.crawl(
+            crawler,
             scanner=self.scanner,
+            runner=self,
             sitemap_urls=self.scanner.get_sitemap_urls(),
             uploaded_sitemap_urls=self.scanner.get_uploaded_sitemap_urls(),
             sitemap_alternate_links=True
-        )
-        crawler.crawl(sitemap_spider)
-        return sitemap_spider
+            )
+        return crawler.spider
 
     def setup_scanner_spider(self):
         """Setup the scanner spider."""
-        crawler = self.crawler_process.create_crawler("scanner")
-        spider = ScannerSpider(self.scanner, self)
+        crawler = self.crawler_process.create_crawler(ScannerSpider)
         crawler.signals.connect(self.handle_closed,
                                 signal=signals.spider_closed)
         crawler.signals.connect(self.handle_error, signal=signals.spider_error)
         crawler.signals.connect(self.handle_idle, signal=signals.spider_idle)
-        crawler.crawl(spider)
-        return spider
+        self.crawler_process.crawl(crawler, scanner=self.scanner, runner=self)
+        return crawler.spider
 
     def get_start_urls_from_sitemap(self):
         """Return the URLs found by the sitemap spider."""
-        if hasattr(self, "sitemap_spider"):
+        if self.sitemap_spider is not None:
+            logging.debug('Sitemap spider found')
             return self.sitemap_spider.get_urls()
         else:
             return []
 
     def external_link_check(self, external_urls):
         """Perform external link checking."""
-        print "Link checking %d external URLs..." % len(external_urls)
+        print("Link checking %d external URLs..." % len(external_urls))
         for url in external_urls:
             url_parse = urlparse(url)
             if url_parse.scheme not in ("http", "https"):
                 # We don't want to allow external URL checking of other
                 # schemes (file:// for example)
                 continue
-            print "Checking external URL %s" % url
+            print("Checking external URL %s" % url)
             result = linkchecker.check_url(url)
             if result is not None:
                 broken_url = Url(url=url, scan=self.scan_object,
@@ -213,7 +213,7 @@ class ScannerApp:
 
     def handle_error(self, failure, response, spider):
         """Handle spider errors, updating scan status."""
-        log.msg("Scan failed: %s" % failure.getErrorMessage(), level=log.ERROR)
+        logging.error("Scan failed: %s" % failure.getErrorMessage())
         scan_object = Scan.objects.get(pk=self.scan_id)
         scan_object.reason = failure.getErrorMessage()
         scan_object.save()
@@ -223,7 +223,7 @@ class ScannerApp:
 
         Keep it open if there are still queue items to be processed.
         """
-        log.msg("Spider Idle...")
+        logging.debug("Spider Idle...")
         # Keep spider alive if there are still queue items to be processed
         remaining_queue_items = ConversionQueueItem.objects.filter(
             status__in=[ConversionQueueItem.NEW,
@@ -232,13 +232,13 @@ class ScannerApp:
         ).count()
 
         if remaining_queue_items > 0:
-            log.msg(
+            logging.info(
                 "Keeping spider alive: %d remaining queue items to process" %
                 remaining_queue_items
             )
             raise DontCloseSpider
         else:
-            log.msg("No more active processors, closing spider...")
+            logging.info("No more active processors, closing spider...")
 
 
 scanner_app = ScannerApp()

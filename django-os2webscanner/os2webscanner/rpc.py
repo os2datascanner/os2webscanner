@@ -16,13 +16,13 @@
 
 import os
 import re
-import StringIO
 import csv
 import tempfile
 import xmlrpclib
 
 from django.contrib.auth import authenticate
 from django.conf import settings
+from django.utils import six
 
 from .utils import do_scan
 from .models.match_model import Match
@@ -132,7 +132,7 @@ def get_report(username, password, report_url):
     except Exception:
         raise RuntimeError("Report not found")
     # We now have the scan object
-    output = StringIO.StringIO()
+    output = six.moves.StringIO()
     writer = csv.writer(output)
 
     all_matches = Match.objects.filter(scan=scan).order_by(
@@ -141,8 +141,8 @@ def get_report(username, password, report_url):
     # CSV utilities
     e = lambda fields: ([f.encode('utf-8') for f in fields])
     # Print summary header
-    writer.writerow(e([u'Starttidspunkt', u'Sluttidspunkt', u'Status',
-                    u'Totalt antal matches']))
+    writer.writerow(e(['Starttidspunkt', 'Sluttidspunkt', 'Status',
+                    'Totalt antal matches']))
     # Print summary
     writer.writerow(
         e([str(scan.start_time),
@@ -150,7 +150,7 @@ def get_report(username, password, report_url):
            str(len(all_matches))])
     )
     # Print match header
-    writer.writerow(e([u'URL', u'Regel', u'Match', u'Følsomhed']))
+    writer.writerow(e(['URL', 'Regel', 'Match', 'Følsomhed']))
     for match in all_matches:
         writer.writerow(
             e([match.url.url,
@@ -203,9 +203,9 @@ def do_scan_documents(user, data, params={}):
         with open(full_path, "wb") as f:
             f.write(binary_decoder.data)
         return full_path
-    documents = map(writefile, data)
+    documents = list(map(writefile, data))
     file_url = lambda f: 'file://{0}'.format(f)
-    scan = do_scan(user, map(file_url, documents), params, blocking=True)
+    scan = do_scan(user, list(map(file_url, documents)), params, blocking=True)
     # map(os.remove, documents)
     if not isinstance(scan, Scan):
         raise RuntimeError("Unable to perform scan - check user has" +

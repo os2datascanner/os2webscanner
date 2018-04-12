@@ -65,7 +65,7 @@ for scanner in Scanner.objects.exclude(schedule=""):
     except ValueError as e:
         # This shouldn't happen because we should validate in the UI
         reason = "Invalid schedule expression: %s" % e
-        print reason
+        print(reason)
         continue
 
     # We have to set the times of the specific dates to the start time in
@@ -84,5 +84,5 @@ for scanner in Scanner.objects.exclude(schedule=""):
     ):
         continue
 
-    print "Running scanner %s" % scanner
+    print("Running scanner %s" % scanner)
     scanner.run()

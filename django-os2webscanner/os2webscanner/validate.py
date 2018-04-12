@@ -16,8 +16,10 @@
 """Domain validation functions."""
 
 import re
-import urllib2
-import urlparse
+import urllib.request
+import urllib.parse
+import urllib.error
+from urllib.parse import urlparse
 import hashlib
 
 from models.webdomain_model import WebDomain
@@ -26,10 +28,11 @@ from models.webdomain_model import WebDomain
 def _do_request(url):
     """Make a request and return the data."""
     try:
-        request = urllib2.Request(url, headers={"User-Agent": "OS2Webscanner"})
-        r = urllib2.urlopen(request)
+        request = urllib.Request(url, headers={"User-Agent": "OS2Webscanner"})
+        r = urllib.request.urlopen(request)
         return r.read()
-    except urllib2.URLError, urllib2.HTTPError:
+    # except urllib2.URLError, urllib2.HTTPError:
+    except urllib.URLError:
         return None
 
 
@@ -38,7 +41,7 @@ def _get_validation_hash(domain):
 
     The validation hash is based on the domain's organization's primary key.
     """
-    return hashlib.md5(str(domain.organization.pk)).hexdigest()
+    return hashlib.md5(str(domain.organization.pk).encode('utf-8')).hexdigest()
 
 
 def get_validation_str(domain, method=None):

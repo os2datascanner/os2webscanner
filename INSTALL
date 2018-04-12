@@ -157,7 +157,7 @@ python manage.py test os2webscanner
 The test should pass. Now do:
 
 ```
-python manage.py syncdb
+python manage.py migrate
 ```
 
 and create a user with a password you can remember.

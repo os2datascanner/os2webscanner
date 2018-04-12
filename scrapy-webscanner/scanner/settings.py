@@ -31,7 +31,7 @@ NEWSPIDER_MODULE = 'scanner.spiders'
 
 SPIDER_MIDDLEWARES = {
     # Disable default OffsiteMiddleware
-    'scrapy.contrib.spidermiddleware.offsite.OffsiteMiddleware': None,
+    'scrapy.spidermiddlewares.offsite.OffsiteMiddleware': None,
 
     # Use our own custom OffsiteMiddleware which doesn't allow subdomains
     'scanner.middlewares.NoSubdomainOffsiteMiddleware': 500,
@@ -44,7 +44,7 @@ COOKIES_ENABLED = True
 COOKIES_DEBUG = True
 
 DOWNLOADER_MIDDLEWARES = {
-    'scrapy.contrib.downloadermiddleware.redirect.RedirectMiddleware': None,
+    'scrapy.downloadermiddlewares.redirect.RedirectMiddleware': None,
     'scanner.middlewares.OffsiteRedirectMiddleware': 600,
     'scanner.middlewares.CookieCollectorMiddleware': 700,
     'scanner.middlewares.OffsiteDownloaderMiddleware': 1000,

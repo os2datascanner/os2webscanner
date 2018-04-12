@@ -17,7 +17,7 @@
 
 import regex
 
-from rule import Rule
+from .rule import Rule
 from ..items import MatchItem
 
 
