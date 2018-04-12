@@ -16,7 +16,7 @@
 """Text Processors."""
 
 from ..scanner.scanner import Scanner
-from processor import Processor
+from .processor import Processor
 import os
 
 
@@ -48,5 +48,6 @@ class TextProcessor(Processor):
                 match['page_no'] = page_no
             match.save()
         return True
+
 
 Processor.register_processor(TextProcessor.item_type, TextProcessor)

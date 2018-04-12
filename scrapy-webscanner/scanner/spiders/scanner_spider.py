@@ -18,19 +18,18 @@ import mimetypes
 
 from os2webscanner.utils import capitalize_first
 import regex
-from scrapy import log
-from scrapy.contrib.spidermiddleware.httperror import HttpError
+import logging
+from scrapy.spidermiddlewares.httperror import HttpError
 from scrapy.exceptions import IgnoreRequest
 from scrapy.http import Request, HtmlResponse
 import re
 import chardet
 import magic
 
-
 # Use our monkey-patched link extractor
 from ..linkextractor import LxmlLinkExtractor
 
-from base_spider import BaseScannerSpider
+from .base_spider import BaseScannerSpider
 
 from ..processors.processor import Processor
 
@@ -64,6 +63,7 @@ class ScannerSpider(BaseScannerSpider):
         else:
             self.crawl = True
             # Otherwise, use the roots of the domains as starting URLs
+            logging.info("Initializing spider")
             for url in self.allowed_domains:
                 if (
                     not url.startswith('http://') and
@@ -72,6 +72,7 @@ class ScannerSpider(BaseScannerSpider):
                     url = 'http://%s/' % url
                 # Remove wildcards
                 url = url.replace('*.', '')
+                logging.info("Start url %s" % str(url))
                 self.start_urls.append(url)
 
         self.link_extractor = LxmlLinkExtractor(
@@ -100,6 +101,7 @@ class ScannerSpider(BaseScannerSpider):
     def start_requests(self):
         """Return requests for all starting URLs AND sitemap URLs."""
         # Add URLs found in sitemaps
+        logging.info("Starting requests")
         sitemap_start_urls = self.runner.get_start_urls_from_sitemap()
         requests = []
         for url in sitemap_start_urls:
@@ -112,11 +114,15 @@ class ScannerSpider(BaseScannerSpider):
                             meta={"lastmod": url.get("lastmod", None)})
                 )
             except Exception as e:
-                log.msg(u"URL failed: {0} ({1})".format(url, str(e)))
+                logging.error("URL failed: {0} ({1})".format(url, str(e)))
 
+        logging.info("Number of urls to scan %s" % str(len(self.start_urls)))
+        #yield Request(self.start_urls[0], callback=self.parse,
+         #       errback=self.handle_error)
         requests.extend([Request(url, callback=self.parse,
                                  errback=self.handle_error)
                          for url in self.start_urls])
+        logging.info("Number of requests %s" % str(len(requests)))
         return requests
 
     def parse(self, response):
@@ -147,10 +153,11 @@ class ScannerSpider(BaseScannerSpider):
 
     def _extract_requests(self, response):
         """Extract requests from the response."""
+        logging.info("Extract request.")
         r = []
         if isinstance(response, HtmlResponse):
             links = self.link_extractor.extract_links(response)
-            # log.msg("Extracted links: %s" % links, level=log.DEBUG)
+            logging.debug("Extracted links: %s" % links)
             r.extend(Request(x.url, callback=self.parse,
                              errback=self.handle_error) for x in links)
         return r
@@ -181,7 +188,7 @@ class ScannerSpider(BaseScannerSpider):
             status_message = "%s" % failure.value
             referer_header = None
 
-        log.msg("Handle Error: %s %s" % (status_message, url))
+        logging.info("Handle Error: %s %s" % (status_message, url))
 
         status_message = regex.sub("\[.+\] ", "", status_message)
         status_message = capitalize_first(status_message)
@@ -207,7 +214,6 @@ class ScannerSpider(BaseScannerSpider):
     def associate_url_referrer(self, referrer, url_object):
         """Associate referrer with Url object."""
         referrer_url_object = self._get_or_create_referrer(referrer)
-        # log.msg("Associating referrer %s" % referrer_url_object)
         url_object.referrers.add(referrer_url_object)
 
     def _get_or_create_referrer(self, referrer):
@@ -223,55 +229,14 @@ class ScannerSpider(BaseScannerSpider):
         content_type = response.headers.get('content-type')
         if content_type:
             mime_type = parse_content_type(content_type)
-            log.msg("Content-Type: " + content_type, level=log.DEBUG)
         else:
-            log.msg("Guessing mime-type based on file extension",
-                    level=log.DEBUG)
+            logging.debug("Guessing mime-type based on file extension")
             mime_type, encoding = mimetypes.guess_type(response.url)
             if not mime_type:
-                log.msg("Guessing mime-type based on file contents",
-                        level=log.DEBUG)
+                logging.debug("Guessing mime-type based on file contents")
                 mime_type = self.magic.from_buffer(response.body)
-            # Scrapy already guesses the encoding.. we don't need it
 
-        if hasattr(response, "encoding"):
-            try:
-                data = response.body.decode(response.encoding)
-            except UnicodeDecodeError:
-                try:
-                    # Encoding specified in Content-Type header was wrong, try
-                    # to detect the encoding and decode again
-                    encoding = chardet.detect(response.body).get('encoding')
-                    if encoding is not None:
-                        data = response.body.decode(encoding)
-                        log.msg(
-                            (
-                                "Error decoding response as %s. " +
-                                "Detected the encoding as %s.") %
-                            (response.encoding, encoding)
-                        )
-                    else:
-                        mime_type = self.magic.from_buffer(response.body)
-                        data = response.body
-                        log.msg(("Error decoding response as %s. " +
-                                 "Detected the mime " +
-                                 "type as %s.") % (response.encoding,
-                                                   mime_type))
-                except UnicodeDecodeError:
-                    # Could not decode with the detected encoding, so assume
-                    # the file is binary and try to guess the mimetype from
-                    # the file
-                    mime_type = self.magic.from_buffer(response.body)
-                    data = response.body
-                    log.msg(
-                        ("Error decoding response as %s. Detected the "
-                         "mime type as %s.") % (response.encoding,
-                                                mime_type)
-                    )
-
-        else:
-            data = response.body
-
+        data, mime_type = self.check_encoding(mime_type, response)
         # Save the URL item to the database
         if (
             Processor.mimetype_to_processor_type(mime_type) == 'ocr' and not
@@ -284,8 +249,54 @@ class ScannerSpider(BaseScannerSpider):
         url_object.save()
         self.scanner.scan(data, url_object)
 
+    def check_encoding(self, mime_type, response):
+        if hasattr(response, "encoding"):
+            try:
+                data = response.body.decode(response.encoding)
+            except UnicodeDecodeError:
+                try:
+                    # Encoding specified in Content-Type header was wrong, try
+                    # to detect the encoding and decode again
+                    encoding = chardet.detect(response.body).get('encoding')
+                    if encoding is not None:
+                        data = response.body.decode(encoding)
+                        logging.warning(
+                            (
+                                "Error decoding response as %s. " +
+                                "Detected the encoding as %s.") %
+                            (response.encoding, encoding)
+                        )
+                    else:
+                        mime_type = self.magic.from_buffer(response.body)
+                        data = response.body
+                        logging.warning(("Error decoding response as %s. " +
+                                 "Detected the mime " +
+                                 "type as %s.") % (response.encoding,
+                                                   mime_type))
+                except UnicodeDecodeError:
+                    # Could not decode with the detected encoding, so assume
+                    # the file is binary and try to guess the mimetype from
+                    # the file
+                    mime_type = self.magic.from_buffer(response.body)
+                    data = response.body
+                    logging.warning(
+                        ("Error decoding response as %s. Detected the "
+                         "mime type as %s.") % (response.encoding,
+                                                mime_type)
+                    )
+
+        else:
+            data = response.body
+
+        return data, mime_type
+
 
 def parse_content_type(content_type):
     """Return the mime-type from the given "Content-Type" header value."""
+    # For some reason content_type can be a binary string.
+    if type(content_type) is not str:
+        content_type = content_type.decode('utf8')
+
+    logging.debug("Content-Type: " + content_type)
     m = re.search('([^/]+/[^;\s]+)', content_type)
     return m.group(1)

@@ -23,7 +23,6 @@ import codecs
 from shutil import copyfile
 
 from django import forms
-from django.template import RequestContext
 from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Q
 from django.http import Http404, HttpResponse, HttpResponseRedirect
@@ -63,7 +62,7 @@ class LoginRequiredMixin(View):
         except UserProfile.DoesNotExist:
             # User is *not* "upload only", all is good
             pass
-        return super(LoginRequiredMixin, self).dispatch(*args, **kwargs)
+        return super().dispatch(*args, **kwargs)
 
 
 class SuperUserRequiredMixin(LoginRequiredMixin):
@@ -75,7 +74,7 @@ class SuperUserRequiredMixin(LoginRequiredMixin):
         """Check for login and superuser and dispatch the view."""
         user = self.request.user
         if user.is_superuser:
-            return super(LoginRequiredMixin, self).dispatch(*args, **kwargs)
+            return super().dispatch(*args, **kwargs)
         else:
             raise PermissionDenied
 
@@ -130,7 +129,7 @@ class OrganizationList(RestrictedListView):
 
     def get_context_data(self, **kwargs):
         """Setup context for the template."""
-        context = super(OrganizationList, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         organization_list = context['organization_list']
         orgs_with_domains = []
         for org in organization_list:
@@ -162,7 +161,7 @@ class ScannerList(RestrictedListView):
 
     def get_queryset(self):
         """Get queryset, don't include non-visible scanners."""
-        qs = super(ScannerList, self).get_queryset()
+        qs = super().get_queryset()
         # Dismiss scans that are not visible
         qs = qs.filter(is_visible=True)
         return qs
@@ -177,7 +176,7 @@ class DomainList(RestrictedListView):
 
     def get_queryset(self):
         """Get queryset, ordered by url followed by primary key."""
-        query_set = super(DomainList, self).get_queryset()
+        query_set = super().get_queryset()
 
         if query_set:
             query_set = query_set.order_by('url', 'pk')
@@ -258,7 +257,7 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
 
         return fields
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Get the form for the view."""
         fields = self.get_form_fields()
         form_class = modelform_factory(self.model, fields=fields)
@@ -266,6 +265,7 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
 
         form = form_class(**kwargs)
         user = self.request.user
+
         if 'group' in fields:
             if user.profile.is_group_admin:
                 queryset = (
@@ -294,7 +294,7 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
             ):
                 self.object.group = user_profile.groups.all()[0]
 
-        return super(RestrictedCreateView, self).form_valid(form)
+        return super().form_valid(form)
 
 
 class OrgRestrictedMixin(ModelFormMixin, LoginRequiredMixin):
@@ -320,7 +320,7 @@ class OrgRestrictedMixin(ModelFormMixin, LoginRequiredMixin):
             fields.append('group')
         return fields
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Get the form for the view."""
         fields = self.get_form_fields()
         form_class = modelform_factory(self.model, fields=fields)
@@ -328,6 +328,7 @@ class OrgRestrictedMixin(ModelFormMixin, LoginRequiredMixin):
 
         form = form_class(**kwargs)
         user = self.request.user
+
         if 'group' in fields:
             if user.is_superuser or user.profile.is_group_admin:
                 form.fields['group'].queryset = (
@@ -341,7 +342,7 @@ class OrgRestrictedMixin(ModelFormMixin, LoginRequiredMixin):
 
     def get_queryset(self):
         """Get queryset filtered by user's organization."""
-        queryset = super(OrgRestrictedMixin, self).get_queryset()
+        queryset = super().get_queryset()
         if not self.request.user.is_superuser:
             organization = None
 
@@ -418,14 +419,18 @@ class ScannerCreate(RestrictedCreateView):
               'do_last_modified_check', 'do_last_modified_check_head_request',
               'regex_rules', 'recipients']
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Get the form for the view.
 
         Querysets used for choices in the 'domains' and 'regex_rules' fields
         will be limited by the user's organiztion unless the user is a
         superuser.
         """
-        form = super(ScannerCreate, self).get_form(form_class)
+        if form_class is None:
+            form_class = self.get_form_class()
+
+        form = super().get_form(form_class)
+        form.fields['schedule'].required = False
         try:
             organization = self.request.user.profile.organization
             groups = self.request.user.profile.groups.all()
@@ -478,16 +483,19 @@ class ScannerUpdate(RestrictedUpdateView):
         """The URL to redirect to after successful update."""
         return '/scanners/%s/saved/' % self.object.pk
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Get the form for the view.
 
         Querysets used for choices in the 'domains' and 'regex_rules' fields
         will be limited by the user's organiztion unless the user is a
         superuser.
         """
-        self.fields = self.get_form_fields()
-        form = super(ScannerUpdate, self).get_form(form_class)
+        if form_class is None:
+            form_class = self.get_form_class()
 
+        self.fields = self.get_form_fields()
+        form = super().get_form(form_class)
+        form.fields['schedule'].required = False
         scanner = self.get_object()
 
         # Exclude recipients with no email address
@@ -522,6 +530,7 @@ class ScannerDelete(RestrictedDeleteView):
     """Delete a scanner view."""
 
     model = Scanner
+    fields = ['name']
     success_url = '/scanners/'
 
 
@@ -529,10 +538,11 @@ class ScannerAskRun(RestrictedDetailView):
 
     """Prompt for starting scan, validate first."""
     model = Scanner
+    fields = ['name']
 
     def get_context_data(self, **kwargs):
         """Check that user is allowed to run this scanner."""
-        context = super(ScannerAskRun, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
         if self.object.has_active_scans:
             ok = False
@@ -554,6 +564,7 @@ class ScannerRun(RestrictedDetailView):
     """View that handles starting of a scanner run."""
 
     model = Scanner
+    fields = ['name']
     template_name = 'os2webscanner/scanner_run.html'
 
     def get(self, request, *args, **kwargs):
@@ -585,17 +596,20 @@ class DomainCreate(RestrictedCreateView):
         The 'validation_status' field will be added to the form if the
         user is a superuser.
         """
-        fields = super(DomainCreate, self).get_form_fields()
+        fields = super().get_form_fields()
         if self.request.user.is_superuser:
             fields.append('validation_status')
         return fields
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Get the form for the view.
 
         All form widgets will have added the css class 'form-control'.
         """
-        form = super(DomainCreate, self).get_form(form_class)
+        if form_class is None:
+            form_class = self.get_form_class()
+
+        form = super().get_form(form_class)
 
         for fname in form.fields:
             f = form.fields[fname]
@@ -618,7 +632,7 @@ class DomainUpdate(RestrictedUpdateView):
 
     def get_form_fields(self):
         """Get the list of form fields."""
-        fields = super(DomainUpdate, self).get_form_fields()
+        fields = super().get_form_fields()
 
         if self.request.user.is_superuser:
             fields.append('validation_status')
@@ -628,10 +642,13 @@ class DomainUpdate(RestrictedUpdateView):
         self.fields = fields
         return fields
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Get the form for the view.
         """
-        form = super(DomainUpdate, self).get_form(form_class)
+        if form_class is None:
+            form_class = self.get_form_class()
+
+        form = super().get_form(form_class)
 
         for fname in form.fields:
             f = form.fields[fname]
@@ -658,13 +675,13 @@ class DomainUpdate(RestrictedUpdateView):
             self.object = form.save(commit=False)
             self.object.organization = user_profile.organization
 
-        result = super(DomainUpdate, self).form_valid(form)
+        result = super().form_valid(form)
 
         return result
 
     def get_context_data(self, **kwargs):
         """Get the context used when rendering the template."""
-        context = super(DomainUpdate, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         for value, desc in Domain.validation_method_choices:
             key = 'valid_txt_' + str(value)
             context[key] = get_validation_str(self.object, value)
@@ -690,7 +707,7 @@ class DomainValidate(RestrictedDetailView):
 
     def get_context_data(self, **kwargs):
         """Perform validation and populate the template context."""
-        context = super(DomainValidate, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['validation_status'] = self.object.validation_status
         if not self.object.validation_status:
             result = validate_domain(self.object)
@@ -721,21 +738,24 @@ class GroupCreate(RestrictedCreateView):
 
     def get_form_fields(self):
         """Get the list of fields to use in the form for the view."""
-        fields = super(GroupCreate, self).get_form_fields()
+        fields = super().get_form_fields()
 
         if 'group' in fields:
             fields.remove('group')
 
         return fields
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Get the form for the view.
 
         Querysets used for choices in the 'domains' and 'regex_rules' fields
         will be limited by the user's organiztion unless the user is a
         superuser.
         """
-        form = super(GroupCreate, self).get_form(form_class)
+        if form_class is None:
+            form_class = self.get_form_class()
+
+        form = super().get_form(form_class)
 
         field_name = 'user_profiles'
         queryset = form.fields[field_name].queryset
@@ -756,14 +776,17 @@ class GroupUpdate(RestrictedUpdateView):
     model = Group
     fields = ['name', 'contact_email', 'contact_phone', 'user_profiles']
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Get the form for the view.
 
         Querysets used for choices in the 'domains' and 'regex_rules' fields
         will be limited by the user's organiztion unless the user is a
         superuser.
         """
-        form = super(GroupUpdate, self).get_form(form_class)
+        if form_class is None:
+            form_class = self.get_form_class()
+
+        form = super().get_form(form_class)
         group = self.get_object()
         field_name = 'user_profiles'
         queryset = form.fields[field_name].queryset
@@ -795,12 +818,15 @@ class RuleCreate(RestrictedCreateView):
     model = RegexRule
     fields = ['name', 'match_string', 'description', 'sensitivity']
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Get the form for the view.
 
         All form fields will have the css class 'form-control' added.
         """
-        form = super(RuleCreate, self).get_form(form_class)
+        if form_class is None:
+            form_class = self.get_form_class()
+
+        form = super().get_form(form_class)
 
         for fname in form.fields:
             f = form.fields[fname]
@@ -820,12 +846,15 @@ class RuleUpdate(RestrictedUpdateView):
     model = RegexRule
     fields = ['name', 'match_string', 'description', 'sensitivity']
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Get the form for the view.
 
         All form fields will have the css class 'form-control' added.
         """
-        form = super(RuleUpdate, self).get_form(form_class)
+        if form_class is None:
+            form_class = self.get_form_class()
+
+        form = super().get_form(form_class)
 
         for fname in form.fields:
             f = form.fields[fname]
@@ -865,7 +894,7 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
         If the user is not a superuser the queryset will be limited by the
         user's organization.
         """
-        queryset = super(ReportDetails, self).get_queryset()
+        queryset = super().get_queryset()
         if not self.request.user.is_superuser:
             try:
                 user_profile = self.request.user.profile
@@ -877,7 +906,7 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
 
     def get_context_data(self, **kwargs):
         """Add the scan's matches to the report context data."""
-        context = super(ReportDetails, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         all_matches = Match.objects.filter(
             scan=self.get_object()
         ).order_by('-sensitivity', 'url', 'matched_rule', 'matched_data')
@@ -915,7 +944,7 @@ class ReportDelete(DeleteView, LoginRequiredMixin):
         If the user is not a superuser the queryset will be limited by the
         user's organization.
         """
-        queryset = super(ReportDelete, self).get_queryset()
+        queryset = super().get_queryset()
         if not self.request.user.is_superuser:
             try:
                 user_profile = self.request.user.profile
@@ -937,7 +966,7 @@ class ScanReportLog(ReportDetails):
         log_file = "scan{0}_log.txt".format(scan.id)
         response[
             'Content-Disposition'
-        ] = u'attachment; filename={0}'.format(log_file)
+        ] = 'attachment; filename={0}'.format(log_file)
 
         with open(scan.scan_log_file, "r") as f:
             response.write(f.read())
@@ -952,12 +981,12 @@ class CSVReportDetails(ReportDetails):
         """Generate a CSV file and return it as the http response."""
         scan = self.get_object()
         response = HttpResponse(content_type='text/csv')
-        report_file = u'{0}{1}.csv'.format(
-            scan.scanner.organization.name.replace(u' ', u'_'),
+        report_file = '{0}{1}.csv'.format(
+            scan.scanner.organization.name.replace(' ', '_'),
             scan.id)
         response[
             'Content-Disposition'
-        ] = u'attachment; filename={0}'.format(report_file)
+        ] = 'attachment; filename={0}'.format(report_file)
         writer = csv.writer(response)
         all_matches = context['all_matches']
 
@@ -966,8 +995,8 @@ class CSVReportDetails(ReportDetails):
             return ([f.encode('utf-8') for f in fields])
 
         # Print summary header
-        writer.writerow(e([u'Starttidspunkt', u'Sluttidspunkt', u'Status',
-                        u'Totalt antal matches', u'Total antal broken links']))
+        writer.writerow(e(['Starttidspunkt', 'Sluttidspunkt', 'Status',
+                        'Totalt antal matches', 'Total antal broken links']))
         # Print summary
         writer.writerow(
             e(
@@ -979,7 +1008,7 @@ class CSVReportDetails(ReportDetails):
         )
         if all_matches:
             # Print match header
-            writer.writerow(e([u'URL', u'Regel', u'Match', u'Følsomhed']))
+            writer.writerow(e(['URL', 'Regel', 'Match', 'Følsomhed']))
             for match in all_matches:
                 writer.writerow(
                     e([match.url.url,
@@ -990,7 +1019,7 @@ class CSVReportDetails(ReportDetails):
         broken_urls = context['broken_urls']
         if broken_urls:
             # Print broken link header
-            writer.writerow(e([u'Referrers', u'URL', u'Status']))
+            writer.writerow(e(['Referrers', 'URL', 'Status']))
             for url in broken_urls:
                 for referrer in url.referrers.all():
                     writer.writerow(
@@ -1017,7 +1046,7 @@ class DialogSuccess(TemplateView):
 
     def get_context_data(self, **kwargs):
         """Setup context for the template."""
-        context = super(DialogSuccess, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         model_type = self.args[0]
         pk = self.args[1]
         created = self.args[2] == 'created'
@@ -1039,7 +1068,7 @@ class SystemStatusView(TemplateView, SuperUserRequiredMixin):
 
     def get_context_data(self, **kwargs):
         """Setup context for the template."""
-        context = super(SystemStatusView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         all = ConversionQueueItem.objects.filter(
             status=ConversionQueueItem.NEW
         )
@@ -1095,9 +1124,12 @@ class SummaryCreate(RestrictedCreateView):
     fields = ['name', 'description', 'schedule', 'last_run', 'recipients',
               'scanners']
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Set up fields and return form."""
-        form = super(SummaryCreate, self).get_form(form_class)
+        if form_class is None:
+            form_class = self.get_form_class()
+
+        form = super().get_form(form_class)
 
         field_names = ['recipients', 'scanners']
         for field_name in field_names:
@@ -1120,14 +1152,17 @@ class SummaryUpdate(RestrictedUpdateView):
     fields = ['name', 'description', 'schedule', 'last_run', 'recipients',
               'scanners', 'do_email_recipients']
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Get the form for the view.
 
         Querysets for selecting the field 'recipients' must be limited by the
         summary's organization - i.e., there must be an organization set on
         the object.
         """
-        form = super(SummaryUpdate, self).get_form(form_class)
+        if form_class is None:
+            form_class = self.get_form_class()
+
+        form = super().get_form(form_class)
         summary = self.get_object()
         # Limit recipients to organization
         queryset = form.fields['recipients'].queryset
@@ -1172,7 +1207,7 @@ class SummaryReport(RestrictedDetailView):
 
     def get_context_data(self, **kwargs):
         """Setup context for the template."""
-        context = super(SummaryReport, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
         summary = self.object
         scan_list, from_date, to_date = scans_for_summary_report(summary)
@@ -1256,12 +1291,12 @@ def file_upload(request):
             if not params['output_spreadsheet_file']:
                 return HttpResponseRedirect('/report/{0}/'.format(scan.pk))
             response = HttpResponse(content_type='text/csv')
-            report_file = u'{0}{1}.csv'.format(
-                scan.scanner.organization.name.replace(u' ', u'_'),
+            report_file = '{0}{1}.csv'.format(
+                scan.scanner.organization.name.replace(' ', '_'),
                 scan.id)
             response[
                 'Content-Disposition'
-            ] = u'attachment; filename={0}'.format(report_file)
+            ] = 'attachment; filename={0}'.format(report_file)
             csv_file = open(scan.scan_output_file, "rb")
 
             # Load CSV file, write it back to the client
@@ -1277,5 +1312,5 @@ def file_upload(request):
 
     return render_to_response(
         'os2webscanner/file_upload.html',
-        RequestContext(request, {'form': form})
+        {'form': form}
     )

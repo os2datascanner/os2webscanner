@@ -30,7 +30,7 @@ from .models import ReferrerUrl, UrlLastModified, Group, Md5Sum
 ar = admin.site.register
 classes = [Organization, Domain, RegexRule, Scanner, Scan, Match, Url,
            ConversionQueueItem, ReferrerUrl, UrlLastModified, Group, Md5Sum]
-map(ar, classes)
+list(map(ar, classes))
 
 
 class ProfileInline(admin.TabularInline):
@@ -44,9 +44,7 @@ class ProfileInline(admin.TabularInline):
     can_delete = False
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        field = super(
-            ProfileInline, self
-        ).formfield_for_foreignkey(db_field, request, **kwargs)
+        field = super().formfield_for_foreignkey(db_field, request, **kwargs)
 
         if db_field.name == 'organization':
             if not request.user.is_superuser:
@@ -69,8 +67,7 @@ class MyUserAdmin(UserAdmin):
         if not request.user.is_superuser:
             self.fieldsets = (
                 (None,
-                 {'fields': ('username', 'password', 'is_active')}
-                ),
+                 {'fields': ('username', 'password', 'is_active')}),
                 (_('Personal info'),
                  {'fields': ('first_name', 'last_name', 'email')}),
                 (_('Important dates'), {'fields': ('last_login',
@@ -78,12 +75,12 @@ class MyUserAdmin(UserAdmin):
             )
 
             self.exclude = ['is_superuser', 'permissions', 'groups']
-        return super(MyUserAdmin, self).get_form(request, obj, **kwargs)
+        return super().get_form(request, obj, **kwargs)
 
     def get_queryset(self, request):
         """Only allow users belonging to same organization to be edited."""
 
-        qs = super(MyUserAdmin, self).get_queryset(request)
+        qs = super().get_queryset(request)
 
         if request.user.is_superuser:
             return qs

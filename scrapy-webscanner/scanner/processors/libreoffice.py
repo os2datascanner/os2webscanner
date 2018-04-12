@@ -16,7 +16,7 @@
 """LibreOffice related processors."""
 import mimetypes
 
-from processor import Processor
+from .processor import Processor
 import os
 import os.path
 import subprocess

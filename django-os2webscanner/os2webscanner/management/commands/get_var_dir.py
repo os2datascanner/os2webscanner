@@ -12,4 +12,4 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         """Execute the command."""
         from django.conf import settings
-        print settings.VAR_DIR
+        print((settings.VAR_DIR))

@@ -15,7 +15,7 @@
 # source municipalities ( http://www.os2web.dk/ )
 """PDF Processors."""
 
-from processor import Processor
+from .processor import Processor
 import shutil
 import os
 import subprocess
@@ -67,5 +67,6 @@ class PDFProcessor(Processor):
 
         os.remove(new_file_path)
         return return_code == 0
+
 
 Processor.register_processor(PDFProcessor.item_type, PDFProcessor)

@@ -4,7 +4,7 @@
 from getpass import getpass
 import time
 import sys
-import urlparse
+import urllib.parse
 import argparse
 
 from webscanner_client import WebscannerClient
@@ -71,7 +71,7 @@ parser.add_argument('--output-file', dest='output_file',
 args = parser.parse_args()
 
 if not (args.do_cpr_scan or args.do_name_scan):
-    print "Must specify at least one type of scan (--cpr or --name)"
+    print("Must specify at least one type of scan (--cpr or --name)")
     sys.exit()
 
 username = args.username
@@ -92,11 +92,11 @@ for param in supported_params:
     if param in args and getattr(args, param) is not None:
         params[param] = getattr(args, param)
 
-print "Parameters:", params
+print("Parameters:", params)
 
-wc = WebscannerClient(urlparse.urljoin(args.webscanner_url, XMLRPC_URL))
+wc = WebscannerClient(urllib.parse.urljoin(args.webscanner_url, XMLRPC_URL))
 
-print "Running scan..."
+print("Running scan...")
 
 if args.FILE_OR_URL.startswith('http://') or args.FILE_OR_URL.startswith(
         'https://'):
@@ -122,14 +122,14 @@ while not status[0] in ('OK', 'Fejlet'):
     status = wc.get_status(username, password, report_url)
     time.sleep(.5)
 
-print "Scan finished with status %s. Found %d matches." % (status[0],
-                                                           status[3])
-print "Report available at: %s" % report_url
+print("Scan finished with status %s. Found %d matches." % (status[0],
+                                                           status[3]))
+print("Report available at: %s" % report_url)
 
 report = wc.get_report(username, password, report_url)
 if args.output_file is not None:
     with open(args.output_file, "w") as f:
         f.write(report.encode('utf-8'))
-    print "Saved report as CSV to file:", args.output_file
+    print("Saved report as CSV to file:", args.output_file)
 else:
-    print report
+    print(report)

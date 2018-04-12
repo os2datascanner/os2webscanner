@@ -10,14 +10,14 @@
 <script type="text/javascript" src="{% static 'recurrence/js/recurrence-widget.js' %}"></script>
 <!-- BEGIN Admin scripts and CSS to render filter_horizontal -->
 <script type="text/javascript" src="/admin/jsi18n/"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}admin/js/core.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}admin/js/jquery.min.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}admin/js/jquery.init.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}admin/js/SelectFilter2.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}admin/js/SelectBox.js"></script>
+<script type="text/javascript" src="{% static 'admin/js/core.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/vendor/jquery/jquery.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/jquery.init.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/SelectFilter2.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/SelectBox.js' %}"></script>
 
-<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}admin/css/widgets.css"/>
-<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}admin/css/forms.css"/>
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/widgets.css' %}"/>
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}"/>
 <!-- END   Admin scripts and CSS to render filter_horizontal -->
 
 {% endblock %}
@@ -279,8 +279,8 @@
 
 <script type="text/javascript">
 addEvent(window, "load", function(e) { SelectFilter.init("id_domains",
-            "domæner", 0, "{{ STATIC_URL }}admin/"); });
+            "domæner", 0, "{% static 'admin/' %}"); });
 addEvent(window, "load", function(e) { SelectFilter.init("id_recipients",
-            "modtagere", 0, "{{ STATIC_URL }}admin/"); });
+            "modtagere", 0, "{% static 'admin/' %}"); });
 </script>
 {% endblock %}

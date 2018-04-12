@@ -16,8 +16,9 @@
 # source municipalities ( http://www.os2web.dk/ )
 
 """Contains Django models for the Webscanner."""
+from django.utils import timezone
 from django.db.models.aggregates import Count
-from urlparse import urljoin
+from urllib.parse import urljoin
 
 import os
 import shutil
@@ -25,8 +26,12 @@ from subprocess import Popen
 import re
 import datetime
 import json
-import StringIO
-import urllib2
+
+# https://github.com/blue-yonder/tsfresh/issues/26
+from io import StringIO
+
+# https://stackoverflow.com/questions/2792650/python3-error-import-error-no-module-name-urllib2
+from urllib.request import urlopen
 
 from django.db import models
 from django.contrib.auth.models import User
@@ -49,9 +54,9 @@ class Sensitivity:
     OK = 0
 
     choices = (
-        (OK, u'Grøn'),
-        (LOW, u'Gul'),
-        (HIGH, u'Rød'),
+        (OK, 'Grøn'),
+        (LOW, 'Gul'),
+        (HIGH, 'Rød'),
     )
 
 
@@ -85,7 +90,7 @@ class Organization(models.Model):
                                      default="",
                                      verbose_name='Godkendte CPR-numre')
 
-    def __unicode__(self):
+    def __str__(self):
         """Return the name of the organization."""
         return self.name
 
@@ -111,7 +116,7 @@ class UserProfile(models.Model):
         """Whether to activate groups in GUI."""
         return settings.DO_USE_GROUPS
 
-    def __unicode__(self):
+    def __str__(self):
         """Return the user's username."""
         return self.user.username
 
@@ -129,7 +134,7 @@ class Group(models.Model):
                                      related_name='groups',
                                      verbose_name='Organisation')
 
-    def __unicode__(self):
+    def __str__(self):
         """Return the name of the group."""
         return self.name
 
@@ -140,7 +145,7 @@ class Group(models.Model):
     @property
     def display_name(self):
         """The name used when displaying the domain on the web page."""
-        return "Group '%s'" % self.__unicode__()
+        return "Group '%s'" % self.__str__()
 
 
 class Domain(models.Model):
@@ -258,7 +263,7 @@ class Domain(models.Model):
         """Get the absolute URL for domains."""
         return '/domains/'
 
-    def __unicode__(self):
+    def __str__(self):
         """Return the URL for the domain."""
         return self.url
 
@@ -290,7 +295,7 @@ class RegexRule(models.Model):
         """Get the absolute URL for rules."""
         return '/rules/'
 
-    def __unicode__(self):
+    def __str__(self):
         """Return the name of the rule."""
         return self.name
 
@@ -309,32 +314,34 @@ class Scanner(models.Model):
                                verbose_name='Planlagt afvikling')
     domains = models.ManyToManyField(Domain, related_name='scanners',
                                      null=False, verbose_name='Domæner')
-    do_cpr_scan = models.BooleanField(default=True, verbose_name='CPR')
+    do_cpr_scan = models.BooleanField(default=True, verbose_name='Scan efter CPR-numre')
     do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
     do_address_scan = models.BooleanField(default=False,
                                           verbose_name='Adresse')
     do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder')
     do_cpr_modulus11 = models.BooleanField(default=True,
-                                           verbose_name='Tjek modulus-11')
+                                           verbose_name='Tjek om CPR-nummer opfylder modulus-11')
     do_cpr_ignore_irrelevant = models.BooleanField(
         default=True,
-        verbose_name='Ignorer ugyldige fødselsdatoer')
+        verbose_name='Tjek om CPR-nummer indeholder ugyldige fødselsdatoer')
     do_link_check = models.BooleanField(default=False,
-                                        verbose_name='Tjek links')
+                                        verbose_name='Tjek om interne links virker.')
     do_external_link_check = models.BooleanField(
         default=False,
-        verbose_name='Eksterne links'
+        verbose_name='Tjek om eksterne links virker'
     )
     do_last_modified_check = models.BooleanField(default=True,
-                                                 verbose_name='Tjek ' +
-                                                              'Last-Modified')
+                                                 verbose_name=
+                                                 'Scan kun fil eller html-side '
+                                                 'hvis der er blevet foretaget ændringer '
+                                                 'siden sidste scan.')
     do_last_modified_check_head_request = models.BooleanField(
         default=True,
-        verbose_name='Brug HEAD request'
+        verbose_name='Forsøg at spare båndbredde (via HTTP Head request).'
     )
     do_collect_cookies = models.BooleanField(
         default=False,
-        verbose_name='Saml cookies'
+        verbose_name='Indsaml cookies'
     )
     columns = models.CommaSeparatedIntegerField(max_length=128,
                                                 null=True,
@@ -433,9 +440,9 @@ class Scanner(models.Model):
         rules = [r for r in self.schedule.rrules]  # Use r.to_text() to render
         dates = [d for d in self.schedule.rdates]
         if len(rules) > 0 or len(dates) > 0:
-            return u"Ja"
+            return "Ja"
         else:
-            return u"Nej"
+            return "Nej"
 
     @property
     def has_active_scans(self):
@@ -499,7 +506,7 @@ class Scanner(models.Model):
             if blocking:
                 process.communicate()
         except Exception as e:
-            print e
+            print(e)
             return None
         return scan
 
@@ -507,7 +514,7 @@ class Scanner(models.Model):
         """Get the absolute URL for scanners."""
         return '/scanners/'
 
-    def __unicode__(self):
+    def __str__(self):
         """Return the name of the scanner."""
         return self.name
 
@@ -810,7 +817,7 @@ class Scan(models.Model):
         """Return the number of broken links for this scan."""
         return self.urls.exclude(status_code__isnull=True).count()
 
-    def __unicode__(self):
+    def __str__(self):
         """Return the name of the scan's scanner."""
         try:
             return "SCAN: " + self.scanner.name
@@ -829,9 +836,9 @@ class Scan(models.Model):
             self.status in [Scan.DONE, Scan.FAILED] and
             (self._old_status != self.status)
         ):
-            self.end_time = datetime.datetime.now()
+            self.end_time = timezone.now()
         # Actual save
-        super(Scan, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
         # Post-save stuff
 
         if (
@@ -857,16 +864,16 @@ class Scan(models.Model):
         )
         if log:
             if pending_items.exists():
-                print "Deleting %d remaining conversion queue items from " \
+                print(("Deleting %d remaining conversion queue items from "
                       "finished scan %s" % (
-                          pending_items.count(), self)
+                          pending_items.count(), self)))
 
         pending_items.delete()
 
         # remove all files associated with the scan
         if self.is_scan_dir_writable():
             if log:
-                print "Deleting scan directory: %s" % self.scan_dir
+                print(("Deleting scan directory: %s" % self.scan_dir))
             shutil.rmtree(self.scan_dir, True)
 
     @classmethod
@@ -910,20 +917,20 @@ class Scan(models.Model):
             num_ocr_items = items["total"]
             if (not scan.pause_non_ocr_conversions and
                     num_ocr_items > settings.PAUSE_NON_OCR_ITEMS_THRESHOLD):
-                print "Pausing non-OCR conversions for scan <%s> (%d) " \
-                      "because it has %d OCR items which is over the " \
-                      "threshold of %d" % \
+                print(("Pausing non-OCR conversions for scan <%s> (%d) "
+                       "because it has %d OCR items which is over the "
+                       "threshold of %d" %
                       (scan, scan.pk, num_ocr_items,
-                       settings.PAUSE_NON_OCR_ITEMS_THRESHOLD)
+                       settings.PAUSE_NON_OCR_ITEMS_THRESHOLD)))
                 scan.pause_non_ocr_conversions = True
                 scan.save()
             elif (scan.pause_non_ocr_conversions and
                   num_ocr_items < settings.RESUME_NON_OCR_ITEMS_THRESHOLD):
-                print "Resuming non-OCR conversions for scan <%s> (%d) " \
-                      "because it has %d OCR items which is under the " \
-                      "threshold of %d" % \
+                print(("Resuming non-OCR conversions for scan <%s> (%d) "
+                       "because it has %d OCR items which is under the "
+                       "threshold of %d" %
                       (scan, scan.pk, num_ocr_items,
-                       settings.RESUME_NON_OCR_ITEMS_THRESHOLD)
+                       settings.RESUME_NON_OCR_ITEMS_THRESHOLD)))
                 scan.pause_non_ocr_conversions = False
                 scan.save()
 
@@ -936,7 +943,7 @@ class Scan(models.Model):
 
         Stores the old status of the scan for later use.
         """
-        super(Scan, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._old_status = self.status
 
     def get_absolute_url(self):
@@ -961,7 +968,7 @@ class Url(models.Model):
                                        related_name='linked_urls',
                                        verbose_name='Referrers')
 
-    def __unicode__(self):
+    def __str__(self):
         """Return the URL."""
         return self.url
 
@@ -973,7 +980,7 @@ class Url(models.Model):
     @property
     def content(self):
         try:
-            file = urllib2.urlopen(self.url)
+            file = urlopen(self.url)
             return file.read()
         except Exception as e:
             return str(e)
@@ -1019,11 +1026,11 @@ class Match(models.Model):
         elif self.sensitivity == Sensitivity.OK:
             return "success"
 
-    def __unicode__(self):
+    def __str__(self):
         """Return a string representation of the match."""
-        return u"Match: %s; [%s] %s <%s>" % (self.get_sensitivity_display(),
-                                             self.matched_rule,
-                                             self.matched_data, self.url)
+        return "Match: %s; [%s] %s <%s>" % (self.get_sensitivity_display(),
+                                            self.matched_rule,
+                                            self.matched_data, self.url)
 
 
 class ConversionQueueItem(models.Model):
@@ -1080,7 +1087,7 @@ class ReferrerUrl(models.Model):
     url = models.CharField(max_length=2048, verbose_name='Url')
     scan = models.ForeignKey(Scan, null=False, verbose_name='Scan')
 
-    def __unicode__(self):
+    def __str__(self):
         """Return the URL."""
         return self.url
 
@@ -1088,7 +1095,7 @@ class ReferrerUrl(models.Model):
     def content(self):
         """Return the content of the target url"""
         try:
-            file = urllib2.urlopen(self.url)
+            file = urlopen(self.url)
             return file.read()
         except Exception as e:
             return str(e)
@@ -1115,7 +1122,7 @@ class UrlLastModified(models.Model):
                                    verbose_name='Links')
     scanner = models.ForeignKey(Scanner, null=False, verbose_name='Scanner')
 
-    def __unicode__(self):
+    def __str__(self):
         """Return the URL and last modified date."""
         return "<%s %s>" % (self.url, self.last_modified)
 
@@ -1143,7 +1150,7 @@ class Summary(models.Model):
     do_email_recipients = models.BooleanField(default=False,
                                               verbose_name="Udsend mails")
 
-    def __unicode__(self):
+    def __str__(self):
         """Return the name as a text representation of this summary object."""
         return self.name
 
@@ -1172,5 +1179,5 @@ class Md5Sum(models.Model):
         unique_together = ('md5', 'is_cpr_scan', 'is_check_mod11',
                            'is_ignore_irrelevant', 'organization')
 
-    def __unicode__(self):
-        return u"{0}: {1}".format(self.organization.name, self.md5)
+    def __str__(self):
+        return "{0}: {1}".format(self.organization.name, self.md5)
