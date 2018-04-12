@@ -112,7 +112,6 @@ class OffsiteDownloaderMiddleware(object):
 
     def process_request(self, request, spider):
         """Process a spider request."""
-        logging.info('Processing request.')
         if request.dont_filter or self.should_follow(request, spider):
             return None
         else:
@@ -278,7 +277,7 @@ class LastModifiedCheckMiddleware(object):
         # Make the request into a HEAD request instead of a GET request,
         # if the spider says we should and if we haven't
         # already checked the last modified date.
-        if (getattr(spider, 'do_last_modified_check', False) and
+        if (getattr(spider, 'do_last_modified_check_head_request', True) and
                 getattr(spider, 'do_last_modified_check_head_request', True)
                 and not request.meta.get('skip_modified_check', False) and
                 request.method != "HEAD" and
@@ -294,9 +293,9 @@ class LastModifiedCheckMiddleware(object):
         # Don't run the check if it's not specified by the spider
         if request.meta.get('skip_modified_check', False):
             return response
+        # if do_last_modified_check equals True, last_modified is disabled.
         if not getattr(spider, 'do_last_modified_check', False):
             return response
-
         # We only handle HTTP status OK responses
         if response.status != 200:
             return response
@@ -380,18 +379,24 @@ class LastModifiedCheckMiddleware(object):
         # Check the Last-Modified header to see if the content has been
         # updated since the last time we checked it.
         last_modified_header = response.headers.get("Last-Modified", None)
-        last_modified_header_date = datetime.datetime.fromtimestamp(
-            mktime_tz(parsedate_tz(last_modified_header)), tz=pytz.utc
-        ) if last_modified_header is not None else None
+        if last_modified_header is not None:
+            last_modified_header_date = datetime.datetime.fromtimestamp(
+                mktime_tz(parsedate_tz(last_modified_header.decode('utf-8'))), tz=pytz.utc
+            )
+        else:
+            last_modified_header_date = None
 
         if last_modified_header_date is None and request.method == 'GET':
             content_type_header = response.headers.get(
                 "Content-Type", None
-            )
+            ).decode('utf-8')
             if content_type_header.startswith("text/html"):
                 # TODO: Check meta tag.
                 # TODO: This is correct, but find out where it goes :-)
-                body_html = html.fromstring(response.body)
+                try:
+                    body_html = html.fromstring(response.body)
+                except:
+                    logging.info('error occured.')
                 meta_dict = {list(el.values())[0]: list(el.values())[1]
                              for el in body_html.findall('head/meta')}
                 if 'last-modified' in meta_dict:
@@ -455,4 +460,5 @@ class LastModifiedCheckMiddleware(object):
         else:
             # If there is no Last-Modified header, we have to assume it has
             # been modified.
+            logging.debug('No Last-Modified header found at all.')
             return True
