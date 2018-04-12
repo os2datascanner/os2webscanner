@@ -13,7 +13,7 @@
 #
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
-"""Contains a Scanner."""
+"""Contains a WebScanner."""
 from urlparse import urlparse
 
 from ..rules.name import NameRule
@@ -39,7 +39,7 @@ class Scanner:
         )
 
     def _load_rules(self):
-        """Load rules based on Scanner settings."""
+        """Load rules based on WebScanner settings."""
         rules = []
         if self.scan_object.do_cpr_scan:
             rules.append(CPRRule(
@@ -70,7 +70,7 @@ class Scanner:
         return rules
 
     def get_exclusion_rules(self):
-        """Return a list of exclusion rules associated with the Scanner."""
+        """Return a list of exclusion rules associated with the WebScanner."""
         exclusion_rules = []
         for domain in self.valid_domains:
             exclusion_rules.extend(domain.exclusion_rule_list())
