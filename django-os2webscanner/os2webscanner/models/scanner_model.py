@@ -227,6 +227,8 @@ class Scanner(models.Model):
         if not self.has_valid_domains:
             return Scanner.NO_VALID_DOMAINS
 
+        # TODO: Try to mount network drive if filescan.
+
         # Create a new Scan
         scan = Scan.create(self)
         # Add user as recipient on scan
