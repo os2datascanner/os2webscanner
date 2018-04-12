@@ -200,6 +200,7 @@ class LastModifiedLinkStorageMiddleware(object):
 
     """Spider middleware to store links on pages for Last-Modified check."""
 
+    # TODO: Handle last modified for files and folders.
     def process_spider_output(self, response, result, spider):
         """Process spider output."""
         if not getattr(spider, "do_last_modified_check", False):
