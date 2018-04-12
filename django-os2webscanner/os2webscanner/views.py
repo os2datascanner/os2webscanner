@@ -259,9 +259,6 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
 
     def get_form(self, form_class=None):
         """Get the form for the view."""
-        if form_class is None:
-            form_class = self.get_form_class()
-
         fields = self.get_form_fields()
         form_class = modelform_factory(self.model, fields=fields)
         kwargs = self.get_form_kwargs()
@@ -325,9 +322,6 @@ class OrgRestrictedMixin(ModelFormMixin, LoginRequiredMixin):
 
     def get_form(self, form_class=None):
         """Get the form for the view."""
-        if form_class is None:
-            form_class = self.get_form_class()
-
         fields = self.get_form_fields()
         form_class = modelform_factory(self.model, fields=fields)
         kwargs = self.get_form_kwargs()
@@ -436,6 +430,7 @@ class ScannerCreate(RestrictedCreateView):
             form_class = self.get_form_class()
 
         form = super().get_form(form_class)
+        form.fields['schedule'].required = False
         try:
             organization = self.request.user.profile.organization
             groups = self.request.user.profile.groups.all()
@@ -500,7 +495,7 @@ class ScannerUpdate(RestrictedUpdateView):
 
         self.fields = self.get_form_fields()
         form = super().get_form(form_class)
-
+        form.fields['schedule'].required = False
         scanner = self.get_object()
 
         # Exclude recipients with no email address
