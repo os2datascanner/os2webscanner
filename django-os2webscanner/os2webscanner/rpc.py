@@ -18,7 +18,6 @@ import os
 import re
 import csv
 import tempfile
-import xmlrpclib
 
 from django.contrib.auth import authenticate
 from django.conf import settings
