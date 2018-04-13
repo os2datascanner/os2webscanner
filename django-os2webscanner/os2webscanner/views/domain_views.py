@@ -60,13 +60,18 @@ class DomainCreate(RestrictedCreateView):
         fields = super().get_form_fields()
         if self.request.user.is_superuser:
             fields.append('validation_status')
+
+        self.fields = fields
         return fields
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Get the form for the view.
 
         All form widgets will have added the css class 'form-control'.
         """
+        if form_class is None:
+            form_class = self.get_form_class()
+
         form = super().get_form(form_class)
 
         for fname in form.fields:
@@ -96,8 +101,11 @@ class FileDomainCreate(DomainCreate):
     model = FileDomain
     fields = ['url', 'exclusion_rules']
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Adds special field password."""
+        if form_class is None:
+            form_class = self.get_form_class()
+
         form = super().get_form(form_class)
         form.fields['username'] = forms.CharField(max_length=1024)
         form.fields['password'] = forms.CharField(max_length=50)
@@ -142,9 +150,12 @@ class DomainUpdate(RestrictedUpdateView):
         self.fields = fields
         return fields
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Get the form for the view.
         """
+        if form_class is None:
+            form_class = self.get_form_class()
+
         form = super().get_form(form_class)
 
         self.old_url = self.get_object().url
@@ -209,8 +220,11 @@ class FileDomainUpdate(DomainUpdate):
     model = FileDomain
     fields = ['url', 'exclusion_rules']
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Adds special field password and decrypts password."""
+        if form_class is None:
+            form_class = self.get_form_class()
+
         form = super().get_form(form_class)
         filedomain = self.get_object()
         authentication = filedomain.authentication
