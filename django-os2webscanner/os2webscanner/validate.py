@@ -22,7 +22,7 @@ import urllib.error
 from urllib.parse import urlparse
 import hashlib
 
-from models.webdomain_model import WebDomain
+from .models.webdomain_model import WebDomain
 
 
 def _do_request(url):
