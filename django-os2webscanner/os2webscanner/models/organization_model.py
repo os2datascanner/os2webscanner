@@ -35,3 +35,7 @@ class Organization(models.Model):
     def __unicode__(self):
         """Return the name of the organization."""
         return self.name
+
+    def __str__(self):
+        """Return the name of the organization."""
+        return self.name
