@@ -18,9 +18,9 @@
 
 from django.db import models
 
-from match_model import Match
-from weburl_model import WebUrl
-from webscan_model import WebScan
+from .match_model import Match
+from .weburl_model import WebUrl
+from .webscan_model import WebScan
 
 
 class WebMatch(Match):

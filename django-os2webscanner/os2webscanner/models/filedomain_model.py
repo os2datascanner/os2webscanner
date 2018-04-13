@@ -16,7 +16,7 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 
-from domain_model import Domain
+from .domain_model import Domain
 
 
 class FileDomain(Domain):

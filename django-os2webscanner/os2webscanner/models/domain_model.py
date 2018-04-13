@@ -20,9 +20,9 @@ import re
 
 from django.db import models
 
-from authentication_model import Authentication
-from group_model import Group
-from organization_model import Organization
+from .authentication_model import Authentication
+from .group_model import Group
+from .organization_model import Organization
 
 
 class Domain(models.Model):

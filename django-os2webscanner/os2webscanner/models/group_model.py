@@ -1,7 +1,7 @@
 from django.db import models
 
-from organization_model import Organization
-from userprofile_model import UserProfile
+from .organization_model import Organization
+from .userprofile_model import UserProfile
 
 
 class Group(models.Model):

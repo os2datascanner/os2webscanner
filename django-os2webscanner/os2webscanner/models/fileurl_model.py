@@ -18,8 +18,8 @@
 
 from django.db import models
 
-from url_model import Url
-from filescan_model import FileScan
+from .url_model import Url
+from .filescan_model import FileScan
 
 
 class FileUrl(Url):

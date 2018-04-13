@@ -1,7 +1,7 @@
 from django.db import models
 
-from conversionqueueitem_model import ConversionQueueItem
-from weburl_model import WebUrl
+from .conversionqueueitem_model import ConversionQueueItem
+from .weburl_model import WebUrl
 
 
 class WebConversionQueueItem(ConversionQueueItem):

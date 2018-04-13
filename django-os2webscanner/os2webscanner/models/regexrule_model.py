@@ -18,9 +18,9 @@
 
 from django.db import models
 
-from group_model import Group
-from organization_model import Organization
-from sensitivity_level import Sensitivity
+from .group_model import Group
+from .organization_model import Organization
+from .sensitivity_level import Sensitivity
 
 
 class RegexRule(models.Model):

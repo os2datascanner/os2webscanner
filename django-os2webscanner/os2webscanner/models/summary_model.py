@@ -19,10 +19,10 @@ from recurrence.fields import RecurrenceField
 
 from django.db import models
 
-from group_model import Group
-from organization_model import Organization
-from userprofile_model import UserProfile
-from webscanner_model import WebScanner
+from .group_model import Group
+from .organization_model import Organization
+from .userprofile_model import UserProfile
+from .webscanner_model import WebScanner
 
 
 class Summary(models.Model):

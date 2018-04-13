@@ -18,7 +18,7 @@
 
 from django.db import models
 
-from sensitivity_level import Sensitivity
+from .sensitivity_level import Sensitivity
 
 
 class Match(models.Model):

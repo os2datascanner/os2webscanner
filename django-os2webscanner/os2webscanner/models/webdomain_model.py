@@ -16,12 +16,12 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 
-from urlparse import urljoin
+from urllib.parse import urljoin
 
 from django.db import models
 from django.conf import settings
 
-from domain_model import Domain
+from .domain_model import Domain
 
 
 class WebDomain(Domain):

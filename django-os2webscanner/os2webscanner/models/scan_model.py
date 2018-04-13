@@ -25,10 +25,10 @@ from django.conf import settings
 from django.db import models
 from django.db.models.aggregates import Count
 
-from conversionqueueitem_model import ConversionQueueItem
-from regexrule_model import RegexRule
-from sensitivity_level import Sensitivity
-from userprofile_model import UserProfile
+from .conversionqueueitem_model import ConversionQueueItem
+from .regexrule_model import RegexRule
+from .sensitivity_level import Sensitivity
+from .userprofile_model import UserProfile
 
 
 class Scan(models.Model):
@@ -254,17 +254,17 @@ class Scan(models.Model):
         )
         if log:
             if pending_items.exists():
-                print "Deleting %d remaining conversion queue items from " \
+                print("Deleting %d remaining conversion queue items from " \
                       "finished scan %s" % (
-                          pending_items.count(), self)
+                          pending_items.count(), self))
 
         pending_items.delete()
 
         # remove all files associated with the scan
         if self.is_scan_dir_writable():
             if log:
-                print "Deleting scan directory: %s" % self.scan_dir
-            shutil.rmtree(self.scan_dir, True)
+                print("Deleting scan directory: %s %s", self.scan_dir,
+            shutil.rmtree(self.scan_dir, True))
 
     @classmethod
     def cleanup_finished_scans(cls, scan_age, log=False):
@@ -307,20 +307,20 @@ class Scan(models.Model):
             num_ocr_items = items["total"]
             if (not scan.pause_non_ocr_conversions and
                         num_ocr_items > settings.PAUSE_NON_OCR_ITEMS_THRESHOLD):
-                print "Pausing non-OCR conversions for scan <%s> (%d) " \
+                print("Pausing non-OCR conversions for scan <%s> (%d) " \
                       "because it has %d OCR items which is over the " \
                       "threshold of %d" % \
                       (scan, scan.pk, num_ocr_items,
-                       settings.PAUSE_NON_OCR_ITEMS_THRESHOLD)
+                       settings.PAUSE_NON_OCR_ITEMS_THRESHOLD))
                 scan.pause_non_ocr_conversions = True
                 scan.save()
             elif (scan.pause_non_ocr_conversions and
                           num_ocr_items < settings.RESUME_NON_OCR_ITEMS_THRESHOLD):
-                print "Resuming non-OCR conversions for scan <%s> (%d) " \
+                print("Resuming non-OCR conversions for scan <%s> (%d) " \
                       "because it has %d OCR items which is under the " \
                       "threshold of %d" % \
                       (scan, scan.pk, num_ocr_items,
-                       settings.RESUME_NON_OCR_ITEMS_THRESHOLD)
+                       settings.RESUME_NON_OCR_ITEMS_THRESHOLD))
                 scan.pause_non_ocr_conversions = False
                 scan.save()
 

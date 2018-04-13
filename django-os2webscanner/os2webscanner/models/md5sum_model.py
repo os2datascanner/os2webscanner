@@ -1,6 +1,6 @@
 from django.db import models
 
-from organization_model import Organization
+from .organization_model import Organization
 
 
 class Md5Sum(models.Model):

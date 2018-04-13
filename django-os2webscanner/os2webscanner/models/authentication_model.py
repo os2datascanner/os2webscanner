@@ -1,6 +1,6 @@
 from django.db import models
 
-from authenticationmethods_model import AuthenticationMethods
+from .authenticationmethods_model import AuthenticationMethods
 
 
 class Authentication(models.Model):

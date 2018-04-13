@@ -1,6 +1,6 @@
 from django.db import models
 
-from webscanner_model import WebScanner
+from .webscanner_model import WebScanner
 
 
 class UrlLastModified(models.Model):

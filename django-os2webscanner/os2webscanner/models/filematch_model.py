@@ -18,9 +18,9 @@
 
 from django.db import models
 
-from match_model import Match
-from fileurl_model import FileUrl
-from filescan_model import FileScan
+from .match_model import Match
+from .fileurl_model import FileUrl
+from .filescan_model import FileScan
 
 
 class FileMatch(Match):

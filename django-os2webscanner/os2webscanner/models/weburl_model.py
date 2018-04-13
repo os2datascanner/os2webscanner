@@ -18,8 +18,8 @@
 
 from django.db import models
 
-from url_model import Url
-from webscan_model import WebScan
+from .url_model import Url
+from .webscan_model import WebScan
 
 
 class WebUrl(Url):

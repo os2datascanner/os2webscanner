@@ -28,11 +28,11 @@ from django.db import models
 from recurrence.fields import RecurrenceField
 
 from os2webscanner import aescipher
-from organization_model import Organization
-from group_model import Group
-from regexrule_model import RegexRule
-from scan_model import Scan
-from userprofile_model import UserProfile
+from .organization_model import Organization
+from .group_model import Group
+from .regexrule_model import RegexRule
+from .scan_model import Scan
+from .userprofile_model import UserProfile
 
 base_dir = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
@@ -255,7 +255,7 @@ class Scanner(models.Model):
             if blocking:
                 process.communicate()
         except Exception as e:
-            print e
+            print(e)
             return None
         return scan
 

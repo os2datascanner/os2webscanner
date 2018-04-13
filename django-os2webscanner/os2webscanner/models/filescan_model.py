@@ -18,9 +18,9 @@
 
 from django.db import models
 
-from scan_model import Scan
-from filescanner_model import FileScanner
-from filedomain_model import FileDomain
+from .scan_model import Scan
+from .filescanner_model import FileScanner
+from .filedomain_model import FileDomain
 
 
 class FileScan(Scan):

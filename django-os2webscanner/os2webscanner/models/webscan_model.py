@@ -17,13 +17,13 @@
 # source municipalities ( http://www.os2web.dk/ )
 
 import os
-import StringIO
+from io import StringIO
 
 from django.db import models
 
-from scan_model import Scan
-from webscanner_model import WebScanner
-from webdomain_model import WebDomain
+from .scan_model import Scan
+from .webscanner_model import WebScanner
+from .webdomain_model import WebDomain
 
 
 class WebScan(Scan):

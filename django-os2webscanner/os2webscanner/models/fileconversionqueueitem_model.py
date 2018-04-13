@@ -18,8 +18,8 @@
 
 from django.db import models
 
-from conversionqueueitem_model import ConversionQueueItem
-from fileurl_model import FileUrl
+from .conversionqueueitem_model import ConversionQueueItem
+from .fileurl_model import FileUrl
 
 
 class FileConversionQueueItem(ConversionQueueItem):

@@ -17,7 +17,7 @@
 # source municipalities ( http://www.os2web.dk/ )
 
 import os
-import urllib2
+from urllib.request import urlopen
 
 from django.db import models
 
@@ -49,7 +49,7 @@ class Url(models.Model):
     @property
     def content(self):
         try:
-            file = urllib2.urlopen(self.url)
+            file = urlopen(self.url)
             return file.read()
         except Exception as e:
             return str(e)
