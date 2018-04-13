@@ -43,7 +43,7 @@ def decrypt(iv, ciphertext):
 
     # Initialize counter for decryption. iv should be the same as the output of
     # encrypt().
-    iv_int = int(iv.encode('hex'), 16)
+    iv_int = int(binascii.hexlify(iv), 16)
     ctr = Counter.new(AES.block_size * 8, initial_value=iv_int)
 
     # Create AES-CTR cipher.
@@ -51,19 +51,19 @@ def decrypt(iv, ciphertext):
 
     # Decrypt and return the plaintext.
     plaintext = aes.decrypt(ciphertext)
-    return plaintext
+    return plaintext.decode('utf-8')
 
 
 def generate_key():
     key = None
     file_name = settings.PROJECT_DIR + '/' + key_file_name
     if os.path.isfile(file_name):
-        key = file_handling(None, 'r', file_name, False)
+        key = key_file_handling(None, 'rb', file_name, False)
     else:
         key = Random.new().read(key_bytes)
-        file_handling(key, 'a', file_name, True)
+        key_file_handling(key, 'ab', file_name, True)
         backup_file_name = settings.VAR_DIR + '/' + key_file_name + str(datetime.date.today())
-        file_handling(key, 'a', backup_file_name, True)
+        key_file_handling(key, 'ab', backup_file_name, True)
         try:
             message = EmailMessage('CRITICAL!',
                                    'New master key has been generated.',
@@ -76,15 +76,15 @@ def generate_key():
     return key
 
 
-def file_handling(data, command, filename, create):
+def key_file_handling(data, command, filename, create):
     file = None
     try:
-        if create:
+        if create and not os.path.isfile(filename):
             os.mknod(filename)
         file = open(filename, command)
-        if command is 'r':
+        if command is 'rb':
             data = file.read()
-        elif command is 'a':
+        elif command is 'ab':
             file.write(data)
     except (OSError, IOError) as ex:
         logger.error('An error occured while trying to {0} {1} file. {2}'.format(command, filename, ex))
