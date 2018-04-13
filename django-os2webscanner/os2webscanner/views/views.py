@@ -22,7 +22,6 @@ import tempfile
 import codecs
 from shutil import copyfile
 
-from django import forms
 from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Q
 from django.http import Http404, HttpResponse, HttpResponseRedirect

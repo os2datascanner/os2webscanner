@@ -1,7 +1,7 @@
 from django import forms
 from django.db.models import Count, Q
 
-from views import RestrictedListView, RestrictedCreateView, \
+from .views import RestrictedListView, RestrictedCreateView, \
     RestrictedUpdateView, RestrictedDetailView, RestrictedDeleteView
 
 from ..models.scan_model import Scan

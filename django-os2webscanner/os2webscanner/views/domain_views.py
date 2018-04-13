@@ -2,7 +2,7 @@ from django import forms
 
 from ..validate import validate_domain, get_validation_str
 
-from views import RestrictedListView, RestrictedCreateView, \
+from .views import RestrictedListView, RestrictedCreateView, \
     RestrictedUpdateView, RestrictedDetailView, RestrictedDeleteView
 
 from ..models.domain_model import Domain
