@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # The contents of this file are subject to the Mozilla Public License
 # Version 2.0 (the "License"); you may not use this file except in
 # compliance with the License. You may obtain a copy of the License at
@@ -44,7 +44,8 @@ django.setup()
 
 os.umask(0o007)
 
-from os2webscanner.models import ConversionQueueItem, Scan
+from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
+from os2webscanner.models.scan_model import Scan
 
 
 var_dir = settings.VAR_DIR
@@ -66,7 +67,7 @@ process_list = []
 def stop_process(p):
     """Stop the process."""
     if 'process_handle' not in p:
-        print(("Process %s already stopped" % p['name']))
+        print("Process %s already stopped" % p['name'])
         return
 
     phandle = p['process_handle']
@@ -74,7 +75,7 @@ def stop_process(p):
     pid = phandle.pid
     # If running, stop it
     if phandle.poll() is None:
-        print(("Terminating process %s" % p['name']))
+        print("Terminating process %s" % p['name'])
         phandle.terminate()
         phandle.wait()
     # Remove pid from process map
@@ -143,7 +144,7 @@ def start_process(p):
             p['name'], pid
         )))
     else:
-        print(("Failed to start process %s, exiting" % p['name']))
+        print("Failed to start process %s, exiting" % p['name'])
         exit_handler()
 
     p['log_fh'] = log_fh
@@ -213,7 +214,7 @@ def main():
         for p in stuck_processes:
             pid = p.process_id
             if pid in process_map:
-                print(("Process with pid %s is stuck, restarting" % pid))
+                print("Process with pid %s is stuck, restarting" % pid)
                 stuck_process = process_map[pid]
                 restart_process(stuck_process)
             else:
