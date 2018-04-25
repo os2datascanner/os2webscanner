@@ -228,7 +228,7 @@ class Scan(models.Model):
         ):
             self.end_time = datetime.datetime.now()
         # Actual save
-        super(Scan, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
         # Post-save stuff
 
         if (
@@ -276,7 +276,7 @@ class Scan(models.Model):
         from django.utils import timezone
         from django.db.models import Q
         oldest_end_time = timezone.localtime(timezone.now()) - scan_age
-        inactive_scans = Scan.objects.filter(
+        inactive_scans = cls.objects.filter(
             Q(status__in=(Scan.DONE, Scan.FAILED)),
             Q(end_time__gt=oldest_end_time) | Q(end_time__isnull=True)
         )
@@ -284,7 +284,7 @@ class Scan(models.Model):
             scan.cleanup_finished_scan(log=log)
 
     @classmethod
-    def pause_non_ocr_conversions_on_scans_with_too_many_ocr_items(cls):
+    def pause_non_ocr_conversions_on_scans_with_too_many_ocr_items(cls, conversionqueuecls):
         """Pause non-OCR conversions on scans with too many OCR items.
 
         When the number of OCR items per scan reaches a
@@ -298,12 +298,12 @@ class Scan(models.Model):
         When the number of OCR items falls below the lower threshold
         (RESUME_NON_OCR_ITEMS_THRESHOLD), non-OCR conversions are resumed.
         """
-        ocr_items_by_scan = ConversionQueueItem.objects.filter(
+        ocr_items_by_scan = conversionqueuecls.objects.filter(
             status=ConversionQueueItem.NEW,
             type="ocr"
         ).values("url__scan").annotate(total=Count("url__scan"))
         for items in ocr_items_by_scan:
-            scan = Scan.objects.get(pk=items["url__scan"])
+            scan = cls.objects.get(pk=items["url__scan"])
             num_ocr_items = items["total"]
             if (not scan.pause_non_ocr_conversions and
                         num_ocr_items > settings.PAUSE_NON_OCR_ITEMS_THRESHOLD):
