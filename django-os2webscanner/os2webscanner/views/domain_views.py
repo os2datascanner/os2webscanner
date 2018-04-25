@@ -65,6 +65,7 @@ class DomainCreate(RestrictedCreateView):
         return fields
 
     def get_form(self, form_class=None):
+
         """Get the form for the view.
 
         All form widgets will have added the css class 'form-control'.
@@ -233,7 +234,8 @@ class FileDomainUpdate(DomainUpdate):
         if len(authentication.username) > 0:
             form.fields['username'].initial = authentication.username
         if len(authentication.ciphertext) > 0:
-            password = decrypt(str(authentication.iv), str(authentication.ciphertext))
+            password = decrypt(bytes(authentication.iv),
+                               bytes(authentication.ciphertext))
             form.fields['password'].initial = password
         return form
 
@@ -241,8 +243,8 @@ class FileDomainUpdate(DomainUpdate):
         """Makes sure password gets encrypted before stored in db."""
         filedomain = form.save(commit=False)
         authentication = filedomain.authentication
-        authentication.username = str(form.cleaned_data['username'])
-        iv, ciphertext = encrypt(str(form.cleaned_data['password']))
+        authentication.username = form.cleaned_data['username']
+        iv, ciphertext = encrypt(form.cleaned_data['password'])
         authentication.ciphertext = ciphertext
         authentication.iv = iv
         authentication.save()
