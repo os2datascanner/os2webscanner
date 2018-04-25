@@ -42,7 +42,7 @@ class Scanner(models.Model):
 
     """A scanner, i.e. a template for actual scanning jobs."""
 
-    CONCRETE_CLASSES = ('WebScanner', 'FileScanner',)
+    CONCRETE_CLASSES = ('WebScanner', 'FileScanner')
 
     name = models.CharField(max_length=256, unique=True, null=False,
                             verbose_name='Navn')
