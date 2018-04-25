@@ -27,7 +27,7 @@ class WebScanner(Scanner):
     """Web scanner for scanning websites."""
 
     domains = models.ManyToManyField(WebDomain, related_name='webdomains',
-                                     null=False, verbose_name='Web Domæner')
+                                     verbose_name='Web Domæner')
 
     do_link_check = models.BooleanField(default=False,
                                         verbose_name='Tjek links')
