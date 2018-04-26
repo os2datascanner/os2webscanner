@@ -279,6 +279,8 @@ class OrgRestrictedMixin(ModelFormMixin, LoginRequiredMixin):
 
     def get_form_fields(self):
         """Get the list of fields to use in the form for the view."""
+        if len(self.fields) == 0:
+            return []
         fields = [f for f in self.fields]
         user = self.request.user
         organization = self.object.organization
@@ -318,7 +320,7 @@ class OrgRestrictedMixin(ModelFormMixin, LoginRequiredMixin):
 
     def get_queryset(self):
         """Get queryset filtered by user's organization."""
-        queryset = super().get_queryset()
+        queryset = super(OrgRestrictedMixin, self).get_queryset()
         if not self.request.user.is_superuser:
             organization = None
 
