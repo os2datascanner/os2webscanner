@@ -23,7 +23,7 @@ import django.contrib.auth.views
 from .views.views import MainPageView, RuleList
 from .views.views import CSVReportDetails, ReportDetails, ReportList, ReportDelete
 from .views.scanner_views import WebScannerCreate, WebScannerUpdate, FileScannerCreate, FileScannerUpdate, \
-    ScannerDelete, ScannerRun, ScannerAskRun, WebScannerList, FileScannerList
+    WebScannerDelete, FileScannerDelete, ScannerRun, ScannerAskRun, WebScannerList, FileScannerList
 from .views.views import ScanReportLog, OrganizationUpdate
 from .views.domain_views import WebDomainUpdate, FileDomainUpdate, DomainValidate, DomainDelete, \
     WebDomainList, FileDomainList, WebDomainCreate, FileDomainCreate
@@ -45,8 +45,8 @@ urlpatterns = [
     url(r'^$', MainPageView.as_view(), name='index'),
     url(r'^webscanners/$', WebScannerList.as_view(), name='webscanners'),
     url(r'^webscanners/add/$', WebScannerCreate.as_view(), name='webscanner_add'),
-    url(r'^webscanners/(?P<pk>\d+)/delete/$', ScannerDelete.as_view(),
-        name='webscanner_delete'),
+    url(r'^webscanners/(?P<pk>\d+)/delete/$', WebScannerDelete.as_view(),
+        name='scanner_delete'),
     url(r'^webscanners/(?P<pk>\d+)/run/$', ScannerRun.as_view(),
         name='webscanner_run'),
     url(r'^webscanners/(?P<pk>\d+)/askrun/$',
@@ -58,7 +58,7 @@ urlpatterns = [
         name='scanner_update'),
     url(r'^filescanners/$', FileScannerList.as_view(), name='filescanners'),
     url(r'^filescanners/add/$', FileScannerCreate.as_view(), name='filescanner_add'),
-    url(r'^filescanners/(?P<pk>\d+)/delete/$', ScannerDelete.as_view(),
+    url(r'^filescanners/(?P<pk>\d+)/delete/$', FileScannerDelete.as_view(),
         name='scanner_delete'),
     url(r'^filescanners/(?P<pk>\d+)/run/$', ScannerRun.as_view(),
         name='scanner_run'),

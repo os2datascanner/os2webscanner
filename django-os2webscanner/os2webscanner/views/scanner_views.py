@@ -47,7 +47,7 @@ class ScannerCreate(RestrictedCreateView):
 
     template_name = 'os2webscanner/scanner_form.html'
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Get the form for the view.
 
         Querysets used for choices in the 'domains' and 'regex_rules' fields
@@ -119,8 +119,11 @@ class FileScannerCreate(ScannerCreate):
               'do_name_scan', 'do_ocr', 'do_address_scan', 'do_last_modified_check',
               'regex_rules', 'recipients']
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Adds special field password."""
+        if form_class is None:
+            form_class = self.get_form_class()
+
         form = super().get_form(form_class)
         form.fields['password'] = forms.CharField(max_length=50)
         return form
@@ -129,7 +132,7 @@ class FileScannerCreate(ScannerCreate):
         """Makes sure password gets encrypted before stored in db."""
         filescanner = form.save(commit=False)
         if len(form.cleaned_data['password']) > 0:
-            iv, ciphertext = encrypt(str(form.cleaned_data['password']))
+            iv, ciphertext = encrypt(form.cleaned_data['password'])
             filescanner.ciphertext = ciphertext
             filescanner.iv = iv
         filescanner.save()
@@ -145,7 +148,7 @@ class ScannerUpdate(RestrictedUpdateView):
     """Update a scanner view."""
     template_name = 'os2webscanner/scanner_form.html'
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Get the form for the view.
 
         Querysets used for choices in the 'domains' and 'regex_rules' fields
@@ -216,8 +219,11 @@ class FileScannerUpdate(ScannerUpdate):
               'do_name_scan', 'do_ocr', 'do_address_scan', 'do_last_modified_check',
               'regex_rules', 'recipients']
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         """Adds special field password and decrypts password."""
+        if form_class is None:
+            form_class = self.get_form_class()
+
         form = super().get_form(form_class)
         scanner = self.get_object()
         form.fields['password'] = forms.CharField(max_length=50)
@@ -234,9 +240,28 @@ class FileScannerUpdate(ScannerUpdate):
 class ScannerDelete(RestrictedDeleteView):
 
     """Delete a scanner view."""
+    template_name = 'os2webscanner/scanner_confirm_delete.html'
 
+    def get_form(self, form_class=None):
+        """Adds special field password and decrypts password."""
+        if form_class is None:
+            form_class = self.get_form_class()
+        form = super().get_form(form_class)
+
+        return form
+
+class WebScannerDelete(ScannerDelete):
+    """Delete a scanner view."""
     model = WebScanner
+    fields = []
     success_url = '/webscanners/'
+
+
+class FileScannerDelete(ScannerDelete):
+    """Delete a scanner view."""
+    model = FileScanner
+    fields = []
+    success_url = '/filescanners/'
 
 
 class ScannerAskRun(RestrictedDetailView):
