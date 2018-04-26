@@ -29,3 +29,7 @@ class UserProfile(models.Model):
     def __unicode__(self):
         """Return the user's username."""
         return self.user.username
+
+    def __str__(self):
+        """Return the user's username."""
+        return self.user.username
