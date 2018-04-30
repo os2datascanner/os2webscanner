@@ -65,5 +65,5 @@ class Match(models.Model):
                                              self.matched_data, self.url)
 
     class Meta:
-        abstract = True
+        abstract = False
 
