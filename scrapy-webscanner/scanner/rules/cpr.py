@@ -19,7 +19,7 @@ import regex
 from datetime import datetime
 
 from .rule import Rule
-from os2webscanner.models import Sensitivity
+from os2webscanner.models.sensitivity_level import Sensitivity
 from ..items import MatchItem
 
 

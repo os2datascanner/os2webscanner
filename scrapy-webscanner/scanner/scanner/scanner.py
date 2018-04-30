@@ -23,7 +23,8 @@ from ..rules.cpr import CPRRule
 from ..rules.regexrule import RegexRule
 
 from ..processors.processor import Processor
-from os2webscanner.models import Scan, Domain
+from os2webscanner.models.scan_model import Scan
+from os2webscanner.models.domain_model import Domain
 
 
 class Scanner:

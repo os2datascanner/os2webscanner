@@ -32,7 +32,7 @@ from scrapy.utils.httpobj import urlparse_cached
 from scrapy.utils.url import canonicalize_url
 
 from email.utils import parsedate_tz, mktime_tz
-from os2webscanner.models import UrlLastModified
+from os2webscanner.models.urllastmodified_model import UrlLastModified
 
 from django.conf import settings as django_settings
 

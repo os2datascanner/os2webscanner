@@ -26,7 +26,8 @@ import random
 import subprocess
 import hashlib
 
-from os2webscanner.models import ConversionQueueItem, Md5Sum
+from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
+from os2webscanner.models.md5sum_model import Md5Sum
 
 from django.db import transaction, IntegrityError, DatabaseError
 from django import db

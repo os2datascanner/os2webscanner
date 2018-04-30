@@ -36,7 +36,8 @@ from .base_spider import BaseScannerSpider
 
 from ..processors.processor import Processor
 
-from os2webscanner.models import Url, ReferrerUrl
+from os2webscanner.models.url_model import Url
+from os2webscanner.models.referrerurl_model import ReferrerUrl
 from scrapy.utils.response import response_status_message
 
 
