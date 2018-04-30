@@ -29,16 +29,11 @@ from .models.userprofile_model import UserProfile
 from .models.webdomain_model import WebDomain
 from .models.filedomain_model import FileDomain
 from .models.regexrule_model import RegexRule
-from .models.webscanner_model import WebScanner
-from .models.filescanner_model import FileScanner
-from .models.webscan_model import WebScan
-from .models.filescan_model import FileScan
-from .models.filematch_model import FileMatch
-from .models.webmatch_model import WebMatch
-from .models.fileurl_model import FileUrl
-from .models.weburl_model import WebUrl
-from .models.fileconversionqueueitem_model import FileConversionQueueItem
-from .models.webconversionqueueitem_model import WebConversionQueueItem
+from .models.scanner_model import Scanner
+from .models.match_model import Match
+from .models.url_model import Url
+from .models.scan_model import Scan
+from .models.conversionqueueitem_model import ConversionQueueItem
 from .models.referrerurl_model import ReferrerUrl
 from .models.urllastmodified_model import UrlLastModified
 from .models.group_model import Group
@@ -46,8 +41,7 @@ from .models.md5sum_model import Md5Sum
 
 ar = admin.site.register
 classes = [Authentication, Organization, WebDomain, FileDomain, RegexRule,
-           WebScanner, FileScanner, WebScan, FileScan, FileMatch, WebMatch, FileUrl, WebUrl,
-           FileConversionQueueItem, WebConversionQueueItem, ReferrerUrl,
+           Scanner, Scan, Match, Url, ConversionQueueItem, ReferrerUrl,
            UrlLastModified, Group, Md5Sum]
 list(map(ar, classes))
 
