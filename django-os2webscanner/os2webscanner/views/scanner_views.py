@@ -9,7 +9,6 @@ from ..models.scanner_model import Scanner
 from ..models.webscanner_model import WebScanner
 from ..models.filescanner_model import FileScanner
 from ..models.userprofile_model import UserProfile
-from ..aescipher import encrypt, decrypt
 
 
 class ScannerList(RestrictedListView):
@@ -114,29 +113,10 @@ class FileScannerCreate(ScannerCreate):
     """Create a file scanner view."""
 
     model = FileScanner
-    fields = ['name', 'schedule', 'domains', 'username',
+    fields = ['name', 'schedule', 'domains',
               'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
               'do_name_scan', 'do_ocr', 'do_address_scan', 'do_last_modified_check',
               'regex_rules', 'recipients']
-
-    def get_form(self, form_class=None):
-        """Adds special field password."""
-        if form_class is None:
-            form_class = self.get_form_class()
-
-        form = super().get_form(form_class)
-        form.fields['password'] = forms.CharField(max_length=50)
-        return form
-
-    def form_valid(self, form):
-        """Makes sure password gets encrypted before stored in db."""
-        filescanner = form.save(commit=False)
-        if len(form.cleaned_data['password']) > 0:
-            iv, ciphertext = encrypt(form.cleaned_data['password'])
-            filescanner.ciphertext = ciphertext
-            filescanner.iv = iv
-        filescanner.save()
-        return super(FileScannerCreate, self).form_valid(form)
 
     def get_success_url(self):
         """The URL to redirect to after successful creation."""
@@ -267,12 +247,13 @@ class FileScannerDelete(ScannerDelete):
 class ScannerAskRun(RestrictedDetailView):
 
     """Base class for prompt before starting scan, validate first."""
+    fields = []
 
     def get_context_data(self, **kwargs):
         """Check that user is allowed to run this scanner."""
         context = super().get_context_data(**kwargs)
 
-        if self.object.has_active_scans:
+        if self.object.is_running:
             ok = False
             error_message = Scanner.ALREADY_RUNNING
         elif not self.object.has_valid_domains:
@@ -306,11 +287,12 @@ class ScannerRun(RestrictedDetailView):
     """Base class for view that handles starting of a scanner run."""
 
     template_name = 'os2webscanner/scanner_run.html'
+    model = Scanner
 
     def get(self, request, *args, **kwargs):
         """Handle a get request to the view."""
         self.object = self.get_object()
-
+        import pdb; pdb.set_trace()
         result = self.object.run(user=request.user)
         context = self.get_context_data(object=self.object)
         context['success'] = isinstance(result, Scan)
