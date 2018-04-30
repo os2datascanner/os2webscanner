@@ -255,6 +255,9 @@ def main():
                         scan.log_occurrence(
                             "SCAN FAILED: Process died"
                         )
+                        scanner = scan.scanner
+                        scanner.is_running = False
+                        scanner.save()
                         scan.save()
         except (DatabaseError, IntegrityError):
             pass
