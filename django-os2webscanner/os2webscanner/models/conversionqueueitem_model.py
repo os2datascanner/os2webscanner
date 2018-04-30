@@ -3,11 +3,13 @@ import shutil
 
 from django.db import models
 
+from .url_model import Url
+
 
 class ConversionQueueItem(models.Model):
 
     """Represents an item in the conversion queue."""
-
+    url = models.ForeignKey(Url, null=False, verbose_name='Url')
     file = models.CharField(max_length=4096, verbose_name='Fil')
     type = models.CharField(max_length=256, verbose_name='Type')
     page_no = models.IntegerField(null=True, verbose_name='Side')
@@ -52,4 +54,4 @@ class ConversionQueueItem(models.Model):
             shutil.rmtree(self.tmp_dir, True)
 
     class Meta:
-        abstract = True
+        abstract = False
