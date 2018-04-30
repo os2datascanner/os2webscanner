@@ -22,7 +22,7 @@ import os
 import pep8
 import random
 import string
-import aescipher
+from os2webscanner.aescipher import encrypt, decrypt
 
 from django.test import TestCase
 from django.conf import settings
@@ -118,6 +118,5 @@ class AESCipherTest(TestCase):
         password = ''.join([random.choice(
             string.ascii_letters + string.digits
         ) for n in xrange(14)])
-        iv, cipher = aescipher.encrypt(password)
-        print password
-        self.assertEqual(password, aescipher.decrypt(iv, cipher))
+        iv, cipher = encrypt(password)
+        self.assertEqual(password, decrypt(iv, cipher))
