@@ -44,7 +44,7 @@ class FileScan(Scan):
     @classmethod
     def create(scan_cls, scanner):
         """ Create and copy fields from scanner. """
-        scan = scan_cls(
+        filescan = scan_cls(
             is_visible=scanner.is_visible,
             whitelisted_names=scanner.organization.name_whitelist,
             blacklisted_names=scanner.organization.name_blacklist,
@@ -68,11 +68,11 @@ class FileScan(Scan):
             address_replace_text=scanner.address_replace_text
         )
         #
-        scan.status = Scan.NEW
-        scan.scanner = scanner
-        scan.save()
-        scan.domains.add(*scanner.domains.all())
-        scan.regex_rules.add(*scanner.regex_rules.all())
-        scan.recipients.add(*scanner.recipients.all())
+        filescan.status = Scan.NEW
+        filescan.scanner = scanner
+        filescan.save()
+        filescan.domains.add(*scanner.domains.all())
+        filescan.regex_rules.add(*scanner.regex_rules.all())
+        filescan.recipients.add(*scanner.recipients.all())
 
-        return scan
+        return filescan
