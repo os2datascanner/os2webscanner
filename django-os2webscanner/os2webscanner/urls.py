@@ -23,7 +23,7 @@ import django.contrib.auth.views
 from .views.views import MainPageView, RuleList
 from .views.views import CSVReportDetails, ReportDetails, ReportList, ReportDelete
 from .views.scanner_views import WebScannerCreate, WebScannerUpdate, FileScannerCreate, FileScannerUpdate, \
-    WebScannerDelete, FileScannerDelete, ScannerRun, ScannerAskRun, WebScannerList, FileScannerList
+    WebScannerDelete, FileScannerDelete, WebScannerRun, WebScannerAskRun, FileScannerRun, FileScannerAskRun, WebScannerList, FileScannerList
 from .views.views import ScanReportLog, OrganizationUpdate
 from .views.domain_views import WebDomainUpdate, FileDomainUpdate, DomainValidate, DomainDelete, \
     WebDomainList, FileDomainList, WebDomainCreate, FileDomainCreate
@@ -47,10 +47,10 @@ urlpatterns = [
     url(r'^webscanners/add/$', WebScannerCreate.as_view(), name='webscanner_add'),
     url(r'^webscanners/(?P<pk>\d+)/delete/$', WebScannerDelete.as_view(),
         name='scanner_delete'),
-    url(r'^webscanners/(?P<pk>\d+)/run/$', ScannerRun.as_view(),
+    url(r'^webscanners/(?P<pk>\d+)/run/$', WebScannerRun.as_view(),
         name='webscanner_run'),
     url(r'^webscanners/(?P<pk>\d+)/askrun/$',
-        ScannerAskRun.as_view(
+        WebScannerAskRun.as_view(
             template_name='os2webscanner/scanner_askrun.html',
             model=WebScanner),
         name='scanner_askrun'),
@@ -60,10 +60,10 @@ urlpatterns = [
     url(r'^filescanners/add/$', FileScannerCreate.as_view(), name='filescanner_add'),
     url(r'^filescanners/(?P<pk>\d+)/delete/$', FileScannerDelete.as_view(),
         name='scanner_delete'),
-    url(r'^filescanners/(?P<pk>\d+)/run/$', ScannerRun.as_view(),
+    url(r'^filescanners/(?P<pk>\d+)/run/$', FileScannerRun.as_view(),
         name='scanner_run'),
     url(r'^filescanners/(?P<pk>\d+)/askrun/$',
-        ScannerAskRun.as_view(
+        FileScannerAskRun.as_view(
             template_name='os2webscanner/scanner_askrun.html',
             model=FileScanner),
         name='scanner_askrun'),
