@@ -27,7 +27,6 @@ from subprocess import Popen
 from django.db import models
 from recurrence.fields import RecurrenceField
 
-from os2webscanner import aescipher
 from .organization_model import Organization
 from .group_model import Group
 from .regexrule_model import RegexRule
@@ -42,21 +41,8 @@ class Scanner(models.Model):
 
     """A scanner, i.e. a template for actual scanning jobs."""
 
-    CONCRETE_CLASSES = ('WebScanner', 'FileScanner')
-
     name = models.CharField(max_length=256, unique=True, null=False,
                             verbose_name='Navn')
-    # User login for websites, network drives etc.
-    username = models.CharField(max_length=1024, unique=False, blank=True, default='',
-                                verbose_name='Bruger navn')
-    # One of the two encryption keys for decrypting the password
-    iv = models.BinaryField(max_length=32, unique=False, blank=True,
-                            verbose_name='InitialiseringsVektor')
-
-    # The encrypted password
-    ciphertext = models.BinaryField(max_length=1024, unique=False, blank=True,
-                                    verbose_name='Password')
-
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')
     group = models.ForeignKey(Group, null=True, blank=True,
@@ -107,16 +93,7 @@ class Scanner(models.Model):
     # Text to replace addresses with
     address_replace_text = models.CharField(max_length=2048, null=True,
                                             blank=True)
-
-    @property
-    def set_password(self, password):
-        return aescipher.encrypt(password)
-
-    @property
-    def get_password(self, iv, cipher):
-        return aescipher.decrypt(iv, cipher)
-
-
+    is_running = models.BooleanField(default=False)
 
     @property
     def schedule_description(self):
@@ -127,17 +104,6 @@ class Scanner(models.Model):
             return u"Ja"
         else:
             return u"Nej"
-
-    @property
-    def has_active_scans(self):
-        """Whether the scanner has active scans."""
-        active_scanners = Scan.objects.filter(scanner=self, status__in=(
-            Scan.NEW, Scan.STARTED)).count()
-        return active_scanners > 0
-
-    @property
-    def has_valid_domains(self):
-        return len([d for d in self.domains.all() if d.validation_status]) > 0
 
     # Run error messages
     ALREADY_RUNNING = (
@@ -221,16 +187,15 @@ class Scanner(models.Model):
         If test_only is True, only check if we can run a scan, don't actually
         run one.
         """
-        if self.has_active_scans:
+        if self.is_running:
             return Scanner.ALREADY_RUNNING
 
         if not self.has_valid_domains:
             return Scanner.NO_VALID_DOMAINS
 
         # TODO: Try to mount network drive if filescan.
-
         # Create a new Scan
-        scan = Scan.create(self)
+        scan = self.create_scan()
         # Add user as recipient on scan
         if user:
             scan.recipients.add(user.profile)
@@ -260,5 +225,5 @@ class Scanner(models.Model):
         return scan
 
     class Meta:
-        abstract = True
+        abstract = False
         ordering = ['name']
