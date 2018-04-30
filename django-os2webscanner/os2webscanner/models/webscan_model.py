@@ -35,7 +35,7 @@ class WebScan(Scan):
 
         Stores the old status of the scan for later use.
         """
-        super(WebScan, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._old_status = self.status
 
     scanner = models.ForeignKey(WebScanner,
@@ -94,6 +94,8 @@ class WebScan(Scan):
             address_replace_text=scanner.address_replace_text
         )
         #
+        scanner.is_running = True
+        scanner.save()
         scan.status = Scan.NEW
         scan.scanner = scanner
         scan.save()
@@ -162,3 +164,10 @@ class WebScan(Scan):
     def no_of_broken_links(self):
         """Return the number of broken links for this scan."""
         return self.urls.exclude(status_code__isnull=True).count()
+
+    @property
+    def has_active_scans(self, scanner):
+        """Whether the scanner has active scans."""
+        active_scanners = WebScan.objects.filter(scanner=scanner, status__in=(
+                Scan.NEW, Scan.STARTED)).count()
+        return active_scanners > 0
