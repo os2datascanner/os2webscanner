@@ -25,7 +25,6 @@ from django.conf import settings
 from django.db import models
 from django.db.models.aggregates import Count
 
-from .conversionqueueitem_model import ConversionQueueItem
 from .regexrule_model import RegexRule
 from .sensitivity_level import Sensitivity
 from .userprofile_model import UserProfile
@@ -130,6 +129,7 @@ class Scan(models.Model):
 
     def get_number_of_failed_conversions(self):
         """The number conversions that has failed during this scan."""
+        from .conversionqueueitem_model import ConversionQueueItem
         return ConversionQueueItem.objects.filter(
             url__scan=self,
             status=ConversionQueueItem.FAILED
@@ -248,6 +248,7 @@ class Scan(models.Model):
     def cleanup_finished_scan(self, log=False):
         """Delete pending conversion queue items and remove the scan dir."""
         # Delete all pending conversionqueue items
+        from .conversionqueueitem_model import ConversionQueueItem
         pending_items = ConversionQueueItem.objects.filter(
             url__scan=self,
             status=ConversionQueueItem.NEW
@@ -284,7 +285,7 @@ class Scan(models.Model):
             scan.cleanup_finished_scan(log=log)
 
     @classmethod
-    def pause_non_ocr_conversions_on_scans_with_too_many_ocr_items(cls, conversionqueuecls):
+    def pause_non_ocr_conversions_on_scans_with_too_many_ocr_items(cls):
         """Pause non-OCR conversions on scans with too many OCR items.
 
         When the number of OCR items per scan reaches a
@@ -298,7 +299,8 @@ class Scan(models.Model):
         When the number of OCR items falls below the lower threshold
         (RESUME_NON_OCR_ITEMS_THRESHOLD), non-OCR conversions are resumed.
         """
-        ocr_items_by_scan = conversionqueuecls.objects.filter(
+        from .conversionqueueitem_model import ConversionQueueItem
+        ocr_items_by_scan = ConversionQueueItem.objects.filter(
             status=ConversionQueueItem.NEW,
             type="ocr"
         ).values("url__scan").annotate(total=Count("url__scan"))
@@ -334,4 +336,4 @@ class Scan(models.Model):
         return reverse('report', args=[str(self.id)])
 
     class Meta:
-        abstract = True
+        abstract = False
