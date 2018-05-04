@@ -25,7 +25,11 @@ from django.conf import settings
 from django.core.mail import EmailMessage
 from django.template import loader
 
-import os2webscanner.models as models
+from os2webscanner.models.match_model import Match
+from os2webscanner.models.url_model import Url
+from os2webscanner.models.scanner_model import Scanner
+from os2webscanner.models.scan_model import Scan
+from os2webscanner.models.summary_model import Summary
 
 
 def notify_user(scan):
@@ -38,16 +42,17 @@ def notify_user(scan):
                     p.user.email]
     if not to_addresses:
         to_addresses = [settings.ADMIN_EMAIL, ]
-    matches = models.Match.objects.filter(scan=scan).count()
-    matches += models.Url.objects.filter(
+    matches = Match.objects.filter(scan=scan).count()
+    matches += Url.objects.filter(
         scan=scan
     ).exclude(status_code__isnull=True).count()
     critical = scan.no_of_critical_matches
 
     if scan.no_of_critical_matches > 0:
         scan_status = "Kritiske matches!"
-    elif scan.no_of_broken_links > 0:
-        scan_status = "Døde links"
+    elif hasattr(scan, 'webscan'):
+        if scan.webscan.no_of_broken_links > 0:
+            scan_status = "Døde links"
     else:
         scan_status = scan.status_text
 
@@ -94,10 +99,11 @@ def do_scan(user, urls, params={}, blocking=False, visible=False):
     The 'params' parameter should be a dict of supported Scanner
     parameters and values. Defaults are used for unspecified parameters.
     """
-    scanner = models.Scanner()
+    scanner = Scanner()
     scanner.organization = user.profile.organization
     scanner.name = user.username + '-' + str(time.time())
     scanner.do_run_synchronously = True
+    # TODO: filescan does not contain these properties.
     scanner.do_last_modified_check = False
     scanner.do_last_modified_check_head_request = False
     scanner.process_urls = urls
@@ -136,7 +142,7 @@ def scans_for_summary_report(summary, from_date=None, to_date=None):
     if not to_date:
         to_date = datetime.datetime.today()
 
-    relevant_scans = models.Scan.objects.filter(
+    relevant_scans = Scan.objects.filter(
         scanner__in=summary.scanners.all(),
         scanner__organization=summary.organization,
         start_time__gte=from_date,
@@ -191,7 +197,7 @@ def send_summary_report(summary, from_date=None, to_date=None,
 
 def dispatch_pending_summaries():
     """Find out if any summaries need to be sent out, do it if so."""
-    summaries = models.Summary.objects.filter(do_email_recipients=True)
+    summaries = Summary.objects.filter(do_email_recipients=True)
 
     for summary in summaries:
         # TODO: Check if this summary must be sent today, according to its
