@@ -54,7 +54,10 @@ def notify_user(scan):
         if scan.webscan.no_of_broken_links > 0:
             scan_status = "Døde links"
     else:
-        scan_status = scan.status_text
+        if scan.status_text:
+            scan_status = scan.status_text
+        else:
+            scan_status = 'Ingen status tekst.'
 
     subject = "Scanning afsluttet: {0}".format(scan_status)
 
