@@ -29,6 +29,16 @@ class FileScanner(Scanner):
     domains = models.ManyToManyField(FileDomain, related_name='filedomains',
                                      verbose_name='Fil Domæner')
 
+    def create_scan(self):
+        # hvad kan gå galt: mount fejler, login er forkert,
+        # login mangler, login skal slet ikke være der, stien til netværksdrev er forkert.
+        for domain in self.domains.all():
+            if not domain.smbmount():
+                return FileDomain.MOUNT_FAILED
+
+        from .filescan_model import FileScan
+        return FileScan.create(self)
+
     def get_type(self):
         return 'file'
 
