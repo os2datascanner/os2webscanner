@@ -95,7 +95,3 @@ class Domain(models.Model):
     def __str__(self):
         """Return the URL for the domain."""
         return self.url
-
-    class Meta:
-        abstract = True
-        ordering = ['name']
