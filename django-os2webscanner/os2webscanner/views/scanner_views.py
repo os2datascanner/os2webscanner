@@ -1,4 +1,3 @@
-from django import forms
 from django.db.models import Count, Q
 
 from .views import RestrictedListView, RestrictedCreateView, \
@@ -194,23 +193,11 @@ class FileScannerUpdate(ScannerUpdate):
     """Update a scanner view."""
 
     model = FileScanner
-    fields = ['name', 'schedule', 'domains', 'username',
+    fields = ['name', 'schedule', 'domains',
               'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
               'do_name_scan', 'do_ocr', 'do_address_scan', 'do_last_modified_check',
               'regex_rules', 'recipients']
 
-    def get_form(self, form_class=None):
-        """Adds special field password and decrypts password."""
-        if form_class is None:
-            form_class = self.get_form_class()
-
-        form = super().get_form(form_class)
-        scanner = self.get_object()
-        form.fields['password'] = forms.CharField(max_length=50)
-        if len(scanner.ciphertext) > 0:
-            password = decrypt(str(scanner.iv), str(scanner.ciphertext))
-            form.fields['password'].initial = password
-        return form
 
     def get_success_url(self):
         """The URL to redirect to after successful update."""
@@ -292,7 +279,6 @@ class ScannerRun(RestrictedDetailView):
     def get(self, request, *args, **kwargs):
         """Handle a get request to the view."""
         self.object = self.get_object()
-        import pdb; pdb.set_trace()
         result = self.object.run(user=request.user)
         context = self.get_context_data(object=self.object)
         context['success'] = isinstance(result, Scan)
