@@ -90,11 +90,11 @@ class CookieCollectorMiddleware(CookiesMiddleware):
         # Now collect cookie
         current_scan = spider.scanner.scan_object
         domain = urlparse_cached(request).hostname
+        if hasattr(current_scan, 'webscan'):
+            if current_scan.webscan.do_collect_cookies:
 
-        if current_scan.do_collect_cookies:
-
-            for cookie in response.headers.getlist('Set-Cookie'):
-                current_scan.logging_cookie(domain + '|' + cookie)
+                for cookie in response.headers.getlist('Set-Cookie'):
+                    current_scan.logging_cookie(domain + '|' + cookie)
 
         return response
 
