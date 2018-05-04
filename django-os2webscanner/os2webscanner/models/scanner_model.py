@@ -24,13 +24,13 @@ import json
 
 from subprocess import Popen
 
+from django.conf import settings
 from django.db import models
 from recurrence.fields import RecurrenceField
 
 from .organization_model import Organization
 from .group_model import Group
 from .regexrule_model import RegexRule
-from .scan_model import Scan
 from .userprofile_model import UserProfile
 
 base_dir = os.path.dirname(
@@ -155,6 +155,10 @@ class Scanner(models.Model):
             minute=Scanner.FIRST_START_TIME.minute + added_minutes
         )
 
+    @property
+    def has_valid_domains(self):
+        return len([d for d in self.domains.all() if d.validation_status]) > 0
+
     @classmethod
     def modulo_for_starttime(cls, time):
         """Convert a datetime.time object to the corresponding modulo value.
@@ -193,14 +197,15 @@ class Scanner(models.Model):
         if not self.has_valid_domains:
             return Scanner.NO_VALID_DOMAINS
 
-        # TODO: Try to mount network drive if filescan.
         # Create a new Scan
         scan = self.create_scan()
+        if isinstance(scan, str):
+            return scan
         # Add user as recipient on scan
         if user:
             scan.recipients.add(user.profile)
         # Get path to run script
-        SCRAPY_WEBSCANNER_DIR = os.path.join(base_dir, "scrapy-webscanner")
+        SCRAPY_WEBSCANNER_DIR = os.path.join(settings.PROJECT_DIR, "scrapy-webscanner")
 
         if test_only:
             return scan
@@ -227,3 +232,4 @@ class Scanner(models.Model):
     class Meta:
         abstract = False
         ordering = ['name']
+        db_table = 'os2webscanner_scanner'
