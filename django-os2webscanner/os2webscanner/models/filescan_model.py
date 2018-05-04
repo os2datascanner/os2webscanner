@@ -16,11 +16,7 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 
-from django.db import models
-
 from .scan_model import Scan
-from .filescanner_model import FileScanner
-from .filedomain_model import FileDomain
 
 
 class FileScan(Scan):
@@ -30,21 +26,14 @@ class FileScan(Scan):
 
         Stores the old status of the scan for later use.
         """
-        super(FileScan, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._old_status = self.status
-
-    scanner = models.ForeignKey(FileScanner,
-                                null=False, verbose_name='filescanner',
-                                related_name='filescans')
-
-    domains = models.ManyToManyField(FileDomain,
-                                     verbose_name='Domæner')
 
     # Create method - copies fields from scanner
     @classmethod
     def create(scan_cls, scanner):
         """ Create and copy fields from scanner. """
-        filescan = scan_cls(
+        scan = scan_cls(
             is_visible=scanner.is_visible,
             whitelisted_names=scanner.organization.name_whitelist,
             blacklisted_names=scanner.organization.name_blacklist,
@@ -68,11 +57,16 @@ class FileScan(Scan):
             address_replace_text=scanner.address_replace_text
         )
         #
-        filescan.status = Scan.NEW
-        filescan.scanner = scanner
-        filescan.save()
-        filescan.domains.add(*scanner.domains.all())
-        filescan.regex_rules.add(*scanner.regex_rules.all())
-        filescan.recipients.add(*scanner.recipients.all())
+        scanner.is_running = True
+        scanner.save()
+        scan.status = Scan.NEW
+        scan.scanner = scanner
+        scan.save()
+        scan.domains.add(*scanner.domains.all())
+        scan.regex_rules.add(*scanner.regex_rules.all())
+        scan.recipients.add(*scanner.recipients.all())
 
-        return filescan
+        return scan
+
+    class Meta:
+        db_table = 'os2webscanner_filescan'
