@@ -108,10 +108,6 @@ class ScannerApp:
         # Get scan object from DB
         self.scan_object = Scan.objects.get(pk=self.scan_id)
 
-        if hasattr(self.scan_object, 'filescan'):
-            self.scan_object = self.scan_object.filescan
-        else:
-            self.scan_object = self.scan_object.webscan
         # Update start_time to now and status to STARTED
         self.scan_object.start_time = timezone.now()
         self.scan_object.status = Scan.STARTED
@@ -130,21 +126,24 @@ class ScannerApp:
 
         self.crawler_process = CrawlerProcess(settings)
 
-        # Don't sitemap scan when running over RPC
-        # TODO: Maybe differ between file scanner and website scanner
-        if not self.scan_object.scanner.process_urls \
-                and hasattr(self.scan_object, 'webscan'):
-            self.sitemap_spider = self.setup_sitemap_spider()
+        # Don't sitemap scan when running over RPC or filescan
+        if hasattr(self.scan_object, 'webscan'):
+            if not self.scan_object.scanner.process_urls:
+                self.sitemap_spider = self.setup_sitemap_spider()
+
+            if (self.scan_object.webscan.do_link_check
+                and self.scan_object.webscan.do_external_link_check):
+                # Do external link check
+                self.external_link_check(self.scanner_spider.external_urls)
+        else:
+            self.sitemap_spider = None
+
         self.scanner_spider = self.setup_scanner_spider()
 
         # Run the crawlers and block
         logging.info('Starting crawler process.')
         self.crawler_process.start()
         logging.info('Crawler process started.')
-        if (self.scan_object.do_link_check
-                and self.scan_object.do_external_link_check):
-            # Do external link check
-            self.external_link_check(self.scanner_spider.external_urls)
 
         # Update scan status
         scan_object = Scan.objects.get(pk=self.scan_id)
@@ -210,7 +209,7 @@ class ScannerApp:
             logging.info("Checking external URL %s" % url)
             result = linkchecker.check_url(url)
             if result is not None:
-                broken_url = Url(url=url, scan=self.scan_object,
+                broken_url = Url(url=url, scan=self.scan_object.webscan,
                                  status_code=result["status_code"],
                                  status_message=result["status_message"])
                 broken_url.save()
