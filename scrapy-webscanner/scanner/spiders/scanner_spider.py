@@ -49,9 +49,9 @@ class ScannerSpider(BaseScannerSpider):
     magic = magic.Magic(mime=True)
 
     def __init__(self, scanner, runner, *a, **kw):
-        """Initialize the ScannerSpider with a WebScanner object.
+        """Initialize the ScannerSpider with a Scanner object.
 
-        The configuration will be loaded from the WebScanner.
+        The configuration will be loaded from the Scanner.
         """
         super().__init__(scanner=scanner, *a, **kw)
 
@@ -59,53 +59,55 @@ class ScannerSpider(BaseScannerSpider):
 
         self.start_urls = []
 
-        if self.scanner.scan_object.scanner.process_urls:
+        self.setup_spider()
+
+    def setup_spider(self):
+        scan_object = self.scanner.scan_object
+        if scan_object.scanner.process_urls:
             # If the scan is run from a web service, use the starting urls
             # from the scanner.
-            self.start_urls = self.scanner.scan_object.scanner.process_urls
+            self.start_urls = scan_object.scanner.process_urls
             self.crawl = False
         else:
             self.crawl = True
             # Otherwise, use the roots of the domains as starting URLs
             logging.info("Initializing spider")
-            for url in self.allowed_domains:
-                if (
-                    not url.startswith('http://') and
-                    not url.startswith('https://') and
-                    not url.startswith('file://')
-                ):
-                    url = 'http://%s/' % url
-                # Remove wildcards
-                url = url.replace('*.', '')
-                logging.info("Start url %s" % str(url))
-                self.start_urls.append(url)
+            if hasattr(scan_object, 'webscan'):
+                for url in self.allowed_domains:
+                    if (
+                                not url.startswith('http://') and
+                                not url.startswith('https://')
+                    ):
+                        url = 'http://%s/' % url
 
-        self.link_extractor = LxmlLinkExtractor(
-            deny_extensions=(),
-            tags=('a', 'area', 'frame', 'iframe', 'script'),
-            attrs=('href', 'src')
-        )
+                    # Remove wildcards
+                    url = url.replace('*.', '')
+                    logging.info("Start url %s" % str(url))
+                    self.start_urls.append(url)
+                self.do_last_modified_check = getattr(
+                    scan_object.webscan, "do_last_modified_check"
+                )
+                self.do_last_modified_check_head_request = getattr(
+                    scan_object.webscan, "do_last_modified_check_head_request"
+                )
+                self.link_extractor = LxmlLinkExtractor(
+                    deny_extensions=(),
+                    tags=('a', 'area', 'frame', 'iframe', 'script'),
+                    attrs=('href', 'src')
+                )
+                # Read from WebScanner settings
+                self.referrers = {}
+                self.broken_url_objects = {}
+                # Dict to cache referrer URL objects
+                self.referrer_url_objects = {}
+                self.external_urls = set()
+            else:
+                for path in self.allowed_domains:
+                    logging.info("Start path %s" % str(path))
+                    self.start_urls.append(path)
+                self.do_last_modified_check = False
+                self.do_last_modified_check_head_request = False
 
-        # Read from WebScanner settings
-        scan_object = self.scanner.scan_object
-        if hasattr(scan_object, 'webscan'):
-            self.do_last_modified_check = getattr(
-                scan_object.webscan, "do_last_modified_check"
-            )
-            self.do_last_modified_check_head_request = getattr(
-                scan_object.webscan, "do_last_modified_check_head_request"
-            )
-        else:
-            self.do_last_modified_check = False
-            self.do_last_modified_check_head_request = False
-
-        self.referrers = {}
-        self.broken_url_objects = {}
-
-        # Dict to cache referrer URL objects
-        self.referrer_url_objects = {}
-
-        self.external_urls = set()
 
     def start_requests(self):
         """Return requests for all starting URLs AND sitemap URLs."""

@@ -103,10 +103,13 @@ class Scanner:
         """Return a list of domains."""
         domains = []
         for d in self.valid_domains:
-            if d.url.startswith('http://') or d.url.startswith('https://'):
-                domains.append(urlparse(d.url).hostname)
+            if hasattr(d, 'webdomain'):
+                if d.url.startswith('http://') or d.url.startswith('https://'):
+                    domains.append(urlparse(d.url).hostname)
+                else:
+                    domains.append(d.url)
             else:
-                domains.append(d.url)
+                domains.append(d.filedomain.mountpath)
         return domains
 
     def scan(self, data, url_object):
