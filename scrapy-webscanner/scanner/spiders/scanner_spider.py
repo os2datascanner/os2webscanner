@@ -104,7 +104,11 @@ class ScannerSpider(BaseScannerSpider):
             else:
                 for path in self.allowed_domains:
                     logging.info("Start path %s" % str(path))
+                    if not path.startswith('file://'):
+                        path = 'file://%s' % path
+
                     self.start_urls.append(path)
+
                 self.do_last_modified_check = False
                 self.do_last_modified_check_head_request = False
 
@@ -128,7 +132,7 @@ class ScannerSpider(BaseScannerSpider):
                 logging.error("URL failed: {0} ({1})".format(url, str(e)))
 
         for url in self.start_urls:
-            if url.startswith('file://'):
+            if hasattr(self.scanner.scan_object, 'filescan'):
                 files = self.file_extractor(url)
                 requests.extend([Request(file, callback=self.parse,
                                          errback=self.handle_error)
