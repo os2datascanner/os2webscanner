@@ -20,6 +20,7 @@ import os
 import shutil
 import datetime
 
+from django.utils import timezone
 from django.conf import settings
 
 from django.db import models
@@ -28,11 +29,20 @@ from django.db.models.aggregates import Count
 from .regexrule_model import RegexRule
 from .sensitivity_level import Sensitivity
 from .userprofile_model import UserProfile
+from .domain_model import Domain
+from .scanner_model import Scanner
 
 
 class Scan(models.Model):
 
     """An actual instance of the scanning process done by a scanner."""
+
+    def __init__(self, *args, **kwargs):
+        """Initialize a new scan.
+        Stores the old status of the scan for later use.
+        """
+        super().__init__(*args, **kwargs)
+        self._old_status = self.status
 
     start_time = models.DateTimeField(blank=True, null=True,
                                       verbose_name='Starttidspunkt')
@@ -40,6 +50,12 @@ class Scan(models.Model):
                                     verbose_name='Sluttidspunkt')
 
     # Begin setup copied from scanner
+    scanner = models.ForeignKey(Scanner,
+                                null=True, verbose_name='webscanner',
+                                related_name='webscans')
+
+    domains = models.ManyToManyField(Domain,
+                                     verbose_name='Domæner')
 
     is_visible = models.BooleanField(default=True)
 
@@ -50,8 +66,7 @@ class Scan(models.Model):
                                          default="",
                                          verbose_name='Sortlistede navne')
     whitelisted_addresses = models.TextField(max_length=4096, blank=True,
-                                             default="",
-                                             verbose_name='Godkendte adresser')
+                                             default="", verbose_name='Godkendte adresser')
     blacklisted_addresses = models.TextField(
         max_length=4096, blank=True,
         default="",
@@ -226,7 +241,7 @@ class Scan(models.Model):
                         self.status in [Scan.DONE, Scan.FAILED] and
                     (self._old_status != self.status)
         ):
-            self.end_time = datetime.datetime.now()
+            self.end_time = datetime.datetime.now(tz=timezone.utc)
         # Actual save
         super().save(*args, **kwargs)
         # Post-save stuff
@@ -337,3 +352,4 @@ class Scan(models.Model):
 
     class Meta:
         abstract = False
+        db_table = 'os2webscanner_scan'
