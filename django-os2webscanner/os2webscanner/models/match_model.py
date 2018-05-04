@@ -18,13 +18,17 @@
 
 from django.db import models
 
+from .url_model import Url
+from .scan_model import Scan
 from .sensitivity_level import Sensitivity
 
 
 class Match(models.Model):
 
     """The data associated with a single match in a single URL."""
-
+    url = models.ForeignKey(Url, null=False, verbose_name='Url')
+    scan = models.ForeignKey(Scan, null=False, verbose_name='Scan',
+                             related_name='matches')
     matched_data = models.CharField(max_length=1024, verbose_name='Data match')
     matched_rule = models.CharField(max_length=256, verbose_name='Regel match')
     sensitivity = models.IntegerField(choices=Sensitivity.choices,
