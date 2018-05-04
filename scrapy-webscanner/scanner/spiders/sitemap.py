@@ -25,7 +25,7 @@ class SitemapURLGathererSpider(BaseScannerSpider, SitemapSpider):
                  *a,
                  **kw):
         """Initialize the sitemap spider."""
-        super(SitemapURLGathererSpider, self).__init__(scanner=scanner, *a,
+        super().__init__(scanner=scanner, *a,
                                                        **kw)
         self.sitemap_urls = sitemap_urls
         self.uploaded_sitemap_urls = uploaded_sitemap_urls
