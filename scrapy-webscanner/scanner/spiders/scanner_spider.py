@@ -53,7 +53,7 @@ class ScannerSpider(BaseScannerSpider):
 
         The configuration will be loaded from the WebScanner.
         """
-        super(ScannerSpider, self).__init__(scanner=scanner, *a, **kw)
+        super().__init__(scanner=scanner, *a, **kw)
 
         self.runner = runner
 
@@ -88,12 +88,16 @@ class ScannerSpider(BaseScannerSpider):
 
         # Read from WebScanner settings
         scan_object = self.scanner.scan_object
-        self.do_last_modified_check = getattr(
-            scan_object, "do_last_modified_check"
-        )
-        self.do_last_modified_check_head_request = getattr(
-            scan_object, "do_last_modified_check_head_request"
-        )
+        if hasattr(scan_object, 'webscan'):
+            self.do_last_modified_check = getattr(
+                scan_object.webscan, "do_last_modified_check"
+            )
+            self.do_last_modified_check_head_request = getattr(
+                scan_object.webscan, "do_last_modified_check_head_request"
+            )
+        else:
+            self.do_last_modified_check = False
+            self.do_last_modified_check_head_request = False
 
         self.referrers = {}
         self.broken_url_objects = {}
@@ -148,21 +152,22 @@ class ScannerSpider(BaseScannerSpider):
         self.scan(response)
 
         # Store referrer when doing link checks
-        if self.scanner.scan_object.do_link_check:
-            source_url = response.request.url
-            for request in requests:
-                target_url = request.url
-                self.referrers.setdefault(target_url, []).append(source_url)
-                if (self.scanner.scan_object.do_external_link_check and
-                        self.is_offsite(request)):
-                    # Save external URLs for later checking
-                    self.external_urls.add(target_url)
-                else:
-                    # See if the link points to a broken URL
-                    broken_url = self.broken_url_objects.get(target_url, None)
-                    if broken_url is not None:
-                        # Associate links to the broken URL
-                        self.associate_url_referrers(broken_url)
+        if hasattr(self.scanner.scan_object, 'webscan'):
+            if self.scanner.scan_object.webscan.do_link_check:
+                source_url = response.request.url
+                for request in requests:
+                    target_url = request.url
+                    self.referrers.setdefault(target_url, []).append(source_url)
+                    if (self.scanner.scan_object.webscan.do_external_link_check and
+                            self.is_offsite(request)):
+                        # Save external URLs for later checking
+                        self.external_urls.add(target_url)
+                    else:
+                        # See if the link points to a broken URL
+                        broken_url = self.broken_url_objects.get(target_url, None)
+                        if broken_url is not None:
+                            # Associate links to the broken URL
+                            self.associate_url_referrers(broken_url)
         return requests
 
     def _extract_requests(self, response):
@@ -209,7 +214,7 @@ class ScannerSpider(BaseScannerSpider):
                                     errback=self.handle_error)
                             for url in files])
             return request
-        if (not self.scanner.scan_object.do_link_check or
+        if (not self.scanner.scan_object.webscan.do_link_check or
                 (isinstance(failure.value, IgnoreRequest) and not isinstance(
                     failure.value, HttpError))):
             return
@@ -262,7 +267,7 @@ class ScannerSpider(BaseScannerSpider):
         """Create or get existing ReferrerUrl object."""
         if referrer not in self.referrer_url_objects:
             self.referrer_url_objects[referrer] = ReferrerUrl(
-                url=referrer, scan=self.scanner.scan_object)
+                url=referrer, scan=self.scanner.scan_object.webscan)
             self.referrer_url_objects[referrer].save()
         return self.referrer_url_objects[referrer]
 
