@@ -23,8 +23,8 @@ from ..rules.cpr import CPRRule
 from ..rules.regexrule import RegexRule
 
 from ..processors.processor import Processor
-from os2webscanner.models.scan_model import Scan
 from os2webscanner.models.domain_model import Domain
+from os2webscanner.models.scan_model import Scan
 
 
 class Scanner:
@@ -35,6 +35,7 @@ class Scanner:
         """Load the scanner settings from the given scan ID."""
         # Get scan object from DB
         self.scan_object = Scan.objects.get(pk=scan_id)
+
         self.rules = self._load_rules()
         self.valid_domains = self.scan_object.domains.filter(
             validation_status=Domain.VALID
@@ -84,7 +85,7 @@ class Scanner:
         urls = []
         for domain in self.valid_domains:
             # Do some normalization of the URL to get the sitemap.xml file
-            sitemap_url = domain.get_sitemap_url()
+            sitemap_url = domain.webdomain.get_sitemap_url()
             if sitemap_url:
                 urls.append(sitemap_url)
         return urls
@@ -94,8 +95,8 @@ class Scanner:
         """
         urls = []
         for domain in self.valid_domains:
-            if domain.sitemap != '':
-                urls.append('file://' + domain.sitemap_full_path)
+            if domain.webdomain.sitemap != '':
+                urls.append('file://' + domain.webdomain.sitemap_full_path)
         return urls
 
     def get_domains(self):
