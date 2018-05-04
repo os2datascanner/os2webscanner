@@ -44,6 +44,10 @@ class WebScanner(Scanner):
         verbose_name='Saml cookies'
     )
 
+    def create_scan(self):
+        from .webscan_model import WebScan
+        return WebScan.create(self)
+
     def get_type(self):
         return 'web'
 
