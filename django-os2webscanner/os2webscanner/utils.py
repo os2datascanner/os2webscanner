@@ -48,6 +48,7 @@ def notify_user(scan):
     ).exclude(status_code__isnull=True).count()
     critical = scan.no_of_critical_matches
 
+    scan_status = ''
     if scan.no_of_critical_matches > 0:
         scan_status = "Kritiske matches!"
     elif hasattr(scan, 'webscan'):
