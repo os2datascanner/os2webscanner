@@ -16,6 +16,10 @@ class ReferrerUrl(models.Model):
         """Return the URL."""
         return self.url
 
+    def __str__(self):
+        """Return the URL."""
+        return self.url
+
     @property
     def content(self):
         """Return the content of the target url"""
@@ -27,7 +31,7 @@ class ReferrerUrl(models.Model):
 
     @property
     def broken_urls(self):
-        result = self.linked_urls.exclude(
+        result = self.os2webscanner_url_linked_urls.exclude(
             status_code__isnull=True
         ).order_by('url')
 
