@@ -45,6 +45,10 @@ class Url(models.Model):
         """Return the URL."""
         return self.url
 
+    def __str__(self):
+        """Return the URL."""
+        return self.url
+
     @property
     def tmp_dir(self):
         """The path to the temporary directory associated with this url."""
