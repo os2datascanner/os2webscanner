@@ -22,8 +22,6 @@ from io import StringIO
 from django.db import models
 
 from .scan_model import Scan
-from .webscanner_model import WebScanner
-from .webdomain_model import WebDomain
 
 
 class WebScan(Scan):
@@ -37,13 +35,6 @@ class WebScan(Scan):
         """
         super().__init__(*args, **kwargs)
         self._old_status = self.status
-
-    scanner = models.ForeignKey(WebScanner,
-                                null=False, verbose_name='webscanner',
-                                related_name='webscans')
-
-    domains = models.ManyToManyField(WebDomain,
-                                     verbose_name='Domæner')
 
     do_link_check = models.BooleanField(default=False,
                                         verbose_name='Tjek links')
@@ -171,3 +162,6 @@ class WebScan(Scan):
         active_scanners = WebScan.objects.filter(scanner=scanner, status__in=(
                 Scan.NEW, Scan.STARTED)).count()
         return active_scanners > 0
+
+    class Meta:
+        db_table = 'os2webscanner_webscan'
