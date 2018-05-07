@@ -53,3 +53,7 @@ class RegexRule(models.Model):
     def __unicode__(self):
         """Return the name of the rule."""
         return self.name
+
+    def __str__(self):
+        """Return the name of the rule."""
+        return self.name
