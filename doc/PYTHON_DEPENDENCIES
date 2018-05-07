@@ -15,7 +15,7 @@ django-recurrence==1.5.0
 django-xmlrpc==0.1.8
 enum34==1.1.6
 lxml==4.1.0
-pep8==1.7.1
+pycodestyle==2.4.0
 psycopg2==2.7.3.2
 pyOpenSSL==17.3.0
 pyasn1==0.3.7
