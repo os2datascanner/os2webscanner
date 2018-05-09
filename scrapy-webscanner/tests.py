@@ -25,6 +25,9 @@ base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(base_dir + "/webscanner_site")
 os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 
+import django
+django.setup()
+
 import unittest
 from scanner.rules import cpr, name
 import re
@@ -107,13 +110,14 @@ class CPRTest(unittest.TestCase):
             4110625629
             6113625629
             911062 5629
-            2006359917
+            2006359917            
             211062-5629 # in the past
             200638-5322 # in the future
             080135-5102 # in the future
+            21 10 62 - 3308
             """
         valid_cprs = ['2110625629', '2006359917', '2006385322', '2110625629',
-                      '0801355102']
+                      '0801355102', '2110623308']
         invalid_cprs = ['4110625629', '2113625629', '9110625629']
 
         matches = cpr.match_cprs(text, mask_digits=False,
