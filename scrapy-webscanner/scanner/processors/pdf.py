@@ -18,7 +18,7 @@
 from .processor import Processor
 import shutil
 import os
-import subprocess
+from subprocess import Popen, PIPE, call, DEVNULL
 import regex
 
 
@@ -50,18 +50,23 @@ class PDFProcessor(Processor):
 
         command = ["pdftohtml"]
         command.extend(["-noframes", "-hidden", "-enc",
-                        "UTF-8", "-q"])
+                        "UTF-8", "-stdout"])
         command.extend(extra_options)
         command.append(new_file_path)
-        return_code = subprocess.call(command)
 
-        if return_code != 0:
+        p = Popen(command, stdin=PIPE, stdout=DEVNULL, stderr=PIPE)
+        output, err = p.communicate(b"input data that is passed to subprocess' stdin")
+
+        if err.decode('utf-8') != '':
+            print('pdftohtml convertion error: %s' % err)
             return False
+        else:
+            return_code = 0
 
         # Have to get rid of FEFF marks in the generated files
         result_file = regex.sub("\\.pdf$", ".html", new_file_path)
         if os.path.exists(result_file):
-            return_code = subprocess.call([
+            return_code = call([
                 'sed', '-i', 's/\\xff//;s/\\xfe//', result_file
             ])
 
