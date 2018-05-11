@@ -186,6 +186,9 @@ class Processor(object):
         """
         # Write data to a temporary file
         # Get temporary directory
+        if not isinstance(data, bytes):
+            data = data.encode('utf-8')
+
         if self.is_md5_known(data, url_object.scan):
             return True
         tmp_dir = url_object.tmp_dir
@@ -315,8 +318,9 @@ class Processor(object):
                     result.process_id = self.pid
                     result.process_start_time = ltime
                     result.save()
-            except (DatabaseError, IntegrityError):
+            except (DatabaseError, IntegrityError) as e:
                 # Database transaction failed, we just try again
+                print('Error message %s', e)
                 print("".join([
                     "Transaction failed while getting queue item of type ",
                     "'" + self.item_type + "'"
@@ -346,7 +350,7 @@ class Processor(object):
             os.makedirs(tmp_dir)
 
         result = self.convert(item, tmp_dir)
-        # Conversion successful, store MD5 sum.
+        # Conversion successful or not, store MD5 sum.
         self.store_md5(data, item.url.scan)
 
         if os.path.exists(item.file_path):
