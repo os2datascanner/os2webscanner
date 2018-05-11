@@ -20,6 +20,8 @@
 # Include the Django app
 import os
 import sys
+import shutil
+import tempfile
 
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(base_dir + "/webscanner_site")
@@ -28,11 +30,36 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 import django
 django.setup()
 
-import unittest
-from scanner.rules import cpr, name
 import re
 
 import linkchecker
+
+import unittest
+from scanner.rules import cpr, name
+from scanner.spiders import scanner_spider
+from scanner.processors import pdf
+
+from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
+from os2webscanner.models.url_model import Url
+from os2webscanner.models.scan_model import Scan
+
+
+class FileExtractorTest(unittest.TestCase):
+
+    def test_file_extractor(self):
+        with tempfile.TemporaryDirectory(dir=base_dir + '/scrapy-webscanner/tests/data/') as temp_dir:
+            filepath1 = temp_dir + '/kk.dk'
+            filepath2 = temp_dir + '/æøå'
+            os.mkdir(filepath1)
+            os.mkdir(filepath2)
+
+            filemap = scanner_spider.ScannerSpider.file_extractor(self, 'file://' + temp_dir)
+
+            encoded_file_path1 = filemap[0].encode('utf-8')
+            encoded_file_path2 = filemap[1].encode('utf-8')
+
+            self.assertEqual(filepath1, encoded_file_path1.decode('utf-8').replace('file://', ''))
+            self.assertEqual(filepath2, encoded_file_path2.decode('utf-8').replace('file://', ''))
 
 
 class ExternalLinkCheckerTest(unittest.TestCase):
@@ -149,6 +176,36 @@ class CPRTest(unittest.TestCase):
         self.assertTrue(cpr.modulus11_check("0101650123"))
         self.assertTrue(cpr.modulus11_check("0101660123"))
 
+
+class PDF2HTMLTest(unittest.TestCase):
+
+    def test_pdf2html_conversion_success(self):
+        test_dir = base_dir + '/scrapy-webscanner/tests/data/'
+        filename = 'Midler-til-frivilligt-arbejde.pdf'
+        shutil.copy2(test_dir + filename, test_dir + 'tmp/')
+        url = Url(scan=Scan(), url=test_dir + 'tmp/' + filename)
+        item = ConversionQueueItem(url=url,
+                            file=test_dir + 'tmp/' + filename,
+                            type=pdf.PDFProcessor,
+                            status=ConversionQueueItem.NEW)
+
+        with tempfile.TemporaryDirectory(dir=test_dir + 'tmp/') as temp_dir:
+            result = pdf.PDFProcessor.convert(self, item, temp_dir)
+            self.assertEqual(result, True)
+
+    def test_pdf2html_conversion_error(self):
+        test_dir = base_dir + '/scrapy-webscanner/tests/data/'
+        filename = 'Tilsynsrapport (2013) - Kærkommen.PDF'
+        shutil.copy2(test_dir + filename, test_dir + 'tmp/')
+        url = Url(scan=Scan(), url=test_dir + 'tmp/' + filename)
+        item = ConversionQueueItem(url=url,
+                                   file=test_dir + 'tmp/' + filename,
+                                   type=pdf.PDFProcessor,
+                                   status=ConversionQueueItem.NEW)
+
+        with tempfile.TemporaryDirectory(dir=test_dir + 'tmp/') as temp_dir:
+            result = pdf.PDFProcessor.convert(self, item, temp_dir)
+            self.assertEqual(result, False)
 
 def main():
     """Run the unit tests."""
