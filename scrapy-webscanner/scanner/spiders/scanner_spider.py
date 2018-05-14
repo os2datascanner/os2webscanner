@@ -180,32 +180,34 @@ class ScannerSpider(BaseScannerSpider):
         """Extract requests from the response."""
         logging.info("Extract request.")
         r = []
-        if isinstance(response, HtmlResponse):
+        if hasattr(self.scanner.scan_object, 'webscan'):
             links = self.link_extractor.extract_links(response)
             logging.debug("Extracted links: %s" % links)
             r.extend(Request(x.url, callback=self.parse,
                              errback=self.handle_error) for x in links)
-        elif isinstance(response, TextResponse):
-            # extract altid folder og parse filer
-            files = self.file_extractor(response.request.url)
-            r.extend(Request(x.url, callback=self.parse,
-                              errback=self.handle_error) for x in files)
+        # elif isinstance(response, TextResponse):
+        #     # extract always folder and parse files
+        #     files = self.file_extractor(response.request.url)
+        #     logging.debug("Extracted files: %s" % files)
+        #     r.extend(Request(x.url, callback=self.parse,
+        #                       errback=self.handle_error) for x in files)
         return r
 
     def file_extractor(self, filepath):
         path = filepath.replace('file://', '')
-        r = []
+        filemap = []
         if os.path.isdir(path) is not True:
-            return r
+            return filemap
         for (dirpath, dirnames, filenames) in walk(path):
             for filename in filenames:
                 filename = filepath + '/' + filename
-                r.append(filename)
+                filemap.append(filename)
             for dirname in dirnames:
                 dirname = filepath + '/' + dirname
-                r.append(dirname)
+                filemap.append(dirname)
             break;
-        return r
+
+        return filemap
 
     def handle_error(self, failure):
         """Handle an error due to a non-success status code or other reason.
@@ -297,9 +299,11 @@ class ScannerSpider(BaseScannerSpider):
         ):
             # Ignore this URL
             return
+
         url_object = Url(url=response.request.url, mime_type=mime_type,
                          scan=self.scanner.scan_object)
         url_object.save()
+
         self.scanner.scan(data, url_object)
 
     def check_encoding(self, mime_type, response):
