@@ -56,7 +56,7 @@ if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
 processes_per_type = 2
-processing_timeout = timedelta(minutes=3)
+processing_timeout = timedelta(minutes=6)
 
 process_types = ('html', 'libreoffice', 'ocr', 'pdf', 'zip', 'text', 'csv')
 
@@ -259,7 +259,9 @@ def main():
                         scanner.is_running = False
                         scanner.save()
                         scan.save()
-        except (DatabaseError, IntegrityError):
+        except (DatabaseError, IntegrityError) as ex:
+            print('Error occured while trying to kill process %s' % scan.pid)
+            print('Error message %s' % ex)
             pass
 
         # Cleanup finished scans from the last minute
@@ -275,4 +277,4 @@ try:
 except KeyboardInterrupt:
     pass
 except django.db.utils.InternalError as e:
-    print(e)
+    print('django internal errror %s' % e)
