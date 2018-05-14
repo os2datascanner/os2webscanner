@@ -25,6 +25,7 @@ import codecs
 import random
 import subprocess
 import hashlib
+import traceback
 
 from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
 from os2webscanner.models.md5sum_model import Md5Sum
@@ -201,6 +202,7 @@ class Processor(object):
         f = open(tmp_file_path, 'wb')
         f.write(data)
         f.close()
+        print("Wrote {0} to file {1}".format(url_object.url, tmp_file_path))
 
         # Create a conversion queue item
         new_item = ConversionQueueItem(
@@ -222,15 +224,30 @@ class Processor(object):
             if encoding != 'binary':
                 if encoding == 'unknown-8bit':
                     encoding = 'iso-8859-1'
+
                 f = codecs.open(file_path, "r", encoding=encoding)
             else:
                 f = open(file_path, "rb")
-            self.process(f.read(), url)
+
+            try:
+                data = f.read()
+            except UnicodeDecodeError:
+                url.scan.log_occurrence(
+                        "UTF-8 decoding failed for {0}".format(file_path)
+                        )
+                f = codecs.open(file_path, "r", encoding='iso-8859-1',
+                        errors='replace')
+                data = f.read()
+            self.process(data, url)
         except Exception as e:
             url.scan.log_occurrence(
                 "process_file failed for url {0}: {1}".format(url.url, str(e))
             )
-            logging.error(repr(e))
+
+            if settings.DEBUG:
+                url.scan.log_occurrence(repr(e))
+                url.scan.log_occurrence(traceback.format_exc())
+
             return False
 
         return True
@@ -253,28 +270,45 @@ class Processor(object):
 
         while executions < self.documents_to_process:
             # Prevent memory leak in standalone scripts
-            db.reset_queries()
+            if settings.DEBUG:
+                db.reset_queries()
             item = self.get_next_queue_item()
             if item is None:
-                time.sleep(1)
+                time.sleep(2)
             else:
                 result = self.handle_queue_item(item)
                 executions = executions + 1
                 if not result:
                     item.status = ConversionQueueItem.FAILED
                     lm = "CONVERSION ERROR: file <{0}>, type <{1}>, URL: {2}"
-                    item.url.scan.log_occurrence(
-                        lm.format(item.file, item.type, item.url.url)
-                    )
+                    lm2 = "CONVERSION ERROR: type <{0}>, URL: {1}"
+                    tb = traceback.format_exc()
+                    try:
+                        item.url.scan.log_occurrence(
+                                lm.format(item.file, item.type, item.url.url)
+                                )
+                    except:
+                        item.url.scan.log_occurrence(
+                                lm2.format(item.type, item.url.url)
+                                )
+
+                    # Try to find out if something went wrong
+                    if settings.DEBUG:
+                        item.url.scan.log_occurrence(tb)
+
                     item.save()
                     item.delete_tmp_dir()
                 else:
                     item.delete()
-                print("%s (%s): %s" % (
-                    item.file_path,
-                    item.url.url,
-                    "success" if result else "fail"
-                ))
+
+                try:
+                    print("(%s): %s" % (
+                            item.url.url,
+                            "success" if result else "fail"
+                            ))
+                except:
+                    print("success" if result else "fail")
+
                 sys.stdout.flush()
 
     @transaction.atomic

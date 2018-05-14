@@ -56,7 +56,7 @@ if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
 processes_per_type = 2
-processing_timeout = timedelta(minutes=6)
+processing_timeout = timedelta(minutes=10)
 
 process_types = ('html', 'libreoffice', 'ocr', 'pdf', 'zip', 'text', 'csv')
 
@@ -91,14 +91,14 @@ def stop_process(p):
         # Log to occurrence log
         try:
             item.url.scan.log_occurrence(
-                "CONVERSION ERROR: type <{0}>, URL: {1}".format(
+                "QUEUE STOPPING: type <{0}>, URL: {1}".format(
                     item.type,
                     item.url.url
                 )
             )
         except:
             item.url.scan.log_occurrence(
-                "CONVERSION ERROR: url <{0}>".format(
+                "QUEUE STOPPING: url <{0}>".format(
                     item.url.url,
                 )
             )
@@ -221,14 +221,14 @@ def main():
                 p.status = ConversionQueueItem.FAILED
                 try:
                     p.url.scan.log_occurrence(
-                        "CONVERSION ERROR: type <{0}>, URL: {1}".format(
+                        "PROCESS STUCK: type <{0}>, URL: {1}".format(
                             p.type,
                             p.url.url
                         )
                     )
                 except:
                     p.url.scan.log_occurrence(
-                        "CONVERSION ERROR: url <{0}>".format(
+                        "PROCESS STUCK: url <{0}>".format(
                             p.url.url,
                         )
                     )
