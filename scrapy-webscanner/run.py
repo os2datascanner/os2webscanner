@@ -160,6 +160,9 @@ class ScannerApp:
         self.scan_object = Scan.objects.get(pk=self.scan_id)
         self.scan_object.pid = None
         self.scan_object.status = Scan.FAILED
+        scanner = self.scan_object.scanner
+        scanner.is_running = False
+        scanner.save()
         self.scan.logging_occurrence("SCANNER FAILED: Killed")
         logging.error("Killed")
         self.scan_object.reason = "Killed"
