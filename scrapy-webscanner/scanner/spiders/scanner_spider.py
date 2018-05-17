@@ -112,7 +112,6 @@ class ScannerSpider(BaseScannerSpider):
                 self.do_last_modified_check = False
                 self.do_last_modified_check_head_request = False
 
-
     def start_requests(self):
         """Return requests for all starting URLs AND sitemap URLs."""
         # Add URLs found in sitemaps
@@ -141,11 +140,9 @@ class ScannerSpider(BaseScannerSpider):
                 requests.append([Request(url, callback=self.parse,
                                          errback=self.handle_error)])
 
-        logging.info("Number of urls to scan %s" % str(len(self.start_urls)))
         requests.extend([Request(url, callback=self.parse,
                                  errback=self.handle_error)
                          for url in self.start_urls])
-        logging.info("Number of requests %s" % str(len(requests)))
 
         return requests
 
@@ -178,19 +175,11 @@ class ScannerSpider(BaseScannerSpider):
 
     def _extract_requests(self, response):
         """Extract requests from the response."""
-        logging.info("Extract request.")
         r = []
         if hasattr(self.scanner.scan_object, 'webscan'):
             links = self.link_extractor.extract_links(response)
-            logging.debug("Extracted links: %s" % links)
             r.extend(Request(x.url, callback=self.parse,
                              errback=self.handle_error) for x in links)
-        # elif isinstance(response, TextResponse):
-        #     # extract always folder and parse files
-        #     files = self.file_extractor(response.request.url)
-        #     logging.debug("Extracted files: %s" % files)
-        #     r.extend(Request(x.url, callback=self.parse,
-        #                       errback=self.handle_error) for x in files)
         return r
 
     def file_extractor(self, filepath):
@@ -285,13 +274,12 @@ class ScannerSpider(BaseScannerSpider):
         if content_type:
             mime_type = parse_content_type(content_type)
         else:
-            logging.debug("Guessing mime-type based on file extension")
             mime_type, encoding = mimetypes.guess_type(response.url)
             if not mime_type:
-                logging.debug("Guessing mime-type based on file contents")
                 mime_type = self.magic.from_buffer(response.body)
 
         data, mime_type = self.check_encoding(mime_type, response)
+
         # Save the URL item to the database
         if (
             Processor.mimetype_to_processor_type(mime_type) == 'ocr' and not
