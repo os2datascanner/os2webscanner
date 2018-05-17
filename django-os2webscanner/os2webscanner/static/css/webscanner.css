@@ -73,7 +73,8 @@ padding-top:0;
 #select_scan_rules_container input[disabled] + label {
   color:#bbb;
 }
-.checkbox-group {
+.checkbox-group,
+#selected_rules li {
   padding:.5em .75em;
   border-radius:4px;
   background-color:#d7e1ef;
@@ -121,6 +122,34 @@ display:block;
 
 .rule-description {
 max-width:20%;
+}
+#selected_rules_container {
+  border:1px dashed #d0d0d0;
+  padding:1em 0 0 1em;
+  margin-bottom:1em;
+}
+#selected_rules {
+  margin:0;
+  padding:0;
+  list-style:none;
+}
+#selected_rules li {
+  clear:none;
+  margin:0 1em 1em 0;
+}
+#selected_rules li .remove-rule {
+  color:#f00;
+  font-size:200%;
+  line-height:.5;
+  vertical-align:top;
+  margin-right:.25em;
+}
+#available_rules li[data-disabled] a {
+  color:#aaa;
+}
+#available_rules li[data-disabled] a:hover {
+  background-color:inherit;
+  cursor:default;
 }
 
 /* MODAL */
