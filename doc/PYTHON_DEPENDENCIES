@@ -27,7 +27,7 @@ pytz==2017.3
 queuelib==1.4.2
 regex==2017.09.23
 service-identity==17.0.0
-six==1.11.0requests
+six==1.11.0
 unicodecsv==0.14.1
 w3lib==1.18.0
 zope.interface==4.1.3

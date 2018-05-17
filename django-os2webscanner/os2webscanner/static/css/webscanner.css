@@ -50,15 +50,6 @@ min-width:3em;
 #scanner-settings-tabs {
 margin: 2em 0 1em;
 }
-#select_scan_rules_container div.form-group {
-border-top:1px solid #ddd;
-margin-bottom:7px;
-clear:both;
-overflow:hidden;
-}
-#select_scan_rules_container div.form-group:first-child {
-border-top-width:0;
-}
 label[for=id_do_name_scan]{
 margin-bottom:7px !important;
 }
@@ -66,6 +57,44 @@ margin-bottom:7px !important;
 padding:0;
 margin-bottom:10px;
 }
+
+/* SCANNERS -> RULES tab */
+#select_scan_rules_container div.form-group {
+border-top:1px solid #ddd;
+padding-top:1em;
+clear:both;
+overflow:hidden;
+margin-bottom:0;
+}
+#select_scan_rules_container div.form-group:first-child {
+border-top:none;
+padding-top:0;
+}
+#select_scan_rules_container input[disabled] + label {
+  color:#bbb;
+}
+.checkbox-group {
+  padding:.5em .75em;
+  border-radius:4px;
+  background-color:#d7e1ef;
+  margin-bottom:1em;
+  float:left;
+  clear:both;
+}
+.checkbox-group input {
+  margin-left:1em;
+}
+.checkbox-group input:first-child {
+  margin-left:0;
+}
+.checkbox-group input:first-child + label {
+  font-size:115%;
+  font-weight:bold;
+}
+.checkbox-group input:not(:first-child) + label {
+  font-size:95%;
+}
+
 /* DOMAINS */
 
 .btn-sitemap-upload {
