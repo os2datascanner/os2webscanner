@@ -34,7 +34,7 @@ class PDFProcessor(Processor):
 
     def handle_queue_item(self, item):
         """Convert the queue item."""
-        return self.convert_queue_item(item)
+        return super().convert_queue_item(item)
 
     def convert(self, item, tmp_dir):
         """Convert the item using pdftohtml."""
@@ -50,18 +50,18 @@ class PDFProcessor(Processor):
 
         command = ["pdftohtml"]
         command.extend(["-noframes", "-hidden", "-nodrm", "-enc",
-                        "UTF-8", "-stdout"])
+                        "UTF-8"])
         command.extend(extra_options)
         command.append(new_file_path)
 
         p = Popen(command, stdin=PIPE, stdout=DEVNULL, stderr=PIPE)
         output, err = p.communicate(b"input data that is passed to subprocess' stdin")
 
-        if err.decode('utf-8') != '':
+        if 'Error' in err.decode('utf-8') and err.decode('utf-8') != '':
             print('pdftohtml convertion error: %s' % err)
             return False
-        else:
-            return_code = 0
+
+        return_code = 0
 
         # Have to get rid of FEFF marks in the generated files
         result_file = regex.sub("\\.pdf$", ".html", new_file_path)
