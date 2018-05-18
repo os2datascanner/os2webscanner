@@ -3,7 +3,7 @@
   $("[data-toggle=\"tooltip\"]").tooltip();
 
   // listen to tooltip events dynamically
-  $("body").on("shown.bs.tooltip", "#available_rules li a, #selected_rules li span", function() {
+  $("body").on("inserted.bs.tooltip", "#available_rules li a, #selected_rules li span", function() {
     var elm = $(this);
     var tooltipElm = elm.next(".tooltip");
     var textLength = elm.attr("title").length || elm.attr("data-original-title").length;
