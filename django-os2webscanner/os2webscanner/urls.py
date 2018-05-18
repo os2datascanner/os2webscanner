@@ -20,7 +20,7 @@ from django.conf.urls import url
 from django.views.i18n import javascript_catalog
 import django.contrib.auth.views
 
-from .views.views import MainPageView, RuleList
+from .views.views import MainPageView
 from .views.views import CSVReportDetails, ReportDetails, ReportList, ReportDelete
 from .views.scanner_views import WebScannerCreate, WebScannerUpdate, FileScannerCreate, FileScannerUpdate, \
     WebScannerDelete, FileScannerDelete, WebScannerRun, WebScannerAskRun, FileScannerRun, FileScannerAskRun, WebScannerList, FileScannerList
@@ -28,8 +28,9 @@ from .views.views import ScanReportLog, OrganizationUpdate
 from .views.domain_views import WebDomainUpdate, FileDomainUpdate, DomainValidate, DomainDelete, \
     WebDomainList, FileDomainList, WebDomainCreate, FileDomainCreate
 from .views.views import GroupList, GroupCreate, GroupUpdate, GroupDelete
-from .views.views import RulesetList
-from .views.views import RuleCreate, RuleUpdate, RuleDelete, OrganizationList
+from .views.rule_views import RuleList, RuleCreate, RuleUpdate, RuleDelete
+from .views.rule_views import RulesetList, RulesetCreate
+from .views.views import OrganizationList
 from .views.views import SummaryList, SummaryCreate, SummaryUpdate, SummaryDelete
 from .views.views import SummaryReport, DialogSuccess, SystemStatusView
 from .views.views import file_upload, referrer_content
@@ -96,7 +97,8 @@ urlpatterns = [
         name='rule_delete'),
     url(r"^rules/organization/$", OrganizationUpdate.as_view(),
         name='organization_update'),
-    url(r'^rules/rulesets/$', RulesetList.as_view(), name='rulesets'),
+    url(r'^rulesets/$', RulesetList.as_view(), name='rulesets'),
+    url(r'^rulesets/add/$', RulesetCreate.as_view(), name='ruleset_add'),
     url(r'^reports/$', ReportList.as_view(), name='reports'),
     url(r'^report/(?P<pk>[0-9]+)/$', ReportDetails.as_view(),
         name='report'),

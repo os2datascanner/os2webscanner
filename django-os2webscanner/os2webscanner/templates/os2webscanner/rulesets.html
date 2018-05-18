@@ -128,8 +128,8 @@ Regelsæt
                 <button type="button" class="btn btn-default btn-xs btn-rule-settings"
                   onclick="os2web.iframeDialog(
                   &quot;#edit-rule-modal&quot;,
-                  &quot;/rules/{{rule.pk}}&quot;,
-                  &quot;Redigér ad hoc-regel '{{rule.name}}'&quot;
+                  &quot;/ruleset/{{rule.pk}}&quot;,
+                  &quot;Redigér ad hoc-regel '{{ruleset.name}}'&quot;
                   )">
                 <span class="glyphicon glyphicon-cog"></span> <span>Redigér</span>
                 </button>
@@ -155,7 +155,7 @@ Regler
 {% block modal %}
 <div class="modal iframe" id="create-ruleset-modal" tabindex="-1" role="dialog"
   aria-labelledby="create-ruleset-modal-title" aria-hidden="true"
-  data-href="/rules/add/">
+  data-href="/rulesets/add/">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
@@ -174,7 +174,7 @@ Regler
 </div>
 <div class="modal iframe" id="edit-ruleset-modal" tabindex="-1" role="dialog"
   aria-labelledby="edit-ruleset-modal-title" aria-hidden="true"
-  data-href="/rules/add/">
+  data-href="/rulesets/add/">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
