@@ -21,7 +21,7 @@
     function handleSubChoices(choice) {
       var state = choice.prop("checked");
       var siblings = choice.siblings("input[type='checkbox']");
-      siblings.prop("disabled", state ? false : true);
+      siblings.prop("disabled", !state);
       if(!state) {
         siblings.prop("checked", false);
       }
@@ -54,6 +54,7 @@
     })
   })(jQuery);
 </script>
+<script src="{% static "js/ruleselector.js" %}"></script>
 {% endblock %} {% block body %} {% if form.non_field_errors %}
 <ul>
   {% for error in form.non_field_errors %}
@@ -173,6 +174,7 @@
     <div class="tab-pane" id="rules">
       <div id="select_scan_rules_container" class="col-sm-12">
         <div class="form-group">
+          <h5>Indstillinger</h5>
           <div class="checkbox-group">
             <input type="checkbox" id="id_{{ form.do_ocr.name }}" name="{{ form.do_ocr.name }}" value="{{ form.do_ocr.name }}" {% if form.do_ocr.value %} checked="checked" {% endif %}> <label for="id_{{ form.do_ocr.name }}">
 
@@ -222,25 +224,37 @@
                         {{ form.do_external_link_check.label }}
                         {% if form.do_external_link_check.help_text %}<small>{{ form.do_external_link_check.help_text }}</small>{% endif %}
                     </label>
+          </div>
+          <div class="checkbox-group">
             <input type="checkbox" id="id_{{ form.do_collect_cookies.name }}" name="{{ form.do_collect_cookies.name }}" value="{{ form.do_collect_cookies.name }}" {% if form.do_collect_cookies.value %} checked="checked" {% endif %}>
             <label for="id_{{ form.do_collect_cookies.name }}">
                         {{ form.do_collect_cookies.label }}
                         {% if form.do_collect_cookies.help_text %}<small>{{ form.do_collect_cookies.help_text }}</small>{% endif %}
                     </label>
           </div>
-          <div class="form-group">
-            <div id="{{ form.regex_rules.auto_id }}_container" class="col-sm-12{% if form.regex_rules.errors %} has-error{% endif %}">
-              <label class="control-label" for="id_{{ form.regex_rules.name }}">{{ form.regex_rules.label }}</label>
-              <select name="{{ form.regex_rules.name }}" id="id_{{ form.regex_rules.name }}" class="form-control" multiple="multiple">
-                                {% for value, tag in form.regex_rules.field.choices %}
-                                <option value="{{ value }}"{% for val in form.regex_rules.value %}{% if val == value %} selected="selected"{% endif %}{% endfor %}>{{ tag }}</option>
-                                {% endfor %}
-                            </select> {% if form.regex_rules.help_text %}
-              <p>
-                <small>{{ form.regex_rules.help_text }}</small>
-              </p>
-              {% endif %} {% if form.regex_rules.errors %}{{ form.regex_rules.errors }}{% endif %}
-            </div>
+        </div>
+        <div class="form-group">
+          <h5>Regler</h5>
+          <div id="selected_rules_container" class="clearfix">
+            <ul id="selected_rules"></ul>
+          </div>
+          <div class="dropdown dropup">
+            <button class="btn btn-default dropdown-toggle" type="button" id="rules_list" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+              Tilføj regel
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" id="available_rules" aria-labelledby="rules_list">
+              <li class="dropdown-header">Systemregler</li>
+              <li data-rule-id="1"><a href="#" data-toggle="tooltip" data-placement="right" title="Beskrivelse af regel">CPR</a></li>
+              <li data-rule-id="2"><a href="#" data-toggle="tooltip" data-placement="right" title="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.">Check links</a></li>
+              <li role="separator" class="divider"></li>
+              <li class="dropdown-header">{{ form.regex_rules.label }}</li>
+              {% for value, tag in form.regex_rules.field.choices %}
+              <li data-rule-id="{{ value }}"><a href="#" data-toggle="tooltip" data-placement="right" title="{{ description }}">{{ tag }}</a></li>
+              {% endfor %}
+              <li data-rule-id="3"><a href="#">Adgangsstatus</a></li>
+              <li data-rule-id="4"><a href="#">Supplerende adg. status</a></li>
+            </ul>
           </div>
         </div>
       </div>

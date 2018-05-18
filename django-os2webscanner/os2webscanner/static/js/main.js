@@ -19,7 +19,8 @@ os2web = window.os2web || {};
     $('.modal-body iframe').on('load',function(){
       var $this = $(this);
       $this.height($this.contents().find('body').height());
-      $this.contents().on('click','.nav-tabs a',function(){
+      $this.contents().on('click','.nav-tabs a, #selected_rules li, #available_rules li',function(){
+        console.log("hej");
         $this.height($this.contents().find('body').height());
       });
     });
