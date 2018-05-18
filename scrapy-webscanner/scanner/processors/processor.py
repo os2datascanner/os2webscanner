@@ -35,9 +35,6 @@ from django import db
 from django.utils import timezone
 from django.conf import settings
 
-import logging
-
-
 # Minimum width and height an image must have to be scanned
 MIN_OCR_DIMENSION_BOTH = 7
 
@@ -79,7 +76,9 @@ def get_image_dimensions(file_path):
     except subprocess.CalledProcessError as e:
         print(e)
         return None
-    return tuple(int(dim.strip()) for dim in dimensions.split("x"))
+    return tuple(int(dim.strip()) for dim in
+                 dimensions.decode('utf-8').split("x")
+                 )
 
 
 class Processor(object):
@@ -235,9 +234,11 @@ class Processor(object):
                 url.scan.log_occurrence(
                         "UTF-8 decoding failed for {0}".format(file_path)
                         )
-                f = codecs.open(file_path, "r", encoding='iso-8859-1',
+                f = codecs.open(file_path, "rb", encoding='iso-8859-1',
                         errors='replace')
                 data = f.read()
+            if type(data) is not str:
+                data = data.decode('utf-8')
             self.process(data, url)
         except Exception as e:
             url.scan.log_occurrence(
@@ -384,13 +385,15 @@ class Processor(object):
             os.makedirs(tmp_dir)
 
         result = self.convert(item, tmp_dir)
-        # Conversion successful or not, store MD5 sum.
-        self.store_md5(data, item.url.scan)
+        if result:
+            # Conversion successful, store MD5 sum.
+            self.store_md5(data, item.url.scan)
 
-        if os.path.exists(item.file_path):
-            os.remove(item.file_path)
+            if os.path.exists(item.file_path):
+                os.remove(item.file_path)
 
-        self.add_processed_files(item, tmp_dir)
+            self.add_processed_files(item, tmp_dir)
+
         return result
 
     def convert(self, item, tmp_dir):
@@ -412,6 +415,7 @@ class Processor(object):
                     # Guess the mime type from the file name
                     mime_type, encoding = mimetypes.guess_type(fname)
                     file_path = os.path.join(root, fname)
+                    print("Mime-type: %s" % mime_type)
                     if mime_type is None:
                         # Guess the mime type from the file contents
                         mime_type = self.mime_magic.from_file(file_path)

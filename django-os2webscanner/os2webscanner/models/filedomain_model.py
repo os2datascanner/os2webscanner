@@ -49,7 +49,9 @@ class FileDomain(Domain):
         return url
 
     def check_mountpoint(self):
-        if not os.path.isdir(self.mountpath):
+        """Checks if networkdrive is already mounted."""
+
+        if not self.mountpath or not os.path.isdir(self.mountpath):
             self.set_mount_path()
 
         response = call('mountpoint ' + self.mountpath, shell=True)
@@ -64,6 +66,8 @@ class FileDomain(Domain):
         self.save()
 
     def smbmount(self):
+        """Mounts networkdrive if not already mounted."""
+
         if self.check_mountpoint() is 0:
             return True
 
@@ -77,16 +81,26 @@ class FileDomain(Domain):
             password = decrypt(bytes(self.authentication.iv), bytes(self.authentication.ciphertext))
             command = 'sudo mount -t cifs ' + self.root_url + ' ' + self.mountpath + ' -o username=' \
                       + self.authentication.username + ',password=' + password + ',iocharset=utf8'
-            #try:
-            response = call(command, shell=True)
-            if response is 1:
-                return False
-            # except CalledProcessError as cpe:
-            #     logger.error('Error occured while mounting drive: %s', self.root_url)
-            #     logger.error('Error message %s', cpe)
-            #     return self.MOUNT_FAILED
+        else:
+            command = 'sudo mount -t cifs ' + self.root_url + ' ' + self.mountpath + ' -o iocharset=utf8'
 
-            return True
+        response = call(command, shell=True)
+
+        if response is 1:
+            return False
+        # try:
+        # except CalledProcessError as cpe:
+        #     logger.error('Error occured while mounting drive: %s', self.root_url)
+        #     logger.error('Error message %s', cpe)
+        #     return self.MOUNT_FAILED
+
+        return True
+
+    def smbunmount(self):
+        """Unmounts networkdrive if mounted."""
+        if self.check_mountpoint() is 0:
+            call('sudo umount -l ' + self.mount_path, shell=True)
+            call('sudo umount -f ' + self.mount_path, shell=True)
 
     def __str__(self):
         """Return the URL for the domain."""

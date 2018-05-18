@@ -179,33 +179,39 @@ class CPRTest(unittest.TestCase):
 
 class PDF2HTMLTest(unittest.TestCase):
 
-    def test_pdf2html_conversion_success(self):
-        test_dir = base_dir + '/scrapy-webscanner/tests/data/'
-        filename = 'Midler-til-frivilligt-arbejde.pdf'
-        shutil.copy2(test_dir + filename, test_dir + 'tmp/')
-        url = Url(scan=Scan(), url=test_dir + 'tmp/' + filename)
-        item = ConversionQueueItem(url=url,
-                            file=test_dir + 'tmp/' + filename,
-                            type=pdf.PDFProcessor,
-                            status=ConversionQueueItem.NEW)
+    test_dir = base_dir + '/scrapy-webscanner/tests/data/'
 
-        with tempfile.TemporaryDirectory(dir=test_dir + 'tmp/') as temp_dir:
-            result = pdf.PDFProcessor.convert(self, item, temp_dir)
-            self.assertEqual(result, True)
-
-    def test_pdf2html_conversion_error(self):
-        test_dir = base_dir + '/scrapy-webscanner/tests/data/'
-        filename = 'Tilsynsrapport (2013) - Kærkommen.PDF'
-        shutil.copy2(test_dir + filename, test_dir + 'tmp/')
-        url = Url(scan=Scan(), url=test_dir + 'tmp/' + filename)
+    def create_ressources(self, filename):
+        shutil.copy2(self.test_dir + filename, self.test_dir + 'tmp/')
+        url = Url(scan=Scan(), url=self.test_dir + 'tmp/' + filename)
         item = ConversionQueueItem(url=url,
-                                   file=test_dir + 'tmp/' + filename,
+                                   file=self.test_dir + 'tmp/' + filename,
                                    type=pdf.PDFProcessor,
                                    status=ConversionQueueItem.NEW)
 
-        with tempfile.TemporaryDirectory(dir=test_dir + 'tmp/') as temp_dir:
+        with tempfile.TemporaryDirectory(dir=self.test_dir + 'tmp/') as temp_dir:
             result = pdf.PDFProcessor.convert(self, item, temp_dir)
-            self.assertEqual(result, False)
+
+        return result
+
+    def test_pdf2html_conversion_success(self):
+        filename = 'Midler-til-frivilligt-arbejde.pdf'
+        result = self.create_ressources(filename)
+
+        self.assertEqual(result, True)
+
+    def test_pdf2html_data_protection_bit(self):
+        filename = 'Tilsynsrapport (2013) - Kærkommen.PDF'
+        result = self.create_ressources(filename)
+
+        self.assertEqual(result, True)
+
+    def test_pdf2html_find_cpr_number(self):
+        filename = 'somepdf.pdf'
+        result = self.create_ressources(filename)
+
+        self.assertEqual(result, True)
+
 
 def main():
     """Run the unit tests."""
