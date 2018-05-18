@@ -174,6 +174,12 @@ class RuleList(RestrictedListView):
     model = RegexRule
     template_name = 'os2webscanner/rules.html'
 
+class RulesetList(RestrictedListView):
+
+    """Displays list of rule sets."""
+
+    model = RegexRule
+    template_name = 'os2webscanner/rulesets.html'
 
 class ReportList(RestrictedListView):
 

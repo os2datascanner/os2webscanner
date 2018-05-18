@@ -28,6 +28,7 @@ from .views.views import ScanReportLog, OrganizationUpdate
 from .views.domain_views import WebDomainUpdate, FileDomainUpdate, DomainValidate, DomainDelete, \
     WebDomainList, FileDomainList, WebDomainCreate, FileDomainCreate
 from .views.views import GroupList, GroupCreate, GroupUpdate, GroupDelete
+from .views.views import RulesetList
 from .views.views import RuleCreate, RuleUpdate, RuleDelete, OrganizationList
 from .views.views import SummaryList, SummaryCreate, SummaryUpdate, SummaryDelete
 from .views.views import SummaryReport, DialogSuccess, SystemStatusView
@@ -95,6 +96,7 @@ urlpatterns = [
         name='rule_delete'),
     url(r"^rules/organization/$", OrganizationUpdate.as_view(),
         name='organization_update'),
+    url(r'^rules/rulesets/$', RulesetList.as_view(), name='rulesets'),
     url(r'^reports/$', ReportList.as_view(), name='reports'),
     url(r'^report/(?P<pk>[0-9]+)/$', ReportDetails.as_view(),
         name='report'),
