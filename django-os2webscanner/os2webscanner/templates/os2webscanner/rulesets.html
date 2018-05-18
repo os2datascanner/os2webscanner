@@ -34,12 +34,12 @@ Regelsæt
           </button>
           <ul class="dropdown-menu" id="available_rules" aria-labelledby="rules_list">
             <li class="dropdown-header">Systemregler</li>
-            <li data-rule-id="1"><a href="#" data-toggle="tooltip" data-placement="left" title="Beskrivelse af regel">CPR</a></li>
-            <li data-rule-id="2"><a href="#" data-toggle="tooltip" data-placement="left" title="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.">Check links</a></li>
+            <li data-rule-id="a"><a href="#" data-toggle="tooltip" data-placement="right" title="Beskrivelse af regel">CPR</a></li>
+            <li data-rule-id="b"><a href="#" data-toggle="tooltip" data-placement="right" title="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.">Check links</a></li>
             <li role="separator" class="divider"></li>
             <li class="dropdown-header">{{ form.regex_rules.label }}</li>
             {% for value, tag in form.regex_rules.field.choices %}
-            <li data-rule-id="{{ value }}"><a href="#" data-toggle="tooltip" data-placement="left" title="{{ description }}">{{ tag }}</a></li>
+            <li data-rule-id="{{ value }}"><a href="#" data-toggle="tooltip" data-placement="right" title="{{ description }}">{{ tag }}</a></li>
             {% endfor %}
             <li data-rule-id="3"><a href="#">Adgangsstatus</a></li>
             <li data-rule-id="4"><a href="#">Supplerende adg. status</a></li>
