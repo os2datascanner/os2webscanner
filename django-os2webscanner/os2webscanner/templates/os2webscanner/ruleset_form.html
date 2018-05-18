@@ -1,0 +1,40 @@
+{% extends 'os2webscanner/base.html' %}
+{% block topnav %}{% endblock %}
+{% block rendertype %}iframe-modal{% endblock %}
+
+{% block body %}
+
+{% if form.non_field_errors %}
+  <ul>
+    {% for error in form.non_field_errors %}
+    <li>{{ error }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+{% if form.errors %}
+<div class="alert alert-danger" role="alert">
+  <p>Følgende felter er ikke udfyldt korrekt:</p>
+  <ul>
+    {% for error in form.errors %}
+    <li>{{ error }}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<form class="form-horizontal" role="form" method="post">
+{% csrf_token %}    
+    
+  <p>Playground Toke</p>
+
+  <div class="col-sm-offset-2">
+    <div class="col-sm-12">
+      <button type="submit" class="btn btn-primary" name="save">
+        Gem ændringer
+      </button>
+    </div>
+  </div>
+
+    {#{ form.as_p }#}
+</form>
+{% endblock %}
