@@ -63,7 +63,7 @@
 
   function recalcIframeHeight() { // we need to do this every time we add/remove an item from the rule list
     var thisBodyHeight = $("body").height();
-    var parentIframe = $(".modal-body iframe", window.parent.document)
+    var parentIframe = $(".modal-body iframe", window.parent.document);
     parentIframe.height(thisBodyHeight);
   }
 })(os2web, jQuery);

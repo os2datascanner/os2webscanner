@@ -2,6 +2,47 @@
 {% block topnav %}{% endblock %}
 {% block rendertype %}iframe-modal{% endblock %}
 
+{% load static %}
+{%block jquery_script %}
+<script src="{% static "js/ruleselector.js" %}"></script>
+<script type="text/javascript">
+  (function($) {
+    function handleSubChoices(choice) {
+      var state = choice.prop("checked");
+      var siblings = choice.siblings("input[type='checkbox']");
+      siblings.prop("disabled", !state);
+      if(!state) {
+        siblings.prop("checked", false);
+      }
+    }
+    $(document).ready(function() {
+      // Toggle the CPR Options when Do CPR scan is checked
+      $("#id_{{ form.do_cpr_scan.name }}").change(function() {
+        handleSubChoices($(this));
+      });
+      {% if not form.do_cpr_scan.value %}
+      handleSubChoices($("#id_{{ form.do_cpr_scan.name }}"));
+      {% endif %}
+
+      // Toggle the External Links field when Do Link Check scan is checked
+      $("#id_{{ form.do_link_check.name }}").click(function() {
+        handleSubChoices($(this));
+      });
+      {% if not form.do_link_check.value %}
+      handleSubChoices($("#id_{{ form.do_link_check.name }}"));
+      {% endif %}
+
+      // Toggle the HEAD request field when Check Last-Modified is checked
+      $("#id_{{ form.do_last_modified_check.name }}").click(function() {
+        handleSubChoices($(this));
+      });
+      {% if not form.do_last_modified_check.value %}
+      handleSubChoices($("#id_{{ form.do_last_modified_check.name }}"));
+      {% endif %}
+    })
+  })(jQuery);
+</script>
+{% endblock %}
 {% block body %}
 
 {% if form.non_field_errors %}
@@ -74,10 +115,12 @@
     </div>
   </div>
   <p>TODO: Feltet med valgte regler skal være forudfyldt når man redigerer et eksisterende regelsæt</p>
+  <p>TODO: feltet med valgte regler skal have en label lissom navn/description, og være alignet ligeså</p>
+  <p>TODO: Dropdownlisten kan risikere at blive for høj hvis der er mange regler. Så må den have en scrollbar (eller en typeahead-løsning)</p>
   <div id="selected_rules_container" class="clearfix">
     <ul id="selected_rules"></ul>
   </div>
-  <div class="dropdown">
+  <div class="dropup">
     <button class="btn btn-default dropdown-toggle" type="button" id="rules_list" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
       Tilføj regel
       <span class="caret"></span>

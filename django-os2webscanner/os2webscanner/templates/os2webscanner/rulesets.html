@@ -4,10 +4,6 @@
 Regelsæt
 {% endblock %}
 
-{% load static %}
-{% block jquery_script %}
-<script src="{% static "js/ruleselector.js" %}"></script>
-{% endblock %}
 {% block body %}
 <div class="container">
   {% include 'os2webscanner/rules_above_content.html' with active='rulesets' %}
