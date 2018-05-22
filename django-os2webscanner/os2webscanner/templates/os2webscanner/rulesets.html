@@ -4,10 +4,6 @@
 Regelsæt
 {% endblock %}
 
-{% load static %}
-{% block jquery_script %}
-<script src="{% static "js/ruleselector.js" %}"></script>
-{% endblock %}
 {% block body %}
 <div class="container">
   {% include 'os2webscanner/rules_above_content.html' with active='rulesets' %}
@@ -20,32 +16,7 @@ Regelsæt
           <span style="position:relative;top:.15em;" class="glyphicon glyphicon-plus-sign"></span>
         </button>
       </span>
-      <form name="rulesets"{% if form.regex_rules.errors %} class="has-error"{% endif %}>
-        <p>TODO: Titel</p>
-        <p>TODO: Description</p>
-        <p>TODO: Feltet med valgte regler skal være forudfyldt når man redigerer et eksisterende regelsæt</p>
-        <div id="selected_rules_container" class="clearfix">
-          <ul id="selected_rules"></ul>
-        </div>
-        <div class="dropdown">
-          <button class="btn btn-default dropdown-toggle" type="button" id="rules_list" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-            Tilføj regel
-            <span class="caret"></span>
-          </button>
-          <ul class="dropdown-menu" id="available_rules" aria-labelledby="rules_list">
-            <li class="dropdown-header">Systemregler</li>
-            <li data-rule-id="1"><a href="#" data-toggle="tooltip" data-placement="left" title="Beskrivelse af regel">CPR</a></li>
-            <li data-rule-id="2"><a href="#" data-toggle="tooltip" data-placement="left" title="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.">Check links</a></li>
-            <li role="separator" class="divider"></li>
-            <li class="dropdown-header">{{ form.regex_rules.label }}</li>
-            {% for value, tag in form.regex_rules.field.choices %}
-            <li data-rule-id="{{ value }}"><a href="#" data-toggle="tooltip" data-placement="left" title="{{ description }}">{{ tag }}</a></li>
-            {% endfor %}
-            <li data-rule-id="3"><a href="#">Adgangsstatus</a></li>
-            <li data-rule-id="4"><a href="#">Supplerende adg. status</a></li>
-          </ul>
-        </div>
-      </form>
+      <p>TODO: Dette skal være listen over regelsæt. Hvordan viser vi, hvilke regler der er medlem?</p>
       <div class="table-responsive">
         <table class="table table-striped">
           <thead>

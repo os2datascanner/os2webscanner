@@ -2,6 +2,47 @@
 {% block topnav %}{% endblock %}
 {% block rendertype %}iframe-modal{% endblock %}
 
+{% load static %}
+{%block jquery_script %}
+<script src="{% static "js/ruleselector.js" %}"></script>
+<script type="text/javascript">
+  (function($) {
+    function handleSubChoices(choice) {
+      var state = choice.prop("checked");
+      var siblings = choice.siblings("input[type='checkbox']");
+      siblings.prop("disabled", !state);
+      if(!state) {
+        siblings.prop("checked", false);
+      }
+    }
+    $(document).ready(function() {
+      // Toggle the CPR Options when Do CPR scan is checked
+      $("#id_{{ form.do_cpr_scan.name }}").change(function() {
+        handleSubChoices($(this));
+      });
+      {% if not form.do_cpr_scan.value %}
+      handleSubChoices($("#id_{{ form.do_cpr_scan.name }}"));
+      {% endif %}
+
+      // Toggle the External Links field when Do Link Check scan is checked
+      $("#id_{{ form.do_link_check.name }}").click(function() {
+        handleSubChoices($(this));
+      });
+      {% if not form.do_link_check.value %}
+      handleSubChoices($("#id_{{ form.do_link_check.name }}"));
+      {% endif %}
+
+      // Toggle the HEAD request field when Check Last-Modified is checked
+      $("#id_{{ form.do_last_modified_check.name }}").click(function() {
+        handleSubChoices($(this));
+      });
+      {% if not form.do_last_modified_check.value %}
+      handleSubChoices($("#id_{{ form.do_last_modified_check.name }}"));
+      {% endif %}
+    })
+  })(jQuery);
+</script>
+{% endblock %}
 {% block body %}
 
 {% if form.non_field_errors %}
@@ -22,13 +63,84 @@
 </div>
 {% endif %}
 
-<form class="form-horizontal" role="form" method="post">
-{% csrf_token %}    
-    
-  <p>Playground Toke</p>
+<form class="form-horizontal" role="form" method="post" name="rulesets">
+{% csrf_token %}
 
-  <div class="col-sm-offset-2">
-    <div class="col-sm-12">
+
+  <div id="{{ form.name.auto_id }}_container" class="col-sm-12{% if form.name.errors %} has-error{% endif %}">
+    <div class="form-group">
+      <label class="control-label col-sm-2" for="id_{{ form.name.name }}">{{ form.name.label }}</label>
+      <div class="col-sm-10">
+  <input type="text" class="form-control" name="{{ form.name.name }}" id="id_{{ form.name.name }}" {% if form.name.value %}value="{{ form.name.value }}"{% endif %}>
+  {% if form.name.help_text %}
+    <p>
+            <small>{{ form.name.help_text }}</small>
+          </p>
+        {% endif %}
+        {% if form.name.errors %}{{ form.name.errors }}{% endif %}
+      </div>
+    </div>
+  </div>
+  <div id="{{ form.description.auto_id }}_container" class="col-sm-12{% if form.description.errors %} has-error{% endif %}">
+    <div class="form-group">
+      <label class="control-label col-sm-2" for="id_{{ form.description.name }}">{{ form.description.label }}</label>
+      <div class="col-sm-10">
+  <textarea class="form-control" name="{{ form.description.name }}" id="id_{{ form.description.name }}" rows="3">{% if form.description.value %}{{ form.description.value }}{% endif %}</textarea>
+  {% if form.description.help_text %}
+    <p>
+            <small>{{ form.description.help_text }}</small>
+          </p>
+        {% endif %}
+        {% if form.description.errors %}{{ form.description.errors }}{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div id="{{ form.sensitivity.auto_id }}_container" class="col-sm-12{% if form.sensitivity.errors %} has-error{% endif %}">
+    <div class="form-group">
+      <label class="control-label col-sm-2" for="id_{{ form.sensitivity.name }}">{{ form.sensitivity.label }}</label>
+      <div class="col-sm-10">
+  <select name="{{ form.sensitivity.name }}" id="id_{{ form.sensitivity.name }}" class="form-control">
+          {% for value, tag in form.sensitivity.field.choices %}
+            <option value="{{ value }}"{% if form.sensitivity.value|add:"0" == value|add:"0" %} selected="selected"{% endif %}>{{ tag }}</option>
+          {% endfor %}
+        </select>
+        {% if form.sensitivity.help_text %}
+          <p>
+            <small>{{ form.sensitivity.help_text }}</small>
+          </p>
+        {% endif %}
+        {% if form.sensitivity.errors %}{{ form.sensitivity.errors }}{% endif %}
+      </div>
+    </div>
+  </div>
+  <p>TODO: Feltet med valgte regler skal være forudfyldt når man redigerer et eksisterende regelsæt</p>
+  <p>TODO: feltet med valgte regler skal have en label lissom navn/description, og være alignet ligeså</p>
+  <p>TODO: Dropdownlisten kan risikere at blive for høj hvis der er mange regler. Så må den have en scrollbar (eller en typeahead-løsning)</p>
+  <div id="selected_rules_container" class="clearfix">
+    <ul id="selected_rules"></ul>
+  </div>
+  <div class="dropup">
+    <button class="btn btn-default dropdown-toggle" type="button" id="rules_list" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+      Tilføj regel
+      <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu" id="available_rules" aria-labelledby="rules_list">
+      <li class="dropdown-header">Systemregler</li>
+      <li data-rule-id="a"><a href="#" data-toggle="tooltip" data-placement="right" title="Beskrivelse af regel">CPR</a></li>
+      <li data-rule-id="b"><a href="#" data-toggle="tooltip" data-placement="right" title="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.">Check links</a></li>
+      <li role="separator" class="divider"></li>
+      <li class="dropdown-header">{{ form.regex_rules.label }}</li>
+      {% for value, tag in form.regex_rules.field.choices %}
+      <li data-rule-id="{{ value }}"><a href="#" data-toggle="tooltip" data-placement="right" title="{{ description }}">{{ tag }}</a></li>
+      {% endfor %}
+      <li data-rule-id="3"><a href="#">Adgangsstatus</a></li>
+      <li data-rule-id="4"><a href="#">Supplerende adg. status</a></li>
+    </ul>
+  </div>
+
+  <div class="col-sm-12">
+    <div class="form-group">
       <button type="submit" class="btn btn-primary" name="save">
         Gem ændringer
       </button>
