@@ -1,6 +1,6 @@
 from django.db import models
 
-from .webscanner_model import WebScanner
+from .scanner_model import Scanner
 
 
 class UrlLastModified(models.Model):
@@ -12,8 +12,12 @@ class UrlLastModified(models.Model):
                                          verbose_name='Last-modified')
     links = models.ManyToManyField("self", symmetrical=False,
                                    verbose_name='Links')
-    scanner = models.ForeignKey(WebScanner, null=False, verbose_name='WebScanner')
+    scanner = models.ForeignKey(Scanner, null=False, verbose_name='WebScanner')
 
     def __unicode__(self):
+        """Return the URL and last modified date."""
+        return "<%s %s>" % (self.url, self.last_modified)
+
+    def __str__(self):
         """Return the URL and last modified date."""
         return "<%s %s>" % (self.url, self.last_modified)
