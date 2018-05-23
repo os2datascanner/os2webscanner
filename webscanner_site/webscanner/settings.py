@@ -30,6 +30,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django_settings_export.settings_export',
              ],
          },
     },
@@ -53,6 +54,13 @@ TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# If filescan on the current installation is needed, enable it here
+ENABLE_FILESCAN = True
+
+# Add settings here to make them accessible from templates
+SETTINGS_EXPORT = [
+    'ENABLE_FILESCAN',
+]
 
 # Application definition
 

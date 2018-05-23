@@ -1,4 +1,6 @@
 <ul class="nav nav-tabs" role="tablist">
     <li role="presentation"{% if active == 'web' %} class="active"{% endif %}><a href="/webdomains/" role="tab">Web domæner</a></li>
-    <li role="presentation"{% if active == 'file' %} class="active"{% endif %}><a href="/filedomains/" role="tab">Fil domæner</a></li>
+    {% if settings.ENABLE_FILESCAN %}
+        <li role="presentation"{% if active == 'file' %} class="active"{% endif %}><a href="/filedomains/" role="tab">Fil domæner</a></li>
+    {% endif %}
 </ul>
