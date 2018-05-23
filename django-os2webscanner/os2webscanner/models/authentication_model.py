@@ -20,7 +20,7 @@ class Authentication(models.Model):
                                     verbose_name='Password')
 
     domain = models.CharField(max_length=2024, unique=False, blank=True, default='',
-			      verbose_name='Bruger domæne')
+                              verbose_name='Bruger domæne')
 
     models.ForeignKey(AuthenticationMethods,
                       null=True,
