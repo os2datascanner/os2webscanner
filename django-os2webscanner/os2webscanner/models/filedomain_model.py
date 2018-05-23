@@ -87,8 +87,6 @@ class FileDomain(Domain):
         if self.authentication.domain != '':
             command += ',domain=' + self.authentication.domain
 
-        print('Command: ' + command)
-
         response = call(command, shell=True)
 
         if response is 1:
