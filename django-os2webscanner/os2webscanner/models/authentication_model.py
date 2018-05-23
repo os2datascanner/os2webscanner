@@ -19,6 +19,9 @@ class Authentication(models.Model):
     ciphertext = models.BinaryField(max_length=1024, unique=False, blank=True,
                                     verbose_name='Password')
 
+    domain = models.CharField(max_length=2024, unique=False, blank=True, default='',
+			      verbose_name='Bruger domæne')
+
     models.ForeignKey(AuthenticationMethods,
                       null=True,
                       related_name='authentication_method',

@@ -77,12 +77,17 @@ class FileDomain(Domain):
         # What if folder is unmounted during scan??
         # If we decide that only one scan can take place at the time on a
         # filedomain then we could use check_mountpoint as filescan lock
-        if self.authentication:
+        command = 'sudo mount -t cifs ' + self.root_url + ' ' + self.mountpath + ' -o iocharset=utf8'
+
+        if self.authentication.username != '':
+            command += ',username=' + self.authentication.username
+        if len(self.authentication.ciphertext) > 0:
             password = decrypt(bytes(self.authentication.iv), bytes(self.authentication.ciphertext))
-            command = 'sudo mount -t cifs ' + self.root_url + ' ' + self.mountpath + ' -o username=' \
-                      + self.authentication.username + ',password=' + password + ',iocharset=utf8'
-        else:
-            command = 'sudo mount -t cifs ' + self.root_url + ' ' + self.mountpath + ' -o iocharset=utf8'
+            command += ',password=' + password
+        if self.authentication.domain != '':
+            command += ',domain=' + self.authentication.domain
+
+        print('Command: ' + command)
 
         response = call(command, shell=True)
 
