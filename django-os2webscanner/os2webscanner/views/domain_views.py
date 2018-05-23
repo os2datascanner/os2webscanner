@@ -110,6 +110,7 @@ class FileDomainCreate(DomainCreate):
         form = super().get_form(form_class)
         form.fields['username'] = forms.CharField(max_length=1024)
         form.fields['password'] = forms.CharField(max_length=50)
+        form.fields['domain'] = forms.CharField(max_length=2024)
         return form
 
     def form_valid(self, form):
@@ -123,6 +124,9 @@ class FileDomainCreate(DomainCreate):
             iv, ciphertext = encrypt(str(form.cleaned_data['password']))
             authentication.ciphertext = ciphertext
             authentication.iv = iv
+        if len(form.cleaned_data['domain']) > 0:
+            domain = str(form.cleaned_data['domain'])
+            authentication.domain = domain
         authentication.save()
         filedomain.authentication = authentication
         filedomain.save()
@@ -231,12 +235,15 @@ class FileDomainUpdate(DomainUpdate):
         authentication = filedomain.authentication
         form.fields['username'] = forms.CharField(max_length=1024)
         form.fields['password'] = forms.CharField(max_length=50)
+        form.fields['domain'] = forms.CharField(max_length=2024)
         if len(authentication.username) > 0:
             form.fields['username'].initial = authentication.username
         if len(authentication.ciphertext) > 0:
             password = decrypt(bytes(authentication.iv),
                                bytes(authentication.ciphertext))
             form.fields['password'].initial = password
+        if len(authentication.domain) > 0:
+            form.fields['domain'].initial = authentication.domain
         return form
 
     def form_valid(self, form):
@@ -247,6 +254,7 @@ class FileDomainUpdate(DomainUpdate):
         iv, ciphertext = encrypt(form.cleaned_data['password'])
         authentication.ciphertext = ciphertext
         authentication.iv = iv
+        authentication.domain = form.cleaned_data['domain']
         authentication.save()
         return super().form_valid(form)
 

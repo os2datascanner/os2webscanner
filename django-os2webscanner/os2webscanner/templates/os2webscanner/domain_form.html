@@ -97,6 +97,23 @@
     </div>
   {% endif %}
 
+  {% if form.domain %}    
+   <div id="{{ form.domain.auto_id }}_container" class="col-sm-12{% if form.domain.errors %} has-error{% endif %}">
+        <div class="form-group">
+            <label class="control-label col-sm-3" for="id_{{ form.domain.name }}">Bruger domæne</label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control" name="{{ form.domain.name }}" id="id_{{ form.domain.name }}" {% if form.domain.value %}value="{{ form.domain.value }}"{% endif %}>
+                {% if form.domain.help_text %}
+                    <p>
+                        <small>{{ form.domain.help_text }}</small>
+                    </p>
+                {% endif %}
+                {% if form.domain.errors %}{{ form.domain.errors }}{% endif %}
+            </div>
+        </div>
+    </div>
+  {% endif %}
+
   {% if form.username %}
     <div id="{{ form.username.auto_id }}_container" class="col-sm-12{% if form.username.errors %} has-error{% endif %}">
         <div class="form-group">
