@@ -13,6 +13,7 @@ cssselect==1.0.1
 django-postgrespool==0.3.1
 django-recurrence==1.5.0
 django-xmlrpc==0.1.8
+django-settings-export==1.2.1
 enum34==1.1.6
 lxml==4.1.0
 pycodestyle==2.4.0
