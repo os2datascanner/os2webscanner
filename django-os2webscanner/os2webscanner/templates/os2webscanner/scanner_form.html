@@ -196,25 +196,6 @@
                         </label>
             {% endif %}
           </div>
-        </div>
-        <div class="form-group">
-          <div class="checkbox-group">
-            <input type="checkbox" id="id_{{ form.do_cpr_scan.name }}" name="{{ form.do_cpr_scan.name }}" value="{{ form.do_cpr_scan.name }}" {% if form.do_cpr_scan.value %} checked="checked" {% endif %}>
-            <label for="id_{{ form.do_cpr_scan.name }}">
-                        {{ form.do_cpr_scan.label }}
-                        {% if form.do_cpr_scan.help_text %}<small>{{ form.do_cpr_scan.help_text }}</small>{% endif %}
-                    </label>
-            <input type="checkbox" id="id_{{ form.do_cpr_modulus11.name }}" name="{{ form.do_cpr_modulus11.name }}" value="{{ form.do_cpr_modulus11.name }}" {% if form.do_cpr_modulus11.value %} checked="checked" {% endif %}>
-            <label class="cpr_option" for="id_{{ form.do_cpr_modulus11.name }}">
-                        {{ form.do_cpr_modulus11.label }}
-                        {% if form.do_cpr_modulus11.help_text %}<small>{{ form.do_cpr_modulus11.help_text }}</small>{% endif %}
-                    </label>
-            <input type="checkbox" id="id_{{ form.do_cpr_ignore_irrelevant.name }}" name="{{ form.do_cpr_ignore_irrelevant.name }}" value="{{ form.do_cpr_ignore_irrelevant.name }}" {% if form.do_cpr_ignore_irrelevant.value %} checked="checked" {% endif %}>
-            <label class="cpr_option" for="id_{{ form.do_cpr_ignore_irrelevant.name }}">
-                        {{ form.do_cpr_ignore_irrelevant.label }}
-                        {% if form.do_cpr_ignore_irrelevant.help_text %}<small>{{ form.do_cpr_ignore_irrelevant.help_text }}</small>{% endif %}
-                    </label>
-          </div>
           <div class="checkbox-group">
             <input type="checkbox" id="id_{{ form.do_link_check.name }}" name="{{ form.do_link_check.name }}" value="{{ form.do_link_check.name }}" {% if form.do_link_check.value %} checked="checked" {% endif %}>
             <label for="id_{{ form.do_link_check.name }}">
@@ -237,28 +218,7 @@
         </div>
         <div class="form-group">
           <h5>Regler</h5>
-          <p>TODO: Regler med attributter skal rendere checkboxes</p>
-          <div id="selected_rules_container" class="clearfix">
-            <ul id="selected_rules"></ul>
-          </div>
-          <div class="dropdown dropup">
-            <button class="btn btn-default dropdown-toggle" type="button" id="rules_list" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-              Tilføj regel
-              <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu" id="available_rules" aria-labelledby="rules_list">
-              <li class="dropdown-header">Systemregler</li>
-              <li data-rule-id="a"><a href="#" data-toggle="tooltip" data-placement="right" title="Beskrivelse af regel">CPR</a></li>
-              <li data-rule-id="b"><a href="#" data-toggle="tooltip" data-placement="right" title="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.">Check links</a></li>
-              <li role="separator" class="divider"></li>
-              <li class="dropdown-header">{{ form.regex_rules.label }}</li>
-              {% for value, tag in form.regex_rules.field.choices %}
-              <li data-rule-id="{{ value }}"><a href="#" data-toggle="tooltip" data-placement="right" title="{{ description }}">{{ tag }}</a></li>
-              {% endfor %}
-              <li data-rule-id="3"><a href="#">Adgangsstatus</a></li>
-              <li data-rule-id="4"><a href="#">Supplerende adg. status</a></li>
-            </ul>
-          </div>
+          {% include 'os2webscanner/rules_selector.html' %}
         </div>
       </div>
     </div>

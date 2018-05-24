@@ -84,7 +84,7 @@ padding-top:0;
   border-radius:4px;
   border:1px solid #d7e1ef;
   background-color:#edf1f7;
-  margin-bottom:1em;
+  margin: 0 1em 1em 0;
   float:left;
 }
 .checkbox-group input,
@@ -147,10 +147,10 @@ max-width:20%;
   border:1px dashed #ccc;
   border-radius:4px;
 }
-#selected_rules > .selected_rule,
+/* #selected_rules > .selected_rule,
 #selected_rules > .checkbox-group {
   margin:0 1em 1em 0;
-}
+} */
 #selected_rules > .checkbox-group {
   display:none;
 }
