@@ -39,3 +39,13 @@ os2web = window.os2web || {};
         }
     });
 })(os2web, jQuery);
+
+// declared globally so we can access it from separate IIFEs.
+function handleSubChoices(choice) {
+  var state = choice.prop("checked");
+  var siblings = choice.siblings("input[type='checkbox']");
+  siblings.prop("disabled", !state);
+  if(!state) {
+    siblings.prop("checked", false);
+  }
+}
