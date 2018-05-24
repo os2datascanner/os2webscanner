@@ -188,11 +188,13 @@
                         {{ form.do_last_modified_check.label }}
                         {% if form.do_last_modified_check.help_text %}<small>{{ form.do_last_modified_check.help_text }}</small>{% endif %}
                     </label>
-            <input type="checkbox" id="id_{{ form.do_last_modified_check_head_request.name }}" name="{{ form.do_last_modified_check_head_request.name }}" value="{{ form.do_last_modified_check_head_request.name }}" {% if form.do_last_modified_check_head_request.value %} checked="checked" {% endif %}>
-            <label for="id_{{ form.do_last_modified_check_head_request.name }}">
-                        {{ form.do_last_modified_check_head_request.label }}
-                        {% if form.do_last_modified_check_head_request.help_text %}<small>{{ form.do_last_modified_check_head_request.help_text }}</small>{% endif %}
-                    </label>
+            {% if form.do_last_modified_check_head_request %}
+                <input type="checkbox" id="id_{{ form.do_last_modified_check_head_request.name }}" name="{{ form.do_last_modified_check_head_request.name }}" value="{{ form.do_last_modified_check_head_request.name }}" {% if form.do_last_modified_check_head_request.value %} checked="checked" {% endif %}>
+                <label for="id_{{ form.do_last_modified_check_head_request.name }}">
+                            {{ form.do_last_modified_check_head_request.label }}
+                            {% if form.do_last_modified_check_head_request.help_text %}<small>{{ form.do_last_modified_check_head_request.help_text }}</small>{% endif %}
+                        </label>
+            {% endif %}
           </div>
         </div>
         <div class="form-group">

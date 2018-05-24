@@ -30,6 +30,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django_settings_export.settings_export',
              ],
          },
     },
@@ -53,6 +54,13 @@ TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# If filescan on the current installation is needed, enable it here
+ENABLE_FILESCAN = True
+
+# Add settings here to make them accessible from templates
+SETTINGS_EXPORT = [
+    'ENABLE_FILESCAN',
+]
 
 # Application definition
 
@@ -126,7 +134,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = '/home/os2/os2webscanner/webscanner_site/static'
+STATIC_ROOT = BASE_DIR + 'webscanner_site/static'
 
 AUTH_PROFILE_MODULE = 'os2webscanner.UserProfile'
 
