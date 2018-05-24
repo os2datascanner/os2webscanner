@@ -1,17 +1,13 @@
-from django.db.models import Count, Q
+from django.db.models import Q
 
 from .views import RestrictedListView, RestrictedCreateView, \
     RestrictedUpdateView, RestrictedDetailView, RestrictedDeleteView
-
 from ..models.scan_model import Scan
 from ..models.scanner_model import Scanner
-from ..models.webscanner_model import WebScanner
-from ..models.filescanner_model import FileScanner
 from ..models.userprofile_model import UserProfile
 
 
 class ScannerList(RestrictedListView):
-
     """Displays list of scanners."""
 
     template_name = 'os2webscanner/scanners.html'
@@ -25,24 +21,7 @@ class ScannerList(RestrictedListView):
         return qs
 
 
-class WebScannerList(ScannerList):
-
-    """Displays list of web scanners."""
-
-    model = WebScanner
-    type = 'web'
-
-
-class FileScannerList(ScannerList):
-
-    """Displays list of file scanners."""
-
-    model = FileScanner
-    type = 'file'
-
-
 class ScannerCreate(RestrictedCreateView):
-
     template_name = 'os2webscanner/scanner_form.html'
 
     def get_form(self, form_class=None):
@@ -76,8 +55,8 @@ class ScannerCreate(RestrictedCreateView):
                 queryset = form.fields[field_name].queryset
                 queryset = queryset.filter(organization=organization)
                 if (
-                            self.request.user.profile.is_group_admin or
-                                field_name == 'recipients'
+                        self.request.user.profile.is_group_admin or
+                        field_name == 'recipients'
                 ):
                     # Already filtered by organization, nothing more to do.
                     pass
@@ -90,40 +69,7 @@ class ScannerCreate(RestrictedCreateView):
         return form
 
 
-class WebScannerCreate(ScannerCreate):
-
-    """Web scanner create form."""
-
-    model = WebScanner
-    fields = ['name', 'schedule', 'domains',
-              'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
-              'do_name_scan', 'do_ocr', 'do_address_scan',
-              'do_link_check', 'do_external_link_check', 'do_collect_cookies',
-              'do_last_modified_check', 'do_last_modified_check_head_request',
-              'regex_rules', 'recipients']
-
-    def get_success_url(self):
-        """The URL to redirect to after successful creation."""
-        return '/webscanners/%s/created/' % self.object.pk
-
-
-class FileScannerCreate(ScannerCreate):
-
-    """Create a file scanner view."""
-
-    model = FileScanner
-    fields = ['name', 'schedule', 'domains',
-              'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
-              'do_name_scan', 'do_ocr', 'do_address_scan', 'do_last_modified_check',
-              'regex_rules', 'recipients']
-
-    def get_success_url(self):
-        """The URL to redirect to after successful creation."""
-        return '/filescanners/%s/created/' % self.object.pk
-
-
 class ScannerUpdate(RestrictedUpdateView):
-
     """Update a scanner view."""
     template_name = 'os2webscanner/scanner_form.html'
 
@@ -171,41 +117,7 @@ class ScannerUpdate(RestrictedUpdateView):
         return form
 
 
-class WebScannerUpdate(ScannerUpdate):
-
-    """Update a scanner view."""
-
-    model = WebScanner
-    fields = ['name', 'schedule', 'domains',
-              'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
-              'do_name_scan', 'do_ocr', 'do_address_scan',
-              'do_link_check', 'do_external_link_check', 'do_collect_cookies',
-              'do_last_modified_check', 'do_last_modified_check_head_request',
-              'regex_rules', 'recipients']
-
-    def get_success_url(self):
-        """The URL to redirect to after successful update."""
-        return '/webscanners/%s/saved/' % self.object.pk
-
-
-class FileScannerUpdate(ScannerUpdate):
-
-    """Update a scanner view."""
-
-    model = FileScanner
-    fields = ['name', 'schedule', 'domains',
-              'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
-              'do_name_scan', 'do_ocr', 'do_address_scan', 'do_last_modified_check',
-              'regex_rules', 'recipients']
-
-
-    def get_success_url(self):
-        """The URL to redirect to after successful update."""
-        return '/filescanners/%s/saved/' % self.object.pk
-
-
 class ScannerDelete(RestrictedDeleteView):
-
     """Delete a scanner view."""
     template_name = 'os2webscanner/scanner_confirm_delete.html'
 
@@ -217,22 +129,8 @@ class ScannerDelete(RestrictedDeleteView):
 
         return form
 
-class WebScannerDelete(ScannerDelete):
-    """Delete a scanner view."""
-    model = WebScanner
-    fields = []
-    success_url = '/webscanners/'
-
-
-class FileScannerDelete(ScannerDelete):
-    """Delete a scanner view."""
-    model = FileScanner
-    fields = []
-    success_url = '/filescanners/'
-
 
 class ScannerAskRun(RestrictedDetailView):
-
     """Base class for prompt before starting scan, validate first."""
     fields = []
 
@@ -253,20 +151,6 @@ class ScannerAskRun(RestrictedDetailView):
             context['error_message'] = error_message
 
         return context
-
-
-class WebScannerAskRun(ScannerAskRun):
-
-    """Prompt for starting web scan, validate first."""
-
-    model = WebScanner
-
-
-class FileScannerAskRun(ScannerAskRun):
-
-    """Prompt for starting file scan, validate first."""
-
-    model = FileScanner
 
 
 class ScannerRun(RestrictedDetailView):
@@ -290,15 +174,4 @@ class ScannerRun(RestrictedDetailView):
         return self.render_to_response(context)
 
 
-class WebScannerRun(ScannerRun):
 
-    """View that handles starting of a web scanner run."""
-
-    model = WebScanner
-
-
-class FileScannerRun(ScannerRun):
-
-    """View that handles starting of a file scanner run."""
-
-    model = FileScanner
