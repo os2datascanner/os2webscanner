@@ -70,7 +70,7 @@
   });
 
   // toggling a .checkbox-group input[type="checkbox"]:first-of-type should also toggle the visibility of the parent .checkbox-group
-  $(".checkbox-group input[type=\"checkbox\"]:first-of-type").change(function() {
+  $("#selected_rules .checkbox-group input[type=\"checkbox\"]:first-of-type").change(function() {
     toggleCheckboxGroup($(this));
     recalcIframeHeight();
   })

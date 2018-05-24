@@ -97,68 +97,12 @@
   </div>
   <p>TODO: Feltet med valgte regler skal være forudfyldt når man redigerer et eksisterende regelsæt</p>
   <p>TODO: Dropdownlisten kan risikere at blive for høj hvis der er mange regler. Så må den have en scrollbar (eller en typeahead-løsning)</p>
-  <p>TODO: Rykke handleSubChoices ud til ruleselector.js</p>
   <p>TODO: .checkbox-group > input skal have django ID'er ligesom i scanner_form.html</p>
   <div id="selected_rules_container" class="col-sm-12">
     <div class="form-group">
       <span class="control-label col-sm-2">Valgte regler</span>
       <div class="col-sm-10">
-        <div id="selected_rules" class="clearfix">
-          <div class="checkbox-group">
-            <input type="checkbox" id="id_do_cpr_scan" name="{{ form.do_cpr_scan.name }}" value="{{ form.do_cpr_scan.name }}" {% if form.do_cpr_scan.value %} checked="checked" {% endif %}><label for="id_{{ form.do_cpr_scan.name }}">
-                        CPR
-                        {% if form.do_cpr_scan.help_text %}<small>{{ form.do_cpr_scan.help_text }}</small>{% endif %}
-                    </label>
-            <input type="checkbox" id="id_{{ form.do_cpr_modulus11.name }}" name="{{ form.do_cpr_modulus11.name }}" value="{{ form.do_cpr_modulus11.name }}" {% if form.do_cpr_modulus11.value %} checked="checked" {% endif %}>
-            <label class="cpr_option" for="id_{{ form.do_cpr_modulus11.name }}">
-                        Tjek modulus-11
-                        {% if form.do_cpr_modulus11.help_text %}<small>{{ form.do_cpr_modulus11.help_text }}</small>{% endif %}
-                    </label>
-            <input type="checkbox" id="id_{{ form.do_cpr_ignore_irrelevant.name }}" name="{{ form.do_cpr_ignore_irrelevant.name }}" value="{{ form.do_cpr_ignore_irrelevant.name }}" {% if form.do_cpr_ignore_irrelevant.value %} checked="checked" {% endif %}>
-            <label class="cpr_option" for="id_{{ form.do_cpr_ignore_irrelevant.name }}">
-                        Ignorer ugyldige fødselsdatoer
-                        {% if form.do_cpr_ignore_irrelevant.help_text %}<small>{{ form.do_cpr_ignore_irrelevant.help_text }}</small>{% endif %}
-                    </label>
-          </div>
-          <div class="checkbox-group">
-            <input type="checkbox" id="id_do_link_check" name="{{ form.do_link_check.name }}" value="{{ form.do_link_check.name }}" {% if form.do_link_check.value %} checked="checked" {% endif %}>
-            <label for="id_{{ form.do_link_check.name }}">
-                        {{ form.do_link_check.label }}
-                        {% if form.do_link_check.help_text %}<small>{{ form.do_link_check.help_text }}</small>{% endif %}
-                    </label>
-            <input type="checkbox" id="id_{{ form.do_external_link_check.name }}" name="{{ form.do_external_link_check.name }}" value="{{ form.do_external_link_check.name }}" {% if form.do_external_link_check.value %} checked="checked" {% endif %}>
-            <label for="id_{{ form.do_external_link_check.name }}">
-                        {{ form.do_external_link_check.label }}
-                        {% if form.do_external_link_check.help_text %}<small>{{ form.do_external_link_check.help_text }}</small>{% endif %}
-                    </label>
-          </div>
-          <div class="checkbox-group">
-            <input type="checkbox" id="id_do_collect_cookies" name="{{ form.do_collect_cookies.name }}" value="{{ form.do_collect_cookies.name }}" {% if form.do_collect_cookies.value %} checked="checked" {% endif %}>
-            <label for="id_{{ form.do_collect_cookies.name }}">
-                        {{ form.do_collect_cookies.label }}
-                        {% if form.do_collect_cookies.help_text %}<small>{{ form.do_collect_cookies.help_text }}</small>{% endif %}
-                    </label>
-          </div>
-          <div id="rules_list" class="dropup">
-            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-              Tilføj regel
-              <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu-right dropdown-menu" id="available_rules" aria-labelledby="rules_list">
-              <li class="dropdown-header">Systemregler</li>
-              <li data-systemrule-target="do_cpr_scan"><a href="#" title="Beskrivelse af regel">CPR</a></li>
-              <li data-systemrule-target="do_link_check"><a href="#" title="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.">Check links</a></li>
-              <li data-systemrule-target="do_collect_cookies"><a href="#" title="Lipsum.">Saml cookies</a></li>
-              <li role="separator" class="divider"></li>
-              <li class="dropdown-header">{{ form.regex_rules.label }}</li>
-              {% for value, tag in form.regex_rules.field.choices %}
-              <li data-rule-id="{{ value }}"><a href="#" data-toggle="tooltip" data-placement="left" title="{{ description }}">{{ tag }}</a></li>
-              {% endfor %}
-              <li data-rule-id="3"><a href="#" data-toggle="tooltip" data-placement="left" title="Adgangsstatus">Adgangsstatus</a></li>
-              <li data-rule-id="4"><a href="#">Supplerende adg. status</a></li>
-            </ul>
-          </div>
-        </div>
+        {% include 'os2webscanner/rules_selector.html' %}
       </div>
     </div>
   </div>
