@@ -73,7 +73,49 @@
   $("#selected_rules .checkbox-group input[type=\"checkbox\"]:first-of-type").change(function() {
     toggleCheckboxGroup($(this));
     recalcIframeHeight();
-  })
+  });
+
+  // filter the list of rules when search field changes value
+  $("#rule-filter").on("change textInput input", os2debounce(function() {
+    var value = $(this).val().trim();
+    if(value.length < 3) {
+      $("#available_rules li").show(); // reset all li to shown
+      return; // return early!
+    }
+    var needle = new RegExp(value, "gi");
+    $("#available_rules .rule").each(function() {
+      var haystack = $(this);
+      if(!haystack.text().match(needle)) {
+        haystack.hide();
+      } else {
+        haystack.show();
+      }
+    });
+    // we also need to hide headings and separators if an entire section becomes invisible.
+    // @TODO: Cleanup how headings and separators are shown/hidden, i.e. make it consistent whether
+    // second or first group of rules are hidden/shown
+    $("#available_rules .dropdown-header").each(function() {
+      var header = $(this);
+      var isEmpty = false;
+      header.nextUntil(".divider", ".rule").each(function() {
+        if($(this).is(":hidden")) {
+          isEmpty = true;
+        }
+      });
+      if(isEmpty) {
+        header.hide();
+        header.siblings(".divider").first().hide();
+      }
+    });
+  }, 150));
+
+  // set height of dropdown list in order to prevent it from breaking out of window
+  $("#rules_list").on("show.bs.dropdown", function() {
+    var top = $(this).offset().top;
+    var docHeight = $("body").height();
+    var maxHeight = top - 15;
+    $("#available_rules").css("max-height", maxHeight + "px");
+  });
 
   function toggleCheckboxGroup(checkbox) {
     var state = checkbox.prop("checked");

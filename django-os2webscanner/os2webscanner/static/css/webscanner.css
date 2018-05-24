@@ -194,12 +194,20 @@ max-width:20%;
   float:right;
   margin:0 1em 1em 0;
 }
+#available_rules {
+  overflow-y:auto;
+  max-height:250px;
+}
 #available_rules > li[data-disabled] a {
   color:#aaa;
 }
 #available_rules > li[data-disabled] a:hover {
   background-color:inherit;
   cursor:default;
+}
+#available_rules #rule-filter {
+  display:block;
+  margin:0 20px;
 }
 /* MODAL */
 

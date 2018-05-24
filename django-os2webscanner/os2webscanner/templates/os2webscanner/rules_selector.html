@@ -21,15 +21,26 @@
       <span class="caret"></span>
     </button>
     <ul class="dropdown-menu-right dropdown-menu" id="available_rules" aria-labelledby="rules_list">
+      <li class="dropdown-header">Filtrer</li>
+      <li><input type="text" id="rule-filter" placeholder="Indtast mindst tre bogstaver"></li>
+      <li role="separator" class="divider"></li>
       <li class="dropdown-header">Systemregler</li>
-      <li data-systemrule-target="do_cpr_scan"><a href="#" title="Beskrivelse af regel">CPR</a></li>
+      <li class="rule" data-systemrule-target="do_cpr_scan"><a href="#" title="Beskrivelse af regel">CPR</a></li>
       <li role="separator" class="divider"></li>
       <li class="dropdown-header">{{ form.regex_rules.label }}</li>
       {% for value, tag in form.regex_rules.field.choices %}
-      <li data-rule-id="{{ value }}"><a href="#" data-toggle="tooltip" data-placement="left" title="{{ description }}">{{ tag }}</a></li>
+      <li class="rule" data-rule-id="{{ value }}"><a href="#" data-toggle="tooltip" data-placement="left" title="{{ description }}">{{ tag }}</a></li>
       {% endfor %}
-      <li data-rule-id="3"><a href="#" data-toggle="tooltip" data-placement="left" title="Adgangsstatus">Adgangsstatus</a></li>
-      <li data-rule-id="4"><a href="#">Supplerende adg. status</a></li>
+      <li class="rule" data-rule-id="3"><a href="#" data-toggle="tooltip" data-placement="left" title="Adgangsstatus">Adgangsstatus</a></li>
+      <li class="rule" data-rule-id="4"><a href="#">Supplerende adg. status</a></li>
+      <li class="rule" data-rule-id="5"><a href="#">Lorem</a></li>
+      <li class="rule" data-rule-id="6"><a href="#">Ipsum</a></li>
+      <li class="rule" data-rule-id="7"><a href="#">Dolor</a></li>
+      <li class="rule" data-rule-id="8"><a href="#">Sit</a></li>
+      <li class="rule" data-rule-id="9"><a href="#">Amet</a></li>
+      <li class="rule" data-rule-id="10"><a href="#">Consectetur</a></li>
+      <li class="rule" data-rule-id="11"><a href="#">Adipiscing</a></li>
+      <li class="rule" data-rule-id="12"><a href="#">Elit</a></li>
     </ul>
   </div>
 </div>
