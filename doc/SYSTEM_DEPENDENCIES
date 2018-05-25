@@ -16,3 +16,4 @@ libreoffice
 imagemagick
 unoconv
 mailutils
+libssl-dev

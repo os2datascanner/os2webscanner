@@ -21,7 +21,7 @@
 # http://doc.scrapy.org/en/latest/topics/items.html
 
 from scrapy.item import Field
-from scrapy.contrib.djangoitem import DjangoItem
+from scrapy_djangoitem import DjangoItem
 from os2webscanner.models import Match
 
 
