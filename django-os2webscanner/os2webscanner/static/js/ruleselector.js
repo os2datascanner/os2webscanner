@@ -76,7 +76,8 @@
   });
 
   // filter the list of rules when search field changes value
-  $("#rule-filter").on("change textInput input", os2debounce(function() {
+  $("#rule-filter").on("textInput input", os2debounce(function() {
+    console.log("did something");
     var value = $(this).val().trim();
     if(value.length < 3) {
       $("#available_rules li").show(); // reset all li to shown
@@ -96,15 +97,20 @@
     // second or first group of rules are hidden/shown
     $("#available_rules .dropdown-header").each(function() {
       var header = $(this);
-      var isEmpty = false;
-      header.nextUntil(".divider", ".rule").each(function() {
-        if($(this).is(":hidden")) {
-          isEmpty = true;
+      var nextRules = header.nextUntil(".dropdown-header", ".rule"); // check to see if we're in a section of the list that actually contains rules (i.e. not filter box at the top)
+      if(nextRules.length > 0) {
+        var isEmpty = true;
+        nextRules.each(function() {
+          if($(this).is(":visible")) {
+            isEmpty = false;
+            return;
+          }
+        });
+        if(isEmpty) {
+          header.hide();
+        } else {
+          header.show();
         }
-      });
-      if(isEmpty) {
-        header.hide();
-        header.siblings(".divider").first().hide();
       }
     });
   }, 150));

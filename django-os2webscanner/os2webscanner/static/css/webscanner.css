@@ -198,6 +198,11 @@ max-width:20%;
   overflow-y:auto;
   max-height:250px;
 }
+#available_rules .dropdown-header:not(:first-child) {
+  border-top:1px solid #e5e5e5;
+  padding-top:9px;
+  margin-top:9px;
+}
 #available_rules > li[data-disabled] a {
   color:#aaa;
 }
