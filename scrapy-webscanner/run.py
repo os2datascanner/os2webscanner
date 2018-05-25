@@ -99,8 +99,9 @@ class ScannerApp:
     """A scanner application which can be run."""
 
     def __init__(self):
-        """Initialize the scanner application.
-
+        """
+        Initialize the scanner application.
+        Takes input, argv[1], which is directly related to the scan job id in the database.
         Updates the scan status and sets the pid.
         """
         self.scan_id = sys.argv[1]
