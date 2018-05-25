@@ -10,3 +10,7 @@ django-os2webscanner/django.os2webscanner.egg-info
 /scrapy-webscanner/scanner/local_settings.py
 .ropeproject
 *.log
+
+#Ignore django files
+Pipfile
+Pipfile.lock
