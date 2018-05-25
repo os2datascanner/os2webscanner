@@ -77,7 +77,6 @@
 
   // filter the list of rules when search field changes value
   $("#rule-filter").on("textInput input", os2debounce(function() {
-    console.log("did something");
     var value = $(this).val().trim();
     if(value.length < 3) {
       $("#available_rules li").show(); // reset all li to shown
