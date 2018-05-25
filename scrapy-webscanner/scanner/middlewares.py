@@ -23,7 +23,9 @@ import arrow
 
 from scrapy import Request
 from scrapy import signals
+
 import logging
+
 from scrapy.downloadermiddlewares.redirect import RedirectMiddleware
 from scrapy.downloadermiddlewares.cookies import CookiesMiddleware
 from scrapy.spidermiddlewares.offsite import OffsiteMiddleware

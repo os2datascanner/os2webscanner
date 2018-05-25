@@ -25,6 +25,7 @@ import codecs
 import random
 import subprocess
 import hashlib
+import logging
 
 from os2webscanner.models import ConversionQueueItem, Md5Sum
 

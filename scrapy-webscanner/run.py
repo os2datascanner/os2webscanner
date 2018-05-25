@@ -51,6 +51,8 @@ import logging
 
 import signal
 
+import logging
+
 # Activate timezone from settings
 timezone.activate(timezone.get_default_timezone())
 
@@ -189,14 +191,17 @@ class ScannerApp:
 
     def external_link_check(self, external_urls):
         """Perform external link checking."""
-        print("Link checking %d external URLs..." % len(external_urls))
+        logging.info("Link checking %d external URLs..." % len(external_urls))
+
         for url in external_urls:
             url_parse = urlparse(url)
             if url_parse.scheme not in ("http", "https"):
                 # We don't want to allow external URL checking of other
                 # schemes (file:// for example)
                 continue
-            print("Checking external URL %s" % url)
+
+            logging.info("Checking external URL %s" % url)
+
             result = linkchecker.check_url(url)
             if result is not None:
                 broken_url = Url(url=url, scan=self.scan_object,

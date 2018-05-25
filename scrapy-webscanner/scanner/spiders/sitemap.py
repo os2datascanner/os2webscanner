@@ -13,6 +13,8 @@ import dateutil.parser
 import datetime
 import pytz
 
+import logging
+
 
 class SitemapURLGathererSpider(BaseScannerSpider, SitemapSpider):
 
@@ -47,6 +49,8 @@ class SitemapURLGathererSpider(BaseScannerSpider, SitemapSpider):
         return requests
 
     def _parse_sitemap(self, response):
+        logging.info("Parsing sitemap %s" % response)
+
         if response.url.endswith('/robots.txt'):
             for url in sitemap_urls_from_robots(response.body):
                 yield Request(url, callback=self._parse_sitemap)

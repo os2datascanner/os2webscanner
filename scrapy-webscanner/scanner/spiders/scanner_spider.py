@@ -19,12 +19,14 @@ import mimetypes
 from os2webscanner.utils import capitalize_first
 import regex
 import logging
+
 from scrapy.spidermiddlewares.httperror import HttpError
 from scrapy.exceptions import IgnoreRequest
 from scrapy.http import Request, HtmlResponse
 import re
 import chardet
 import magic
+import logging
 
 # Use our monkey-patched link extractor
 from ..linkextractor import LxmlLinkExtractor
@@ -279,7 +281,7 @@ class ScannerSpider(BaseScannerSpider):
                     # the file
                     mime_type = self.magic.from_buffer(response.body)
                     data = response.body
-                    logging.warning(
+                    logging.error(
                         ("Error decoding response as %s. Detected the "
                          "mime type as %s.") % (response.encoding,
                                                 mime_type)
