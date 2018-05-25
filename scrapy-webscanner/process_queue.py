@@ -30,7 +30,6 @@ sys.path.append(base_dir + "/webscanner_site")
 os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 django.setup()
 
-from scanner.processors import *  # noqa
 from scanner.processors.processor import Processor
 
 pid = os.getpid()
@@ -41,9 +40,10 @@ setup_args = [pid]
 if(len(sys.argv) > 2):
     setup_args.extend(sys.argv[2:])
 
-queued_processor.setup_queue_processing(*setup_args)
 
-try:
-    queued_processor.process_queue()
-except KeyboardInterrupt:
-    pass
+if queued_processor is not None:
+    queued_processor.setup_queue_processing(*setup_args)
+    try:
+        queued_processor.process_queue()
+    except KeyboardInterrupt:
+        pass

@@ -5,7 +5,7 @@ import urllib2
 import httplib
 from os2webscanner.utils import capitalize_first
 import regex
-from scrapy import log
+import logging
 
 LINK_CHECK_TIMEOUT = 5
 
@@ -22,7 +22,7 @@ def check_url(url, method="HEAD"):
     :return:
     """
     try:
-        log.msg("Checking %s" % url)
+        logging.info("Checking %s" % url)
         request = urllib2.Request(url, headers={"User-Agent":
                                                 "OS2Webscanner"})
         request.get_method = lambda: method
@@ -33,7 +33,7 @@ def check_url(url, method="HEAD"):
             httplib.InvalidURL,
             socket.timeout,
             IOError) as e:
-        log.msg("Error %s" % e, level=log.DEBUG)
+        logging.error("Error %s" % e)
         code = getattr(e, "code", 0)
         if code == 405:
             # Method not allowed, try with GET instead

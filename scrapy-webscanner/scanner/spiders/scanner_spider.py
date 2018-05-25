@@ -18,13 +18,13 @@ import mimetypes
 
 from os2webscanner.utils import capitalize_first
 import regex
-from scrapy import log
-from scrapy.contrib.spidermiddleware.httperror import HttpError
+from scrapy.spidermiddlewares.httperror import HttpError
 from scrapy.exceptions import IgnoreRequest
 from scrapy.http import Request, HtmlResponse
 import re
 import chardet
 import magic
+import logging
 
 
 # Use our monkey-patched link extractor
@@ -112,7 +112,7 @@ class ScannerSpider(BaseScannerSpider):
                             meta={"lastmod": url.get("lastmod", None)})
                 )
             except Exception as e:
-                log.msg(u"URL failed: {0} ({1})".format(url, str(e)))
+                logging.error(u"URL failed: {0} ({1})".format(url, str(e)))
 
         requests.extend([Request(url, callback=self.parse,
                                  errback=self.handle_error)
@@ -150,7 +150,6 @@ class ScannerSpider(BaseScannerSpider):
         r = []
         if isinstance(response, HtmlResponse):
             links = self.link_extractor.extract_links(response)
-            # log.msg("Extracted links: %s" % links, level=log.DEBUG)
             r.extend(Request(x.url, callback=self.parse,
                              errback=self.handle_error) for x in links)
         return r
@@ -181,7 +180,7 @@ class ScannerSpider(BaseScannerSpider):
             status_message = "%s" % failure.value
             referer_header = None
 
-        log.msg("Handle Error: %s %s" % (status_message, url))
+        logging.error("Handle Error: %s %s" % (status_message, url))
 
         status_message = regex.sub("\[.+\] ", "", status_message)
         status_message = capitalize_first(status_message)
@@ -207,7 +206,6 @@ class ScannerSpider(BaseScannerSpider):
     def associate_url_referrer(self, referrer, url_object):
         """Associate referrer with Url object."""
         referrer_url_object = self._get_or_create_referrer(referrer)
-        # log.msg("Associating referrer %s" % referrer_url_object)
         url_object.referrers.add(referrer_url_object)
 
     def _get_or_create_referrer(self, referrer):
@@ -223,14 +221,12 @@ class ScannerSpider(BaseScannerSpider):
         content_type = response.headers.get('content-type')
         if content_type:
             mime_type = parse_content_type(content_type)
-            log.msg("Content-Type: " + content_type, level=log.DEBUG)
+            logging.debug("Content-Type: " + content_type)
         else:
-            log.msg("Guessing mime-type based on file extension",
-                    level=log.DEBUG)
+            logging.debug("Guessing mime-type based on file extension")
             mime_type, encoding = mimetypes.guess_type(response.url)
             if not mime_type:
-                log.msg("Guessing mime-type based on file contents",
-                        level=log.DEBUG)
+                logging.debug("Guessing mime-type based on file contents")
                 mime_type = self.magic.from_buffer(response.body)
             # Scrapy already guesses the encoding.. we don't need it
 
@@ -244,7 +240,7 @@ class ScannerSpider(BaseScannerSpider):
                     encoding = chardet.detect(response.body).get('encoding')
                     if encoding is not None:
                         data = response.body.decode(encoding)
-                        log.msg(
+                        logging.warning(
                             (
                                 "Error decoding response as %s. " +
                                 "Detected the encoding as %s.") %
@@ -253,7 +249,7 @@ class ScannerSpider(BaseScannerSpider):
                     else:
                         mime_type = self.magic.from_buffer(response.body)
                         data = response.body
-                        log.msg(("Error decoding response as %s. " +
+                        logging.warning(("Error decoding response as %s. " +
                                  "Detected the mime " +
                                  "type as %s.") % (response.encoding,
                                                    mime_type))
@@ -263,7 +259,7 @@ class ScannerSpider(BaseScannerSpider):
                     # the file
                     mime_type = self.magic.from_buffer(response.body)
                     data = response.body
-                    log.msg(
+                    logging.error(
                         ("Error decoding response as %s. Detected the "
                          "mime type as %s.") % (response.encoding,
                                                 mime_type)

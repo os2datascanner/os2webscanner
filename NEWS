@@ -1,3 +1,8 @@
+* Version 1.7.0, May 25, 2018
+
+Hotfix:
+ - Webscanner now uses latest version of Scrapy 1.5.0. This solves https scanning problems.
+
 * Version 1.6.1, December 6, 2017
 
 New in this:

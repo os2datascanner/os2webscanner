@@ -25,6 +25,7 @@ import codecs
 import random
 import subprocess
 import hashlib
+import logging
 
 from os2webscanner.models import ConversionQueueItem, Md5Sum
 
@@ -32,8 +33,6 @@ from django.db import transaction, IntegrityError, DatabaseError
 from django import db
 from django.utils import timezone
 from django.conf import settings
-
-from scrapy import log
 
 
 # Minimum width and height an image must have to be scanned
@@ -226,7 +225,7 @@ class Processor(object):
             url.scan.log_occurrence(
                 "process_file failed for url {0}: {1}".format(url.url, str(e))
             )
-            log.msg(repr(e))
+            logging.error(repr(e))
             return False
 
         return True
