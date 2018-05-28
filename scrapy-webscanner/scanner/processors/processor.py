@@ -184,6 +184,9 @@ class Processor(object):
         """
         # Write data to a temporary file
         # Get temporary directory
+        if not isinstance(data, bytes):
+            data = data.encode('utf-8')
+
         if self.is_md5_known(data, url_object.scan):
             return True
         tmp_dir = url_object.tmp_dir
@@ -217,15 +220,33 @@ class Processor(object):
             if encoding != 'binary':
                 if encoding == 'unknown-8bit':
                     encoding = 'iso-8859-1'
+
                 f = codecs.open(file_path, "r", encoding=encoding)
             else:
                 f = open(file_path, "rb")
-            self.process(f.read(), url)
+
+            try:
+                data = f.read()
+            except UnicodeDecodeError:
+                url.scan.log_occurrence(
+                    "UTF-8 decoding failed for {0}".format(file_path)
+                )
+                f = codecs.open(file_path, "rb", encoding='iso-8859-1',
+                                errors='replace')
+                data = f.read()
+
+            if type(data) is not str:
+                data = data.decode('utf-8')
+            self.process(data, url)
         except Exception as e:
             url.scan.log_occurrence(
                 "process_file failed for url {0}: {1}".format(url.url, str(e))
             )
-            logging.error(repr(e))
+
+            if settings.DEBUG:
+                url.scan.log_occurrence(repr(e))
+                url.scan.log_occurrence(traceback.format_exc())
+
             return False
 
         return True
