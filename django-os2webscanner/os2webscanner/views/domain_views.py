@@ -108,9 +108,9 @@ class FileDomainCreate(DomainCreate):
             form_class = self.get_form_class()
 
         form = super().get_form(form_class)
-        form.fields['username'] = forms.CharField(max_length=1024)
-        form.fields['password'] = forms.CharField(max_length=50)
-        form.fields['domain'] = forms.CharField(max_length=2024)
+        form.fields['username'] = forms.CharField(max_length=1024, required=False)
+        form.fields['password'] = forms.CharField(max_length=50, required=False)
+        form.fields['domain'] = forms.CharField(max_length=2024, required=False)
         return form
 
     def form_valid(self, form):
@@ -233,9 +233,9 @@ class FileDomainUpdate(DomainUpdate):
         form = super().get_form(form_class)
         filedomain = self.get_object()
         authentication = filedomain.authentication
-        form.fields['username'] = forms.CharField(max_length=1024)
-        form.fields['password'] = forms.CharField(max_length=50)
-        form.fields['domain'] = forms.CharField(max_length=2024)
+        form.fields['username'] = forms.CharField(max_length=1024, required=False)
+        form.fields['password'] = forms.CharField(max_length=50, required=False)
+        form.fields['domain'] = forms.CharField(max_length=2024, required=False)
         if len(authentication.username) > 0:
             form.fields['username'].initial = authentication.username
         if len(authentication.ciphertext) > 0:
