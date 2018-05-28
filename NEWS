@@ -1,3 +1,10 @@
+* Version 1.7.1, May 28. 2018
+
+Hotfix:
+ - Now ignores if digital rights management bit is set for pdf files.
+ - Enhanced logging for pdftohtml conversion subprocess call.
+ - UnicodeEncodeError fixed when doing md5 calculation.
+
 * Version 1.7.0, May 25, 2018
 
 Hotfix:
