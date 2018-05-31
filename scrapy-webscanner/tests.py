@@ -37,7 +37,7 @@ import linkchecker
 import unittest
 from scanner.rules import cpr, name
 from scanner.spiders import scanner_spider
-from scanner.processors import pdf
+from scanner.processors import pdf, libreoffice, html
 
 from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
 from os2webscanner.models.url_model import Url
@@ -182,7 +182,7 @@ class PDF2HTMLTest(unittest.TestCase):
     test_dir = base_dir + '/scrapy-webscanner/tests/data/'
 
     def create_ressources(self, filename):
-        shutil.copy2(self.test_dir + filename, self.test_dir + 'tmp/')
+        shutil.copy2(self.test_dir + 'pdf/' + filename, self.test_dir + 'tmp/')
         url = Url(scan=Scan(), url=self.test_dir + 'tmp/' + filename)
         item = ConversionQueueItem(url=url,
                                    file=self.test_dir + 'tmp/' + filename,
@@ -211,6 +211,55 @@ class PDF2HTMLTest(unittest.TestCase):
         result = self.create_ressources(filename)
 
         self.assertEqual(result, True)
+
+
+class LibreofficeTest(unittest.TestCase):
+
+    test_dir = base_dir + '/scrapy-webscanner/tests/data/'
+
+    def create_ressources(self, filename):
+        shutil.copy2(self.test_dir + 'libreoffice/' + filename, self.test_dir + 'tmp/')
+        url = Url(scan=Scan(), url=self.test_dir + 'tmp/' + filename)
+        item = ConversionQueueItem(url=url,
+                                   file=self.test_dir + 'tmp/' + filename,
+                                   type=libreoffice.LibreOfficeProcessor,
+                                   status=ConversionQueueItem.NEW)
+
+        with tempfile.TemporaryDirectory(dir=self.test_dir + 'tmp/') as temp_dir:
+            libreoffice_processor = libreoffice.LibreOfficeProcessor()
+            libreoffice_processor.set_home_dir(self.test_dir + 'libreoffice/home_dir/')
+            result = libreoffice_processor.convert(item, temp_dir)
+
+        return result
+
+    def test_libreoffice_conversion_success(self):
+        filename = 'KK SGP eksempel 2013.02.27.xls'
+        result = self.create_ressources(filename)
+        self.assertEqual(result, True)
+
+
+class HTMLTest(unittest.TestCase):
+
+    test_dir = base_dir + '/scrapy-webscanner/tests/data/'
+
+    def create_ressources(self, filename):
+        shutil.copy2(self.test_dir + 'html/' + filename, self.test_dir + 'tmp/')
+        url = Url(scan=Scan(), url=self.test_dir + 'tmp/' + filename)
+        item = ConversionQueueItem(url=url,
+                                   file=self.test_dir + 'tmp/' + filename,
+                                   type=html.HTMLProcessor,
+                                   status=ConversionQueueItem.NEW)
+
+        return item
+
+    def test_html_process_method(self):
+        """Test case used to investigate UTF-8 decoding fail error.
+         Will always return false as text processor instantiates scanner object which makes db call."""
+        filename = 'Midler-til-frivilligt-arbejde.html'
+        item = self.create_ressources(filename)
+        html_processor = html.HTMLProcessor()
+        result = html_processor.handle_queue_item(item)
+        self.assertEqual(result, False)
 
 
 def main():
