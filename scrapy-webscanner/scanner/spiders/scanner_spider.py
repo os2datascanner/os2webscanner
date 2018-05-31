@@ -214,10 +214,11 @@ class ScannerSpider(BaseScannerSpider):
                                     errback=self.handle_error)
                             for url in files])
             return request
-        if (not self.scanner.scan_object.webscan.do_link_check or
-                (isinstance(failure.value, IgnoreRequest) and not isinstance(
-                    failure.value, HttpError))):
-            return
+        if  hasattr(self.scanner.scan_object, 'webscan'):
+                if (not self.scanner.scan_object.webscan.do_link_check or
+                        (isinstance(failure.value, IgnoreRequest) and not isinstance(
+                            failure.value, HttpError))):
+                    return
         if hasattr(failure.value, "response"):
             response = failure.value.response
             url = response.request.url
