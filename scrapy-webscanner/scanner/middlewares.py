@@ -385,7 +385,7 @@ class LastModifiedCheckMiddleware(object):
         if hasattr(spider.scanner.scan_object, 'filescan'):
             last_modified = datetime.datetime.fromtimestamp(
                     os.path.getmtime(
-                        response.url.replace('file://', ''))
+                        response.url.replace('file://', '')), tz=pytz.utc
             )
         else:
             # Check the Last-Modified header to see if the content has been
