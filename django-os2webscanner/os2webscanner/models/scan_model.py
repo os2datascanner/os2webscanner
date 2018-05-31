@@ -229,6 +229,10 @@ class Scan(models.Model):
         except:
             return "ORPHANED SCAN: " + str(self.id)
 
+    def __str__(self):
+        """Return the name of the scan's scanner."""
+        return self.__unicode__()
+
     def save(self, *args, **kwargs):
         """Save changes to the scan.
 

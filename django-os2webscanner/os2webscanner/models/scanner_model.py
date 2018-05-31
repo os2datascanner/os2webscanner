@@ -182,6 +182,10 @@ class Scanner(models.Model):
         """Return the name of the scanner."""
         return self.name
 
+    def __str__(self):
+        """Return the name of the scanner."""
+        return self.__unicode__()
+
     def run(self, test_only=False, blocking=False, user=None):
         """Run a scan with the Scanner.
 
