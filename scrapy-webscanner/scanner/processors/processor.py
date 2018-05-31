@@ -232,11 +232,18 @@ class Processor(object):
                 data = f.read()
             except UnicodeDecodeError:
                 url.scan.log_occurrence(
-                        "UTF-8 decoding failed for {0}".format(file_path)
+                        "UTF-8 decoding failed for {0}. Will try and open "
+                        "it with encoding iso-8859-1.".format(file_path)
                         )
                 f = codecs.open(file_path, "rb", encoding='iso-8859-1',
                         errors='replace')
                 data = f.read()
+                url.scan.log_occurrence(
+                    "Successfully red the file {0} using encoding iso-8859-1.".format(file_path)
+                )
+            finally:
+                f.close()
+
             if type(data) is not str:
                 data = data.decode('utf-8')
             self.process(data, url)
