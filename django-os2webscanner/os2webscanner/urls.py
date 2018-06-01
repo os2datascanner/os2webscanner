@@ -22,21 +22,22 @@ import django.contrib.auth.views
 
 from .views.views import MainPageView
 from .views.views import CSVReportDetails, ReportDetails, ReportList, ReportDelete
-from .views.scanner_views import WebScannerCreate, WebScannerUpdate, FileScannerCreate, FileScannerUpdate, \
-    WebScannerDelete, FileScannerDelete, WebScannerRun, WebScannerAskRun, FileScannerRun, FileScannerAskRun, WebScannerList, FileScannerList
+from .views.webscanner_views import WebScannerCreate, WebScannerUpdate, WebScannerDelete, WebScannerRun, \
+    WebScannerAskRun, WebScannerList
+from .views.filescanner_views import FileScannerCreate, FileScannerRun, FileScannerAskRun, FileScannerUpdate, \
+    FileScannerDelete, FileScannerList
 from .views.views import ScanReportLog, OrganizationUpdate
 from .views.domain_views import WebDomainUpdate, FileDomainUpdate, DomainValidate, DomainDelete, \
     WebDomainList, FileDomainList, WebDomainCreate, FileDomainCreate
 from .views.views import GroupList, GroupCreate, GroupUpdate, GroupDelete
 from .views.rule_views import RuleList, RuleCreate, RuleUpdate, RuleDelete
-from .views.rule_views import RulesetList, RulesetCreate
+from .views.rule_views import RulesetList, RulesetCreate, RulesetUpdate, RulesetDelete
 from .views.views import OrganizationList
 from .views.views import SummaryList, SummaryCreate, SummaryUpdate, SummaryDelete
 from .views.views import SummaryReport, DialogSuccess, SystemStatusView
 from .views.views import file_upload, referrer_content
 from .models.webscanner_model import WebScanner
 from .models.filescanner_model import FileScanner
-
 
 js_info_dict = {
     'packages': ('os2webscanner', 'recurrence')
@@ -99,6 +100,8 @@ urlpatterns = [
         name='organization_update'),
     url(r'^rulesets/$', RulesetList.as_view(), name='rulesets'),
     url(r'^rulesets/add/$', RulesetCreate.as_view(), name='ruleset_add'),
+    url(r'^rulesets/(?P<pk>\d+)/$', RulesetUpdate.as_view(), name='ruleset_update'),
+    url(r'^rulesets/(?P<pk>\d+)/delete/$', RulesetDelete.as_view(), name='ruleset_delete'),
     url(r'^reports/$', ReportList.as_view(), name='reports'),
     url(r'^report/(?P<pk>[0-9]+)/$', ReportDetails.as_view(),
         name='report'),

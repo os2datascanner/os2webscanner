@@ -19,6 +19,7 @@
 """The Django model for Rulses set."""
 
 from django.db import models
+from .organization_model import Organization
 from .regexrule_model import RegexRule
 from .sensitivity_level import Sensitivity
 
@@ -30,6 +31,11 @@ class RulesSet(models.Model):
     """
     name = models.CharField(max_length=256, unique=True, null=False,
                             verbose_name='Navn')
+
+    organization = models.ForeignKey(Organization, null=True,
+                                     verbose_name='Organisation')
+
+    description = models.TextField(verbose_name='Beskrivelse', default='')
 
     regexrules = models.ManyToManyField(RegexRule, null=False)
 

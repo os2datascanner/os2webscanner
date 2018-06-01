@@ -26,14 +26,12 @@ sys.path.append(base_dir + "/webscanner_site")
 os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 
 import unittest
-from scanner.rules import cpr, name
+from .scanner.rules import cpr, name
 import re
-
 import linkchecker
 
 
 class ExternalLinkCheckerTest(unittest.TestCase):
-
     """Test the external link checker."""
 
     def test_checker(self):
@@ -55,7 +53,6 @@ class ExternalLinkCheckerTest(unittest.TestCase):
 
 
 class NameTest(unittest.TestCase):
-
     """Test the name rule."""
 
     def test_matching(self):
@@ -86,7 +83,6 @@ class NameTest(unittest.TestCase):
 
 
 class CPRTest(unittest.TestCase):
-
     """Test the CPR rule."""
 
     def check_matches(self, matches, valid_matches, invalid_matches):
@@ -144,6 +140,19 @@ class CPRTest(unittest.TestCase):
         # they have an invalid check digit.
         self.assertTrue(cpr.modulus11_check("0101650123"))
         self.assertTrue(cpr.modulus11_check("0101660123"))
+
+
+class RuleSetsTest(unittest.TestCase):
+    def check_is_valid_rulesets(self):
+        org = Organization(name="Magenta", pk=1)
+        domain = Domain(url="http://magenta.dk", organization=org)
+        scan = Scan(domains=[domain], pk=1)
+        scan.save()
+
+        reg1 = RegexRule(name='Regex1', organization=org, match_string='leverer')
+        reg2 = RegexRule(name='Regex2', organization=org, match_string='Magenta')
+
+        test_rule_set = RulesSet(name="TestCase", scanner_job=scan, regesxrules=[reg1, reg2])
 
 
 def main():

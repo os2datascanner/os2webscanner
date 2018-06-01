@@ -68,31 +68,24 @@ Regelsæt
             </tr>
           </thead>
           <tbody>
-            {% for rule in regexrule_list %}
+            {% for ruleset in rulesset_list %}
             <tr>
               <td class="rule-name">
                 <span>
-                {{ rule.name }}
+                {{ ruleset.name }}
                 </span>
               </td>
-              {% if user.is_superuser %}
-              <td class="rule-organization">
-                <span>
-                {{ rule.organization }}
-                </span>
-              </td>
-              {% endif %}
               <td class="rule-description">
                 <span>
-                {{ rule.description }}
+                {{ ruleset.description }}
                 </span>
               </td>
               <td class="rule-expression">
-                <code>{{ rule.match_string }}</code>
+                <code>{{ ruleset.regexrules }}</code>
               </td>
               <td class="rule-sensitivity">
                 <span>
-                {{ rule.get_sensitivity_display }}
+                {{ ruleset.get_sensitivity_display }}
                 </span>
               </td>
               <td class="rule-actions">
@@ -104,7 +97,7 @@ Regelsæt
                   )">
                 <span class="glyphicon glyphicon-cog"></span> <span>Redigér</span>
                 </button>
-                <a href="/rules/{{rule.pk}}/delete/" class="btn btn-default btn-xs">
+                <a href="/rules/{{ruleset.pk}}/delete/" class="btn btn-default btn-xs">
                 <span class="glyphicon glyphicon-remove"></span>
                 <span>Slet</span>
                 </a>

@@ -50,7 +50,6 @@
 
 <form class="form-horizontal" role="form" method="post" name="rulesets">
   {% csrf_token %}
-
   <div id="{{ form.name.auto_id }}_container" class="col-sm-12{% if form.name.errors %} has-error{% endif %}">
     <div class="form-group">
       <label class="control-label col-sm-2" for="id_{{ form.name.name }}">{{ form.name.label }}</label>

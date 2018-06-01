@@ -19,13 +19,11 @@ from urllib.parse import urlparse
 
 from ..rules.name import NameRule
 from ..rules.address import AddressRule
-from ..rules.regexrule import RegexRule
 from ..rules.ruleset import RuleSet
 
 from ..processors.processor import Processor
 from os2webscanner.models.domain_model import Domain
 from os2webscanner.models.scan_model import Scan
-
 
 class Scanner:
     """Represents a scanner which can scan data using configured rules."""
@@ -34,7 +32,8 @@ class Scanner:
         """Load the scanner settings from the given scan ID."""
         # Get scan object from DB
         self.scan_object = Scan.objects.get(pk=scan_id)
-        self.rules_sets = self.scan_object.scanner.rules_sets
+        #TODO check that the scan ID is hat we need to get the right rules sets.
+        self.rules_sets = self.scan_object.scanner.rules_sets.all()
 
         self.rules = self._load_rules()
         self.valid_domains = self.scan_object.domains.filter(
@@ -57,7 +56,7 @@ class Scanner:
 
         for ruleset in self.rules_sets:
             rules.append(RuleSet(name=ruleset.name,
-                                 rules=ruleset.regexrules,
+                                 rules=ruleset.regexrules.all(),
                                  sensitivity=ruleset.sensitivity)
             )
 
@@ -70,6 +69,9 @@ class Scanner:
         #             sensitivity=rule.sensitivity
         #         )
         #     )
+        print('\n\nThe loaded rules are: ')
+        for r in rules:
+            print(str(r) + '\t')
 
         return rules
 
@@ -137,7 +139,13 @@ class Scanner:
         # TODO Need to collate the matches of each set to see if all the rules in the set are matched.
         matches = []
         for rule in self.rules:
+            print('\n\nAttempting to match rule: ')
+            for r in rule:
+                print(str(r) + '\t')
+
             rule_matches = rule.execute(text)
+
+            print('\n\nThe matched rules are: ' + rule_matches + '\n\n')
             #skip a ruleset where not all the rules match
             if not rule.isAllMatch(rule_matches):
                 continue
