@@ -44,14 +44,14 @@ from scrapy.exceptions import DontCloseSpider
 from django.utils import timezone
 
 from scanner.scanner.scanner import Scanner
-from os2webscanner.models.scan_model import Scan
-from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
-from os2webscanner.models.url_model import Url
+from os2webscanner.models import Scan, ConversionQueueItem, Url
 
 import linkchecker
 import logging
 
 import signal
+
+import logging
 
 # Activate timezone from settings
 timezone.activate(timezone.get_default_timezone())
@@ -99,9 +99,8 @@ class ScannerApp:
     """A scanner application which can be run."""
 
     def __init__(self):
-        """
-        Initialize the scanner application.
-        Takes input, argv[1], which is directly related to the scan job id in the database.
+        """Initialize the scanner application.
+
         Updates the scan status and sets the pid.
         """
         self.scan_id = sys.argv[1]
@@ -127,30 +126,22 @@ class ScannerApp:
 
         self.crawler_process = CrawlerProcess(settings)
 
-        # Don't sitemap scan when running over RPC or filescan
-        if hasattr(self.scan_object, 'webscan'):
-            if not self.scan_object.scanner.process_urls:
-                self.sitemap_spider = self.setup_sitemap_spider()
-
-            if (self.scan_object.webscan.do_link_check
-                and self.scan_object.webscan.do_external_link_check):
-                # Do external link check
-                self.external_link_check(self.scanner_spider.external_urls)
-        else:
-            self.sitemap_spider = None
-
+        # Don't sitemap scan when running over RPC
+        if not self.scan_object.scanner.process_urls:
+            self.sitemap_spider = self.setup_sitemap_spider()
         self.scanner_spider = self.setup_scanner_spider()
 
         # Run the crawlers and block
         logging.info('Starting crawler process.')
         self.crawler_process.start()
         logging.info('Crawler process started.')
+        if (self.scanner.scan_object.do_link_check
+                and self.scanner.scan_object.do_external_link_check):
+            # Do external link check
+            self.external_link_check(self.scanner_spider.external_urls)
 
         # Update scan status
         scan_object = Scan.objects.get(pk=self.scan_id)
-        scanner = scan_object.scanner
-        scanner.is_running = False
-        scanner.save()
         scan_object.status = Scan.DONE
         scan_object.pid = None
         scan_object.reason = ""
@@ -201,16 +192,19 @@ class ScannerApp:
     def external_link_check(self, external_urls):
         """Perform external link checking."""
         logging.info("Link checking %d external URLs..." % len(external_urls))
+
         for url in external_urls:
             url_parse = urlparse(url)
             if url_parse.scheme not in ("http", "https"):
                 # We don't want to allow external URL checking of other
                 # schemes (file:// for example)
                 continue
+
             logging.info("Checking external URL %s" % url)
+
             result = linkchecker.check_url(url)
             if result is not None:
-                broken_url = Url(url=url, scan=self.scan_object.webscan,
+                broken_url = Url(url=url, scan=self.scan_object,
                                  status_code=result["status_code"],
                                  status_message=result["status_message"])
                 broken_url.save()

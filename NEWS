@@ -1,3 +1,15 @@
+* Version 1.7.1, May 28. 2018
+
+Hotfix:
+ - Now ignores if digital rights management bit is set for pdf files.
+ - Enhanced logging for pdftohtml conversion subprocess call.
+ - UnicodeEncodeError fixed when doing md5 calculation.
+
+* Version 1.7.0, May 25, 2018
+
+Hotfix:
+ - Webscanner now uses latest version of Scrapy 1.5.0. This solves https scanning problems.
+
 * Version 1.6.1, December 6, 2017
 
 New in this:

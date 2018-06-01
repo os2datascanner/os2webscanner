@@ -19,15 +19,14 @@ import mimetypes
 from os2webscanner.utils import capitalize_first
 import regex
 import logging
+
 from scrapy.spidermiddlewares.httperror import HttpError
 from scrapy.exceptions import IgnoreRequest
-from scrapy.http import Request, HtmlResponse, TextResponse
+from scrapy.http import Request, HtmlResponse
 import re
 import chardet
 import magic
-import errno
-import os
-from os import walk
+import logging
 
 # Use our monkey-patched link extractor
 from ..linkextractor import LxmlLinkExtractor
@@ -36,8 +35,7 @@ from .base_spider import BaseScannerSpider
 
 from ..processors.processor import Processor
 
-from os2webscanner.models.url_model import Url
-from os2webscanner.models.referrerurl_model import ReferrerUrl
+from os2webscanner.models import Url, ReferrerUrl
 from scrapy.utils.response import response_status_message
 
 
@@ -53,65 +51,54 @@ class ScannerSpider(BaseScannerSpider):
 
         The configuration will be loaded from the Scanner.
         """
-        super().__init__(scanner=scanner, *a, **kw)
+        super(ScannerSpider, self).__init__(scanner=scanner, *a, **kw)
 
         self.runner = runner
 
         self.start_urls = []
 
-        self.setup_spider()
-
-    def setup_spider(self):
-        scan_object = self.scanner.scan_object
-        if scan_object.scanner.process_urls:
+        if self.scanner.scan_object.scanner.process_urls:
             # If the scan is run from a web service, use the starting urls
             # from the scanner.
-            self.start_urls = scan_object.scanner.process_urls
+            self.start_urls = self.scanner.scan_object.scanner.process_urls
             self.crawl = False
         else:
             self.crawl = True
             # Otherwise, use the roots of the domains as starting URLs
             logging.info("Initializing spider")
-            if hasattr(scan_object, 'webscan'):
-                for url in self.allowed_domains:
-                    if (
-                                not url.startswith('http://') and
-                                not url.startswith('https://')
-                    ):
-                        url = 'http://%s/' % url
+            for url in self.allowed_domains:
+                if (
+                    not url.startswith('http://') and
+                    not url.startswith('https://')
+                ):
+                    url = 'http://%s/' % url
+                # Remove wildcards
+                url = url.replace('*.', '')
+                logging.info("Start url %s" % str(url))
+                self.start_urls.append(url)
 
-                    # Remove wildcards
-                    url = url.replace('*.', '')
-                    logging.info("Start url %s" % str(url))
-                    self.start_urls.append(url)
-                self.do_last_modified_check = getattr(
-                    scan_object.webscan, "do_last_modified_check"
-                )
-                self.do_last_modified_check_head_request = getattr(
-                    scan_object.webscan, "do_last_modified_check_head_request"
-                )
-                self.link_extractor = LxmlLinkExtractor(
-                    deny_extensions=(),
-                    tags=('a', 'area', 'frame', 'iframe', 'script'),
-                    attrs=('href', 'src')
-                )
-                # Read from WebScanner settings
-                self.referrers = {}
-                self.broken_url_objects = {}
-                # Dict to cache referrer URL objects
-                self.referrer_url_objects = {}
-                self.external_urls = set()
-            else:
-                for path in self.allowed_domains:
-                    logging.info("Start path %s" % str(path))
-                    if not path.startswith('file://'):
-                        path = 'file://%s' % path
+        self.link_extractor = LxmlLinkExtractor(
+            deny_extensions=(),
+            tags=('a', 'area', 'frame', 'iframe', 'script'),
+            attrs=('href', 'src')
+        )
 
-                    self.start_urls.append(path)
+        # Read from Scanner settings
+        scan_object = self.scanner.scan_object
+        self.do_last_modified_check = getattr(
+            scan_object, "do_last_modified_check"
+        )
+        self.do_last_modified_check_head_request = getattr(
+            scan_object, "do_last_modified_check_head_request"
+        )
 
-                self.do_last_modified_check = False
-                self.do_last_modified_check_head_request = False
+        self.referrers = {}
+        self.broken_url_objects = {}
 
+        # Dict to cache referrer URL objects
+        self.referrer_url_objects = {}
+
+        self.external_urls = set()
 
     def start_requests(self):
         """Return requests for all starting URLs AND sitemap URLs."""
@@ -131,22 +118,13 @@ class ScannerSpider(BaseScannerSpider):
             except Exception as e:
                 logging.error("URL failed: {0} ({1})".format(url, str(e)))
 
-        for url in self.start_urls:
-            if hasattr(self.scanner.scan_object, 'filescan'):
-                files = self.file_extractor(url)
-                requests.extend([Request(file, callback=self.parse,
-                                         errback=self.handle_error)
-                                 for file in files])
-            else:
-                requests.append([Request(url, callback=self.parse,
-                                         errback=self.handle_error)])
-
         logging.info("Number of urls to scan %s" % str(len(self.start_urls)))
+        #yield Request(self.start_urls[0], callback=self.parse,
+         #       errback=self.handle_error)
         requests.extend([Request(url, callback=self.parse,
                                  errback=self.handle_error)
                          for url in self.start_urls])
         logging.info("Number of requests %s" % str(len(requests)))
-
         return requests
 
     def parse(self, response):
@@ -158,22 +136,21 @@ class ScannerSpider(BaseScannerSpider):
         self.scan(response)
 
         # Store referrer when doing link checks
-        if hasattr(self.scanner.scan_object, 'webscan'):
-            if self.scanner.scan_object.webscan.do_link_check:
-                source_url = response.request.url
-                for request in requests:
-                    target_url = request.url
-                    self.referrers.setdefault(target_url, []).append(source_url)
-                    if (self.scanner.scan_object.webscan.do_external_link_check and
-                            self.is_offsite(request)):
-                        # Save external URLs for later checking
-                        self.external_urls.add(target_url)
-                    else:
-                        # See if the link points to a broken URL
-                        broken_url = self.broken_url_objects.get(target_url, None)
-                        if broken_url is not None:
-                            # Associate links to the broken URL
-                            self.associate_url_referrers(broken_url)
+        if self.scanner.scan_object.do_link_check:
+            source_url = response.request.url
+            for request in requests:
+                target_url = request.url
+                self.referrers.setdefault(target_url, []).append(source_url)
+                if (self.scanner.scan_object.do_external_link_check and
+                        self.is_offsite(request)):
+                    # Save external URLs for later checking
+                    self.external_urls.add(target_url)
+                else:
+                    # See if the link points to a broken URL
+                    broken_url = self.broken_url_objects.get(target_url, None)
+                    if broken_url is not None:
+                        # Associate links to the broken URL
+                        self.associate_url_referrers(broken_url)
         return requests
 
     def _extract_requests(self, response):
@@ -185,26 +162,6 @@ class ScannerSpider(BaseScannerSpider):
             logging.debug("Extracted links: %s" % links)
             r.extend(Request(x.url, callback=self.parse,
                              errback=self.handle_error) for x in links)
-        elif isinstance(response, TextResponse):
-            # extract altid folder og parse filer
-            files = self.file_extractor(response.request.url)
-            r.extend(Request(x.url, callback=self.parse,
-                              errback=self.handle_error) for x in files)
-        return r
-
-    def file_extractor(self, filepath):
-        path = filepath.replace('file://', '')
-        r = []
-        if os.path.isdir(path) is not True:
-            return r
-        for (dirpath, dirnames, filenames) in walk(path):
-            for filename in filenames:
-                filename = filepath + '/' + filename
-                r.append(filename)
-            for dirname in dirnames:
-                dirname = filepath + '/' + dirname
-                r.append(dirname)
-            break;
         return r
 
     def handle_error(self, failure):
@@ -212,15 +169,7 @@ class ScannerSpider(BaseScannerSpider):
 
         If link checking is enabled, saves the broken URL and referrers.
         """
-        if isinstance(failure.value, IOError) \
-                and failure.value.errno == errno.EISDIR:
-            files = self.file_extractor('file://' + failure.value.filename)
-            request = []
-            request.extend([Request(url, callback=self.parse,
-                                    errback=self.handle_error)
-                            for url in files])
-            return request
-        if (not self.scanner.scan_object.webscan.do_link_check or
+        if (not self.scanner.scan_object.do_link_check or
                 (isinstance(failure.value, IgnoreRequest) and not isinstance(
                     failure.value, HttpError))):
             return
@@ -273,7 +222,7 @@ class ScannerSpider(BaseScannerSpider):
         """Create or get existing ReferrerUrl object."""
         if referrer not in self.referrer_url_objects:
             self.referrer_url_objects[referrer] = ReferrerUrl(
-                url=referrer, scan=self.scanner.scan_object.webscan)
+                url=referrer, scan=self.scanner.scan_object)
             self.referrer_url_objects[referrer].save()
         return self.referrer_url_objects[referrer]
 
@@ -332,7 +281,7 @@ class ScannerSpider(BaseScannerSpider):
                     # the file
                     mime_type = self.magic.from_buffer(response.body)
                     data = response.body
-                    logging.warning(
+                    logging.error(
                         ("Error decoding response as %s. Detected the "
                          "mime type as %s.") % (response.encoding,
                                                 mime_type)
