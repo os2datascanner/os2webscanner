@@ -21,10 +21,12 @@ import pytz
 from lxml import html
 
 import arrow
+import logging
+
+from urllib.parse import unquote
 
 from scrapy import Request
 from scrapy import signals
-import logging
 from scrapy.downloadermiddlewares.redirect import RedirectMiddleware
 from scrapy.downloadermiddlewares.cookies import CookiesMiddleware
 from scrapy.spidermiddlewares.offsite import OffsiteMiddleware
@@ -311,6 +313,7 @@ class LastModifiedCheckMiddleware(object):
         if self.has_been_modified(request, response, spider):
             logging.debug("Page has been modified since Last-Modified %s"
                         % response)
+            # request.method only available for webscanner
             if request.method == 'HEAD':
                 # Issue a new GET request, since the data was updated
                 logging.debug("Issuing a new GET for %s" % request)
@@ -330,14 +333,15 @@ class LastModifiedCheckMiddleware(object):
         else:
             # Add requests for all the links that we know were on the
             # page the last time we visited it.
-            links = self.get_stored_links(response.url, spider)
-            for link in links:
-                req = Request(link.url,
-                              callback=request.callback,
-                              errback=request.errback,
-                              headers={"referer": response.url})
-                logging.debug("Adding request %s" % req)
-                self.crawler.engine.crawl(req, spider)
+            if hasattr(spider.scanner.scan_object, 'webscan'):
+                links = self.get_stored_links(response.url, spider)
+                for link in links:
+                    req = Request(link.url,
+                                  callback=request.callback,
+                                  errback=request.errback,
+                                  headers={"referer": response.url})
+                    logging.debug("Adding request %s" % req)
+                    self.crawler.engine.crawl(req, spider)
             # Ignore the request, since the content has not been modified
             self.stats.inc_value('last_modified_check/pages_skipped')
             raise IgnoreRequest
@@ -383,10 +387,19 @@ class LastModifiedCheckMiddleware(object):
         If there is no stored last modified date, we save one.
         """
         if hasattr(spider.scanner.scan_object, 'filescan'):
-            last_modified = datetime.datetime.fromtimestamp(
-                    os.path.getmtime(
-                        response.url.replace('file://', '')), tz=pytz.utc
-            )
+            try:
+                # Removes unneeded prefix
+                file_path = response.url.replace('file://', '')
+                # Transform URL string into normal string
+                file_path = unquote(file_path)
+                # Retrieves file timestamp from mounted drive
+                last_modified = datetime.datetime.fromtimestamp(
+                        os.path.getmtime(
+                            file_path), tz=pytz.utc
+                )
+            except OSError as e:
+                logging.error('Error occured while getting last modified for file %s' % file_path)
+                logging.error('Error message %s' % e)
         else:
             # Check the Last-Modified header to see if the content has been
             # updated since the last time we checked it.
