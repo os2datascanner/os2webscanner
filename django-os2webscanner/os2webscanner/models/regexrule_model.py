@@ -53,3 +53,12 @@ class RegexRule(models.Model):
     def __unicode__(self):
         """Return the name of the rule."""
         return self.name
+
+    def __str__(self):
+        """
+        Returns a string object repreesentation of this object
+        :return:
+        """
+        return '{\n\tname: ' + self.name + \
+               ',\n\torganization_id: '+ self.organization.name +\
+               ',\n\tmatch_string: ' + self.match_string + '\n}'
