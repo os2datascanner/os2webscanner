@@ -95,7 +95,6 @@ class ScannerSpider(BaseScannerSpider):
                     tags=('a', 'area', 'frame', 'iframe', 'script'),
                     attrs=('href', 'src')
                 )
-                # Read from WebScanner settings
                 self.referrers = {}
                 self.broken_url_objects = {}
                 # Dict to cache referrer URL objects
@@ -136,6 +135,7 @@ class ScannerSpider(BaseScannerSpider):
         for url in self.start_urls:
             if hasattr(self.scanner.scan_object, 'filescan'):
                 files = self.file_extractor(url)
+                # Some of the files are directories. We handle them in handle_error method.
                 requests.extend([Request(file, callback=self.parse,
                                          errback=self.handle_error)
                                  for file in files])
@@ -143,22 +143,22 @@ class ScannerSpider(BaseScannerSpider):
                 requests.append([Request(url, callback=self.parse,
                                          errback=self.handle_error)])
 
-        requests.extend([Request(url, callback=self.parse,
-                                 errback=self.handle_error)
-                         for url in self.start_urls])
+        # requests.extend([Request(url, callback=self.parse,
+        #                          errback=self.handle_error)
+        #                  for url in self.start_urls])
 
         return requests
 
     def parse(self, response):
         """Process a response and follow all links."""
-        if self.crawl:
-            requests = self._extract_requests(response)
-        else:
-            requests = []
-        self.scan(response)
-
+        requests = []
         # Store referrer when doing link checks
         if hasattr(self.scanner.scan_object, 'webscan'):
+            if self.crawl:
+                requests = self._extract_requests(response)
+
+            self.scan(response)
+
             if self.scanner.scan_object.webscan.do_link_check:
                 source_url = response.request.url
                 for request in requests:
@@ -174,18 +174,25 @@ class ScannerSpider(BaseScannerSpider):
                         if broken_url is not None:
                             # Associate links to the broken URL
                             self.associate_url_referrers(broken_url)
+        else:
+            self.scan(response)
+
         return requests
 
     def _extract_requests(self, response):
         """Extract requests from the response."""
         r = []
-        if hasattr(self.scanner.scan_object, 'webscan'):
-            links = self.link_extractor.extract_links(response)
-            r.extend(Request(x.url, callback=self.parse,
-                             errback=self.handle_error) for x in links)
+        links = self.link_extractor.extract_links(response)
+        r.extend(Request(x.url, callback=self.parse,
+                         errback=self.handle_error) for x in links)
         return r
 
     def file_extractor(self, filepath):
+        """
+        Generate sitemap for filescan using walk dir path
+        :param filepath: The path to the files
+        :return: filemap
+        """
         path = filepath.replace('file://', '')
         filemap = []
         if os.path.isdir(path) is not True:
@@ -193,9 +200,11 @@ class ScannerSpider(BaseScannerSpider):
         for (dirpath, dirnames, filenames) in walk(path):
             for filename in filenames:
                 filename = filepath + '/' + filename
+                logging.debug('Filename %s' % filename)
                 filemap.append(filename)
             for dirname in dirnames:
                 dirname = filepath + '/' + dirname
+                logging.debug('Dirname %s' % dirname)
                 filemap.append(dirname)
             break;
 
@@ -206,35 +215,44 @@ class ScannerSpider(BaseScannerSpider):
 
         If link checking is enabled, saves the broken URL and referrers.
         """
-        if isinstance(failure.value, IOError) \
-                and failure.value.errno == errno.EISDIR:
-            files = self.file_extractor('file://' + failure.value.filename)
-            request = []
-            request.extend([Request(url, callback=self.parse,
-                                    errback=self.handle_error)
-                            for url in files])
-            return request
-        if  hasattr(self.scanner.scan_object, 'webscan'):
-                if (not self.scanner.scan_object.webscan.do_link_check or
-                        (isinstance(failure.value, IgnoreRequest) and not isinstance(
-                            failure.value, HttpError))):
-                    return
-        if hasattr(failure.value, "response"):
-            response = failure.value.response
-            url = response.request.url
-            status_code = response.status
-            status_message = response_status_message(status_code)
+        # If scanner is type filescan
+        if  hasattr(self.scanner.scan_object, 'filescan'):
+            # If file is a directory loop through files within
+            if isinstance(failure.value, IOError) \
+                    and failure.value.errno == errno.EISDIR:
+                files = self.file_extractor('file://' + failure.value.filename)
+                request = []
+                request.extend([Request(url, callback=self.parse,
+                                        errback=self.handle_error)
+                                for url in files])
+                return request
+            # If file has not been changes since last, an ignorerequest is returned.
+            elif isinstance(failure.value, IgnoreRequest):
+                return
+        # Else if scanner is type webscan
+        elif  hasattr(self.scanner.scan_object, 'webscan'):
+            # If we should not do link check or failure is ignore request
+            # and it is not a http error we know it is a last-modified check.
+            if (not self.scanner.scan_object.webscan.do_link_check or
+                    (isinstance(failure.value, IgnoreRequest) and not isinstance(
+                        failure.value, HttpError))):
+                return
+            if hasattr(failure.value, "response"):
+                response = failure.value.response
+                url = response.request.url
+                status_code = response.status
+                status_message = response_status_message(status_code)
 
-            if "redirect_urls" in response.request.meta:
-                # Set URL to the original URL, not the URL after redirection
-                url = response.request.meta["redirect_urls"][0]
+                if "redirect_urls" in response.request.meta:
+                    # Set URL to the original URL, not the URL after redirection
+                    url = response.request.meta["redirect_urls"][0]
 
-            referer_header = response.request.headers.get("referer", None)
-        else:
-            url = failure.request.url
-            status_code = -1
-            status_message = "%s" % failure.value
-            referer_header = None
+                referer_header = response.request.headers.get("referer", None)
+            else:
+                url = failure.request.url
+                status_code = -1
+                status_message = "%s" % failure.value
+                referer_header = None
 
         logging.info("Handle Error: %s %s" % (status_message, url))
 
