@@ -35,7 +35,6 @@ class Scanner:
         # Get scan object from DB
         # TODO: Parse object around instead of making db query. However impact should be tested.
         self.scan_object = Scan.objects.get(pk=scan_id)
-        self.rules_sets = self.scan_object.scanner.rules_sets
 
         self.rules = self._load_rules()
         self.valid_domains = self.scan_object.domains.filter(
@@ -45,6 +44,13 @@ class Scanner:
     def _load_rules(self):
         """Load rules based on WebScanner settings."""
         rules = []
+        if self.scan_object.do_cpr_scan:
+            rules.append(CPRRule(
+                do_modulus11=self.scan_object.do_cpr_modulus11,
+                ignore_irrelevant=self.scan_object.do_cpr_ignore_irrelevant,
+                whitelist=self.scan_object.whitelisted_cprs
+                )
+            )
         if self.scan_object.do_name_scan:
             rules.append(
                 NameRule(whitelist=self.scan_object.whitelisted_names,
@@ -55,23 +61,15 @@ class Scanner:
                 AddressRule(whitelist=self.scan_object.whitelisted_addresses,
                             blacklist=self.scan_object.blacklisted_addresses)
             )
-
-        for ruleset in self.rules_sets:
-            rules.append(RuleSet(name=ruleset.name,
-                                 rules=ruleset.regexrules,
-                                 sensitivity=ruleset.sensitivity)
-            )
-
         # Add Regex Rules
-        # for rule in self.scan_object.regex_rules.all():
-        #     rules.append(
-        #         RegexRule(
-        #             name=rule.name,
-        #             match_string=rule.match_string,
-        #             sensitivity=rule.sensitivity
-        #         )
-        #     )
-
+        for rule in self.scan_object.regex_rules.all():
+            rules.append(
+                RegexRule(
+                    name=rule.name,
+                    pattern_strings=rule.patterns.all(),
+                    sensitivity=rule.sensitivity
+                )
+            )
         return rules
 
     def get_exclusion_rules(self):
@@ -135,35 +133,14 @@ class Scanner:
 
         Returns a list of matches.
         """
-        # TODO Need to collate the matches of each set to see if all the rules in the set are matched.
         matches = []
         for rule in self.rules:
             rule_matches = rule.execute(text)
             #skip a ruleset where not all the rules match
-            if not rule.isAllMatch(rule_matches):
+            if not rule.is_all_match(rule_matches):
                 continue
-
             # Associate the rule with the match
             for match in rule_matches:
                 match['matched_rule'] = rule.name
-
             matches.extend(rule_matches)
         return matches
-
-
-    # def execute_rules(self, text):
-    #     """Execute the scanner's rules on the given text.
-    #
-    #     Returns a list of matches.
-    #     """
-    #     # TODO Need to collate the matches of each set to see if all the rules in the set are matched.
-    #     matches = []
-    #     for rule in self.rules:
-    #         rule_matches = rule.execute(text)
-    #
-    #         # Associate the rule with the match
-    #         for match in rule_matches:
-    #             match['matched_rule'] = rule.name
-    #
-    #         matches.extend(rule_matches)
-    #     return matches

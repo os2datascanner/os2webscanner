@@ -54,7 +54,6 @@ from ..forms import FileUploadForm
 
 
 class LoginRequiredMixin(View):
-
     """Include to require login.
 
     If user is "upload only", redirect to upload page."""
@@ -74,7 +73,6 @@ class LoginRequiredMixin(View):
 
 
 class SuperUserRequiredMixin(LoginRequiredMixin):
-
     """Include to require login and superuser."""
 
     @method_decorator(login_required)
@@ -88,7 +86,6 @@ class SuperUserRequiredMixin(LoginRequiredMixin):
 
 
 class RestrictedListView(ListView, LoginRequiredMixin):
-
     """Make sure users only see data that belong to their own organization."""
 
     def get_queryset(self):
@@ -122,14 +119,12 @@ class RestrictedListView(ListView, LoginRequiredMixin):
 
 
 class MainPageView(TemplateView, LoginRequiredMixin):
-
     """Display the main page."""
 
     template_name = 'index.html'
 
 
 class OrganizationList(RestrictedListView):
-
     """Display a list of organizations, superusers only!"""
 
     model = Organization
@@ -145,6 +140,7 @@ class OrganizationList(RestrictedListView):
 
             def top_level(d):
                 return '.'.join(d.strip('/').split('.')[-2:])
+
             tlds = set([top_level(d.url) for d in org.domains.all()])
 
             for tld in tlds:
@@ -167,8 +163,14 @@ class GroupList(RestrictedListView):
     template_name = 'os2webscanner/groups.html'
 
 
-class ReportList(RestrictedListView):
+class RuleList(RestrictedListView):
+    """Displays list of scanners."""
 
+    model = RegexRule
+    template_name = 'os2webscanner/rules.html'
+
+
+class ReportList(RestrictedListView):
     """Displays list of scanners."""
 
     model = Scan
@@ -185,8 +187,8 @@ class ReportList(RestrictedListView):
                 profile = user.profile
                 # TODO: Filter by group here if relevant.
                 if (
-                    profile.is_group_admin or not
-                    profile.organization.do_use_groups
+                        profile.is_group_admin or not
+                profile.organization.do_use_groups
                 ):
                     reports = self.model.objects.filter(
                         scanner__organization=profile.organization
@@ -206,7 +208,6 @@ class ReportList(RestrictedListView):
 # Create/Update/Delete Views.
 
 class RestrictedCreateView(CreateView, LoginRequiredMixin):
-
     """Base class for create views that are limited by user organization."""
 
     def get_form_fields(self):
@@ -256,9 +257,9 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
             self.object = form.save(commit=False)
             self.object.organization = user_profile.organization
             if (
-                user_profile.organization.do_use_groups and not
-                user_profile.is_group_admin and
-                len(user_profile.groups.all())
+                    user_profile.organization.do_use_groups and not
+            user_profile.is_group_admin and
+                    len(user_profile.groups.all())
             ):
                 self.object.group = user_profile.groups.all()[0]
 
@@ -266,7 +267,6 @@ class RestrictedCreateView(CreateView, LoginRequiredMixin):
 
 
 class OrgRestrictedMixin(ModelFormMixin, LoginRequiredMixin):
-
     """Mixin class for views with organization-restricted queryset."""
 
     def get_form_fields(self):
@@ -281,9 +281,9 @@ class OrgRestrictedMixin(ModelFormMixin, LoginRequiredMixin):
             fields.append('organization')
         if organization.do_use_groups:
             if (
-                user.is_superuser or
-                user.profile.is_group_admin or
-                len(user.profile.groups.all()) > 1
+                    user.is_superuser or
+                    user.profile.is_group_admin or
+                    len(user.profile.groups.all()) > 1
             ):
                 do_add_group = True
         if do_add_group and self.model != Group:
@@ -325,8 +325,8 @@ class OrgRestrictedMixin(ModelFormMixin, LoginRequiredMixin):
                 groups = []
 
             if (
-                user_profile.organization.do_use_groups and not
-                user_profile.is_group_admin
+                    user_profile.organization.do_use_groups and not
+            user_profile.is_group_admin
             ):
                 queryset = queryset.filter(
                     Q(group__in=groups) | Q(group__isnull=True)
@@ -337,28 +337,24 @@ class OrgRestrictedMixin(ModelFormMixin, LoginRequiredMixin):
 
 
 class RestrictedUpdateView(UpdateView, OrgRestrictedMixin):
-
     """Base class for updateviews restricted by organiztion."""
 
     pass
 
 
 class RestrictedDetailView(DetailView, OrgRestrictedMixin):
-
     """Base class for detailviews restricted by organiztion."""
 
     pass
 
 
 class RestrictedDeleteView(DeleteView, OrgRestrictedMixin):
-
     """Base class for deleteviews restricted by organiztion."""
 
     pass
 
 
 class OrganizationUpdate(UpdateView, LoginRequiredMixin):
-
     """Create an organization update view."""
 
     model = Organization
@@ -378,7 +374,6 @@ class OrganizationUpdate(UpdateView, LoginRequiredMixin):
 
 
 class GroupCreate(RestrictedCreateView):
-
     """Create a group view."""
 
     fields = ['name', 'contact_email', 'contact_phone', 'user_profiles']
@@ -418,7 +413,6 @@ class GroupCreate(RestrictedCreateView):
 
 
 class GroupUpdate(RestrictedUpdateView):
-
     """Update a domain view."""
 
     model = Group
@@ -451,7 +445,6 @@ class GroupUpdate(RestrictedUpdateView):
 
 
 class GroupDelete(RestrictedDeleteView):
-
     """Delete a domain view."""
 
     model = Group
@@ -461,7 +454,6 @@ class GroupDelete(RestrictedDeleteView):
 
 # Reports stuff
 class ReportDetails(UpdateView, LoginRequiredMixin):
-
     """Display a detailed report summary."""
 
     model = Scan
@@ -514,7 +506,6 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
 
 
 class ReportDelete(DeleteView, LoginRequiredMixin):
-
     """View for deleting a report."""
 
     model = Scan
@@ -538,7 +529,6 @@ class ReportDelete(DeleteView, LoginRequiredMixin):
 
 
 class ScanReportLog(ReportDetails):
-
     """Display ordinary log file for debugging purposes."""
 
     def render_to_response(self, context, **response_kwargs):
@@ -556,7 +546,6 @@ class ScanReportLog(ReportDetails):
 
 
 class CSVReportDetails(ReportDetails):
-
     """Display  full report in CSV format."""
 
     def render_to_response(self, context, **response_kwargs):
@@ -578,7 +567,7 @@ class CSVReportDetails(ReportDetails):
 
         # Print summary header
         writer.writerow(e(['Starttidspunkt', 'Sluttidspunkt', 'Status',
-                        'Totalt antal matches', 'Total antal broken links']))
+                           'Totalt antal matches', 'Total antal broken links']))
         # Print summary
         writer.writerow(
             e(
@@ -613,7 +602,6 @@ class CSVReportDetails(ReportDetails):
 
 
 class DialogSuccess(TemplateView):
-
     """View that handles success for iframe-based dialogs."""
 
     template_name = 'os2webscanner/dialogsuccess.html'
@@ -645,7 +633,6 @@ class DialogSuccess(TemplateView):
 
 
 class SystemStatusView(TemplateView, SuperUserRequiredMixin):
-
     """Display the system status for superusers."""
 
     template_name = 'os2webscanner/system_status.html'
@@ -693,7 +680,6 @@ class SystemStatusView(TemplateView, SuperUserRequiredMixin):
 
 
 class SummaryList(RestrictedListView):
-
     """Displays list of summaries."""
 
     model = Summary
@@ -701,7 +687,6 @@ class SummaryList(RestrictedListView):
 
 
 class SummaryCreate(RestrictedCreateView):
-
     """Create new summary."""
 
     model = Summary
@@ -729,7 +714,6 @@ class SummaryCreate(RestrictedCreateView):
 
 
 class SummaryUpdate(RestrictedUpdateView):
-
     """Edit summary."""
 
     model = Summary
@@ -775,7 +759,6 @@ class SummaryUpdate(RestrictedUpdateView):
 
 
 class SummaryDelete(RestrictedDeleteView):
-
     """Delete summary."""
 
     model = Summary
@@ -783,7 +766,6 @@ class SummaryDelete(RestrictedDeleteView):
 
 
 class SummaryReport(RestrictedDetailView):
-
     """Display report for summary."""
 
     model = Summary
@@ -842,6 +824,7 @@ def file_upload(request):
 
             def to_int(L):
                 return str(ord(L) - ord('A') + 1) if L else ''
+
             params['columns'] = ','.join(
                 map(to_int, form.cleaned_data['column_list'].split(','))
             )
