@@ -2,6 +2,42 @@
 {% block topnav %}{% endblock %}
 {% block rendertype %}iframe-modal{% endblock %}
 
+{% block jquery_script %}
+<script type="text/javascript">
+  (function($) {
+    // adding a new expression
+    $("#button-add-expression").click(function() {
+      var inputField = $("#id_{{ form.match_string.name }}"); // @TODO: We should increment numbering of field
+      var inputClone = $("<div/>", {
+        class: "input-group match_string-container",
+        html: inputField.clone().add($("<span/>", {
+          class: "input-group-btn",
+          html: $("<button/>", {
+            class: "btn btn-default button-remove-expression",
+            type: "button",
+            text: "Fjern udtryk"
+          })
+        }))
+      });
+      inputClone.insertAfter(inputField);      
+    });
+
+    // removing an expression. We need to bind dynamically as fields do not necessarily exist on page load
+    $("body").on("click", ".button-remove-expression", function() {
+      var btn = $(this);
+      var inputValue = btn.closest(".input-group-btn").prev("input").val();
+      if(inputValue) {
+        var confirmation = confirm("Feltet indeholder en værdi. Tryk OK hvis du stadig vil slette feltet.");
+        if(confirmation) {
+          btn.closest(".match_string-container").remove();
+        }
+      } else {
+        btn.closest(".match_string-container").remove();
+      }
+    });
+  })(jQuery);
+</script>
+{% endblock %}
 {% block body %}
 
 {% if form.non_field_errors %}
@@ -93,6 +129,7 @@
           </p>
         {% endif %}
         {% if form.match_string.errors %}{{ form.match_string.errors }}{% endif %}
+        <button id="button-add-expression" type="button" class="btn btn-default">Tilføj udtryk</button>
       </div>
     </div>
   </div>

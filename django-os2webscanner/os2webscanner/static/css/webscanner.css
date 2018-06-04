@@ -141,6 +141,18 @@ display:block;
 .rule-description {
 max-width:20%;
 }
+
+.match_string-container {
+  padding-top:1em;
+}
+#button-add-expression {
+  margin-top:1em;
+  float:right;
+  clear:both;
+}
+
+/* RULES SELECTOR */
+
 #selected_rules {
   margin:0;
   padding:1em 0 0 1em;

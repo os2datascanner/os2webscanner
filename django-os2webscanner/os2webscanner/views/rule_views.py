@@ -74,24 +74,3 @@ class RuleDelete(RestrictedDeleteView):
     model = RegexRule
     fields = ['name', 'match_string', 'description', 'sensitivity']
     success_url = '/rules/'
-
-
-class RulesetList(RestrictedListView):
-
-    """Displays list of rule sets."""
-
-    model = RegexRule
-    template_name = 'os2webscanner/rulesets.html'
-
-
-class RulesetCreate(RestrictedListView):
-
-    """Displays list of rule sets."""
-
-    # TODO: When model is created change to ruleset
-    model = RegexRule
-    template_name = 'os2webscanner/ruleset_form.html'
-
-    def get_success_url(self):
-        """The URL to redirect to after successful creation."""
-        return '/ruleset/%s/created/' % self.object.pk

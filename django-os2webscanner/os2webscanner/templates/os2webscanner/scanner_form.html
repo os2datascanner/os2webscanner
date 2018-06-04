@@ -176,6 +176,23 @@
         <div class="form-group">
           <h5>Indstillinger</h5>
           <div class="checkbox-group">
+            <input type="checkbox" id="id_do_cpr_scan" name="{{ form.do_cpr_scan.name }}" value="{{ form.do_cpr_scan.name }}" {% if form.do_cpr_scan.value %} checked="checked" {% endif %}>
+            <label for="id_{{ form.do_cpr_scan.name }}">
+              CPR
+              {% if form.do_cpr_scan.help_text %}<small>{{ form.do_cpr_scan.help_text }}</small>{% endif %}
+            </label>
+            <input type="checkbox" id="id_{{ form.do_cpr_modulus11.name }}" name="{{ form.do_cpr_modulus11.name }}" value="{{ form.do_cpr_modulus11.name }}" {% if form.do_cpr_modulus11.value %} checked="checked" {% endif %}>
+            <label class="cpr_option" for="id_{{ form.do_cpr_modulus11.name }}">
+              Tjek modulus-11
+              {% if form.do_cpr_modulus11.help_text %}<small>{{ form.do_cpr_modulus11.help_text }}</small>{% endif %}
+            </label>
+            <input type="checkbox" id="id_{{ form.do_cpr_ignore_irrelevant.name }}" name="{{ form.do_cpr_ignore_irrelevant.name }}" value="{{ form.do_cpr_ignore_irrelevant.name }}" {% if form.do_cpr_ignore_irrelevant.value %} checked="checked" {% endif %}>
+            <label class="cpr_option" for="id_{{ form.do_cpr_ignore_irrelevant.name }}">
+              Ignorer ugyldige fødselsdatoer
+              {% if form.do_cpr_ignore_irrelevant.help_text %}<small>{{ form.do_cpr_ignore_irrelevant.help_text }}</small>{% endif %}
+            </label>
+          </div>
+          <div class="checkbox-group">
             <input type="checkbox" id="id_{{ form.do_ocr.name }}" name="{{ form.do_ocr.name }}" value="{{ form.do_ocr.name }}" {% if form.do_ocr.value %} checked="checked" {% endif %}> <label for="id_{{ form.do_ocr.name }}">
 
                         {{ form.do_ocr.label }}
@@ -188,21 +205,11 @@
                         {{ form.do_last_modified_check.label }}
                         {% if form.do_last_modified_check.help_text %}<small>{{ form.do_last_modified_check.help_text }}</small>{% endif %}
                     </label>
-<<<<<<< HEAD
             <input type="checkbox" id="id_{{ form.do_last_modified_check_head_request.name }}" name="{{ form.do_last_modified_check_head_request.name }}" value="{{ form.do_last_modified_check_head_request.name }}" {% if form.do_last_modified_check_head_request.value %} checked="checked" {% endif %}>
             <label for="id_{{ form.do_last_modified_check_head_request.name }}">
                         {{ form.do_last_modified_check_head_request.label }}
                         {% if form.do_last_modified_check_head_request.help_text %}<small>{{ form.do_last_modified_check_head_request.help_text }}</small>{% endif %}
                     </label>
-=======
-            {% if form.do_last_modified_check_head_request %}
-                <input type="checkbox" id="id_{{ form.do_last_modified_check_head_request.name }}" name="{{ form.do_last_modified_check_head_request.name }}" value="{{ form.do_last_modified_check_head_request.name }}" {% if form.do_last_modified_check_head_request.value %} checked="checked" {% endif %}>
-                <label for="id_{{ form.do_last_modified_check_head_request.name }}">
-                            {{ form.do_last_modified_check_head_request.label }}
-                            {% if form.do_last_modified_check_head_request.help_text %}<small>{{ form.do_last_modified_check_head_request.help_text }}</small>{% endif %}
-                        </label>
-            {% endif %}
->>>>>>> feature/20081_poc_of_xmlrpc
           </div>
           <div class="checkbox-group">
             <input type="checkbox" id="id_{{ form.do_link_check.name }}" name="{{ form.do_link_check.name }}" value="{{ form.do_link_check.name }}" {% if form.do_link_check.value %} checked="checked" {% endif %}>
@@ -226,7 +233,23 @@
         </div>
         <div class="form-group">
           <h5>Regler</h5>
-          {% include 'os2webscanner/rules_selector.html' %}
+          <div id="selected_rules" class="clearfix">
+            <div id="rules_list" class="dropup">
+              <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                Tilføj regler
+                <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu-right dropdown-menu" id="available_rules" aria-labelledby="rules_list">
+                <li class="dropdown-header">Filtrer</li>
+                <li><input type="text" id="rule-filter" placeholder="Indtast mindst tre bogstaver"></li>
+                <li class="dropdown-header">{{ form.regex_rules.label }}</li>
+                {% for value, tag in form.regex_rules.field.choices %}
+                <li class="rule" data-rule-id="{{ value }}"><a href="#" data-toggle="tooltip" data-placement="left" title="{{ description }}">{{ tag }}</a></li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>

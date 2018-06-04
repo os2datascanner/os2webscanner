@@ -38,9 +38,9 @@
     $this.attr("data-disabled", ""); // set the data-disabled attribute, so we can't add the item again.
     ruleAnchor.tooltip("destroy"); // disable tooltip
 
-    $("form[name=\"rulesets\"]").append($("<input/>", { // add a hidden input field to the form
+    $this.closest("form").append($("<input/>", { // add a hidden input field to the form
       type: "hidden",
-      name: "rules[]",
+      name: "regex_rules",
       value: ruleId
     }));
 
@@ -62,18 +62,18 @@
     recalcIframeHeight();
   });
 
-  // adding a system rule
-  $("#available_rules").on("click", "[data-systemrule-target]:not([data-disabled])", function() {
-    var $this = $(this);
-    var targ = $("#id_" + $this.attr("data-systemrule-target"));
-    targ.prop("checked", true).trigger("change"); // we need to manually trigger change event, as it doesn't happen automatically when programmatically setting the checked prop
-  });
-
-  // toggling a .checkbox-group input[type="checkbox"]:first-of-type should also toggle the visibility of the parent .checkbox-group
-  $("#selected_rules .checkbox-group input[type=\"checkbox\"]:first-of-type").change(function() {
-    toggleCheckboxGroup($(this));
-    recalcIframeHeight();
-  });
+  // // adding a system rule
+  // $("#available_rules").on("click", "[data-systemrule-target]:not([data-disabled])", function() {
+  //   var $this = $(this);
+  //   var targ = $("#id_" + $this.attr("data-systemrule-target"));
+  //   targ.prop("checked", true).trigger("change"); // we need to manually trigger change event, as it doesn't happen automatically when programmatically setting the checked prop
+  // });
+  //
+  // // toggling a .checkbox-group input[type="checkbox"]:first-of-type should also toggle the visibility of the parent .checkbox-group
+  // $("#selected_rules .checkbox-group input[type=\"checkbox\"]:first-of-type").change(function() {
+  //   toggleCheckboxGroup($(this));
+  //   recalcIframeHeight();
+  // });
 
   // filter the list of rules when search field changes value
   $("#rule-filter").on("textInput input", os2debounce(function() {
@@ -92,8 +92,6 @@
       }
     });
     // we also need to hide headings and separators if an entire section becomes invisible.
-    // @TODO: Cleanup how headings and separators are shown/hidden, i.e. make it consistent whether
-    // second or first group of rules are hidden/shown
     $("#available_rules .dropdown-header").each(function() {
       var header = $(this);
       var nextRules = header.nextUntil(".dropdown-header", ".rule"); // check to see if we're in a section of the list that actually contains rules (i.e. not filter box at the top)
@@ -122,19 +120,19 @@
     $("#available_rules").css("max-height", maxHeight + "px");
   });
 
-  function toggleCheckboxGroup(checkbox) {
-    var state = checkbox.prop("checked");
-    var checkboxGroup = checkbox.parent(".checkbox-group");
-    var ruleLi = $("[data-systemrule-target=\"" + checkbox.attr("id").replace("id_", "") + "\"]");
-    if(state) {
-      checkboxGroup.show();
-      ruleLi.attr("data-disabled", "");
-    } else {
-      checkboxGroup.hide();
-      ruleLi.removeAttr("data-disabled");
-    }
-    handleSubChoices(checkbox);
-  }
+  // function toggleCheckboxGroup(checkbox) {
+  //   var state = checkbox.prop("checked");
+  //   var checkboxGroup = checkbox.parent(".checkbox-group");
+  //   var ruleLi = $("[data-systemrule-target=\"" + checkbox.attr("id").replace("id_", "") + "\"]");
+  //   if(state) {
+  //     checkboxGroup.show();
+  //     ruleLi.attr("data-disabled", "");
+  //   } else {
+  //     checkboxGroup.hide();
+  //     ruleLi.removeAttr("data-disabled");
+  //   }
+  //   handleSubChoices(checkbox);
+  // }
 
   function recalcIframeHeight() { // we need to do this every time we add/remove an item from the rule list
     var thisBodyHeight = $("body").height();

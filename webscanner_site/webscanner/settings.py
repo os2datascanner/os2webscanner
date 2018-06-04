@@ -52,7 +52,7 @@ DEBUG = True
 
 TEMPLATE_DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["webscanner.test"]
 
 # If filescan on the current installation is needed, enable it here
 ENABLE_FILESCAN = True

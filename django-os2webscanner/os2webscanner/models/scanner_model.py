@@ -31,7 +31,6 @@ from recurrence.fields import RecurrenceField
 from .organization_model import Organization
 from .group_model import Group
 from .regexrule_model import RegexRule
-from .rulesset_model import RulesSet
 from .userprofile_model import UserProfile
 
 base_dir = os.path.dirname(
@@ -46,8 +45,6 @@ class Scanner(models.Model):
                             verbose_name='Navn')
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')
-
-    rules_sets = models.ManyToManyField(RulesSet, blank=False, verbose_name='Regler sæt')
 
     group = models.ForeignKey(Group, null=True, blank=True,
                               verbose_name='Gruppe')
