@@ -50,6 +50,12 @@ function handleSubChoices(choice) {
   }
 }
 
+function recalcIframeHeight() { // we need to do this every time we add/remove an item from the rule list
+  var thisBodyHeight = $("body").height();
+  var parentIframe = $(".modal-body iframe", window.parent.document);
+  parentIframe.height(thisBodyHeight);
+}
+
 /* debounce function from https://davidwalsh.name/javascript-debounce-function */
 // Returns a function, that, as long as it continues to be invoked, will not
 // be triggered. The function will be called after it stops being called for

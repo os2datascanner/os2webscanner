@@ -8,12 +8,11 @@
     // adding a new expression
     $("#button-add-expression").click(function() {
       var inputField = $("#{{ form.pattern_0.auto_id }}_container").find("input[type=\"text\"]").last(); // Take the last item instead of just number _1, as we may have added more items
-      var nameParts = inputField.attr("name").split(/(.+_)/, ""); // define .+_ as capturing group so we can get at the delimiter inside nameParts[1]
-      var nameParts = "id_pattern_1".split(/(.+_)/, ""); // define .+_ as capturing group so we can get at the delimiter inside nameParts[1]
+      var nameParts = inputField.attr("name").split(/(.+_)/); // define .+_ as capturing group so we can get at the delimiter inside nameParts[1]
       var baseName = nameParts[1];
       var numInput = parseInt(nameParts[2]);
       var inputClone = inputField.clone();
-      inputClone.attr("name", baseName + (numInput + 1));
+      inputClone.attr("name", baseName + (numInput + 1)).attr("id", "id_" + baseName + (numInput + 1)).val("");
       var inputMarkup = $("<div/>", {
         class: "input-group pattern-container",
         html: inputClone.add($("<span/>", {
@@ -25,11 +24,12 @@
           })
         }))
       });
-      if(numInput == 1) {
+      if(numInput == 0) {
         inputMarkup.insertAfter(inputField); // if we only have the original pattern_1 field, just insert the new field after it
       } else {
         inputMarkup.insertAfter(inputField.closest(".input-group")); // if not, we need to insert new field after containing element, otherwise we'll get nested containers
       }
+      recalcIframeHeight();
     });
 
     // removing an expression. We need to bind dynamically as fields do not necessarily exist on page load
@@ -44,7 +44,28 @@
       } else {
         btn.closest(".pattern-container").remove();
       }
+      cleanupPatternNumbers();
     });
+
+    $("form").submit(function() {
+      // delete any empty expression fields, BUT not the first one
+      $("#{{ form.pattern_0.auto_id }}_container").find("input[type=\"text\"]").filter(function(idx) {
+        return !this.value && idx > 0;
+      }).closest(".pattern-container").remove();
+
+      // clean up the pattern numbers on form submit, just to be safe (even though we already did it when adding a new expression field).
+      cleanupPatternNumbers();
+    });
+
+    // function to clean up pattern numbers, as we need to have them numbered sequentially without gaps
+    function cleanupPatternNumbers() {
+      $("#{{ form.pattern_0.auto_id }}_container").find("input[type=\"text\"]").each(function(idx) {
+        var elm = $(this);
+        var oldName = elm.attr("name").split(/(.+_)/);
+        elm.attr("name", oldName[1] + idx).attr("id", "id_" + oldName[1] + idx);
+      });
+      recalcIframeHeight();
+    }
   })(jQuery);
 </script>
 {% endblock %}
