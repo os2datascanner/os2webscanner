@@ -7,7 +7,7 @@
   (function($) {
     // adding a new expression
     $("#button-add-expression").click(function() {
-      var inputField = $("#{{ form.pattern_1.auto_id }}_container").find("input[type=\"text\"]").last(); // Take the last item instead of just number _1, as we may have added more items
+      var inputField = $("#{{ form.pattern_0.auto_id }}_container").find("input[type=\"text\"]").last(); // Take the last item instead of just number _1, as we may have added more items
       var nameParts = inputField.attr("name").split(/(.+_)/, ""); // define .+_ as capturing group so we can get at the delimiter inside nameParts[1]
       var nameParts = "id_pattern_1".split(/(.+_)/, ""); // define .+_ as capturing group so we can get at the delimiter inside nameParts[1]
       var baseName = nameParts[1];
@@ -128,17 +128,17 @@
   </div>
   {% endif %}    
 
-  <div id="{{ form.pattern_1.auto_id }}_container" class="col-sm-12{% if form.pattern_1.errors %} has-error{% endif %}">
+  <div id="{{ form.pattern_0.auto_id }}_container" class="col-sm-12{% if form.pattern_0.errors %} has-error{% endif %}">
     <div class="form-group">
-      <label class="control-label col-sm-2" for="id_{{ form.pattern_1.name }}">{{ form.pattern_1.label }}</label>
+      <label class="control-label col-sm-2" for="id_{{ form.pattern_0.name }}">{{ form.pattern_0.label }}</label>
       <div class="col-sm-10">
-	<input type="text" class="form-control" name="{{ form.pattern_1.name }}" id="id_{{ form.pattern_1.name }}" {% if form.pattern_1.value %}value="{{ form.pattern_1.value }}"{% endif %}>
-	{% if form.pattern_1.help_text %}
+	<input type="text" class="form-control" name="{{ form.pattern_0.name }}" id="id_{{ form.pattern_0.name }}" {% if form.pattern_0.value %}value="{{ form.pattern_0.value }}"{% endif %}>
+	{% if form.pattern_0.help_text %}
 	  <p>
-            <small>{{ form.pattern_1.help_text }}</small>
+            <small>{{ form.pattern_0.help_text }}</small>
           </p>
         {% endif %}
-        {% if form.pattern_1.errors %}{{ form.pattern_1.errors }}{% endif %}
+        {% if form.pattern_0.errors %}{{ form.pattern_0.errors }}{% endif %}
         <button id="button-add-expression" type="button" class="btn btn-default">Tilføj udtryk</button>
       </div>
     </div>

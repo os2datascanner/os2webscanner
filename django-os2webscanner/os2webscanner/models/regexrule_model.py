@@ -17,7 +17,6 @@
 # source municipalities ( http://www.os2web.dk/ )
 
 from django.db import models
-
 from .group_model import Group
 from .organization_model import Organization
 from .sensitivity_level import Sensitivity
@@ -33,8 +32,6 @@ class RegexRule(models.Model):
                                      verbose_name='Organisation')
     group = models.ForeignKey(Group, null=True, blank=True,
                               verbose_name='Gruppe')
-    match_string = models.CharField(max_length=1024, blank=False,
-                                    verbose_name='Udtryk')
 
     description = models.TextField(verbose_name='Beskrivelse')
     sensitivity = models.IntegerField(choices=Sensitivity.choices,
