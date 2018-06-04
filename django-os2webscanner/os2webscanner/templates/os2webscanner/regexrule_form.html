@@ -7,10 +7,15 @@
   (function($) {
     // adding a new expression
     $("#button-add-expression").click(function() {
-      var inputField = $("#id_{{ form.match_string.name }}"); // @TODO: We should increment numbering of field
-      var inputClone = $("<div/>", {
-        class: "input-group match_string-container",
-        html: inputField.clone().add($("<span/>", {
+      var inputField = $("#{{ form.pattern_1.auto_id }}_container").find("input[type\"text\"]").last(); // Take the last item instead of just number _1, as we may have added more items
+      var nameParts = inputField.attr("name").split(/(.+_)/, ""); // define .+_ as capturing group so we can get at the delimiter inside nameParts[1]
+      var numInput = parseInt(nameParts[2]) + 1;
+      var baseName = nameParts[1];
+      var inputClone = inputField.clone();
+      inputClone.attr("name", baseName + numInput);
+      var inputMarkup = $("<div/>", {
+        class: "input-group pattern-container",
+        html: inputClone.add($("<span/>", {
           class: "input-group-btn",
           html: $("<button/>", {
             class: "btn btn-default button-remove-expression",
@@ -19,7 +24,7 @@
           })
         }))
       });
-      inputClone.insertAfter(inputField);      
+      inputMarkup.insertAfter(inputField);      
     });
 
     // removing an expression. We need to bind dynamically as fields do not necessarily exist on page load
@@ -29,10 +34,10 @@
       if(inputValue) {
         var confirmation = confirm("Feltet indeholder en værdi. Tryk OK hvis du stadig vil slette feltet.");
         if(confirmation) {
-          btn.closest(".match_string-container").remove();
+          btn.closest(".pattern-container").remove();
         }
       } else {
-        btn.closest(".match_string-container").remove();
+        btn.closest(".pattern-container").remove();
       }
     });
   })(jQuery);
@@ -118,17 +123,17 @@
   </div>
   {% endif %}    
 
-  <div id="{{ form.match_string.auto_id }}_container" class="col-sm-12{% if form.match_string.errors %} has-error{% endif %}">
+  <div id="{{ form.pattern_1.auto_id }}_container" class="col-sm-12{% if form.pattern_1.errors %} has-error{% endif %}">
     <div class="form-group">
-      <label class="control-label col-sm-2" for="id_{{ form.match_string.name }}">{{ form.match_string.label }}</label>
+      <label class="control-label col-sm-2" for="id_{{ form.pattern_1.name }}">{{ form.pattern_1.label }}</label>
       <div class="col-sm-10">
-	<input type="text" class="form-control" name="{{ form.match_string.name }}" id="id_{{ form.match_string.name }}" {% if form.match_string.value %}value="{{ form.match_string.value }}"{% endif %}>
-	{% if form.match_string.help_text %}
+	<input type="text" class="form-control" name="{{ form.pattern_1.name }}" id="id_{{ form.pattern_1.name }}" {% if form.pattern_1.value %}value="{{ form.pattern_1.value }}"{% endif %}>
+	{% if form.pattern_1.help_text %}
 	  <p>
-            <small>{{ form.match_string.help_text }}</small>
+            <small>{{ form.pattern_1.help_text }}</small>
           </p>
         {% endif %}
-        {% if form.match_string.errors %}{{ form.match_string.errors }}{% endif %}
+        {% if form.pattern_1.errors %}{{ form.pattern_1.errors }}{% endif %}
         <button id="button-add-expression" type="button" class="btn btn-default">Tilføj udtryk</button>
       </div>
     </div>
