@@ -25,6 +25,7 @@ import codecs
 import random
 import subprocess
 import hashlib
+import traceback
 
 from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
 from os2webscanner.models.md5sum_model import Md5Sum
@@ -33,9 +34,6 @@ from django.db import transaction, IntegrityError, DatabaseError
 from django import db
 from django.utils import timezone
 from django.conf import settings
-
-import logging
-
 
 # Minimum width and height an image must have to be scanned
 MIN_OCR_DIMENSION_BOTH = 7
@@ -78,7 +76,9 @@ def get_image_dimensions(file_path):
     except subprocess.CalledProcessError as e:
         print(e)
         return None
-    return tuple(int(dim.strip()) for dim in dimensions.split("x"))
+    return tuple(int(dim.strip()) for dim in
+                 dimensions.decode('utf-8').split("x")
+                 )
 
 
 class Processor(object):
@@ -186,6 +186,9 @@ class Processor(object):
         """
         # Write data to a temporary file
         # Get temporary directory
+        if not isinstance(data, bytes):
+            data = data.encode('utf-8')
+
         if self.is_md5_known(data, url_object.scan):
             return True
         tmp_dir = url_object.tmp_dir
@@ -198,6 +201,7 @@ class Processor(object):
         f = open(tmp_file_path, 'wb')
         f.write(data)
         f.close()
+        print("Wrote {0} to file {1}".format(url_object.url, tmp_file_path))
 
         # Create a conversion queue item
         new_item = ConversionQueueItem(
@@ -219,15 +223,39 @@ class Processor(object):
             if encoding != 'binary':
                 if encoding == 'unknown-8bit':
                     encoding = 'iso-8859-1'
+
                 f = codecs.open(file_path, "r", encoding=encoding)
             else:
                 f = open(file_path, "rb")
-            self.process(f.read(), url)
+
+            try:
+                data = f.read()
+            except UnicodeDecodeError:
+                url.scan.log_occurrence(
+                        "UTF-8 decoding failed for {0}. Will try and open "
+                        "it with encoding iso-8859-1.".format(file_path)
+                        )
+                f = codecs.open(file_path, "rb", encoding='iso-8859-1',
+                        errors='replace')
+                data = f.read()
+                url.scan.log_occurrence(
+                    "Successfully red the file {0} using encoding iso-8859-1.".format(file_path)
+                )
+            finally:
+                f.close()
+
+            if type(data) is not str:
+                data = data.decode('utf-8')
+            self.process(data, url)
         except Exception as e:
             url.scan.log_occurrence(
                 "process_file failed for url {0}: {1}".format(url.url, str(e))
             )
-            logging.error(repr(e))
+
+            if settings.DEBUG:
+                url.scan.log_occurrence(repr(e))
+                url.scan.log_occurrence(traceback.format_exc())
+
             return False
 
         return True
@@ -250,28 +278,45 @@ class Processor(object):
 
         while executions < self.documents_to_process:
             # Prevent memory leak in standalone scripts
-            db.reset_queries()
+            if settings.DEBUG:
+                db.reset_queries()
             item = self.get_next_queue_item()
             if item is None:
-                time.sleep(1)
+                time.sleep(2)
             else:
                 result = self.handle_queue_item(item)
                 executions = executions + 1
                 if not result:
                     item.status = ConversionQueueItem.FAILED
                     lm = "CONVERSION ERROR: file <{0}>, type <{1}>, URL: {2}"
-                    item.url.scan.log_occurrence(
-                        lm.format(item.file, item.type, item.url.url)
-                    )
+                    lm2 = "CONVERSION ERROR: type <{0}>, URL: {1}"
+                    tb = traceback.format_exc()
+                    try:
+                        item.url.scan.log_occurrence(
+                                lm.format(item.file, item.type, item.url.url)
+                                )
+                    except:
+                        item.url.scan.log_occurrence(
+                                lm2.format(item.type, item.url.url)
+                                )
+
+                    # Try to find out if something went wrong
+                    if settings.DEBUG:
+                        item.url.scan.log_occurrence(tb)
+
                     item.save()
                     item.delete_tmp_dir()
                 else:
                     item.delete()
-                print("%s (%s): %s" % (
-                    item.file_path,
-                    item.url.url,
-                    "success" if result else "fail"
-                ))
+
+                try:
+                    print("(%s): %s" % (
+                            item.url.url,
+                            "success" if result else "fail"
+                            ))
+                except:
+                    print("success" if result else "fail")
+
                 sys.stdout.flush()
 
     @transaction.atomic
@@ -315,8 +360,9 @@ class Processor(object):
                     result.process_id = self.pid
                     result.process_start_time = ltime
                     result.save()
-            except (DatabaseError, IntegrityError):
+            except (DatabaseError, IntegrityError) as e:
                 # Database transaction failed, we just try again
+                print('Error message %s', e)
                 print("".join([
                     "Transaction failed while getting queue item of type ",
                     "'" + self.item_type + "'"
@@ -346,13 +392,15 @@ class Processor(object):
             os.makedirs(tmp_dir)
 
         result = self.convert(item, tmp_dir)
-        # Conversion successful, store MD5 sum.
-        self.store_md5(data, item.url.scan)
+        if result:
+            # Conversion successful, store MD5 sum.
+            self.store_md5(data, item.url.scan)
 
-        if os.path.exists(item.file_path):
-            os.remove(item.file_path)
+            if os.path.exists(item.file_path):
+                os.remove(item.file_path)
 
-        self.add_processed_files(item, tmp_dir)
+            self.add_processed_files(item, tmp_dir)
+
         return result
 
     def convert(self, item, tmp_dir):
@@ -374,6 +422,7 @@ class Processor(object):
                     # Guess the mime type from the file name
                     mime_type, encoding = mimetypes.guess_type(fname)
                     file_path = os.path.join(root, fname)
+                    print("Mime-type: %s" % mime_type)
                     if mime_type is None:
                         # Guess the mime type from the file contents
                         mime_type = self.mime_magic.from_file(file_path)

@@ -188,11 +188,21 @@
                         {{ form.do_last_modified_check.label }}
                         {% if form.do_last_modified_check.help_text %}<small>{{ form.do_last_modified_check.help_text }}</small>{% endif %}
                     </label>
+<<<<<<< HEAD
             <input type="checkbox" id="id_{{ form.do_last_modified_check_head_request.name }}" name="{{ form.do_last_modified_check_head_request.name }}" value="{{ form.do_last_modified_check_head_request.name }}" {% if form.do_last_modified_check_head_request.value %} checked="checked" {% endif %}>
             <label for="id_{{ form.do_last_modified_check_head_request.name }}">
                         {{ form.do_last_modified_check_head_request.label }}
                         {% if form.do_last_modified_check_head_request.help_text %}<small>{{ form.do_last_modified_check_head_request.help_text }}</small>{% endif %}
                     </label>
+=======
+            {% if form.do_last_modified_check_head_request %}
+                <input type="checkbox" id="id_{{ form.do_last_modified_check_head_request.name }}" name="{{ form.do_last_modified_check_head_request.name }}" value="{{ form.do_last_modified_check_head_request.name }}" {% if form.do_last_modified_check_head_request.value %} checked="checked" {% endif %}>
+                <label for="id_{{ form.do_last_modified_check_head_request.name }}">
+                            {{ form.do_last_modified_check_head_request.label }}
+                            {% if form.do_last_modified_check_head_request.help_text %}<small>{{ form.do_last_modified_check_head_request.help_text }}</small>{% endif %}
+                        </label>
+            {% endif %}
+>>>>>>> feature/20081_poc_of_xmlrpc
           </div>
           <div class="checkbox-group">
             <input type="checkbox" id="id_{{ form.do_link_check.name }}" name="{{ form.do_link_check.name }}" value="{{ form.do_link_check.name }}" {% if form.do_link_check.value %} checked="checked" {% endif %}>

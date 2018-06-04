@@ -68,6 +68,10 @@ class Match(models.Model):
                                              self.matched_rule,
                                              self.matched_data, self.url)
 
+    def __str__(self):
+        """Return a string representation of the match."""
+        return str(self.__unicode__())
+
     class Meta:
         abstract = False
 

@@ -15,6 +15,7 @@
 #
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
+import os
 import logging
 import tempfile
 from subprocess import call, CalledProcessError
@@ -48,17 +49,24 @@ class FileDomain(Domain):
         return url
 
     def check_mountpoint(self):
+        """Checks if networkdrive is already mounted."""
+
+        if not self.mountpath or not os.path.isdir(self.mountpath):
+            self.set_mount_path()
+
         response = call('mountpoint ' + self.mountpath, shell=True)
         return response
 
     def set_mount_path(self):
+        if not os.path.isdir(settings.NETWORKDRIVE_TMP_PREFIX):
+            os.makedirs(settings.NETWORKDRIVE_TMP_PREFIX)
+
         tempdir = tempfile.mkdtemp(dir=settings.NETWORKDRIVE_TMP_PREFIX)
         self.mountpath = tempdir
         self.save()
 
     def smbmount(self):
-        if not self.mountpath:
-            self.set_mount_path()
+        """Mounts networkdrive if not already mounted."""
 
         if self.check_mountpoint() is 0:
             return True
@@ -69,21 +77,33 @@ class FileDomain(Domain):
         # What if folder is unmounted during scan??
         # If we decide that only one scan can take place at the time on a
         # filedomain then we could use check_mountpoint as filescan lock
-        if self.authentication:
-            import pdb; pdb.set_trace()
-            password = decrypt(bytes(self.authentication.iv), bytes(self.authentication.ciphertext))
-            command = 'sudo mount -t cifs ' + self.root_url + ' ' + self.mountpath + ' -o username=' \
-                      + self.authentication.username + ',password=' + password
-            #try:
-            response = call(command, shell=True)
-            if response is 1:
-                return False
-            """except CalledProcessError as cpe:
-                logger.error('Error occured while mounting drive: %s', self.root_url)
-                logger.error('Error message %s', cpe)
-                return self.MOUNT_FAILED"""
+        command = 'sudo mount -t cifs ' + self.root_url + ' ' + self.mountpath + ' -o iocharset=utf8'
 
-            return True
+        if self.authentication.username != '':
+            command += ',username=' + self.authentication.username
+        if len(self.authentication.ciphertext) > 0:
+            password = decrypt(bytes(self.authentication.iv), bytes(self.authentication.ciphertext))
+            command += ',password=' + password
+        if self.authentication.domain != '':
+            command += ',domain=' + self.authentication.domain
+
+        response = call(command, shell=True)
+
+        if response is 1:
+            return False
+        # try:
+        # except CalledProcessError as cpe:
+        #     logger.error('Error occured while mounting drive: %s', self.root_url)
+        #     logger.error('Error message %s', cpe)
+        #     return self.MOUNT_FAILED
+
+        return True
+
+    def smbunmount(self):
+        """Unmounts networkdrive if mounted."""
+        if self.check_mountpoint() is 0:
+            call('sudo umount -l ' + self.mount_path, shell=True)
+            call('sudo umount -f ' + self.mount_path, shell=True)
 
     def __str__(self):
         """Return the URL for the domain."""

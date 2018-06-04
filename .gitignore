@@ -12,6 +12,3 @@ django-os2webscanner/django.os2webscanner.egg-info
 *.log
 ._*
 **DS_Store
-#Ignore django files
-Pipfile
-Pipfile.lock

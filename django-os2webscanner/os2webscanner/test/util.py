@@ -4,7 +4,6 @@ from ..models.organization_model import Organization
 from ..models.filedomain_model import FileDomain
 
 
-
 class CreateOrganization(object):
 
     def create_organization(self):

@@ -185,7 +185,10 @@ def match_cprs(text, do_modulus11=True, ignore_irrelevant=True,
             continue
         valid_date = date_check(cpr, ignore_irrelevant)
         if do_modulus11:
-            valid_modulus11 = modulus11_check(cpr)
+            try:
+                valid_modulus11 = modulus11_check(cpr)
+            except ValueError:
+                valid_modulus11 = True
         else:
             valid_modulus11 = True
         original_cpr = m.group(0)

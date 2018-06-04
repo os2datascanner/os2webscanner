@@ -15,15 +15,18 @@
 # source municipalities ( http://www.os2web.dk/ )
 """Middleware for the scanner."""
 
+import os
 import datetime
 import pytz
 from lxml import html
 
 import arrow
+import logging
+
+from urllib.parse import unquote
 
 from scrapy import Request
 from scrapy import signals
-import logging
 from scrapy.downloadermiddlewares.redirect import RedirectMiddleware
 from scrapy.downloadermiddlewares.cookies import CookiesMiddleware
 from scrapy.spidermiddlewares.offsite import OffsiteMiddleware
@@ -310,6 +313,7 @@ class LastModifiedCheckMiddleware(object):
         if self.has_been_modified(request, response, spider):
             logging.debug("Page has been modified since Last-Modified %s"
                         % response)
+            # request.method only available for webscanner
             if request.method == 'HEAD':
                 # Issue a new GET request, since the data was updated
                 logging.debug("Issuing a new GET for %s" % request)
@@ -329,14 +333,15 @@ class LastModifiedCheckMiddleware(object):
         else:
             # Add requests for all the links that we know were on the
             # page the last time we visited it.
-            links = self.get_stored_links(response.url, spider)
-            for link in links:
-                req = Request(link.url,
-                              callback=request.callback,
-                              errback=request.errback,
-                              headers={"referer": response.url})
-                logging.debug("Adding request %s" % req)
-                self.crawler.engine.crawl(req, spider)
+            if hasattr(spider.scanner.scan_object, 'webscan'):
+                links = self.get_stored_links(response.url, spider)
+                for link in links:
+                    req = Request(link.url,
+                                  callback=request.callback,
+                                  errback=request.errback,
+                                  headers={"referer": response.url})
+                    logging.debug("Adding request %s" % req)
+                    self.crawler.engine.crawl(req, spider)
             # Ignore the request, since the content has not been modified
             self.stats.inc_value('last_modified_check/pages_skipped')
             raise IgnoreRequest
@@ -381,56 +386,71 @@ class LastModifiedCheckMiddleware(object):
         If the response has been modified, we update the database.
         If there is no stored last modified date, we save one.
         """
-        # Check the Last-Modified header to see if the content has been
-        # updated since the last time we checked it.
-        last_modified_header = response.headers.get("Last-Modified", None)
-        if last_modified_header is not None:
-            last_modified_header_date = datetime.datetime.fromtimestamp(
-                mktime_tz(parsedate_tz(last_modified_header.decode('utf-8'))), tz=pytz.utc
-            )
+        if hasattr(spider.scanner.scan_object, 'filescan'):
+            try:
+                # Removes unneeded prefix
+                file_path = response.url.replace('file://', '')
+                # Transform URL string into normal string
+                file_path = unquote(file_path)
+                # Retrieves file timestamp from mounted drive
+                last_modified = datetime.datetime.fromtimestamp(
+                        os.path.getmtime(
+                            file_path), tz=pytz.utc
+                )
+            except OSError as e:
+                logging.error('Error occured while getting last modified for file %s' % file_path)
+                logging.error('Error message %s' % e)
         else:
-            last_modified_header_date = None
-
-        if last_modified_header_date is None and request.method == 'GET':
-            content_type_header = response.headers.get(
-                "Content-Type", None
-            ).decode('utf-8')
-            if content_type_header.startswith("text/html"):
-                # TODO: Check meta tag.
-                # TODO: This is correct, but find out where it goes :-)
-                try:
-                    body_html = html.fromstring(response.body)
-                except:
-                    logging.info('error occured.')
-                meta_dict = {list(el.values())[0]: list(el.values())[1]
-                             for el in body_html.findall('head/meta')}
-                if 'last-modified' in meta_dict:
-                    lm = meta_dict['last-modified']
-                    try:
-                        last_modified_header_date = arrow.get(lm).datetime
-                    except:
-                        logging.error(
-                            "Date format error on last modied: {0}".format(lm)
-                        )
-        # lastmod comes from a sitemap.xml file
-        sitemap_lastmod_date = request.meta.get("lastmod", None)
-        if sitemap_lastmod_date is None:
-            last_modified = last_modified_header_date
-            logging.debug("Using header's last-modified date: %s"
-                        % last_modified)
-        else:
-            if last_modified_header_date is None:
-                # No Last-Modified header, use the lastmod from the sitemap
-                last_modified = sitemap_lastmod_date
-                logging.debug("Using lastmod from sitemap %s" % last_modified)
+            # Check the Last-Modified header to see if the content has been
+            # updated since the last time we checked it.
+            last_modified_header = response.headers.get("Last-Modified", None)
+            if last_modified_header is not None:
+                last_modified_header_date = datetime.datetime.fromtimestamp(
+                    mktime_tz(parsedate_tz(last_modified_header.decode('utf-8'))), tz=pytz.utc
+                )
             else:
-                # Take the most recent of the two
-                logging.debug("Taking most recent of (header) %sand (sitemap) %s"
-                            % (last_modified_header_date,
-                                sitemap_lastmod_date))
-                last_modified = max(last_modified_header_date,
-                                    sitemap_lastmod_date)
-                logging.debug("Last modified %s" % last_modified)
+                last_modified_header_date = None
+
+            if last_modified_header_date is None and request.method == 'GET':
+                content_type_header = response.headers.get(
+                    "Content-Type", None
+                ).decode('utf-8')
+                if content_type_header.startswith("text/html"):
+                    # TODO: Check meta tag.
+                    # TODO: This is correct, but find out where it goes :-)
+                    try:
+                        body_html = html.fromstring(response.body)
+                    except:
+                        logging.info('error occured.')
+                    meta_dict = {list(el.values())[0]: list(el.values())[1]
+                                 for el in body_html.findall('head/meta')}
+                    if 'last-modified' in meta_dict:
+                        lm = meta_dict['last-modified']
+                        try:
+                            last_modified_header_date = arrow.get(lm).datetime
+                        except:
+                            logging.error(
+                                "Date format error on last modied: {0}".format(lm)
+                            )
+            # lastmod comes from a sitemap.xml file
+            sitemap_lastmod_date = request.meta.get("lastmod", None)
+            if sitemap_lastmod_date is None:
+                last_modified = last_modified_header_date
+                logging.debug("Using header's last-modified date: %s"
+                            % last_modified)
+            else:
+                if last_modified_header_date is None:
+                    # No Last-Modified header, use the lastmod from the sitemap
+                    last_modified = sitemap_lastmod_date
+                    logging.debug("Using lastmod from sitemap %s" % last_modified)
+                else:
+                    # Take the most recent of the two
+                    logging.debug("Taking most recent of (header) %sand (sitemap) %s"
+                                % (last_modified_header_date,
+                                    sitemap_lastmod_date))
+                    last_modified = max(last_modified_header_date,
+                                        sitemap_lastmod_date)
+                    logging.debug("Last modified %s" % last_modified)
 
         if last_modified is not None:
             # Check against the database

@@ -23,7 +23,6 @@ import pep8
 from django.test import TestCase
 from django.conf import settings
 
-from os2webscanner.models.domain_model import Domain
 from os2webscanner.models.webdomain_model import WebDomain
 from os2webscanner.models.organization_model import Organization
 from os2webscanner.models.webscanner_model import WebScanner

@@ -21,3 +21,6 @@ class Md5Sum(models.Model):
 
     def __unicode__(self):
         return u"{0}: {1}".format(self.organization.name, self.md5)
+
+    def __str__(self):
+        return u"{0}: {1}".format(self.organization.name, self.md5)
