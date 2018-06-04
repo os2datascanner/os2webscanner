@@ -52,3 +52,11 @@ class WebScannerAskRun(ScannerAskRun):
     """Prompt for starting web scan, validate first."""
 
     model = WebScanner
+
+
+class WebScannerRun(ScannerRun):
+
+    """View that handles starting of a web scanner run."""
+
+    model = WebScanner
+

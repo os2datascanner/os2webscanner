@@ -22,8 +22,10 @@ import django.contrib.auth.views
 
 from .views.views import MainPageView
 from .views.views import CSVReportDetails, ReportDetails, ReportList, ReportDelete
-from .views.scanner_views import WebScannerCreate, WebScannerUpdate, FileScannerCreate, FileScannerUpdate, \
-    WebScannerDelete, FileScannerDelete, WebScannerRun, WebScannerAskRun, FileScannerRun, FileScannerAskRun, WebScannerList, FileScannerList
+from .views.webscanner_views import WebScannerCreate, WebScannerUpdate, WebScannerDelete, WebScannerRun, \
+    WebScannerAskRun, WebScannerList
+from .views.filescanner_views import FileScannerCreate, FileScannerRun, FileScannerAskRun, FileScannerUpdate, \
+    FileScannerDelete, FileScannerList
 from .views.views import ScanReportLog, OrganizationUpdate
 from .views.domain_views import WebDomainUpdate, FileDomainUpdate, DomainValidate, DomainDelete, \
     WebDomainList, FileDomainList, WebDomainCreate, FileDomainCreate
