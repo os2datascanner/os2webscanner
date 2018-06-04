@@ -7,7 +7,7 @@
   (function($) {
     // adding a new expression
     $("#button-add-expression").click(function() {
-      var inputField = $("#{{ form.pattern_1.auto_id }}_container").find("input[type\"text\"]").last(); // Take the last item instead of just number _1, as we may have added more items
+      var inputField = $("#{{ form.pattern_1.auto_id }}_container").find("input[type=\"text\"]").last(); // Take the last item instead of just number _1, as we may have added more items
       var nameParts = inputField.attr("name").split(/(.+_)/, ""); // define .+_ as capturing group so we can get at the delimiter inside nameParts[1]
       var numInput = parseInt(nameParts[2]) + 1;
       var baseName = nameParts[1];
