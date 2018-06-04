@@ -9,10 +9,11 @@
     $("#button-add-expression").click(function() {
       var inputField = $("#{{ form.pattern_1.auto_id }}_container").find("input[type=\"text\"]").last(); // Take the last item instead of just number _1, as we may have added more items
       var nameParts = inputField.attr("name").split(/(.+_)/, ""); // define .+_ as capturing group so we can get at the delimiter inside nameParts[1]
-      var numInput = parseInt(nameParts[2]) + 1;
+      var nameParts = "id_pattern_1".split(/(.+_)/, ""); // define .+_ as capturing group so we can get at the delimiter inside nameParts[1]
       var baseName = nameParts[1];
+      var numInput = parseInt(nameParts[2]);
       var inputClone = inputField.clone();
-      inputClone.attr("name", baseName + numInput);
+      inputClone.attr("name", baseName + (numInput + 1));
       var inputMarkup = $("<div/>", {
         class: "input-group pattern-container",
         html: inputClone.add($("<span/>", {
@@ -24,7 +25,11 @@
           })
         }))
       });
-      inputMarkup.insertAfter(inputField);      
+      if(numInput == 1) {
+        inputMarkup.insertAfter(inputField); // if we only have the original pattern_1 field, just insert the new field after it
+      } else {
+        inputMarkup.insertAfter(inputField.closest(".input-group")); // if not, we need to insert new field after containing element, otherwise we'll get nested containers
+      }
     });
 
     // removing an expression. We need to bind dynamically as fields do not necessarily exist on page load
