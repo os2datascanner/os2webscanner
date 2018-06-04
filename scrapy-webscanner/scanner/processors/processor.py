@@ -422,7 +422,6 @@ class Processor(object):
                     # Guess the mime type from the file name
                     mime_type, encoding = mimetypes.guess_type(fname)
                     file_path = os.path.join(root, fname)
-                    print("Mime-type: %s" % mime_type)
                     if mime_type is None:
                         # Guess the mime type from the file contents
                         mime_type = self.mime_magic.from_file(file_path)
