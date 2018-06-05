@@ -143,10 +143,6 @@ class ScannerSpider(BaseScannerSpider):
                 requests.append([Request(url, callback=self.parse,
                                          errback=self.handle_error)])
 
-        # requests.extend([Request(url, callback=self.parse,
-        #                          errback=self.handle_error)
-        #                  for url in self.start_urls])
-
         return requests
 
     def parse(self, response):
@@ -200,11 +196,9 @@ class ScannerSpider(BaseScannerSpider):
         for (dirpath, dirnames, filenames) in walk(path):
             for filename in filenames:
                 filename = filepath + '/' + filename
-                logging.debug('Filename %s' % filename)
                 filemap.append(filename)
             for dirname in dirnames:
                 dirname = filepath + '/' + dirname
-                logging.debug('Dirname %s' % dirname)
                 filemap.append(dirname)
             break;
 
