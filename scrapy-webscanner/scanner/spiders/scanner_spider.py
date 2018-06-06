@@ -63,8 +63,8 @@ class ScannerSpider(BaseScannerSpider):
 
     def setup_spider(self):
         scan_object = self.scanner.scan_object
+        # If the scan is run from a web service, use the starting urls
         if scan_object.scanner.process_urls:
-            # If the scan is run from a web service, use the starting urls
             # from the scanner.
             self.start_urls = scan_object.scanner.process_urls
             self.crawl = False
@@ -142,6 +142,10 @@ class ScannerSpider(BaseScannerSpider):
             else:
                 requests.append([Request(url, callback=self.parse,
                                          errback=self.handle_error)])
+
+        requests.extend([Request(url, callback=self.parse,
+                                 errback=self.handle_error)
+                         for url in self.start_urls])
 
         return requests
 
