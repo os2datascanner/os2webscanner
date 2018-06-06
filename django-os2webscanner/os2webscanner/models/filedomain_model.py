@@ -89,13 +89,9 @@ class FileDomain(Domain):
 
         response = call(command, shell=True)
 
-        if response is 1:
+        if response is not 0:
+            logger.error('Mount failed: %s' % response)
             return False
-        # try:
-        # except CalledProcessError as cpe:
-        #     logger.error('Error occured while mounting drive: %s', self.root_url)
-        #     logger.error('Error message %s', cpe)
-        #     return self.MOUNT_FAILED
 
         return True
 
