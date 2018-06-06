@@ -137,6 +137,7 @@ class ScannerSpider(BaseScannerSpider):
                 files = self.file_extractor(url)
                 # Some of the files are directories. We handle them in handle_error method.
                 for file in files:
+                    logging.debug('File to scan {0}'.format(file))
                     requests.append(Request(file, callback=self.scan,
                              errback=self.handle_error))
 
@@ -193,9 +194,11 @@ class ScannerSpider(BaseScannerSpider):
         for (dirpath, dirnames, filenames) in walk(path):
             for filename in filenames:
                 filename = filepath + '/' + filename
+                logging.debug('Filename: {0}'.format(filename))
                 filemap.append(filename)
             for dirname in dirnames:
                 dirname = filepath + '/' + dirname
+                logging.debug('Dirname: {0}'.format(dirname))
                 filemap.append(dirname)
             break;
 
@@ -211,6 +214,7 @@ class ScannerSpider(BaseScannerSpider):
             # If file is a directory loop through files within
             if isinstance(failure.value, IOError) \
                     and failure.value.errno == errno.EISDIR:
+                logging.debug('File that is failing: {0}'.format(failure.value.filename))
                 files = self.file_extractor('file://' + failure.value.filename)
                 request = []
                 request.extend([Request(file, callback=self.scan,
