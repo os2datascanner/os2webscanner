@@ -136,46 +136,39 @@ class ScannerSpider(BaseScannerSpider):
             if hasattr(self.scanner.scan_object, 'filescan'):
                 files = self.file_extractor(url)
                 # Some of the files are directories. We handle them in handle_error method.
-                requests.extend([Request(file, callback=self.parse,
-                                         errback=self.handle_error)
-                                 for file in files])
+                for file in files:
+                    requests.append(Request(file, callback=self.scan,
+                             errback=self.handle_error))
+
             else:
-                requests.append([Request(url, callback=self.parse,
-                                         errback=self.handle_error)])
-
-        requests.extend([Request(url, callback=self.parse,
-                                 errback=self.handle_error)
-                         for url in self.start_urls])
-
+                requests.append(Request(url, callback=self.parse,
+                                         errback=self.handle_error))
         return requests
 
     def parse(self, response):
         """Process a response and follow all links."""
-        requests = []
-        # Store referrer when doing link checks
-        if hasattr(self.scanner.scan_object, 'webscan'):
-            if self.crawl:
-                requests = self._extract_requests(response)
-
-            self.scan(response)
-
-            if self.scanner.scan_object.webscan.do_link_check:
-                source_url = response.request.url
-                for request in requests:
-                    target_url = request.url
-                    self.referrers.setdefault(target_url, []).append(source_url)
-                    if (self.scanner.scan_object.webscan.do_external_link_check and
-                            self.is_offsite(request)):
-                        # Save external URLs for later checking
-                        self.external_urls.add(target_url)
-                    else:
-                        # See if the link points to a broken URL
-                        broken_url = self.broken_url_objects.get(target_url, None)
-                        if broken_url is not None:
-                            # Associate links to the broken URL
-                            self.associate_url_referrers(broken_url)
+        if self.crawl:
+            requests = self._extract_requests(response)
         else:
-            self.scan(response)
+            requests = []
+
+        self.scan(response)
+
+        if self.scanner.scan_object.webscan.do_link_check:
+            source_url = response.request.url
+            for request in requests:
+                target_url = request.url
+                self.referrers.setdefault(target_url, []).append(source_url)
+                if (self.scanner.scan_object.webscan.do_external_link_check and
+                        self.is_offsite(request)):
+                    # Save external URLs for later checking
+                    self.external_urls.add(target_url)
+                else:
+                    # See if the link points to a broken URL
+                    broken_url = self.broken_url_objects.get(target_url, None)
+                    if broken_url is not None:
+                        # Associate links to the broken URL
+                        self.associate_url_referrers(broken_url)
 
         return requests
 
@@ -220,9 +213,9 @@ class ScannerSpider(BaseScannerSpider):
                     and failure.value.errno == errno.EISDIR:
                 files = self.file_extractor('file://' + failure.value.filename)
                 request = []
-                request.extend([Request(url, callback=self.parse,
+                request.extend([Request(file, callback=self.scan,
                                         errback=self.handle_error)
-                                for url in files])
+                                for file in files])
                 return request
             # If file has not been changes since last, an ignorerequest is returned.
             elif isinstance(failure.value, IgnoreRequest):
@@ -301,10 +294,8 @@ class ScannerSpider(BaseScannerSpider):
         data, mime_type = self.check_encoding(mime_type, response)
 
         # Save the URL item to the database
-        if (
-            Processor.mimetype_to_processor_type(mime_type) == 'ocr' and not
-            self.scanner.scan_object.do_ocr
-        ):
+        if (Processor.mimetype_to_processor_type(mime_type) == 'ocr'
+            and not self.scanner.scan_object.do_ocr):
             # Ignore this URL
             return
 
