@@ -32,6 +32,8 @@ from .userprofile_model import UserProfile
 from .domain_model import Domain
 from .scanner_model import Scanner
 
+timezone.activate(timezone.get_default_timezone())
+
 
 class Scan(models.Model):
 
@@ -241,19 +243,16 @@ class Scan(models.Model):
         used by the scan.
         """
         # Pre-save stuff
-        if (
-                        self.status in [Scan.DONE, Scan.FAILED] and
-                    (self._old_status != self.status)
-        ):
+        if (self.status in [Scan.DONE, Scan.FAILED] and
+                    (self._old_status != self.status)):
             self.end_time = datetime.datetime.now(tz=timezone.utc)
+
         # Actual save
         super().save(*args, **kwargs)
         # Post-save stuff
 
-        if (
-                        self.status in [Scan.DONE, Scan.FAILED] and
-                    (self._old_status != self.status)
-        ):
+        if (self.status in [Scan.DONE, Scan.FAILED] and
+                    (self._old_status != self.status)):
             # Send email
             from os2webscanner.utils import notify_user
             try:
@@ -353,6 +352,36 @@ class Scan(models.Model):
         """Get the URL for this report - used to format URLs."""
         from django.core.urlresolvers import reverse
         return reverse('report', args=[str(self.id)])
+
+    def set_scan_status_start(self):
+        # Update start_time to now and status to STARTED
+        scanner = self.scanner
+        scanner.is_running = True
+        scanner.save()
+        self.start_time = datetime.datetime.now(tz=timezone.utc)
+        self.status = Scan.STARTED
+        self.reason = ""
+        self.pid = os.getpid()
+        self.save()
+
+    def set_scan_status_done(self):
+        scanner = self.scanner
+        scanner.is_running = False
+        scanner.save()
+        self.status = Scan.DONE
+        self.pid = None
+        self.reason = ""
+        self.save()
+
+    def set_scan_status_failed(self):
+        self.pid = None
+        self.status = Scan.FAILED
+        scanner = self.scanner
+        scanner.is_running = False
+        scanner.save()
+        self.reason = "Killed"
+        # TODO: Remove all non-processed conversion queue items.
+        self.save()
 
     class Meta:
         abstract = False
