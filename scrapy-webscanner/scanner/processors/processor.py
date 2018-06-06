@@ -17,6 +17,7 @@
 
 
 import time
+import datetime
 import os
 import mimetypes
 import sys
@@ -74,11 +75,15 @@ def get_image_dimensions(file_path):
         dimensions = subprocess.check_output(["identify", "-format", "%wx%h",
                                               file_path])
     except subprocess.CalledProcessError as e:
-        print(e)
+        datetime_print(e)
         return None
     return tuple(int(dim.strip()) for dim in
                  dimensions.decode('utf-8').split("x")
                  )
+
+
+def datetime_print(line_to_print):
+    print('{0} : {1}'.format(datetime.datetime.now(), line_to_print))
 
 
 class Processor(object):
@@ -201,7 +206,10 @@ class Processor(object):
         f = open(tmp_file_path, 'wb')
         f.write(data)
         f.close()
-        print("Wrote {0} to file {1}".format(url_object.url, tmp_file_path))
+        datetime_print(" Wrote {1} to file {2}".format(
+            url_object.url,
+            tmp_file_path)
+        )
 
         # Create a conversion queue item
         new_item = ConversionQueueItem(
@@ -270,7 +278,7 @@ class Processor(object):
         If there are no items to process, waits 1 second before trying
         to get the next queue item.
         """
-        print("Starting processing queue items of type %s, pid %s" % (
+        datetime_print("Starting processing queue items of type %s, pid %s" % (
             self.item_type, self.pid
         ))
         sys.stdout.flush()
@@ -310,12 +318,12 @@ class Processor(object):
                     item.delete()
 
                 try:
-                    print("(%s): %s" % (
+                    datetime_print("(%s): %s" % (
                             item.url.url,
                             "success" if result else "fail"
                             ))
                 except:
-                    print("success" if result else "fail")
+                    datetime_print("success" if result else "fail")
 
                 sys.stdout.flush()
 
@@ -362,11 +370,10 @@ class Processor(object):
                     result.save()
             except (DatabaseError, IntegrityError) as e:
                 # Database transaction failed, we just try again
-                print('Error message %s', e)
-                print("".join([
-                    "Transaction failed while getting queue item of type ",
-                    "'" + self.item_type + "'"
-                ]))
+                datetime_print('Error message {1}'.format(e))
+                datetime_print('Transaction failed while getting queue item of type {1}'.format(
+                    self.item_type)
+                )
                 result = None
             except IndexError:
                 # Nothing in the queue, return None
@@ -385,6 +392,7 @@ class Processor(object):
             data = f.read()
             if self.is_md5_known(data, item.url.scan):
                 # Already processed this file, nothing more to do
+                datetime_print('MD5 sum is already known for file %s' % item.url)
                 return True
 
         tmp_dir = item.tmp_dir
@@ -467,7 +475,7 @@ class Processor(object):
                 except ValueError:
                     continue
         if ignored_ocr_count > 0:
-            print("Ignored %d extracted images because the dimensions were"
+            datetime_print("Ignored %d extracted images because the dimensions were"
                   "small (width AND height must be >= %d) AND (width OR "
                   "height must be >= %d))" % (ignored_ocr_count,
                                               MIN_OCR_DIMENSION_BOTH,
