@@ -248,6 +248,7 @@ class ScannerAskRun(RestrictedDetailView):
             error_message = Scanner.NO_VALID_DOMAINS
         else:
             ok = True
+
         context['ok'] = ok
         if not ok:
             context['error_message'] = error_message
@@ -282,6 +283,7 @@ class ScannerRun(RestrictedDetailView):
         result = self.object.run(user=request.user)
         context = self.get_context_data(object=self.object)
         context['success'] = isinstance(result, Scan)
+
         if not context['success']:
             context['error_message'] = result
         else:
