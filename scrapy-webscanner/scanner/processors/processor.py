@@ -208,7 +208,7 @@ class Processor(object):
         f = open(tmp_file_path, 'wb')
         f.write(data)
         f.close()
-        datetime_print(" Wrote {1} to file {2}".format(
+        datetime_print("Wrote {0} to file {1}".format(
             url_object.url,
             tmp_file_path)
         )
