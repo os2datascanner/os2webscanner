@@ -194,11 +194,11 @@ class ScannerSpider(BaseScannerSpider):
         for (dirpath, dirnames, filenames) in walk(path):
             for filename in filenames:
                 filename = filepath + '/' + filename
-                logging.debug('Filename: {0}'.format(filename))
+                # logging.debug('Filename: {0}'.format(filename))
                 filemap.append(filename)
             for dirname in dirnames:
                 dirname = filepath + '/' + dirname
-                logging.debug('Dirname: {0}'.format(dirname))
+                # logging.debug('Dirname: {0}'.format(dirname))
                 filemap.append(dirname)
             break;
 
@@ -216,11 +216,12 @@ class ScannerSpider(BaseScannerSpider):
                     and failure.value.errno == errno.EISDIR:
                 logging.debug('File that is failing: {0}'.format(failure.value.filename))
                 files = self.file_extractor('file://' + failure.value.filename)
-                request = []
-                request.extend([Request(file, callback=self.scan,
-                                        errback=self.handle_error)
-                                for file in files])
-                return request
+                requests = []
+                for file in files:
+                    requests.append(Request(file, callback=self.scan,
+                                           errback=self.handle_error))
+
+                return requests
             # If file has not been changes since last, an ignorerequest is returned.
             elif isinstance(failure.value, IgnoreRequest):
                 return
