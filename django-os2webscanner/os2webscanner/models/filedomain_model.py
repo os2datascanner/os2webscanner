@@ -77,7 +77,11 @@ class FileDomain(Domain):
         # What if folder is unmounted during scan??
         # If we decide that only one scan can take place at the time on a
         # filedomain then we could use check_mountpoint as filescan lock
-        command = 'sudo mount -t cifs ' + self.root_url + ' ' + self.mountpath + ' -o iocharset=utf8'
+        if settings.PRODUCTION_MODE:
+            # Mount as apache user (www-data). It will always have uid 33
+            command = 'sudo mount -o uid=33,gid=33 -t cifs ' + self.root_url + ' ' + self.mountpath + ' -o iocharset=utf8'
+        else:
+            command = 'sudo mount -t cifs ' + self.root_url + ' ' + self.mountpath + ' -o iocharset=utf8'
 
         if self.authentication.username != '':
             command += ',username=' + self.authentication.username
