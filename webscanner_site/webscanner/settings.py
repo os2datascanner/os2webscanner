@@ -52,6 +52,8 @@ DEBUG = True
 
 TEMPLATE_DEBUG = True
 
+PRODUCTION_MODE = False
+
 ALLOWED_HOSTS = []
 
 # If filescan on the current installation is needed, enable it here
@@ -134,8 +136,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR + 'webscanner_site/static'
-
+STATIC_ROOT = BASE_DIR + '/static'
 AUTH_PROFILE_MODULE = 'os2webscanner.UserProfile'
 
 LOGIN_REDIRECT_URL = '/'
@@ -186,4 +187,4 @@ local_settings_file = os.path.join(
     'local_settings.py'
 )
 if os.path.exists(local_settings_file):
-    from local_settings import *
+    from .local_settings import *
