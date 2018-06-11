@@ -217,8 +217,12 @@ class ScannerSpider(BaseScannerSpider):
                 files = self.file_extractor('file://' + failure.value.filename)
                 requests = []
                 for file in files:
-                    requests.append(Request(file, callback=self.scan,
-                                           errback=self.handle_error))
+                    try:
+                        requests.append(Request(file, callback=self.scan,
+                                               errback=self.handle_error))
+                    except UnicodeEncodeError as uee:
+                        logging.error('UnicodeEncodeError in handle error method: {0}'.format(uee))
+                        logging.error('Error happened for file: {0}'.format(file))
 
                 return requests
             # If file has not been changes since last, an ignorerequest is returned.
