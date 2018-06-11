@@ -87,7 +87,10 @@ Regler
                 </span>
               </td>
               <td class="rule-expression">
-                <code>{{ rule.match_string }}</code>
+                  Need to replace this with patterns
+                  {% for pattern in rule.patterns.all %}
+                  <code>{{ pattern.pattern_string }}</code>
+                  {% endfor %}
               </td>
               <td class="rule-sensitivity">
                 <span>
@@ -118,7 +121,7 @@ Regler
 </div>
 {% endblock %}
 
-{% block heading %} 
+{% block heading %}
 Regler
 {% endblock %}
 

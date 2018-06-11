@@ -120,13 +120,30 @@ class RuleUpdate(RestrictedUpdateView):
             form_class = self.get_form_class()
 
         form = super().get_form(form_class)
-        form.fields['patterns'] = self.object.patterns.all()
+        regex_patterns = self.object.patterns.all()
+        # ipdb.set_trace()
 
+        # create extra fields to hold the pattern strings
+        for i in range(len(regex_patterns)):
+            field_name = 'pattern_%s' % (i,)
+            form.fields[field_name] = forms.CharField(required=False, initial=regex_patterns[i].pattern_string)
+
+        # ipdb.set_trace()
+        # assign class att ribute to all fields
         for fname in form.fields:
             f = form.fields[fname]
             f.widget.attrs['class'] = 'form-control'
 
         return form
+
+    def get_pattern_fields(self):
+        form_fields=self.get_form().fields
+        ipdb.set_trace()
+        for field_name in form_fields:
+            if field_name.startswith('pattern_'):
+                yield (field_name, form_fields.get(field_name).initial)
+
+        ipdb.set_trace()
 
     def get_success_url(self):
         """The URL to redirect to after successful update."""
@@ -137,5 +154,5 @@ class RuleDelete(RestrictedDeleteView):
     """Delete a rule view."""
 
     model = RegexRule
-    fields = ['name', 'match_string', 'description', 'sensitivity']
+    fields = ['name', 'description', 'sensitivity']
     success_url = '/rules/'
