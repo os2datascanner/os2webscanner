@@ -143,8 +143,8 @@ LOGIN_REDIRECT_URL = '/'
 
 # Email settings
 
-DEFAULT_FROM_EMAIL = 'ann@magenta.dk'
-ADMIN_EMAIL = 'ann@magenta.dk'
+DEFAULT_FROM_EMAIL = 'info@magenta.dk'
+ADMIN_EMAIL = 'info@magenta.dk'
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = 25
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -181,6 +181,45 @@ NETWORKDRIVE_TMP_PREFIX = '/tmp/mnt/os2webscanner/'
 
 # Always store temp files on disk
 FILE_UPLOAD_MAX_MEMORY_SIZE = 0
+
+# Logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+        }
+    },
+    'handlers': {
+        'mail_admins': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'django.utils.log.AdminEmailHandler'
+        },
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': VAR_DIR + '/debug.log',
+            'formatter': 'verbose'
+        },
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    }
+}
 
 local_settings_file = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
