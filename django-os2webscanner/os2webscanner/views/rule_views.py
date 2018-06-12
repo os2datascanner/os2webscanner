@@ -36,10 +36,10 @@ class RuleCreate(RestrictedCreateView):
 
         for i in range(len(patterns) + 1):
             field_name = 'pattern_%s' % (i,)
-            form.fields[field_name] = forms.CharField(required=False)
+            form.fields[field_name] = forms.CharField(required=False, label='Udtryk %s' % (i + 1,)) # human-friendly 1-indexed numbering
 
         field_name = 'pattern_%s' % (i + 1,)
-        form.fields[field_name] = forms.CharField(required=False)
+        form.fields[field_name] = forms.CharField(required=False, label='Udtryk %s' % (i + 2,))
         # form.fields[field_name] = ""
 
         return form
