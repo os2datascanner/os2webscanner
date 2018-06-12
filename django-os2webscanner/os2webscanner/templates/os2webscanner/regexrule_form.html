@@ -96,7 +96,7 @@
     <div class="form-group">
       <label class="control-label col-sm-2" for="id_{{ form.name.name }}">{{ form.name.label }}</label>
       <div class="col-sm-10">
-	<input type="text" class="form-control" name="{{ form.name.name }}" id="id_{{ form.name.name }}" {% if form.name.value %}value="{{ form.name.value }}"{% endif %}>
+	<input type="text" class="form-control" name="{{ form.name.name }}" id="id_{{ form.name.name }}" {% if form.name.value %}value="{{ form.name.value }}"{% endif %} {% if form.name.field.required %}required{% endif %}>
 	{% if form.name.help_text %}
 	  <p>
             <small>{{ form.name.help_text }}</small>
@@ -112,7 +112,7 @@
     <div class="form-group">
       <label class="control-label col-sm-2" for="id_{{ form.organization.name }}">{{ form.organization.label }}</label>
       <div class="col-sm-10">
-        <select name="{{ form.organization.name }}" id="id_{{ form.organization.name }}" class="form-control">
+        <select name="{{ form.organization.name }}" id="id_{{ form.organization.name }}" class="form-control" {% if form.organization.field.required %}required{% endif %}>
           {% for value, tag in form.organization.field.choices %}
             <option value="{{ value }}"{% if form.organization.value|add:"0" == value|add:"0" %} selected{% endif %}>{{ tag }}</option>{# silly type conversion #}
           {% endfor %}
@@ -133,7 +133,7 @@
     <div class="form-group">
       <label class="control-label col-sm-2" for="id_{{ form.group.name }}">{{ form.group.label }}</label>
       <div class="col-sm-10">
-        <select name="{{ form.group.name }}" id="id_{{ form.group.name }}" class="form-control">
+        <select name="{{ form.group.name }}" id="id_{{ form.group.name }}" class="form-control" {% if form.group.field.required %}required{% endif %}>
           {% for value, tag in form.group.field.choices %}
             <option value="{{ value }}"{% if form.group.value|add:"0" == value|add:"0" %} selected{% endif %}>{{ tag }}</option>{# silly type conversion #}
           {% endfor %}
@@ -153,7 +153,7 @@
     <div class="form-group">
       <label class="control-label col-sm-2" for="id_{{ form.pattern_0.name }}">{{ form.pattern_0.label }}</label>
       <div class="col-sm-10">
-	<input type="text" class="form-control" name="{{ form.pattern_0.name }}" id="id_{{ form.pattern_0.name }}" {% if form.pattern_0.value %}value="{{ form.pattern_0.value }}"{% endif %}>
+	<input type="text" class="form-control" name="{{ form.pattern_0.name }}" id="id_{{ form.pattern_0.name }}" {% if form.pattern_0.value %}value="{{ form.pattern_0.value }}"{% endif %} {% if form.pattern_0.field.required %}required{% endif %}>
 	{% if form.pattern_0.help_text %}
 	  <p>
             <small>{{ form.pattern_0.help_text }}</small>
@@ -169,7 +169,7 @@
     <div class="form-group">
       <label class="control-label col-sm-2" for="id_{{ form.description.name }}">{{ form.description.label }}</label>
       <div class="col-sm-10">
-	<textarea class="form-control" name="{{ form.description.name }}" id="id_{{ form.description.name }}" rows="3">{% if form.description.value %}{{ form.description.value }}{% endif %}</textarea>
+	<textarea class="form-control" name="{{ form.description.name }}" id="id_{{ form.description.name }}" rows="3" {% if form.description.field.required %}required{% endif %}>{% if form.description.value %}{{ form.description.value }}{% endif %}</textarea>
 	{% if form.description.help_text %}
 	  <p>
             <small>{{ form.description.help_text }}</small>
@@ -184,7 +184,7 @@
     <div class="form-group">
       <label class="control-label col-sm-2" for="id_{{ form.sensitivity.name }}">{{ form.sensitivity.label }}</label>
       <div class="col-sm-10">
-	<select name="{{ form.sensitivity.name }}" id="id_{{ form.sensitivity.name }}" class="form-control">
+	<select name="{{ form.sensitivity.name }}" id="id_{{ form.sensitivity.name }}" class="form-control" {% if form.sensitivity.field.required %}required{% endif %}>
           {% for value, tag in form.sensitivity.field.choices %}
             <option value="{{ value }}"{% if form.sensitivity.value|add:"0" == value|add:"0" %} selected="selected"{% endif %}>{{ tag }}</option>
           {% endfor %}
