@@ -31,16 +31,10 @@ class RuleCreate(RestrictedCreateView):
         form = super().get_form(form_class)
         # Then a dynamic form to create multiple pattern fields
         # See - https://www.caktusgroup.com/blog/2018/05/07/creating-dynamic-forms-django/ (Creating a dynamic form)
-        # ipdb.set_trace()
-        patterns = RegexPattern.objects.filter(regex=form.instance)
+        self.patterns = self.get_pattern_fields(form.data)
 
-        for i in range(len(patterns) + 1):
-            field_name = 'pattern_%s' % (i,)
-            form.fields[field_name] = forms.CharField(required=False)
-
-        field_name = 'pattern_%s' % (i + 1,)
-        form.fields[field_name] = forms.CharField(required=False)
-        # form.fields[field_name] = ""
+        for field_name, value in self.patterns:
+            form.fields[field_name] = forms.CharField(required=False, initial=value)
 
         return form
 
@@ -50,11 +44,9 @@ class RuleCreate(RestrictedCreateView):
         :param form:
         :return:
         """
-
-        # self.clean(form)
         form_cleaned_data = form.cleaned_data
-        form.cleaned_data['patterns'] = self._get_patterns_from(form)
-        form_patterns = form.cleaned_data['patterns']
+        form_patterns = [form.cleaned_data[field_name] for field_name in form.cleaned_data if
+                         field_name.startswith('pattern_')]
         ipdb.set_trace()
 
         try:
@@ -64,41 +56,22 @@ class RuleCreate(RestrictedCreateView):
                 regexrule.sensitivity = form_cleaned_data['sensitivity']
                 regexrule.description = form_cleaned_data['description']
                 regexrule.organization = form_cleaned_data['organization']
-                # regexrule.patterns_set.all().delete()
                 regexrule.save()
                 ipdb.set_trace()
                 for pattern in form_patterns:
                     r_ = RegexPattern.objects.create(regex=regexrule, pattern_string=pattern)
                     ret = r_.save()
                     ipdb.set_trace()
-                    # regexrule.patterns_set.add(r_)
                 return super().form_valid(form)
         except:
             return super().form_invalid(form)
 
-    def _get_patterns_from(self, form):
-        """
-        scrape the patterns from the form
-        :param form:
-        :return:
-        """
-        patterns = set()
-        i = 0
-        field_name = 'pattern_%s' % (i,)
-        ipdb.set_trace()
-        while form.cleaned_data.get(field_name):
-            pattern = form.cleaned_data[field_name]
-            if pattern in patterns:
-                form.add_error(field_name, 'Duplicate')
-            else:
-                patterns.add(pattern)
-            i += 1
-            # remove the pattern_[x] field
-            form.cleaned_data.pop(field_name)
-            field_name = 'pattern_%s' % (i,)
+    def get_pattern_fields(self, form_fields):
+        if not form_fields:
+            return [('pattern_0', '')]
 
-        ipdb.set_trace()
-        return patterns
+        return [(field_name, form_fields[field_name]) for field_name in form_fields if
+                          field_name.startswith('pattern_')]
 
     def get_success_url(self):
         """The URL to redirect to after successful creation."""
@@ -121,15 +94,15 @@ class RuleUpdate(RestrictedUpdateView):
 
         form = super().get_form(form_class)
         regex_patterns = self.object.patterns.all()
-        # ipdb.set_trace()
+        ipdb.set_trace()
 
         # create extra fields to hold the pattern strings
         for i in range(len(regex_patterns)):
             field_name = 'pattern_%s' % (i,)
             form.fields[field_name] = forms.CharField(required=False, initial=regex_patterns[i].pattern_string)
 
-        # ipdb.set_trace()
-        # assign class att ribute to all fields
+        ipdb.set_trace()
+        # assign class attribute to all fields
         for fname in form.fields:
             f = form.fields[fname]
             f.widget.attrs['class'] = 'form-control'
@@ -137,7 +110,11 @@ class RuleUpdate(RestrictedUpdateView):
         return form
 
     def get_pattern_fields(self):
-        form_fields=self.get_form().fields
+        """
+        Used in the template to get tge field names and their values
+        :return:
+        """
+        form_fields = self.get_form().fields
         ipdb.set_trace()
         for field_name in form_fields:
             if field_name.startswith('pattern_'):

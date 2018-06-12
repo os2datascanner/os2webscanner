@@ -153,11 +153,7 @@
     <div class="form-group">
       <label class="control-label col-sm-2" for="id_{{ form.pattern_0.name }}">{{ form.pattern_0.label }}</label>
       <div class="col-sm-10">
-
-      {% for field_name, value in view.get_pattern_fields %}
-	    <input type="text" class="form-control" name="{{ field_name }}" id="id_{{ field_name }}" {% if value %}value="{{ value }}"{% endif %}>
-      {% endfor %}
-
+	<input type="text" class="form-control" name="{{ form.pattern_0.name }}" id="id_{{ form.pattern_0.name }}" {% if form.pattern_0.value %}value="{{ form.pattern_0.value }}"{% endif %}>
 	{% if form.pattern_0.help_text %}
 	  <p>
             <small>{{ form.pattern_0.help_text }}</small>
