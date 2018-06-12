@@ -51,6 +51,10 @@
       handleSubChoices($("#id_{{ form.do_last_modified_check.name }}"));
       {% endif %}
 
+      // set up selected rules based on the form values
+      {% for val in form.regex_rules.value %}
+      $("#available_rules li[data-rule-id=\"{{ val }}\"").trigger("click");
+      {% endfor %}
     })
   })(jQuery);
 </script>
@@ -249,8 +253,8 @@
               </ul>
             </div>
           </div>
-
         </div>
+
       </div>
     </div>
     <div class="tab-pane" id="interval">

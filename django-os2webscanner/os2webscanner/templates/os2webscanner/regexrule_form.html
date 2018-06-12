@@ -11,7 +11,7 @@
       var nameParts = inputField.attr("name").split(/(.+_)/); // define .+_ as capturing group so we can get at the delimiter inside nameParts[1]
       var baseName = nameParts[1];
       var numInput = parseInt(nameParts[2]);
-      var inputClone = inputField.clone();
+      var inputClone = inputField.clone().prop("required", false);
       inputClone.attr("name", baseName + (numInput + 1)).attr("id", "id_" + baseName + (numInput + 1)).val("");
       var inputMarkup = $("<div/>", {
         class: "input-group pattern-container",

@@ -36,7 +36,7 @@ class RuleCreate(RestrictedCreateView):
 
         for i in range(len(patterns) + 1):
             field_name = 'pattern_%s' % (i,)
-            form.fields[field_name] = forms.CharField(required=False, label='Udtryk %s' % (i + 1,)) # human-friendly 1-indexed numbering
+            form.fields[field_name] = forms.CharField(required=True, label='Udtryk %s' % (i + 1,)) # human-friendly 1-indexed numbering
 
         field_name = 'pattern_%s' % (i + 1,)
         form.fields[field_name] = forms.CharField(required=False, label='Udtryk %s' % (i + 2,))
@@ -126,7 +126,7 @@ class RuleUpdate(RestrictedUpdateView):
         # create extra fields to hold the pattern strings
         for i in range(len(regex_patterns)):
             field_name = 'pattern_%s' % (i,)
-            form.fields[field_name] = forms.CharField(required=False, initial=regex_patterns[i].pattern_string)
+            form.fields[field_name] = forms.CharField(required=True, initial=regex_patterns[i].pattern_string)
 
         # ipdb.set_trace()
         # assign class att ribute to all fields
