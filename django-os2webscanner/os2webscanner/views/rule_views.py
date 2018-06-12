@@ -154,5 +154,4 @@ class RuleDelete(RestrictedDeleteView):
     """Delete a rule view."""
 
     model = RegexRule
-    fields = ['name', 'description', 'sensitivity']
     success_url = '/rules/'

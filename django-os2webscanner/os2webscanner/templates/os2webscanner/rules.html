@@ -46,7 +46,7 @@ Regler
               <td>
                 <strong>
                 <small>
-                Regulært udtryk
+                Udtryk
                 </small>
                 </strong>
               </td>
@@ -87,10 +87,15 @@ Regler
                 </span>
               </td>
               <td class="rule-expression">
-                  Need to replace this with patterns
+                <input type="checkbox" id="show-patterns" name="show-patterns">
+                <label for="show-patterns">
+                  Vis udtryk?
+                </label>
+                <div class="pattern-container clearfix">
                   {% for pattern in rule.patterns.all %}
                   <code>{{ pattern.pattern_string }}</code>
                   {% endfor %}
+                </div>
               </td>
               <td class="rule-sensitivity">
                 <span>
