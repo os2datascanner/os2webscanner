@@ -74,10 +74,6 @@ class FileDomain(Domain):
         # Make only one scanner able to scan mounted file directory.
         # Scrapy locks the files while reading, so to scan jobs running at the same time is not possible.
 
-        # What if folder is unmounted during scan??
-        # If we decide that only one scan can take place at the time on a
-        # filedomain then we could use check_mountpoint as filescan lock
-
         command = 'sudo mount -t cifs ' + self.root_url + ' ' + self.mountpath + ' -o iocharset=utf8'
 
         if settings.PRODUCTION_MODE:
