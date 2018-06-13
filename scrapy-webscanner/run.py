@@ -15,7 +15,6 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 """Run a scan by Scan ID."""
-import collections
 from urllib.parse import urlparse
 
 import os
@@ -45,6 +44,7 @@ from django.utils import timezone
 
 from scanner.scanner.scanner import Scanner
 from os2webscanner.models.scan_model import Scan
+from os2webscanner.models.statistic_model import Statistic
 from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
 from os2webscanner.models.url_model import Url
 
@@ -185,11 +185,30 @@ class ScannerApp:
     def handle_closed(self, spider, reason):
         """Handle the spider being finished."""
         # TODO: Check reason for if it was finished, cancelled, or shutdown
+        logging.debug('Spider is closing. Reason {0}'.format(reason))
+        self.store_stats()
         reactor.stop()
+
+    def store_stats(self):
+        logging.info('Stats: {0}'.format(self.scanner_spider.crawler.stats.get_stats()))
+        statistics = Statistic()
+        statistics.scan = self.scan_object
+        statistics.files_skipped_count = self.scanner_spider.crawler.stats.get_value(
+            'last_modified_check/pages_skipped'
+        )
+        statistics.files_scraped_count = self.scanner_spider.crawler.stats.get_value(
+            'downloader/request_count'
+        )
+        statistics.files_is_dir_count = self.scanner_spider.crawler.stats.get_value(
+            'downloader/exception_type_count/builtins.IsADirectoryError'
+        )
+        statistics.save()
+        logging.debug('Statistic saved.')
 
     def handle_error(self, failure, response, spider):
         """Handle spider errors, updating scan status."""
         logging.error("Scan failed: %s" % failure.getErrorMessage())
+        self.store_stats()
         scan_object = Scan.objects.get(pk=self.scan_id)
         scan_object.reason = failure.getErrorMessage()
         scan_object.save()
