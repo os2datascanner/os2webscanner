@@ -66,12 +66,13 @@ class RegexRule(Rule):
             return rule_set.pop().pattern_string
         if len(rule_set) > 1:
             compound_rule = '('
-            for _ in rule_set:
+            for _ in self.regex_patterns:
                 compound_rule += rule_set.pop().pattern_string
                 if len(rule_set) <= 0:
                     compound_rule += ')'
                 else:
                     compound_rule += '|'
+            print('Returning< '+compound_rule+' >')
             return compound_rule
 
     def execute(self, text):
@@ -100,7 +101,7 @@ class RegexRule(Rule):
 
         # for rule in self.regex_patterns:
         for match in matches:
-            for rule in rule_set:
+            for rule in self.regex_patterns:
                 print('The matched data vs matched_string' + rule.pattern_string + ' :: ' + match.matched_data)
                 if re.match(rule.pattern_string, match.matched_data) and rule_set:
                     rule_set.pop()

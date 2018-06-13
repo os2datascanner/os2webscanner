@@ -20,7 +20,7 @@ from urllib.parse import urlparse
 from ..rules.name import NameRule
 from ..rules.address import AddressRule
 from ..rules.regexrule import RegexRule
-from ..rules.ruleset import RuleSet
+from ..rules.cpr import CPRRule
 
 from ..processors.processor import Processor
 from os2webscanner.models.domain_model import Domain
