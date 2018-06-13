@@ -47,7 +47,7 @@ class RuleCreate(RestrictedCreateView):
         form_cleaned_data = form.cleaned_data
         form_patterns = [form.cleaned_data[field_name] for field_name in form.cleaned_data if
                          field_name.startswith('pattern_')]
-        ipdb.set_trace()
+        
 
         try:
             with transaction.atomic():
@@ -57,11 +57,11 @@ class RuleCreate(RestrictedCreateView):
                 regexrule.description = form_cleaned_data['description']
                 regexrule.organization = form_cleaned_data['organization']
                 regexrule.save()
-                ipdb.set_trace()
+                
                 for pattern in form_patterns:
                     r_ = RegexPattern.objects.create(regex=regexrule, pattern_string=pattern)
                     ret = r_.save()
-                    ipdb.set_trace()
+                    
                 return super().form_valid(form)
         except:
             return super().form_invalid(form)
@@ -94,14 +94,14 @@ class RuleUpdate(RestrictedUpdateView):
 
         form = super().get_form(form_class)
         regex_patterns = self.object.patterns.all()
-        ipdb.set_trace()
+        
 
         # create extra fields to hold the pattern strings
         for i in range(len(regex_patterns)):
             field_name = 'pattern_%s' % (i,)
             form.fields[field_name] = forms.CharField(required=False, initial=regex_patterns[i].pattern_string)
 
-        ipdb.set_trace()
+        
         # assign class attribute to all fields
         for fname in form.fields:
             f = form.fields[fname]
@@ -115,12 +115,12 @@ class RuleUpdate(RestrictedUpdateView):
         :return:
         """
         form_fields = self.get_form().fields
-        ipdb.set_trace()
+        
         for field_name in form_fields:
             if field_name.startswith('pattern_'):
                 yield (field_name, form_fields.get(field_name).initial)
 
-        ipdb.set_trace()
+        
 
     def get_success_url(self):
         """The URL to redirect to after successful update."""
