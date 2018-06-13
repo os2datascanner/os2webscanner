@@ -134,12 +134,8 @@ class ScannerSpider(BaseScannerSpider):
 
         for url in self.start_urls:
             if hasattr(self.scanner.scan_object, 'filescan'):
-                files = self.file_extractor(url)
                 # Some of the files are directories. We handle them in handle_error method.
-                for file in files:
-                    logging.debug('File to scan {0}'.format(file))
-                    requests.append(Request(file, callback=self.scan,
-                             errback=self.handle_error))
+                requests.extend(self.append_file_request(url))
 
             else:
                 requests.append(Request(url, callback=self.parse,
@@ -214,17 +210,7 @@ class ScannerSpider(BaseScannerSpider):
                     and failure.value.errno == errno.EISDIR:
                 logging.debug('File that is failing: {0}'.format(failure.value.filename))
 
-                files = self.file_extractor('file://' + failure.value.filename)
-                requests = []
-                for file in files:
-                    try:
-                        requests.append(Request(file, callback=self.scan,
-                                               errback=self.handle_error))
-                    except UnicodeEncodeError as uee:
-                        logging.error('UnicodeEncodeError in handle error method: {0}'.format(uee))
-                        logging.error('Error happened for file: {0}'.format(file))
-
-                return requests
+                return self.append_file_request('file://' + failure.value.filename)
             # If file has not been changes since last, an ignorerequest is returned.
             elif isinstance(failure.value, IgnoreRequest):
                 return
@@ -271,6 +257,18 @@ class ScannerSpider(BaseScannerSpider):
 
         self.associate_url_referrers(broken_url)
 
+    def append_file_request(self, url):
+        files = self.file_extractor(url)
+        requests = []
+        for file in files:
+            try:
+                requests.append(Request(file, callback=self.scan,
+                                        errback=self.handle_error))
+            except UnicodeEncodeError as uee:
+                logging.error('UnicodeEncodeError in handle error method: {0}'.format(uee))
+                logging.error('Error happened for file: {0}'.format(file))
+        return requests
+
     def associate_url_referrers(self, url_object):
         """Associate referrers with the Url object."""
         for referrer in self.referrers.get(url_object.url, ()):
@@ -291,6 +289,8 @@ class ScannerSpider(BaseScannerSpider):
 
     def scan(self, response):
         """Scan a response, returning any matches."""
+        logging.info('Stats: {0}'.format(self.crawler.stats.get_stats()))
+
         content_type = response.headers.get('content-type')
         if content_type:
             mime_type = parse_content_type(content_type)
