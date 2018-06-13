@@ -48,16 +48,16 @@
   });
 
   // removing a rule from the list of selected rules
-  $("#selected_rules").on("click", "> .selected_rule a", function() {
+  $("#selected_rules").on("click", ".remove-rule", function() {
     var elm = $(this).closest("div"); // we want the actual parent div, not the a itself
     var ruleId = elm.attr("data-rule-id");
     var ruleLi = $("#available_rules").find("li[data-rule-id=\"" + ruleId + "\"]");
     var ruleAnchor = ruleLi.find("a");
     ruleLi.removeAttr("data-disabled");
     ruleAnchor.tooltip(); // re-enable tooltip
-    elm.remove();
 
-    $("form[name=\"rulesets\"]").find("input[value=\"" + ruleId + "\"]").remove(); // remove the hidden input field corresponding to the rule we removed
+    $(this).closest("form").find("input[type=\"hidden\"][name=\"regex_rules\"][value=\"" + ruleId + "\"]").remove(); // remove the hidden input field corresponding to the rule we removed
+    elm.remove();
 
     recalcIframeHeight();
   });
