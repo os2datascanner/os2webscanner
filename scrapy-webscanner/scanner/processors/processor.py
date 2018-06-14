@@ -257,7 +257,7 @@ class Processor(object):
                 url.scan.log_occurrence(traceback.format_exc())
 
             return False
-
+        # TODO: Increment process file count.
         return True
 
     def setup_queue_processing(self, pid, *args):
