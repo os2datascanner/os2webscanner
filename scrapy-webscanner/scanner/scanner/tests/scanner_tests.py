@@ -88,7 +88,7 @@ class ScannerTest(unittest.TestCase):
 
         log_file = open(LOG_FILE_U, "a")
 
-        ipdb.set_trace()
+        # ipdb.set_trace()
 
         result = scanner.run()
 
