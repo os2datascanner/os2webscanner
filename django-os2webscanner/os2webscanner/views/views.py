@@ -49,6 +49,7 @@ from ..models.conversionqueueitem_model import ConversionQueueItem
 from ..models.referrerurl_model import ReferrerUrl
 from ..models.group_model import Group
 from ..models.summary_model import Summary
+from ..models.statistic_model import Statistic
 from ..utils import scans_for_summary_report, do_scan
 from ..forms import FileUploadForm
 
@@ -502,6 +503,12 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
         context['failed_conversions'] = (
             self.object.get_number_of_failed_conversions()
         )
+
+        stats = Statistic.objects.get(scan=self.get_object())
+        context['files_scraped_count'] = stats.files_scraped_count
+        context['files_is_dir_count'] = stats.files_is_dir_count
+        context['files_skipped_count'] = stats.files_skipped_count
+
         return context
 
 

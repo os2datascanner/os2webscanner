@@ -38,11 +38,12 @@ from .models.referrerurl_model import ReferrerUrl
 from .models.urllastmodified_model import UrlLastModified
 from .models.group_model import Group
 from .models.md5sum_model import Md5Sum
+from .models.statistic_model import Statistic
 
 ar = admin.site.register
 classes = [Authentication, Organization, WebDomain, FileDomain, RegexRule,
            Scanner, Scan, Match, Url, ConversionQueueItem, ReferrerUrl,
-           UrlLastModified, Group, Md5Sum]
+           UrlLastModified, Group, Md5Sum, Statistic]
 list(map(ar, classes))
 
 

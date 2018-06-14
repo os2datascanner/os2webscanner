@@ -18,7 +18,7 @@
 from .processor import Processor
 import shutil
 import os
-from subprocess import Popen, PIPE, call, DEVNULL
+from subprocess import Popen, PIPE, call, DEVNULL, TimeoutExpired
 import regex
 
 
@@ -53,12 +53,17 @@ class PDFProcessor(Processor):
                         "UTF-8"])
         command.extend(extra_options)
         command.append(new_file_path)
+        try:
+            p = Popen(command, stdin=PIPE, stdout=DEVNULL, stderr=PIPE)
+            output, err = p.communicate(b"input data that is passed to subprocess' stdin")
 
-        p = Popen(command, stdin=PIPE, stdout=DEVNULL, stderr=PIPE)
-        output, err = p.communicate(b"input data that is passed to subprocess' stdin")
-
-        if 'Error' in err.decode('utf-8') and err.decode('utf-8') != '':
-            print('pdftohtml convertion error: %s' % err)
+            if 'Error' in err.decode('utf-8') and err.decode('utf-8') != '':
+                print('pdftohtml convertion error: %s' % err)
+                return False
+        except TimeoutExpired as te:
+            p.kill()
+            # outs, errs = p.communicate()
+            print('Popen command expired: %s' % te)
             return False
 
         return_code = 0
@@ -66,6 +71,7 @@ class PDFProcessor(Processor):
         # Have to get rid of FEFF marks in the generated files
         result_file = regex.sub("\\.pdf$", ".html", new_file_path)
         if os.path.exists(result_file):
+            print('resul')
             return_code = call([
                 'sed', '-i', 's/\\xff//;s/\\xfe//', result_file
             ])

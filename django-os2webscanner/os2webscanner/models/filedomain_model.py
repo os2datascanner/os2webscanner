@@ -71,14 +71,14 @@ class FileDomain(Domain):
         if self.check_mountpoint() is 0:
             return True
 
-        # Consider when to unmount. If two scanners are created for the same file domain,
-        # who is then responsible for handling unmount.
+        # Make only one scanner able to scan mounted file directory.
+        # Scrapy locks the files while reading, so to scan jobs running at the same time is not possible.
 
-        # What if folder is unmounted during scan??
-        # If we decide that only one scan can take place at the time on a
-        # filedomain then we could use check_mountpoint as filescan lock
         command = 'sudo mount -t cifs ' + self.root_url + ' ' + self.mountpath + ' -o iocharset=utf8'
 
+        if settings.PRODUCTION_MODE:
+            # Mount as apache user (www-data). It will always have uid 33
+            command += ',uid=33,gid=33'
         if self.authentication.username != '':
             command += ',username=' + self.authentication.username
         if len(self.authentication.ciphertext) > 0:
@@ -87,15 +87,12 @@ class FileDomain(Domain):
         if self.authentication.domain != '':
             command += ',domain=' + self.authentication.domain
 
+        logger.debug('Mount command: {0}'.format(command))
         response = call(command, shell=True)
 
-        if response is 1:
+        if response is not 0:
+            logger.error('Mount failed: {0}'.format(response))
             return False
-        # try:
-        # except CalledProcessError as cpe:
-        #     logger.error('Error occured while mounting drive: %s', self.root_url)
-        #     logger.error('Error message %s', cpe)
-        #     return self.MOUNT_FAILED
 
         return True
 

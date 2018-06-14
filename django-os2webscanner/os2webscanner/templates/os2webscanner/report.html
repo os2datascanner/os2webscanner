@@ -29,6 +29,24 @@ Rapport &dash; {{scan.scanner.name}}
                 <td>Antal matches:</td>
                 <td>{{ no_of_matches }}</td>
             </tr>
+        {% if files_scraped_count %}
+            <tr>
+                <td>Antal scannede foldere og filer:</td>
+                <td>{{ files_scraped_count }}</td>
+            </tr>
+        {% endif %}
+        {% if files_is_dir_count %}
+            <tr>
+                <td>Antal scannede foldere:</td>
+                <td>{{ files_is_dir_count }}</td>
+            </tr>
+        {% endif %}
+        {% if files_skipped_count %}
+            <tr>
+                <td>Antal uændrede filer siden sidste scan:</td>
+                <td>{{ files_skipped_count }}</td>
+            </tr>
+        {% endif %}
 	    {% if failed_conversions %}
             <tr>
                 <td>Fejlede dokument-konverteringer under scanningen:</td>
