@@ -33,8 +33,10 @@ class RuleCreate(RestrictedCreateView):
         # See - https://www.caktusgroup.com/blog/2018/05/07/creating-dynamic-forms-django/ (Creating a dynamic form)
         self.patterns = self.get_pattern_fields(form.data)
 
+        idx = 0
         for field_name, value in self.patterns:
-            form.fields[field_name] = forms.CharField(required=False, initial=value)
+            form.fields[field_name] = forms.CharField(required=False if idx > 0 else True, initial=value, label='Udtryk')
+            idx += 1
 
         return form
 
@@ -99,7 +101,7 @@ class RuleUpdate(RestrictedUpdateView):
         # create extra fields to hold the pattern strings
         for i in range(len(regex_patterns)):
             field_name = 'pattern_%s' % (i,)
-            form.fields[field_name] = forms.CharField(required=False, initial=regex_patterns[i].pattern_string)
+            form.fields[field_name] = forms.CharField(required=False if i > 0 else True, initial=regex_patterns[i].pattern_string, label='Udtryk')
 
         
         # assign class attribute to all fields
@@ -114,6 +116,7 @@ class RuleUpdate(RestrictedUpdateView):
         Used in the template to get tge field names and their values
         :return:
         """
+
         form_fields = self.get_form().fields
         
         for field_name in form_fields:
@@ -131,5 +134,4 @@ class RuleDelete(RestrictedDeleteView):
     """Delete a rule view."""
 
     model = RegexRule
-    fields = ['name', 'description', 'sensitivity']
     success_url = '/rules/'
