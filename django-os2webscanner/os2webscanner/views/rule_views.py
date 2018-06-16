@@ -15,6 +15,14 @@ class RuleList(RestrictedListView):
     template_name = 'os2webscanner/rules.html'
 
 
+def extract_pattern_fields(form_fields):
+    if not form_fields:
+        return [('pattern_0', '')]
+
+    return [(field_name, form_fields[field_name]) for field_name in form_fields if
+                      field_name.startswith('pattern_')]
+
+
 class RuleCreate(RestrictedCreateView):
     """Create a rule view."""
 
@@ -31,7 +39,7 @@ class RuleCreate(RestrictedCreateView):
         form = super().get_form(form_class)
         # Then a dynamic form to create multiple pattern fields
         # See - https://www.caktusgroup.com/blog/2018/05/07/creating-dynamic-forms-django/ (Creating a dynamic form)
-        self.patterns = self.get_pattern_fields(form.data)
+        self.patterns = extract_pattern_fields(form.data)
 
         idx = 0
         for field_name, value in self.patterns:
@@ -68,12 +76,16 @@ class RuleCreate(RestrictedCreateView):
         except:
             return super().form_invalid(form)
 
-    def get_pattern_fields(self, form_fields):
-        if not form_fields:
-            return [('pattern_0', '')]
+    def get_pattern_fields(self):
+        """
+        Used in the template to get tge field names and their values
+        :return:
+        """
 
-        return [(field_name, form_fields[field_name]) for field_name in form_fields if
-                          field_name.startswith('pattern_')]
+        form_fields = self.get_form().fields
+        for field_name in form_fields:
+            if field_name.startswith('pattern_'):
+                yield (field_name, form_fields.get(field_name).initial)
 
     def get_success_url(self):
         """The URL to redirect to after successful creation."""
@@ -96,19 +108,18 @@ class RuleUpdate(RestrictedUpdateView):
 
         form = super().get_form(form_class)
         regex_patterns = self.object.patterns.all()
-        
 
         # create extra fields to hold the pattern strings
         for i in range(len(regex_patterns)):
             field_name = 'pattern_%s' % (i,)
             form.fields[field_name] = forms.CharField(required=False if i > 0 else True, initial=regex_patterns[i].pattern_string, label='Udtryk')
 
-        
         # assign class attribute to all fields
         for fname in form.fields:
             f = form.fields[fname]
             f.widget.attrs['class'] = 'form-control'
 
+        ipdb.set_trace()
         return form
 
     def get_pattern_fields(self):
@@ -118,12 +129,9 @@ class RuleUpdate(RestrictedUpdateView):
         """
 
         form_fields = self.get_form().fields
-        
         for field_name in form_fields:
             if field_name.startswith('pattern_'):
                 yield (field_name, form_fields.get(field_name).initial)
-
-        
 
     def get_success_url(self):
         """The URL to redirect to after successful update."""
