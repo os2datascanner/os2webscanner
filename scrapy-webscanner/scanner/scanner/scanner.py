@@ -135,12 +135,24 @@ class Scanner:
         """
         matches = []
         for rule in self.rules:
+            print('-------Rule to be executed {0}-------'.format(rule))
             rule_matches = rule.execute(text)
-            #skip a ruleset where not all the rules match
-            if not rule.is_all_match(rule_matches):
-                continue
-            # Associate the rule with the match
-            for match in rule_matches:
+            # TODO: Temporary fix. CPRRule needs to be a regexrule
+            if isinstance(rule, CPRRule):
+                for match in rule_matches:
+                    match['matched_rule'] = rule.name
+                    matches.extend(rule_matches)
+            else:
+                #skip a ruleset where not all the rules match
+                if not rule.is_all_match(rule_matches):
+                    continue
+                # Associate the rule with the match
+                print('-------Rule matches length {0}-------'.format(str(len(rule_matches))))
+                # for match in rule_matches:
+                # match['matched_rule'] = rule.name
+                match = rule_matches.pop()
                 match['matched_rule'] = rule.name
-            matches.extend(rule_matches)
+                match['matched_data'] = rule.regex_str.replace('|', ' & ')
+                print('-------Match: {0}-------'.format(match))
+                matches.append(match)
         return matches
