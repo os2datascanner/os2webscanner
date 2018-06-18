@@ -141,12 +141,8 @@ display:block;
 .rule-description {
 max-width:20%;
 }
-
-form .pattern-container {
-  padding-top:1em;
-}
 #button-add-expression {
-  margin-top:1em;
+  margin-bottom:1em;
   float:right;
   clear:both;
 }
