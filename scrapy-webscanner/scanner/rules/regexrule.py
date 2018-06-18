@@ -102,11 +102,11 @@ class RegexRule(Rule):
         # for rule in self.regex_patterns:
         for match in matches:
             for rule in self.regex_patterns:
-                print('The matched data vs matched_string' + rule.pattern_string + ' :: ' + match.matched_data)
-                if re.match(rule.pattern_string, match.matched_data) and rule_set:
+                print('The matched data vs matched_string ' + rule.pattern_string + ' :: ' + match['matched_data'])
+                if re.match(rule.pattern_string, match['matched_data']) and rule_set:
                     rule_set.pop()
                     continue
             if not rule_set:
                 break
 
-            return not rule_set
+        return not rule_set
