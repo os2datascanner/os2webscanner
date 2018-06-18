@@ -5,7 +5,6 @@ from ..models.regexpattern_model import RegexPattern
 
 from django import forms
 from django.db import transaction, IntegrityError
-import ipdb
 
 
 class RuleList(RestrictedListView):
@@ -48,7 +47,6 @@ class RuleCreate(RestrictedCreateView):
         form_patterns = [form.cleaned_data[field_name] for field_name in form.cleaned_data if
                          field_name.startswith('pattern_')]
         
-
         try:
             with transaction.atomic():
                 regexrule = form.save(commit=False)
@@ -60,7 +58,7 @@ class RuleCreate(RestrictedCreateView):
                 
                 for pattern in form_patterns:
                     r_ = RegexPattern.objects.create(regex=regexrule, pattern_string=pattern)
-                    ret = r_.save()
+                    r_.save()
                     
                 return super().form_valid(form)
         except:
@@ -93,8 +91,7 @@ class RuleUpdate(RestrictedUpdateView):
             form_class = self.get_form_class()
 
         form = super().get_form(form_class)
-        regex_patterns = self.object.patterns.all()
-        
+        regex_patterns = self.object.patterns.all().order_by('-id')
 
         # create extra fields to hold the pattern strings
         for i in range(len(regex_patterns)):
@@ -131,5 +128,4 @@ class RuleDelete(RestrictedDeleteView):
     """Delete a rule view."""
 
     model = RegexRule
-    fields = ['name', 'description', 'sensitivity']
     success_url = '/rules/'
