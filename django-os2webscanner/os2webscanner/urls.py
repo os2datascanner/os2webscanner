@@ -21,17 +21,16 @@ from django.views.i18n import javascript_catalog
 import django.contrib.auth.views
 
 from .views.views import MainPageView
-from .views.views import CSVReportDetails, ReportDetails, ReportList, ReportDelete
+from .views.report_views import ScanReportLog, CSVReportDetails, ReportDetails, ReportList, ReportDelete
 from .views.webscanner_views import WebScannerCreate, WebScannerUpdate, WebScannerDelete, WebScannerRun, \
     WebScannerAskRun, WebScannerList
 from .views.filescanner_views import FileScannerCreate, FileScannerRun, FileScannerAskRun, FileScannerUpdate, \
     FileScannerDelete, FileScannerList
-from .views.views import ScanReportLog, OrganizationUpdate
-from .views.domain_views import WebDomainUpdate, FileDomainUpdate, DomainValidate, DomainDelete, \
-    WebDomainList, FileDomainList, WebDomainCreate, FileDomainCreate
+from .views.views import OrganizationUpdate, OrganizationList
+from .views.domain_views import WebDomainUpdate, FileDomainUpdate, DomainValidate, WebDomainDelete, \
+    WebDomainList, FileDomainList, WebDomainCreate, FileDomainCreate, FileDomainDelete
 from .views.views import GroupList, GroupCreate, GroupUpdate, GroupDelete
 from .views.rule_views import RuleList, RuleCreate, RuleUpdate, RuleDelete
-from .views.views import OrganizationList
 from .views.views import SummaryList, SummaryCreate, SummaryUpdate, SummaryDelete
 from .views.views import SummaryReport, DialogSuccess, SystemStatusView
 from .views.views import file_upload, referrer_content
@@ -79,7 +78,7 @@ urlpatterns = [
     url(r'^(filedomains)/(\d+)/(success)/$', DialogSuccess.as_view()),
     url(r'^filedomains/(?P<pk>\d+)/$', FileDomainUpdate.as_view(),
         name='file_domain_update'),
-    url(r'^filedomains/(?P<pk>\d+)/delete/$', DomainDelete.as_view(),
+    url(r'^filedomains/(?P<pk>\d+)/delete/$', FileDomainDelete.as_view(),
         name='file_domain_delete'),
     url(r'^webdomains/$', WebDomainList.as_view(), name='webdomains'),
     url(r'^webdomains/add/$', WebDomainCreate.as_view(), name='webdomain_add'),
@@ -88,7 +87,7 @@ urlpatterns = [
     url(r'^(webdomains)/(\d+)/(success)/$', DialogSuccess.as_view()),
     url(r'^webdomains/(?P<pk>\d+)/$', WebDomainUpdate.as_view(),
         name='web_domain_update'),
-    url(r'^webdomains/(?P<pk>\d+)/delete/$', DomainDelete.as_view(),
+    url(r'^webdomains/(?P<pk>\d+)/delete/$', WebDomainDelete.as_view(),
         name='web_domain_delete'),
     url(r'^rules/$', RuleList.as_view(), name='rules'),
     url(r'^rules/add/$', RuleCreate.as_view(), name='rule_add'),
