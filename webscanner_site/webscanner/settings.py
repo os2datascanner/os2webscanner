@@ -54,8 +54,6 @@ TEMPLATE_DEBUG = True
 
 PRODUCTION_MODE = False
 
-ALLOWED_HOSTS = []
-
 # If filescan on the current installation is needed, enable it here
 ENABLE_FILESCAN = True
 
