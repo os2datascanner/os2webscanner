@@ -39,11 +39,12 @@ from .models.urllastmodified_model import UrlLastModified
 from .models.group_model import Group
 from .models.md5sum_model import Md5Sum
 from .models.statistic_model import Statistic
+from .models.regexpattern_model import RegexPattern
 
 ar = admin.site.register
 classes = [Authentication, Organization, WebDomain, FileDomain, RegexRule,
            Scanner, Scan, Match, Url, ConversionQueueItem, ReferrerUrl,
-           UrlLastModified, Group, Md5Sum, Statistic]
+           UrlLastModified, Group, Md5Sum, Statistic, RegexPattern]
 list(map(ar, classes))
 
 
