@@ -292,9 +292,18 @@ class DomainValidate(RestrictedDetailView):
         return context
 
 
-class DomainDelete(RestrictedDeleteView):
+class WebDomainDelete(RestrictedDeleteView):
 
     """Delete a domain view."""
 
     model = Domain
-    success_url = '/domains/'
+    success_url = '/webdomains/'
+
+
+class FileDomainDelete(RestrictedDeleteView):
+
+    """Delete a domain view."""
+
+    model = Domain
+    success_url = '/filedomains/'
+
