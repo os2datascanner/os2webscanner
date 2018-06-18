@@ -1,6 +1,5 @@
 import os
 import sys
-import ipdb
 import unittest
 import django
 
@@ -30,7 +29,6 @@ class ScannerTest(unittest.TestCase):
         Setup some data to test with.
         """
 
-        ipdb.launch_ipdb_on_exception()
         # create organisations
         self.magenta_org = Organization(name="Magenta", pk=1)
         self.magenta_org.save()
@@ -77,7 +75,6 @@ class ScannerTest(unittest.TestCase):
         Test running a scan.
         """
 
-        ipdb.launch_ipdb_on_exception()
         scanner = WebScanner(name='MagentaTestScan', organization=self.magenta_org, pk=1)
         scanner.save()
         scanner.regex_rules.add(self.tr_set1)
@@ -87,8 +84,6 @@ class ScannerTest(unittest.TestCase):
         LOG_FILE_U = os.path.join(settings.PROJECT_DIR, 'var', 'logs',  'scans', 'scan_1.log')
 
         log_file = open(LOG_FILE_U, "a")
-
-        ipdb.set_trace()
 
         result = scanner.run()
 
@@ -103,14 +98,12 @@ class ScannerTest(unittest.TestCase):
             print(e)
             return None
 
-        # ipdb.set_trace()
         # self.assertTrue(isinstance(result, Scan))
 
         stdout, stderr = process.communicate()
 
 def main():
     """Run the unit tests."""
-    ipdb.set_trace()
     unittest.main()
 
 
