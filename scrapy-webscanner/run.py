@@ -194,15 +194,25 @@ class ScannerApp:
         logging.info('Stats: {0}'.format(self.scanner_spider.crawler.stats.get_stats()))
         statistics = Statistic()
         statistics.scan = self.scan_object
-        statistics.files_skipped_count if self.scanner_spider.crawler.stats.get_value(
-            'last_modified_check/pages_skipped'
-        ) else 0
-        statistics.files_scraped_count if self.scanner_spider.crawler.stats.get_value(
-            'downloader/request_count'
-        ) else 0
-        statistics.files_is_dir_count if self.scanner_spider.crawler.stats.get_value(
+        if self.scanner_spider.crawler.stats.get_value(
+            'last_modified_check/pages_skipped'):
+            statistics.files_skipped_count = self.scanner_spider.crawler.stats.get_value(
+                'last_modified_check/pages_skipped')
+        else:
+            statistics.files_skipped_count = 0
+        if self.scanner_spider.crawler.stats.get_value(
+            'downloader/request_count'):
+            statistics.files_scraped_count = self.scanner_spider.crawler.stats.get_value(
+                'downloader/request_count')
+        else:
+            statistics.files_scraped_count = 0
+        if self.scanner_spider.crawler.stats.get_value(
             'downloader/exception_type_count/builtins.IsADirectoryError'
-        ) else 0
+        ):
+            statistics.files_is_dir_count = self.scanner_spider.crawler.stats.get_value(
+                'downloader/exception_type_count/builtins.IsADirectoryError')
+        else:
+            statistics.files_is_dir_count = 0
         statistics.save()
         logging.debug('Statistic saved.')
 
