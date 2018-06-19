@@ -155,9 +155,6 @@
   {% endif %}    
 
   <div id="{{ form.pattern_0.auto_id }}_container" class="col-sm-12{% if form.pattern_0.errors %} has-error{% endif %}">
-<p>TODO: What about properties like .auto_id, .errors, .label, .help_text, .field.required in the shape of form.pattern_n .auto_id? We can't use those when we're just returning a tuple of (name, value), can we?</p>
-<p>TODO: We can't check .required prop on fields other than pattern_0</p>
-
     {% for pattern_name, pattern_value in view.get_pattern_fields %}
     <div class="form-group">
       <label class="control-label col-sm-2" for="id_{{ pattern_name }}">{{ form.pattern_0.label }} {{ forloop.counter }}</label>
