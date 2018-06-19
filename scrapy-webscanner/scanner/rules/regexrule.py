@@ -97,16 +97,18 @@ class RegexRule(Rule):
         if not isinstance(matches, set):
             return False
 
-        rule_set = set(self.regex_patterns)
+        regex_patterns = set(self.regex_patterns)
 
         # for rule in self.regex_patterns:
-        for match in matches:
-            for rule in self.regex_patterns:
-                print('The matched data vs matched_string ' + rule.pattern_string + ' :: ' + match['matched_data'])
-                if re.match(rule.pattern_string, match['matched_data']) and rule_set:
-                    rule_set.pop()
-                    continue
-            if not rule_set:
+        for pattern in self.regex_patterns:
+            for match in matches:
+                print('The matched data vs matched_string ' + pattern.pattern_string + ' :: ' + match['matched_data'])
+
+                if re.match(pattern.pattern_string, match['matched_data']) and regex_patterns:
+                    regex_patterns.pop()
+                    break
+
+            if not regex_patterns:
                 break
 
-        return not rule_set
+        return not regex_patterns
