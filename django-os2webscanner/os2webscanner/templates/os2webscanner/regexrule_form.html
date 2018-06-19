@@ -12,10 +12,10 @@
       var baseName = inputNameParts[1];
       var numInput = parseInt(inputNameParts[2]) + 1;
       var newInputName = baseName + (numInput);
-      // @TODO: Update the label text
       var containerClone = inputContainer.clone();
-      var inputClone = containerClone.find("input[type=\"text\"]").first();
+      var inputClone = containerClone.find("input[type=\"text\"]").first().prop("required", false);
       var labelClone = containerClone.find("label").first();
+
       labelClone.attr("for", "id_" + newInputName);
       labelClone.text("{{ form.pattern_0.label }}" + " " + (numInput + 1)); // plus one because the numInput is 0-indexed, and label should be 1-indexed
       inputClone.attr("name", newInputName).attr("id", "id_" + newInputName).val("").attr("value", "");
@@ -57,8 +57,6 @@
 
       // clean up the pattern numbers on form submit, just to be safe (even though we already did it when adding a new expression field).
       cleanupPatternNumbers();
-
-      return false;
     });
 
     // function to clean up pattern numbers, as we need to have them numbered sequentially without gaps
@@ -157,9 +155,6 @@
   {% endif %}    
 
   <div id="{{ form.pattern_0.auto_id }}_container" class="col-sm-12{% if form.pattern_0.errors %} has-error{% endif %}">
-<p>TODO: What about properties like .auto_id, .errors, .label, .help_text, .field.required in the shape of form.pattern_n .auto_id? We can't use those when we're just returning a tuple of (name, value), can we?</p>
-<p>TODO: We can't check .required prop on fields other than pattern_0</p>
-
     {% for pattern_name, pattern_value in view.get_pattern_fields %}
     <div class="form-group">
       <label class="control-label col-sm-2" for="id_{{ pattern_name }}">{{ form.pattern_0.label }} {{ forloop.counter }}</label>
@@ -167,7 +162,7 @@
         {% if forloop.counter > 1 %}
         <div class="input-group">
         {% endif %}
-	      <input type="text" class="form-control" name="{{ pattern_name }}" id="id_{{ pattern_name }}" {% if pattern_value %}value="{{ pattern_value }}"{% endif %} {% if form.pattern_0.field.required %}required{% endif %}>
+	      <input type="text" class="form-control" name="{{ pattern_name }}" id="id_{{ pattern_name }}" {% if pattern_value %}value="{{ pattern_value }}"{% endif %} {% if forloop.counter == 1 %}required{% endif %}> {# forloop.counter is 1-indexed #}
         {% if forloop.counter > 1 %}
         <span class="input-group-btn">
           <button class="btn btn-default button-remove-expression" type="button">Fjern udtryk</button>
@@ -186,8 +181,10 @@
     </div>
     {% endfor %}
 
-    <div class="col-12">
-    <button id="button-add-expression" type="button" class="btn btn-default">Tilføj udtryk</button>
+    <div class="row">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button id="button-add-expression" type="button" class="btn btn-default">Tilføj udtryk</button>
+      </div>
     </div>
   </div>
 

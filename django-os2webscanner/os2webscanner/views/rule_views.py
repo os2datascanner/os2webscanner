@@ -78,7 +78,7 @@ class RuleCreate(RestrictedCreateView):
 
     def get_pattern_fields(self):
         """
-        Used in the template to get tge field names and their values
+        Used in the template to get the field names and their values
         :return:
         """
 
@@ -119,12 +119,11 @@ class RuleUpdate(RestrictedUpdateView):
             f = form.fields[fname]
             f.widget.attrs['class'] = 'form-control'
 
-        ipdb.set_trace()
         return form
 
     def get_pattern_fields(self):
         """
-        Used in the template to get tge field names and their values
+        Used in the template to get the field names and their values
         :return:
         """
 
