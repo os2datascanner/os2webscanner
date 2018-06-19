@@ -53,7 +53,7 @@
       // delete any empty expression fields, BUT not the first one
       $("#{{ form.pattern_0.auto_id }}_container").find("input[type=\"text\"]").filter(function(idx) {
         return !this.value && idx > 0;
-      }).closest(".pattern-container").remove();
+      }).closest(".form-group").remove();
 
       // clean up the pattern numbers on form submit, just to be safe (even though we already did it when adding a new expression field).
       cleanupPatternNumbers();
