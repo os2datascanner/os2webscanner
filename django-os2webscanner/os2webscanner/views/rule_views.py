@@ -20,7 +20,7 @@ def extract_pattern_fields(form_fields):
         return [('pattern_0', '')]
 
     return [(field_name, form_fields[field_name]) for field_name in form_fields if
-                      field_name.startswith('pattern_')]
+            field_name.startswith('pattern_')]
 
 
 class RuleCreate(RestrictedCreateView):
@@ -43,7 +43,8 @@ class RuleCreate(RestrictedCreateView):
 
         idx = 0
         for field_name, value in self.patterns:
-            form.fields[field_name] = forms.CharField(required=False if idx > 0 else True, initial=value, label='Udtryk')
+            form.fields[field_name] = forms.CharField(required=False if idx > 0 else True, initial=value,
+                                                      label='Udtryk')
             idx += 1
 
         return form
@@ -57,7 +58,6 @@ class RuleCreate(RestrictedCreateView):
         form_cleaned_data = form.cleaned_data
         form_patterns = [form.cleaned_data[field_name] for field_name in form.cleaned_data if
                          field_name.startswith('pattern_')]
-        
 
         try:
             with transaction.atomic():
@@ -67,11 +67,11 @@ class RuleCreate(RestrictedCreateView):
                 regexrule.description = form_cleaned_data['description']
                 regexrule.organization = form_cleaned_data['organization']
                 regexrule.save()
-                
+
                 for pattern in form_patterns:
                     r_ = RegexPattern.objects.create(regex=regexrule, pattern_string=pattern)
                     ret = r_.save()
-                    
+
                 return super().form_valid(form)
         except:
             return super().form_invalid(form)
@@ -109,10 +109,19 @@ class RuleUpdate(RestrictedUpdateView):
         form = super().get_form(form_class)
         regex_patterns = self.object.patterns.all()
 
-        # create extra fields to hold the pattern strings
-        for i in range(len(regex_patterns)):
-            field_name = 'pattern_%s' % (i,)
-            form.fields[field_name] = forms.CharField(required=False if i > 0 else True, initial=regex_patterns[i].pattern_string, label='Udtryk')
+        if not form.data:
+            # create extra fields to hold the pattern strings
+            for i in range(len(regex_patterns)):
+                field_name = 'pattern_%s' % (i,)
+                form.fields[field_name] = forms.CharField(required=False if i > 0 else True,
+                                                          initial=regex_patterns[i].pattern_string, label='Udtryk')
+        else:
+            self.patterns = extract_pattern_fields(form.data)
+            idx = 0
+            for field_name, value in self.patterns:
+                form.fields[field_name] = forms.CharField(required=False if idx > 0 else True, initial=value,
+                                                          label='Udtryk')
+                idx += 1
 
         # assign class attribute to all fields
         for fname in form.fields:
@@ -120,6 +129,36 @@ class RuleUpdate(RestrictedUpdateView):
             f.widget.attrs['class'] = 'form-control'
 
         return form
+
+    def form_valid(self, form):
+        """
+        validate all the form first
+        :param form:
+        :return:
+        """
+        form_cleaned_data = form.cleaned_data
+        form_patterns = [form.cleaned_data[field_name] for field_name in form.cleaned_data if
+                         field_name.startswith('pattern_')]
+
+        ipdb.set_trace()
+
+        try:
+            with transaction.atomic():
+                self.object.patterns.all().delete()
+                regexrule = form.save(commit=False)
+                regexrule.name = form_cleaned_data['name']
+                regexrule.sensitivity = form_cleaned_data['sensitivity']
+                regexrule.description = form_cleaned_data['description']
+                regexrule.organization = form_cleaned_data['organization']
+                regexrule.save()
+
+                for pattern in form_patterns:
+                    r_ = RegexPattern.objects.create(regex=regexrule, pattern_string=pattern)
+                    ret = r_.save()
+
+                return super().form_valid(form)
+        except:
+            return super().form_invalid(form)
 
     def get_pattern_fields(self):
         """
