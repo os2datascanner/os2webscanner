@@ -182,17 +182,17 @@
           <div class="checkbox-group">
             <input type="checkbox" id="id_do_cpr_scan" name="{{ form.do_cpr_scan.name }}" value="{{ form.do_cpr_scan.name }}" {% if form.do_cpr_scan.value %} checked="checked" {% endif %}>
             <label for="id_{{ form.do_cpr_scan.name }}">
-              CPR
+              {{ form.do_cpr_scan.label }}
               {% if form.do_cpr_scan.help_text %}<small>{{ form.do_cpr_scan.help_text }}</small>{% endif %}
             </label>
             <input type="checkbox" id="id_{{ form.do_cpr_modulus11.name }}" name="{{ form.do_cpr_modulus11.name }}" value="{{ form.do_cpr_modulus11.name }}" {% if form.do_cpr_modulus11.value %} checked="checked" {% endif %}>
             <label class="cpr_option" for="id_{{ form.do_cpr_modulus11.name }}">
-              Tjek modulus-11
+              {{ form.do_cpr_modulus11.label }}
               {% if form.do_cpr_modulus11.help_text %}<small>{{ form.do_cpr_modulus11.help_text }}</small>{% endif %}
             </label>
             <input type="checkbox" id="id_{{ form.do_cpr_ignore_irrelevant.name }}" name="{{ form.do_cpr_ignore_irrelevant.name }}" value="{{ form.do_cpr_ignore_irrelevant.name }}" {% if form.do_cpr_ignore_irrelevant.value %} checked="checked" {% endif %}>
             <label class="cpr_option" for="id_{{ form.do_cpr_ignore_irrelevant.name }}">
-              Ignorer ugyldige fødselsdatoer
+              {{ form.do_cpr_ignore_irrelevant.label }}
               {% if form.do_cpr_ignore_irrelevant.help_text %}<small>{{ form.do_cpr_ignore_irrelevant.help_text }}</small>{% endif %}
             </label>
           </div>
@@ -209,12 +209,15 @@
                         {{ form.do_last_modified_check.label }}
                         {% if form.do_last_modified_check.help_text %}<small>{{ form.do_last_modified_check.help_text }}</small>{% endif %}
                     </label>
+          {% if view.type == 'web' %}
             <input type="checkbox" id="id_{{ form.do_last_modified_check_head_request.name }}" name="{{ form.do_last_modified_check_head_request.name }}" value="{{ form.do_last_modified_check_head_request.name }}" {% if form.do_last_modified_check_head_request.value %} checked="checked" {% endif %}>
             <label for="id_{{ form.do_last_modified_check_head_request.name }}">
                         {{ form.do_last_modified_check_head_request.label }}
                         {% if form.do_last_modified_check_head_request.help_text %}<small>{{ form.do_last_modified_check_head_request.help_text }}</small>{% endif %}
                     </label>
+          {% endif %}
           </div>
+          {% if view.type == 'web' %}
           <div class="checkbox-group">
             <input type="checkbox" id="id_{{ form.do_link_check.name }}" name="{{ form.do_link_check.name }}" value="{{ form.do_link_check.name }}" {% if form.do_link_check.value %} checked="checked" {% endif %}>
             <label for="id_{{ form.do_link_check.name }}">
@@ -234,6 +237,7 @@
                         {% if form.do_collect_cookies.help_text %}<small>{{ form.do_collect_cookies.help_text }}</small>{% endif %}
                     </label>
           </div>
+          {% endif %}
         </div>
         <div class="form-group">
           <h5>Regler</h5>
