@@ -160,11 +160,11 @@ max-width:20%;
 .rule-expression .pattern-container {
   display:none;
 }
-.rule-expression #show-patterns:checked ~ .pattern-container {
+.rule-expression .show-patterns:checked ~ .pattern-container {
   display:block;
 }
-.rule-expression #show-patterns,
-.rule-expression [for="show-patterns"] {
+.rule-expression .show-patterns,
+.rule-expression .show-patterns + label {
   vertical-align:middle;
   line-height:1;
   margin:0;
