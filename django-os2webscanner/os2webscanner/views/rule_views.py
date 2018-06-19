@@ -1,11 +1,10 @@
 from .views import RestrictedListView, RestrictedCreateView, \
-    RestrictedUpdateView, RestrictedDetailView, RestrictedDeleteView
+    RestrictedUpdateView, RestrictedDeleteView
 from ..models.regexrule_model import RegexRule
 from ..models.regexpattern_model import RegexPattern
 
 from django import forms
-from django.db import transaction, IntegrityError
-import ipdb
+from django.db import transaction
 
 
 class RuleList(RestrictedListView):
@@ -139,8 +138,6 @@ class RuleUpdate(RestrictedUpdateView):
         form_cleaned_data = form.cleaned_data
         form_patterns = [form.cleaned_data[field_name] for field_name in form.cleaned_data if
                          field_name.startswith('pattern_')]
-
-        ipdb.set_trace()
 
         try:
             with transaction.atomic():
