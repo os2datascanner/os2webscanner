@@ -29,7 +29,7 @@ class Match(models.Model):
     url = models.ForeignKey(Url, null=False, verbose_name='Url')
     scan = models.ForeignKey(Scan, null=False, verbose_name='Scan',
                              related_name='matches')
-    matched_data = models.CharField(max_length=1024, verbose_name='Data match')
+    matched_data = models.CharField(max_length=4096, verbose_name='Data match')
     matched_rule = models.CharField(max_length=256, verbose_name='Regel match')
     sensitivity = models.IntegerField(choices=Sensitivity.choices,
                                       default=Sensitivity.HIGH,
