@@ -146,13 +146,16 @@ class Scanner:
                 #skip a ruleset where not all the rules match
                 if not rule.is_all_match(rule_matches):
                     continue
+
                 # Associate the rule with the match
                 print('-------Rule matches length {0}-------'.format(str(len(rule_matches))))
-                # for match in rule_matches:
-                # match['matched_rule'] = rule.name
+
                 match = rule_matches.pop()
                 match['matched_rule'] = rule.name
-                match['matched_data'] = rule.regex_str.replace('|', ' & ')
+                for item in rule_matches:
+                    match['matched_data'] += ', ' + item['matched_data']
+
                 print('-------Match: {0}-------'.format(match))
+
                 matches.append(match)
         return matches
