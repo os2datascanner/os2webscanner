@@ -12,10 +12,10 @@
       var baseName = inputNameParts[1];
       var numInput = parseInt(inputNameParts[2]) + 1;
       var newInputName = baseName + (numInput);
-      // @TODO: Update the label text
       var containerClone = inputContainer.clone();
-      var inputClone = containerClone.find("input[type=\"text\"]").first();
+      var inputClone = containerClone.find("input[type=\"text\"]").first().prop("required", false);
       var labelClone = containerClone.find("label").first();
+
       labelClone.attr("for", "id_" + newInputName);
       labelClone.text("{{ form.pattern_0.label }}" + " " + (numInput + 1)); // plus one because the numInput is 0-indexed, and label should be 1-indexed
       inputClone.attr("name", newInputName).attr("id", "id_" + newInputName).val("").attr("value", "");
@@ -57,8 +57,6 @@
 
       // clean up the pattern numbers on form submit, just to be safe (even though we already did it when adding a new expression field).
       cleanupPatternNumbers();
-
-      return false;
     });
 
     // function to clean up pattern numbers, as we need to have them numbered sequentially without gaps
@@ -167,7 +165,7 @@
         {% if forloop.counter > 1 %}
         <div class="input-group">
         {% endif %}
-	      <input type="text" class="form-control" name="{{ pattern_name }}" id="id_{{ pattern_name }}" {% if pattern_value %}value="{{ pattern_value }}"{% endif %} {% if form.pattern_0.field.required %}required{% endif %}>
+	      <input type="text" class="form-control" name="{{ pattern_name }}" id="id_{{ pattern_name }}" {% if pattern_value %}value="{{ pattern_value }}"{% endif %} {% if forloop.counter == 1 %}required{% endif %}> {# forloop.counter is 1-indexed #}
         {% if forloop.counter > 1 %}
         <span class="input-group-btn">
           <button class="btn btn-default button-remove-expression" type="button">Fjern udtryk</button>
@@ -186,8 +184,10 @@
     </div>
     {% endfor %}
 
-    <div class="col-12">
-    <button id="button-add-expression" type="button" class="btn btn-default">Tilføj udtryk</button>
+    <div class="row">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button id="button-add-expression" type="button" class="btn btn-default">Tilføj udtryk</button>
+      </div>
     </div>
   </div>
 

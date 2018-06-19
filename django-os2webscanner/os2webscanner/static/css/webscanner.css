@@ -141,10 +141,14 @@ display:block;
 .rule-description {
 max-width:20%;
 }
+.wrapper-bgcolor {
+  padding:1em;
+  background-color:#f0f0f0;
+  border:1px solid #ddd;
+  border-radius:4px;
+}
 #button-add-expression {
   margin-bottom:1em;
-  float:right;
-  clear:both;
 }
 .rule-expression code {
   display:block;
