@@ -1,6 +1,7 @@
 from .scanner_views import *
 from ..models.filescanner_model import FileScanner
 
+
 class FileScannerList(ScannerList):
     """Displays list of file scanners."""
 
