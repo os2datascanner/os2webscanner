@@ -22,7 +22,7 @@
 
 from scrapy.item import Field
 from scrapy_djangoitem import DjangoItem
-from os2webscanner.models import Match
+from os2webscanner.models.match_model import Match
 
 
 class MatchItem(DjangoItem):

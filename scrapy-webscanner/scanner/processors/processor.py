@@ -17,6 +17,7 @@
 
 
 import time
+import datetime
 import os
 import mimetypes
 import sys
@@ -26,15 +27,15 @@ import random
 import subprocess
 import hashlib
 import logging
-
-from os2webscanner.models import ConversionQueueItem, Md5Sum
+import traceback
 
 from django.db import transaction, IntegrityError, DatabaseError
 from django import db
 from django.utils import timezone
 from django.conf import settings
 
-import logging
+from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
+from os2webscanner.models.md5sum_model import Md5Sum
 
 
 # Minimum width and height an image must have to be scanned
@@ -76,9 +77,15 @@ def get_image_dimensions(file_path):
         dimensions = subprocess.check_output(["identify", "-format", "%wx%h",
                                               file_path])
     except subprocess.CalledProcessError as e:
-        print(e)
+        datetime_print(e)
         return None
-    return tuple(int(dim.strip()) for dim in dimensions.split("x"))
+    return tuple(int(dim.strip()) for dim in
+                 dimensions.decode('utf-8').split("x")
+                 )
+
+
+def datetime_print(line_to_print):
+    print('{0} : {1}'.format(datetime.datetime.now(), line_to_print))
 
 
 class Processor(object):
@@ -190,6 +197,8 @@ class Processor(object):
             data = data.encode('utf-8')
 
         if self.is_md5_known(data, url_object.scan):
+            url_object.scan.log_occurrence('Add_to_queue: MD5 is already stored for file {0} '
+                                    'so it is not scanned.'.format(url_object.url))
             return True
         tmp_dir = url_object.tmp_dir
         if not os.path.exists(tmp_dir):
@@ -201,6 +210,10 @@ class Processor(object):
         f = open(tmp_file_path, 'wb')
         f.write(data)
         f.close()
+        datetime_print("Wrote {0} to file {1}".format(
+            url_object.url,
+            tmp_file_path)
+        )
 
         # Create a conversion queue item
         new_item = ConversionQueueItem(
@@ -231,11 +244,17 @@ class Processor(object):
                 data = f.read()
             except UnicodeDecodeError:
                 url.scan.log_occurrence(
-                    "UTF-8 decoding failed for {0}".format(file_path)
-                )
+                        "UTF-8 decoding failed for {0}. Will try and open "
+                        "it with encoding iso-8859-1.".format(file_path)
+                        )
                 f = codecs.open(file_path, "rb", encoding='iso-8859-1',
-                                errors='replace')
+                        errors='replace')
                 data = f.read()
+                url.scan.log_occurrence(
+                    "Successfully red the file {0} using encoding iso-8859-1.".format(file_path)
+                )
+            finally:
+                f.close()
 
             if type(data) is not str:
                 data = data.decode('utf-8')
@@ -250,7 +269,7 @@ class Processor(object):
                 url.scan.log_occurrence(traceback.format_exc())
 
             return False
-
+        # TODO: Increment process file count.
         return True
 
     def setup_queue_processing(self, pid, *args):
@@ -263,7 +282,7 @@ class Processor(object):
         If there are no items to process, waits 1 second before trying
         to get the next queue item.
         """
-        print("Starting processing queue items of type %s, pid %s" % (
+        datetime_print("Starting processing queue items of type %s, pid %s" % (
             self.item_type, self.pid
         ))
         sys.stdout.flush()
@@ -271,28 +290,45 @@ class Processor(object):
 
         while executions < self.documents_to_process:
             # Prevent memory leak in standalone scripts
-            db.reset_queries()
+            if settings.DEBUG:
+                db.reset_queries()
             item = self.get_next_queue_item()
             if item is None:
-                time.sleep(1)
+                time.sleep(2)
             else:
                 result = self.handle_queue_item(item)
                 executions = executions + 1
                 if not result:
                     item.status = ConversionQueueItem.FAILED
                     lm = "CONVERSION ERROR: file <{0}>, type <{1}>, URL: {2}"
-                    item.url.scan.log_occurrence(
-                        lm.format(item.file, item.type, item.url.url)
-                    )
+                    lm2 = "CONVERSION ERROR: type <{0}>, URL: {1}"
+                    tb = traceback.format_exc()
+                    try:
+                        item.url.scan.log_occurrence(
+                                lm.format(item.file, item.type, item.url.url)
+                                )
+                    except:
+                        item.url.scan.log_occurrence(
+                                lm2.format(item.type, item.url.url)
+                                )
+
+                    # Try to find out if something went wrong
+                    if settings.DEBUG:
+                        item.url.scan.log_occurrence(tb)
+
                     item.save()
                     item.delete_tmp_dir()
                 else:
                     item.delete()
-                print("%s (%s): %s" % (
-                    item.file_path,
-                    item.url.url,
-                    "success" if result else "fail"
-                ))
+
+                try:
+                    datetime_print("(%s): %s" % (
+                            item.url.url,
+                            "success" if result else "fail"
+                            ))
+                except:
+                    datetime_print("success" if result else "fail")
+
                 sys.stdout.flush()
 
     @transaction.atomic
@@ -336,12 +372,12 @@ class Processor(object):
                     result.process_id = self.pid
                     result.process_start_time = ltime
                     result.save()
-            except (DatabaseError, IntegrityError):
+            except (DatabaseError, IntegrityError) as e:
                 # Database transaction failed, we just try again
-                print("".join([
-                    "Transaction failed while getting queue item of type ",
-                    "'" + self.item_type + "'"
-                ]))
+                datetime_print('Error message {1}'.format(e))
+                datetime_print('Transaction failed while getting queue item of type {1}'.format(
+                    self.item_type)
+                )
                 result = None
             except IndexError:
                 # Nothing in the queue, return None
@@ -360,6 +396,10 @@ class Processor(object):
             data = f.read()
             if self.is_md5_known(data, item.url.scan):
                 # Already processed this file, nothing more to do
+                item.url.scan.log_occurrence(
+                    'Convert_queue_item: MD5 is already stored for file {0} '
+                    'so it is not scanned.'.format(item.url.url)
+                )
                 return True
 
         tmp_dir = item.tmp_dir
@@ -367,13 +407,15 @@ class Processor(object):
             os.makedirs(tmp_dir)
 
         result = self.convert(item, tmp_dir)
-        # Conversion successful, store MD5 sum.
-        self.store_md5(data, item.url.scan)
+        if result:
+            # Conversion successful, store MD5 sum.
+            self.store_md5(data, item.url.scan)
 
-        if os.path.exists(item.file_path):
-            os.remove(item.file_path)
+            if os.path.exists(item.file_path):
+                os.remove(item.file_path)
 
-        self.add_processed_files(item, tmp_dir)
+            self.add_processed_files(item, tmp_dir)
+
         return result
 
     def convert(self, item, tmp_dir):
@@ -440,7 +482,7 @@ class Processor(object):
                 except ValueError:
                     continue
         if ignored_ocr_count > 0:
-            print("Ignored %d extracted images because the dimensions were"
+            datetime_print("Ignored %d extracted images because the dimensions were"
                   "small (width AND height must be >= %d) AND (width OR "
                   "height must be >= %d))" % (ignored_ocr_count,
                                               MIN_OCR_DIMENSION_BOTH,

@@ -27,9 +27,9 @@ class BaseScannerSpider(Spider):
     name = 'base_scanner'
 
     def __init__(self, scanner, *a, **kw):
-        """Initialize the ScannerSpider with a Scanner object.
+        """Initialize the ScannerSpider with a WebScanner object.
 
-        The configuration will be loaded from the Scanner.
+        The configuration will be loaded from the WebScanner.
         """
         super(BaseScannerSpider, self).__init__(*a, **kw)
 

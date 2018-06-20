@@ -15,11 +15,12 @@
 # source municipalities ( http://www.os2web.dk/ )
 """PDF Processors."""
 
-from .processor import Processor
 import shutil
 import os
-from subprocess import Popen, PIPE, call, DEVNULL
 import regex
+
+from .processor import Processor
+from subprocess import Popen, PIPE, DEVNULL, call, TimeoutExpired
 
 
 class PDFProcessor(Processor):
@@ -34,7 +35,7 @@ class PDFProcessor(Processor):
 
     def handle_queue_item(self, item):
         """Convert the queue item."""
-        return self.convert_queue_item(item)
+        return super().convert_queue_item(item)
 
     def convert(self, item, tmp_dir):
         """Convert the item using pdftohtml."""
@@ -54,11 +55,17 @@ class PDFProcessor(Processor):
         command.extend(extra_options)
         command.append(new_file_path)
 
-        p = Popen(command, stdin=PIPE, stdout=DEVNULL, stderr=PIPE)
-        output, err = p.communicate(b"input data that is passed to subprocess' stdin")
+        try:
+            p = Popen(command, stdin=PIPE, stdout=DEVNULL, stderr=PIPE)
+            output, err = p.communicate(b"input data that is passed to subprocess' stdin")
 
-        if 'Error' in err.decode('utf-8') and err.decode('utf-8') != '':
-            print('pdftohtml convertion error: %s' % err)
+            if 'Error' in err.decode('utf-8') and err.decode('utf-8') != '':
+                print('pdftohtml convertion error: %s' % err)
+                return False
+        except TimeoutExpired as te:
+            p.kill()
+            # outs, errs = p.communicate()
+            print('Popen command expired: %s' % te)
             return False
 
         return_code = 0
@@ -66,6 +73,7 @@ class PDFProcessor(Processor):
         # Have to get rid of FEFF marks in the generated files
         result_file = regex.sub("\\.pdf$", ".html", new_file_path)
         if os.path.exists(result_file):
+            print('resul')
             return_code = call([
                 'sed', '-i', 's/\\xff//;s/\\xfe//', result_file
             ])

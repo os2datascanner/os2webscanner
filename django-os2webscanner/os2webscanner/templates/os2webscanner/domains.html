@@ -6,6 +6,16 @@ Domæner
 
 {% block body %}
 <div class="container">
+    {% include 'os2webscanner/domain_above_content.html' with active=view.type %}
+    <div class="tab-content">
+    <div role="tabpanel" class="tab-pane active" id="{{view.type}}scan">
+        <p class="h2" style="display:inline-block;">{% if view.type == 'web' %} Web {% else %} Fil {% endif %} domæne</p>
+        <span class="page-action">
+            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#create-domain-modal">
+              Tilføj ny
+              <span style="position:relative;top:.15em;" class="glyphicon glyphicon-plus-sign"></span>
+            </button>
+          </span>
      <div class="table-responsive">
 	<table class="table table-striped">
           <thead>
@@ -79,12 +89,12 @@ Domæner
 		  class="btn btn-default btn-xs btn-domain-settings"
 		  onclick="os2web.iframeDialog(
 		      &quot;#edit-domain-modal&quot;,
-		      &quot;/domains/{{domain.pk}}&quot;,
+		      &quot;/{{ view.type }}domains/{{domain.pk}}&quot;,
 		      &quot;Redigér domæne '{{domain.url}}'&quot;
 		  )">
               	  <span class="glyphicon glyphicon-cog"></span> <span>Redigér</span>
 		</button>
-                <a href="/domains/{{domain.pk}}/delete/" class="btn btn-default btn-xs">
+                <a href="/{{ view.type }}domains/{{domain.pk}}/delete/" class="btn btn-default btn-xs">
                     <span class="glyphicon glyphicon-remove"></span>
                     <span>Slet </span>
                 </a>
@@ -95,23 +105,17 @@ Domæner
         </table>
       </div>
    </div>
+   </div>
 {% endblock %}
 
 {% block heading %} 
-Domæner 
-<span class="page-action" style="margin-left:.5em">
-    <button type="button" class="btn btn-default" data-toggle="modal" data-target="#create-domain-modal">
-        Tilføj nyt 
-        <span style="position:relative;top:.15em;" class="glyphicon glyphicon-plus-sign">
-        </span>
-    </button>
-</span>
+Domæner
 {% endblock %}
 
 {% block modal %}
 <div class="modal iframe" id="create-domain-modal" tabindex="-1" role="dialog"
   aria-labelledby="create-domain-modal-title" aria-hidden="true"
-  data-href="/domains/add/">
+  data-href="/{{ view.type }}domains/add/">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
@@ -130,7 +134,7 @@ Domæner
 </div>
 <div class="modal iframe" id="edit-domain-modal" tabindex="-1" role="dialog"
   aria-labelledby="edit-domain-modal-title" aria-hidden="true"
-  data-href="/domains/add/">
+  data-href="/{{ view.type }}domains/add/">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">

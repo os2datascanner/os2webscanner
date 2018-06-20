@@ -17,16 +17,6 @@
 
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Scanner
-
-
-class ScannerForm(forms.ModelForm):
-
-    """A form for creating or updating scanners."""
-
-    class Meta:
-        model = Scanner
-        fields = '__all__'
 
 
 class FileUploadForm(forms.Form):

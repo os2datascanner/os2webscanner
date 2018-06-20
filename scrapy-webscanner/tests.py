@@ -20,16 +20,46 @@
 # Include the Django app
 import os
 import sys
+import shutil
+import tempfile
 
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(base_dir + "/webscanner_site")
 os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 
-import unittest
-from scanner.rules import cpr, name
+import django
+django.setup()
+
 import re
 
 import linkchecker
+
+import unittest
+from scanner.rules import cpr, name
+from scanner.spiders import scanner_spider
+from scanner.processors import pdf, libreoffice, html
+
+from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
+from os2webscanner.models.url_model import Url
+from os2webscanner.models.scan_model import Scan
+
+
+class FileExtractorTest(unittest.TestCase):
+
+    def test_file_extractor(self):
+        with tempfile.TemporaryDirectory(dir=base_dir + '/scrapy-webscanner/tests/data/') as temp_dir:
+            filepath1 = temp_dir + '/kk.dk'
+            filepath2 = temp_dir + '/æøå'
+            os.mkdir(filepath1)
+            os.mkdir(filepath2)
+
+            filemap = scanner_spider.ScannerSpider.file_extractor(self, 'file://' + temp_dir)
+
+            encoded_file_path1 = filemap[0].encode('utf-8')
+            encoded_file_path2 = filemap[1].encode('utf-8')
+
+            self.assertEqual(filepath1, encoded_file_path1.decode('utf-8').replace('file://', ''))
+            self.assertEqual(filepath2, encoded_file_path2.decode('utf-8').replace('file://', ''))
 
 
 class ExternalLinkCheckerTest(unittest.TestCase):
@@ -107,13 +137,14 @@ class CPRTest(unittest.TestCase):
             4110625629
             6113625629
             911062 5629
-            2006359917
+            2006359917            
             211062-5629 # in the past
             200638-5322 # in the future
             080135-5102 # in the future
+            21 10 62 - 3308
             """
         valid_cprs = ['2110625629', '2006359917', '2006385322', '2110625629',
-                      '0801355102']
+                      '0801355102', '2110623308']
         invalid_cprs = ['4110625629', '2113625629', '9110625629']
 
         matches = cpr.match_cprs(text, mask_digits=False,
@@ -144,6 +175,91 @@ class CPRTest(unittest.TestCase):
         # they have an invalid check digit.
         self.assertTrue(cpr.modulus11_check("0101650123"))
         self.assertTrue(cpr.modulus11_check("0101660123"))
+
+
+class PDF2HTMLTest(unittest.TestCase):
+
+    test_dir = base_dir + '/scrapy-webscanner/tests/data/'
+
+    def create_ressources(self, filename):
+        shutil.copy2(self.test_dir + 'pdf/' + filename, self.test_dir + 'tmp/')
+        url = Url(scan=Scan(), url=self.test_dir + 'tmp/' + filename)
+        item = ConversionQueueItem(url=url,
+                                   file=self.test_dir + 'tmp/' + filename,
+                                   type=pdf.PDFProcessor,
+                                   status=ConversionQueueItem.NEW)
+
+        with tempfile.TemporaryDirectory(dir=self.test_dir + 'tmp/') as temp_dir:
+            result = pdf.PDFProcessor.convert(self, item, temp_dir)
+
+        return result
+
+    def test_pdf2html_conversion_success(self):
+        filename = 'Midler-til-frivilligt-arbejde.pdf'
+        result = self.create_ressources(filename)
+
+        self.assertEqual(result, True)
+
+    def test_pdf2html_data_protection_bit(self):
+        filename = 'Tilsynsrapport (2013) - Kærkommen.PDF'
+        result = self.create_ressources(filename)
+
+        self.assertEqual(result, True)
+
+    def test_pdf2html_find_cpr_number(self):
+        filename = 'somepdf.pdf'
+        result = self.create_ressources(filename)
+
+        self.assertEqual(result, True)
+
+
+class LibreofficeTest(unittest.TestCase):
+
+    test_dir = base_dir + '/scrapy-webscanner/tests/data/'
+
+    def create_ressources(self, filename):
+        shutil.copy2(self.test_dir + 'libreoffice/' + filename, self.test_dir + 'tmp/')
+        url = Url(scan=Scan(), url=self.test_dir + 'tmp/' + filename)
+        item = ConversionQueueItem(url=url,
+                                   file=self.test_dir + 'tmp/' + filename,
+                                   type=libreoffice.LibreOfficeProcessor,
+                                   status=ConversionQueueItem.NEW)
+
+        with tempfile.TemporaryDirectory(dir=self.test_dir + 'tmp/') as temp_dir:
+            libreoffice_processor = libreoffice.LibreOfficeProcessor()
+            libreoffice_processor.set_home_dir(self.test_dir + 'libreoffice/home_dir/')
+            result = libreoffice_processor.convert(item, temp_dir)
+
+        return result
+
+    def test_libreoffice_conversion_success(self):
+        filename = 'KK SGP eksempel 2013.02.27.xls'
+        result = self.create_ressources(filename)
+        self.assertEqual(result, True)
+
+
+class HTMLTest(unittest.TestCase):
+
+    test_dir = base_dir + '/scrapy-webscanner/tests/data/'
+
+    def create_ressources(self, filename):
+        shutil.copy2(self.test_dir + 'html/' + filename, self.test_dir + 'tmp/')
+        url = Url(scan=Scan(), url=self.test_dir + 'tmp/' + filename)
+        item = ConversionQueueItem(url=url,
+                                   file=self.test_dir + 'tmp/' + filename,
+                                   type=html.HTMLProcessor,
+                                   status=ConversionQueueItem.NEW)
+
+        return item
+
+    def test_html_process_method(self):
+        """Test case used to investigate UTF-8 decoding fail error.
+         Will always return false as text processor instantiates scanner object which makes db call."""
+        filename = 'Midler-til-frivilligt-arbejde.html'
+        item = self.create_ressources(filename)
+        html_processor = html.HTMLProcessor()
+        result = html_processor.handle_queue_item(item)
+        self.assertEqual(result, False)
 
 
 def main():

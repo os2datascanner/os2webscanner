@@ -8,7 +8,11 @@
   Er du sikker på, at du vil starte scanneren?
 </p>
 <p>
-  <a href="/scanners/{{scanner.pk}}/run/" class="btn btn-primary">Ja, kør!</a>
+  {% if webscanner.pk %}
+      <a href="/webscanners/{{webscanner.pk}}/run/" class="btn btn-primary">Ja, kør!</a>
+  {% else %}
+      <a href="/filescanners/{{filescanner.pk}}/run/" class="btn btn-primary">Ja, kør!</a>
+  {% endif %}
 </p>
 {% else %}
 <p class="lead">

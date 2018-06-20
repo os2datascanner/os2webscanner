@@ -7,7 +7,7 @@ Rapport &dash; {{scan.scanner.name}}
 {% block body %}
 
       <p class="lead">
-	<a href="{{ reports_url }}">&larr; Klik her for at vise listen over rapporter</a>
+	<a href="/reports">&larr; Klik her for at vise listen over rapporter</a>
       </p>
 
       <div class="table-responsive">
@@ -26,9 +26,27 @@ Rapport &dash; {{scan.scanner.name}}
                 <td>{{ scan.get_status_display }}</td>
             </tr>
             <tr>
-                <td>Totalt antal matches:</td>
+                <td>Antal matches:</td>
                 <td>{{ no_of_matches }}</td>
             </tr>
+        {% if files_scraped_count %}
+            <tr>
+                <td>Antal scannede foldere og filer:</td>
+                <td>{{ files_scraped_count }}</td>
+            </tr>
+        {% endif %}
+        {% if files_is_dir_count %}
+            <tr>
+                <td>Antal scannede foldere:</td>
+                <td>{{ files_is_dir_count }}</td>
+            </tr>
+        {% endif %}
+        {% if files_skipped_count %}
+            <tr>
+                <td>Antal uændrede filer siden sidste scan:</td>
+                <td>{{ files_skipped_count }}</td>
+            </tr>
+        {% endif %}
 	    {% if failed_conversions %}
             <tr>
                 <td>Fejlede dokument-konverteringer under scanningen:</td>
@@ -86,7 +104,7 @@ Rapport &dash; {{scan.scanner.name}}
                     <h3>Domæner</h3>
 		</td>{% endif %}
                 {% if scan.regex_rules.all %}<td class="head">
-                    <h3>Regex-regler</h3>
+                    <h3>Ad hoc-regler</h3>
                 </td>{% endif %}
         </tr>
         <tr>

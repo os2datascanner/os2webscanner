@@ -24,7 +24,8 @@ from django.conf import settings
 from django.utils import six
 
 from .utils import do_scan
-from .models import Match, Scan
+from .models.match_model import Match
+from .models.scan_model import Scan
 
 from django_xmlrpc.decorators import xmlrpc_func
 
@@ -194,10 +195,12 @@ def do_scan_documents(user, data, params={}):
 
     # Save files on disk
     def writefile(data_item):
+        binary_decoder = xmlrpclib.Binary()
         binary, filename = data_item
+        binary_decoder.decode(binary)
         full_path = os.path.join(dirname, filename)
         with open(full_path, "wb") as f:
-            f.write(binary.data)
+            f.write(binary_decoder.data)
         return full_path
     documents = list(map(writefile, data))
     file_url = lambda f: 'file://{0}'.format(f)

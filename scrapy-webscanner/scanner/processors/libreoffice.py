@@ -26,6 +26,7 @@ from django.conf import settings
 
 base_dir = settings.BASE_DIR
 var_dir = settings.VAR_DIR
+project_dir = settings.PROJECT_DIR
 lo_dir = os.path.join(var_dir, "libreoffice")
 home_root_dir = os.path.join(lo_dir, "homedirs")
 
@@ -102,8 +103,9 @@ class LibreOfficeProcessor(Processor):
                 tmp_dir,
                 os.path.basename(item.file_path).split(".")[0] + ".csv"
             )
+
             return_code = subprocess.call([
-                "unoconv", "-f", output_filter, "-e",
+                project_dir + "/scrapy-webscanner/unoconv", "-f", output_filter, "-e",
                 'FilterOptions="59,34,0,1"', "-o", output_file,
                 item.file_path
             ], env=self.env)

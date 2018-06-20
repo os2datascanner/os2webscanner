@@ -16,22 +16,23 @@
 """Domain validation functions."""
 
 import re
-import urllib.request
-import urllib.parse
-import urllib.error
-from urllib.parse import urlparse
+from urllib.request import Request, urlopen
+from urllib.error import URLError, HTTPError
+from urllib.parse import urljoin
 import hashlib
-from os2webscanner.models import Domain
+
+from .models.webdomain_model import WebDomain
 
 
 def _do_request(url):
     """Make a request and return the data."""
     try:
-        request = urllib.Request(url, headers={"User-Agent": "OS2Webscanner"})
-        r = urllib.request.urlopen(request)
-        return r.read()
+        request = Request(url, headers={"User-Agent": "OS2Webscanner"})
+        r = urlopen(request)
+        # TODO: We get decoding error when using utf-8. But it should be utf-8 decoded.
+        return r.read().decode('latin1')
     # except urllib2.URLError, urllib2.HTTPError:
-    except urllib.URLError:
+    except URLError:
         return None
 
 
@@ -54,11 +55,11 @@ def get_validation_str(domain, method=None):
     hash_str = _get_validation_hash(domain)
     if method is None:
         method = domain.validation_method
-    if method == Domain.ROBOTSTXT:
+    if method == WebDomain.ROBOTSTXT:
         return "User-agent: " + hash_str + "\nDisallow:"
-    elif method == Domain.WEBSCANFILE:
+    elif method == WebDomain.WEBSCANFILE:
         return hash_str
-    elif method == Domain.METAFIELD:
+    elif method == WebDomain.METAFIELD:
         return '<meta name="os2webscanner" content="' + hash_str + '" />'
 
 
@@ -70,21 +71,21 @@ def validate_domain(domain):
     hash_str = _get_validation_hash(domain)
 
     validators = {
-        Domain.ROBOTSTXT: {
+        WebDomain.ROBOTSTXT: {
             "url": "/robots.txt",
             "regex": "User-agent: " + hash_str + "(\r\n|\r|\n)Disallow:"
         },
-        Domain.WEBSCANFILE: {
+        WebDomain.WEBSCANFILE: {
             "url": "/webscan.html",
             "regex": hash_str
         },
-        Domain.METAFIELD: {
+        WebDomain.METAFIELD: {
             "url": "/",
             "regex": '<meta name="os2webscanner" content="' + hash_str + '"'
         }
     }
     validator = validators[domain.validation_method]
-    url = urlparse.urljoin(domain.root_url, validator["url"])
+    url = urljoin(domain.root_url, validator["url"])
     r = _do_request(url)
     if r is None:
         return False

@@ -20,17 +20,22 @@ from django.conf.urls import url
 from django.views.i18n import javascript_catalog
 import django.contrib.auth.views
 
-from .views import MainPageView, ScannerList, DomainList, RuleList
-from .views import CSVReportDetails, ReportDetails, ReportList, ReportDelete
-from .views import ScannerCreate, ScannerUpdate, ScannerDelete, ScannerRun
-from .views import ScannerAskRun, ScanReportLog, OrganizationUpdate
-from .views import DomainCreate, DomainUpdate, DomainValidate, DomainDelete
-from .views import GroupList, GroupCreate, GroupUpdate, GroupDelete
-from .views import RuleCreate, RuleUpdate, RuleDelete, OrganizationList
-from .views import SummaryList, SummaryCreate, SummaryUpdate, SummaryDelete
-from .views import SummaryReport, DialogSuccess, SystemStatusView
-from .views import file_upload, referrer_content
-from .models import Scanner
+from .views.views import MainPageView
+from .views.report_views import ScanReportLog, CSVReportDetails, ReportDetails, ReportList, ReportDelete
+from .views.webscanner_views import WebScannerCreate, WebScannerUpdate, WebScannerDelete, WebScannerRun, \
+    WebScannerAskRun, WebScannerList
+from .views.filescanner_views import FileScannerCreate, FileScannerRun, FileScannerAskRun, FileScannerUpdate, \
+    FileScannerDelete, FileScannerList
+from .views.views import OrganizationUpdate, OrganizationList
+from .views.domain_views import WebDomainUpdate, FileDomainUpdate, DomainValidate, WebDomainDelete, \
+    WebDomainList, FileDomainList, WebDomainCreate, FileDomainCreate, FileDomainDelete
+from .views.views import GroupList, GroupCreate, GroupUpdate, GroupDelete
+from .views.rule_views import RuleList, RuleCreate, RuleUpdate, RuleDelete
+from .views.views import SummaryList, SummaryCreate, SummaryUpdate, SummaryDelete
+from .views.views import SummaryReport, DialogSuccess, SystemStatusView
+from .views.views import file_upload, referrer_content
+from .models.webscanner_model import WebScanner
+from .models.filescanner_model import FileScanner
 
 
 js_info_dict = {
@@ -40,28 +45,50 @@ js_info_dict = {
 urlpatterns = [
     # App URLs
     url(r'^$', MainPageView.as_view(), name='index'),
-    url(r'^scanners/$', ScannerList.as_view(), name='scanners'),
-    url(r'^scanners/add/$', ScannerCreate.as_view(), name='scanner_add'),
-    url(r'^scanners/(?P<pk>\d+)/delete/$', ScannerDelete.as_view(),
+    url(r'^webscanners/$', WebScannerList.as_view(), name='webscanners'),
+    url(r'^webscanners/add/$', WebScannerCreate.as_view(), name='webscanner_add'),
+    url(r'^webscanners/(?P<pk>\d+)/delete/$', WebScannerDelete.as_view(),
         name='scanner_delete'),
-    url(r'^scanners/(?P<pk>\d+)/run/$', ScannerRun.as_view(),
-        name='scanner_run'),
-    url(r'^scanners/(?P<pk>\d+)/askrun/$',
-        ScannerAskRun.as_view(
+    url(r'^webscanners/(?P<pk>\d+)/run/$', WebScannerRun.as_view(),
+        name='webscanner_run'),
+    url(r'^webscanners/(?P<pk>\d+)/askrun/$',
+        WebScannerAskRun.as_view(
             template_name='os2webscanner/scanner_askrun.html',
-            model=Scanner),
+            model=WebScanner),
         name='scanner_askrun'),
-    url(r'^scanners/(?P<pk>\d+)/$', ScannerUpdate.as_view(),
+    url(r'^webscanners/(?P<pk>\d+)/$', WebScannerUpdate.as_view(),
         name='scanner_update'),
-    url(r'^domains/$', DomainList.as_view(), name='domains'),
-    url(r'^domains/add/$', DomainCreate.as_view(), name='domain_add'),
-    url(r'^domains/(?P<pk>\d+)/validate/$', DomainValidate.as_view(),
-        name='domain_validate'),
-    url(r'^(domains)/(\d+)/(success)/$', DialogSuccess.as_view()),
-    url(r'^domains/(?P<pk>\d+)/$', DomainUpdate.as_view(),
-        name='domain_update'),
-    url(r'^domains/(?P<pk>\d+)/delete/$', DomainDelete.as_view(),
-        name='domain_delete'),
+    url(r'^filescanners/$', FileScannerList.as_view(), name='filescanners'),
+    url(r'^filescanners/add/$', FileScannerCreate.as_view(), name='filescanner_add'),
+    url(r'^filescanners/(?P<pk>\d+)/delete/$', FileScannerDelete.as_view(),
+        name='scanner_delete'),
+    url(r'^filescanners/(?P<pk>\d+)/run/$', FileScannerRun.as_view(),
+        name='scanner_run'),
+    url(r'^filescanners/(?P<pk>\d+)/askrun/$',
+        FileScannerAskRun.as_view(
+            template_name='os2webscanner/scanner_askrun.html',
+            model=FileScanner),
+        name='scanner_askrun'),
+    url(r'^filescanners/(?P<pk>\d+)/$', FileScannerUpdate.as_view(),
+        name='scanner_update'),
+    url(r'^filedomains/$', FileDomainList.as_view(), name='filedomains'),
+    url(r'^filedomains/add/$', FileDomainCreate.as_view(), name='filedomain_add'),
+    url(r'^filedomains/(?P<pk>\d+)/validate/$', DomainValidate.as_view(),
+        name='file_domain_validate'),
+    url(r'^(filedomains)/(\d+)/(success)/$', DialogSuccess.as_view()),
+    url(r'^filedomains/(?P<pk>\d+)/$', FileDomainUpdate.as_view(),
+        name='file_domain_update'),
+    url(r'^filedomains/(?P<pk>\d+)/delete/$', FileDomainDelete.as_view(),
+        name='file_domain_delete'),
+    url(r'^webdomains/$', WebDomainList.as_view(), name='webdomains'),
+    url(r'^webdomains/add/$', WebDomainCreate.as_view(), name='webdomain_add'),
+    url(r'^webdomains/(?P<pk>\d+)/validate/$', DomainValidate.as_view(),
+        name='web_domain_validate'),
+    url(r'^(webdomains)/(\d+)/(success)/$', DialogSuccess.as_view()),
+    url(r'^webdomains/(?P<pk>\d+)/$', WebDomainUpdate.as_view(),
+        name='web_domain_update'),
+    url(r'^webdomains/(?P<pk>\d+)/delete/$', WebDomainDelete.as_view(),
+        name='web_domain_delete'),
     url(r'^rules/$', RuleList.as_view(), name='rules'),
     url(r'^rules/add/$', RuleCreate.as_view(), name='rule_add'),
     url(r'^rules/(?P<pk>\d+)/$', RuleUpdate.as_view(),
@@ -69,7 +96,7 @@ urlpatterns = [
     url(r'^rules/(?P<pk>\d+)/delete/$', RuleDelete.as_view(),
         name='rule_delete'),
     url(r"^rules/organization/$", OrganizationUpdate.as_view(),
-	name='organization_update'),
+        name='organization_update'),
     url(r'^reports/$', ReportList.as_view(), name='reports'),
     url(r'^report/(?P<pk>[0-9]+)/$', ReportDetails.as_view(),
         name='report'),
@@ -127,9 +154,14 @@ urlpatterns = [
         ),
 
     # General dialog success handler
-    url(r'^(scanners|domains|rules|groups|reports/summaries)/(\d+)/(created)/$',
+    url(r'^(webscanners|webdomains|rules|groups|reports/summaries)/(\d+)/(created)/$',
         DialogSuccess.as_view()),
-    url(r'^(scanners|domains|rules|groups|reports/summaries)/(\d+)/(saved)/$',
+    url(r'^(webscanners|webdomains|rules|groups|reports/summaries)/(\d+)/(saved)/$',
+        DialogSuccess.as_view()),
+    # General dialog success handler
+    url(r'^(filescanners|filedomains|rules|groups|reports/summaries)/(\d+)/(created)/$',
+        DialogSuccess.as_view()),
+    url(r'^(filescanners|filedomains|rules|groups|reports/summaries)/(\d+)/(saved)/$',
         DialogSuccess.as_view()),
     url(r'^jsi18n/$', javascript_catalog, js_info_dict),
     # System functions

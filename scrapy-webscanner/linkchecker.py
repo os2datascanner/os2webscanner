@@ -1,5 +1,6 @@
 """A link checker using urllib2."""
 
+import ssl
 import socket
 import urllib.request
 import urllib.error
@@ -34,7 +35,7 @@ def check_url(url, method="HEAD"):
             urllib.error.URLError,
             http.client.InvalidURL,
             socket.timeout,
-            IOError) as e:
+            IOError, ssl.CertificateError) as e:
         logging.debug("Error %s" % e)
         code = getattr(e, "code", 0)
         if code == 405:

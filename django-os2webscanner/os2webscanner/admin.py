@@ -23,13 +23,28 @@ from django.utils.translation import ugettext, ugettext_lazy as _
 
 from django.conf import settings
 
-from .models import Organization, UserProfile, Domain, RegexRule, Scanner
-from .models import Scan, Match, Url, ConversionQueueItem
-from .models import ReferrerUrl, UrlLastModified, Group, Md5Sum
+from .models.authentication_model import Authentication
+from .models.organization_model import Organization
+from .models.userprofile_model import UserProfile
+from .models.webdomain_model import WebDomain
+from .models.filedomain_model import FileDomain
+from .models.regexrule_model import RegexRule
+from .models.scanner_model import Scanner
+from .models.match_model import Match
+from .models.url_model import Url
+from .models.scan_model import Scan
+from .models.conversionqueueitem_model import ConversionQueueItem
+from .models.referrerurl_model import ReferrerUrl
+from .models.urllastmodified_model import UrlLastModified
+from .models.group_model import Group
+from .models.md5sum_model import Md5Sum
+from .models.statistic_model import Statistic
+from .models.regexpattern_model import RegexPattern
 
 ar = admin.site.register
-classes = [Organization, Domain, RegexRule, Scanner, Scan, Match, Url,
-           ConversionQueueItem, ReferrerUrl, UrlLastModified, Group, Md5Sum]
+classes = [Authentication, Organization, WebDomain, FileDomain, RegexRule,
+           Scanner, Scan, Match, Url, ConversionQueueItem, ReferrerUrl,
+           UrlLastModified, Group, Md5Sum, Statistic, RegexPattern]
 list(map(ar, classes))
 
 

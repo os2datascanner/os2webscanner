@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # The contents of this file are subject to the Mozilla Public License
 # Version 2.0 (the "License"); you may not use this file except in
 # compliance with the License. You may obtain a copy of the License at
@@ -44,7 +44,8 @@ django.setup()
 
 os.umask(0o007)
 
-from os2webscanner.models import ConversionQueueItem, Scan
+from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
+from os2webscanner.models.scan_model import Scan
 
 
 var_dir = settings.VAR_DIR
@@ -55,7 +56,7 @@ if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
 processes_per_type = 2
-processing_timeout = timedelta(minutes=3)
+processing_timeout = timedelta(minutes=10)
 
 process_types = ('html', 'libreoffice', 'ocr', 'pdf', 'zip', 'text', 'csv')
 
@@ -66,7 +67,7 @@ process_list = []
 def stop_process(p):
     """Stop the process."""
     if 'process_handle' not in p:
-        print(("Process %s already stopped" % p['name']))
+        print("Process %s already stopped" % p['name'])
         return
 
     phandle = p['process_handle']
@@ -74,7 +75,7 @@ def stop_process(p):
     pid = phandle.pid
     # If running, stop it
     if phandle.poll() is None:
-        print(("Terminating process %s" % p['name']))
+        print("Terminating process %s" % p['name'])
         phandle.terminate()
         phandle.wait()
     # Remove pid from process map
@@ -90,14 +91,14 @@ def stop_process(p):
         # Log to occurrence log
         try:
             item.url.scan.log_occurrence(
-                "CONVERSION ERROR: type <{0}>, URL: {1}".format(
+                "QUEUE STOPPING: type <{0}>, URL: {1}".format(
                     item.type,
                     item.url.url
                 )
             )
         except:
             item.url.scan.log_occurrence(
-                "CONVERSION ERROR: url <{0}>".format(
+                "QUEUE STOPPING: url <{0}>".format(
                     item.url.url,
                 )
             )
@@ -143,7 +144,7 @@ def start_process(p):
             p['name'], pid
         )))
     else:
-        print(("Failed to start process %s, exiting" % p['name']))
+        print("Failed to start process %s, exiting" % p['name'])
         exit_handler()
 
     p['log_fh'] = log_fh
@@ -213,21 +214,21 @@ def main():
         for p in stuck_processes:
             pid = p.process_id
             if pid in process_map:
-                print(("Process with pid %s is stuck, restarting" % pid))
+                print("Process with pid %s is stuck, restarting" % pid)
                 stuck_process = process_map[pid]
                 restart_process(stuck_process)
             else:
                 p.status = ConversionQueueItem.FAILED
                 try:
                     p.url.scan.log_occurrence(
-                        "CONVERSION ERROR: type <{0}>, URL: {1}".format(
+                        "PROCESS STUCK: type <{0}>, URL: {1}".format(
                             p.type,
                             p.url.url
                         )
                     )
                 except:
                     p.url.scan.log_occurrence(
-                        "CONVERSION ERROR: url <{0}>".format(
+                        "PROCESS STUCK: url <{0}>".format(
                             p.url.url,
                         )
                     )
@@ -254,8 +255,13 @@ def main():
                         scan.log_occurrence(
                             "SCAN FAILED: Process died"
                         )
+                        scanner = scan.scanner
+                        scanner.is_running = False
+                        scanner.save()
                         scan.save()
-        except (DatabaseError, IntegrityError):
+        except (DatabaseError, IntegrityError) as ex:
+            print('Error occured while trying to kill process %s' % scan.pid)
+            print('Error message %s' % ex)
             pass
 
         # Cleanup finished scans from the last minute
@@ -271,4 +277,4 @@ try:
 except KeyboardInterrupt:
     pass
 except django.db.utils.InternalError as e:
-    print(e)
+    print('django internal errror %s' % e)

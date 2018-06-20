@@ -30,6 +30,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django_settings_export.settings_export',
              ],
          },
     },
@@ -51,8 +52,15 @@ DEBUG = True
 
 TEMPLATE_DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.1.229']
+PRODUCTION_MODE = False
 
+# If filescan on the current installation is needed, enable it here
+ENABLE_FILESCAN = True
+
+# Add settings here to make them accessible from templates
+SETTINGS_EXPORT = [
+    'ENABLE_FILESCAN',
+]
 
 # Application definition
 
@@ -126,16 +134,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = '/home/os2/os2webscanner/webscanner_site/static'
-
+STATIC_ROOT = BASE_DIR + '/static'
 AUTH_PROFILE_MODULE = 'os2webscanner.UserProfile'
 
 LOGIN_REDIRECT_URL = '/'
 
 # Email settings
 
-DEFAULT_FROM_EMAIL = 'ann@magenta.dk'
-ADMIN_EMAIL = 'ann@magenta.dk'
+DEFAULT_FROM_EMAIL = 'info@magenta.dk'
+ADMIN_EMAIL = 'info@magenta.dk'
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = 25
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -167,12 +174,54 @@ RESUME_NON_OCR_ITEMS_THRESHOLD = PAUSE_NON_OCR_ITEMS_THRESHOLD - 1000
 # Directory to store files transmitted by RPC
 RPC_TMP_PREFIX = '/tmp/os2webscanner'
 
+# Directory to mount network drives
+NETWORKDRIVE_TMP_PREFIX = '/tmp/mnt/os2webscanner/'
+
 # Always store temp files on disk
 FILE_UPLOAD_MAX_MEMORY_SIZE = 0
+
+# Logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+        }
+    },
+    'handlers': {
+        'mail_admins': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'django.utils.log.AdminEmailHandler'
+        },
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': VAR_DIR + '/debug.log',
+            'formatter': 'verbose'
+        },
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    }
+}
 
 local_settings_file = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
     'local_settings.py'
 )
 if os.path.exists(local_settings_file):
-    from local_settings import *
+    from .local_settings import *
