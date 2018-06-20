@@ -1,3 +1,12 @@
+* Version 1.8.0, June 20. 2018
+
+New in this version:
+ - Network share scan feature is added.
+ - Ad hoc rules can now be combined into a set of rules.
+ - Models.py file has been refactored from one very large file to many small.
+ - Simple scan statistics have been added to reports.
+ - Upgraded to django 1.11.9
+
 * Version 1.7.1, May 28. 2018
 
 Hotfix:
