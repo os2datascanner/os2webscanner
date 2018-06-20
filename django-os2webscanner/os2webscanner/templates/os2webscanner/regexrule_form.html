@@ -7,28 +7,30 @@
   (function($) {
     // adding a new expression
     $("#button-add-expression").click(function() {
-      var inputField = $("#{{ form.pattern_0.auto_id }}_container").find("input[type=\"text\"]").last(); // Take the last item instead of just number _1, as we may have added more items
-      var nameParts = inputField.attr("name").split(/(.+_)/); // define .+_ as capturing group so we can get at the delimiter inside nameParts[1]
-      var baseName = nameParts[1];
-      var numInput = parseInt(nameParts[2]);
-      var inputClone = inputField.clone().prop("required", false);
-      inputClone.attr("name", baseName + (numInput + 1)).attr("id", "id_" + baseName + (numInput + 1)).val("");
-      var inputMarkup = $("<div/>", {
-        class: "input-group pattern-container",
-        html: inputClone.add($("<span/>", {
+      var inputContainer = $("#{{ form.pattern_0.auto_id }}_container").find(".form-group").last(); // Take the last item instead of just number _1, as we may have added more items
+      var inputNameParts = inputContainer.find("input[type=\"text\"]").first().attr("name").split(/(.+_)/); // define .+_ as capturing group so we can get at the delimiter inside nameParts[1]
+      var baseName = inputNameParts[1];
+      var numInput = parseInt(inputNameParts[2]) + 1;
+      var newInputName = baseName + (numInput);
+      var containerClone = inputContainer.clone();
+      var inputClone = containerClone.find("input[type=\"text\"]").first().prop("required", false);
+      var labelClone = containerClone.find("label").first();
+
+      labelClone.attr("for", "id_" + newInputName);
+      labelClone.text("{{ form.pattern_0.label }}" + " " + (numInput + 1)); // plus one because the numInput is 0-indexed, and label should be 1-indexed
+      inputClone.attr("name", newInputName).attr("id", "id_" + newInputName).val("").attr("value", "");
+      if(!containerClone.find(".button-remove-expression").length) { // if we haven't already cloned a button for removal...
+        inputClone.after($("<span/>", { // ... add the button to remove expression
           class: "input-group-btn",
           html: $("<button/>", {
             class: "btn btn-default button-remove-expression",
             type: "button",
             text: "Fjern udtryk"
           })
-        }))
-      });
-      if(numInput == 0) {
-        inputMarkup.insertAfter(inputField); // if we only have the original pattern_1 field, just insert the new field after it
-      } else {
-        inputMarkup.insertAfter(inputField.closest(".input-group")); // if not, we need to insert new field after containing element, otherwise we'll get nested containers
+        }));
+        inputClone.next(".input-group-btn").addBack().wrapAll("<div class=\"input-group\"></div>"); // wrap it in the input-group wrapper for proper Bootstrap styling
       }
+      inputContainer.after(containerClone);
       recalcIframeHeight();
     });
 
@@ -39,10 +41,10 @@
       if(inputValue) {
         var confirmation = confirm("Feltet indeholder en værdi. Tryk OK hvis du stadig vil slette feltet.");
         if(confirmation) {
-          btn.closest(".pattern-container").remove();
+          btn.closest(".form-group").remove();
         }
       } else {
-        btn.closest(".pattern-container").remove();
+        btn.closest(".form-group").remove();
       }
       cleanupPatternNumbers();
     });
@@ -51,7 +53,7 @@
       // delete any empty expression fields, BUT not the first one
       $("#{{ form.pattern_0.auto_id }}_container").find("input[type=\"text\"]").filter(function(idx) {
         return !this.value && idx > 0;
-      }).closest(".pattern-container").remove();
+      }).closest(".form-group").remove();
 
       // clean up the pattern numbers on form submit, just to be safe (even though we already did it when adding a new expression field).
       cleanupPatternNumbers();
@@ -59,10 +61,13 @@
 
     // function to clean up pattern numbers, as we need to have them numbered sequentially without gaps
     function cleanupPatternNumbers() {
-      $("#{{ form.pattern_0.auto_id }}_container").find("input[type=\"text\"]").each(function(idx) {
-        var elm = $(this);
-        var oldName = elm.attr("name").split(/(.+_)/);
-        elm.attr("name", oldName[1] + idx).attr("id", "id_" + oldName[1] + idx);
+      $("#{{ form.pattern_0.auto_id }}_container").find(".form-group").each(function(idx) {
+        var $this = $(this);
+        var input = $this.find("input[type=\"text\"]");
+        var label = $this.find("label");
+        var oldInputName = input.attr("name").split(/(.+_)/);
+        input.attr("name", oldInputName[1] + idx).attr("id", "id_" + oldInputName[1] + idx);
+        label.attr("for", "id_" + oldInputName[1] + idx).text("{{ form.pattern_0.label }} " + (idx + 1)); // we want 1-indexed label texts
       });
       recalcIframeHeight();
     }
@@ -150,16 +155,34 @@
   {% endif %}    
 
   <div id="{{ form.pattern_0.auto_id }}_container" class="col-sm-12{% if form.pattern_0.errors %} has-error{% endif %}">
+    {% for pattern_name, pattern_value in view.get_pattern_fields %}
     <div class="form-group">
-      <label class="control-label col-sm-2" for="id_{{ form.pattern_0.name }}">{{ form.pattern_0.label }}</label>
+      <label class="control-label col-sm-2" for="id_{{ pattern_name }}">{{ form.pattern_0.label }} {{ forloop.counter }}</label>
       <div class="col-sm-10">
-	<input type="text" class="form-control" name="{{ form.pattern_0.name }}" id="id_{{ form.pattern_0.name }}" {% if form.pattern_0.value %}value="{{ form.pattern_0.value }}"{% endif %} {% if form.pattern_0.field.required %}required{% endif %}>
-	{% if form.pattern_0.help_text %}
-	  <p>
+        {% if forloop.counter > 1 %}
+        <div class="input-group">
+        {% endif %}
+	      <input type="text" class="form-control" name="{{ pattern_name }}" id="id_{{ pattern_name }}" {% if pattern_value %}value="{{ pattern_value }}"{% endif %} {% if forloop.counter == 1 %}required{% endif %}> {# forloop.counter is 1-indexed #}
+        {% if forloop.counter > 1 %}
+        <span class="input-group-btn">
+          <button class="btn btn-default button-remove-expression" type="button">Fjern udtryk</button>
+        </span>
+        {% endif %}
+	      {% if form.pattern_0.help_text %}
+	        <p>
             <small>{{ form.pattern_0.help_text }}</small>
           </p>
         {% endif %}
         {% if form.pattern_0.errors %}{{ form.pattern_0.errors }}{% endif %}
+        {% if forloop.counter > 1 %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+
+    <div class="row">
+      <div class="col-sm-offset-2 col-sm-10">
         <button id="button-add-expression" type="button" class="btn btn-default">Tilføj udtryk</button>
       </div>
     </div>

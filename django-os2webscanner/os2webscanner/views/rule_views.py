@@ -1,10 +1,10 @@
 from .views import RestrictedListView, RestrictedCreateView, \
-    RestrictedUpdateView, RestrictedDetailView, RestrictedDeleteView
+    RestrictedUpdateView, RestrictedDeleteView
 from ..models.regexrule_model import RegexRule
 from ..models.regexpattern_model import RegexPattern
 
 from django import forms
-from django.db import transaction, IntegrityError
+from django.db import transaction
 
 
 class RuleList(RestrictedListView):
@@ -12,6 +12,14 @@ class RuleList(RestrictedListView):
 
     model = RegexRule
     template_name = 'os2webscanner/rules.html'
+
+
+def extract_pattern_fields(form_fields):
+    if not form_fields:
+        return [('pattern_0', '')]
+
+    return [(field_name, form_fields[field_name]) for field_name in form_fields if
+            field_name.startswith('pattern_')]
 
 
 class RuleCreate(RestrictedCreateView):
@@ -30,10 +38,13 @@ class RuleCreate(RestrictedCreateView):
         form = super().get_form(form_class)
         # Then a dynamic form to create multiple pattern fields
         # See - https://www.caktusgroup.com/blog/2018/05/07/creating-dynamic-forms-django/ (Creating a dynamic form)
-        self.patterns = self.get_pattern_fields(form.data)
+        self.patterns = extract_pattern_fields(form.data)
 
+        idx = 0
         for field_name, value in self.patterns:
-            form.fields[field_name] = forms.CharField(required=False, initial=value)
+            form.fields[field_name] = forms.CharField(required=False if idx > 0 else True, initial=value,
+                                                      label='Udtryk')
+            idx += 1
 
         return form
 
@@ -46,7 +57,7 @@ class RuleCreate(RestrictedCreateView):
         form_cleaned_data = form.cleaned_data
         form_patterns = [form.cleaned_data[field_name] for field_name in form.cleaned_data if
                          field_name.startswith('pattern_')]
-        
+
         try:
             with transaction.atomic():
                 regexrule = form.save(commit=False)
@@ -55,7 +66,7 @@ class RuleCreate(RestrictedCreateView):
                 regexrule.description = form_cleaned_data['description']
                 regexrule.organization = form_cleaned_data['organization']
                 regexrule.save()
-                
+
                 for pattern in form_patterns:
                     r_ = RegexPattern.objects.create(regex=regexrule, pattern_string=pattern)
                     r_.save()
@@ -64,12 +75,16 @@ class RuleCreate(RestrictedCreateView):
         except:
             return super().form_invalid(form)
 
-    def get_pattern_fields(self, form_fields):
-        if not form_fields:
-            return [('pattern_0', '')]
+    def get_pattern_fields(self):
+        """
+        Used in the template to get the field names and their values
+        :return:
+        """
 
-        return [(field_name, form_fields[field_name]) for field_name in form_fields if
-                          field_name.startswith('pattern_')]
+        form_fields = self.get_form().fields
+        for field_name in form_fields:
+            if field_name.startswith('pattern_'):
+                yield (field_name, form_fields.get(field_name).initial)
 
     def get_success_url(self):
         """The URL to redirect to after successful creation."""
@@ -93,12 +108,20 @@ class RuleUpdate(RestrictedUpdateView):
         form = super().get_form(form_class)
         regex_patterns = self.object.patterns.all().order_by('-id')
 
-        # create extra fields to hold the pattern strings
-        for i in range(len(regex_patterns)):
-            field_name = 'pattern_%s' % (i,)
-            form.fields[field_name] = forms.CharField(required=False, initial=regex_patterns[i].pattern_string)
+        if not form.data:
+            # create extra fields to hold the pattern strings
+            for i in range(len(regex_patterns)):
+                field_name = 'pattern_%s' % (i,)
+                form.fields[field_name] = forms.CharField(required=False if i > 0 else True,
+                                                          initial=regex_patterns[i].pattern_string, label='Udtryk')
+        else:
+            self.patterns = extract_pattern_fields(form.data)
+            idx = 0
+            for field_name, value in self.patterns:
+                form.fields[field_name] = forms.CharField(required=False if idx > 0 else True, initial=value,
+                                                          label='Udtryk')
+                idx += 1
 
-        
         # assign class attribute to all fields
         for fname in form.fields:
             f = form.fields[fname]
@@ -106,18 +129,45 @@ class RuleUpdate(RestrictedUpdateView):
 
         return form
 
-    def get_pattern_fields(self):
+    def form_valid(self, form):
         """
-        Used in the template to get tge field names and their values
+        validate all the form first
+        :param form:
         :return:
         """
+        form_cleaned_data = form.cleaned_data
+        form_patterns = [form.cleaned_data[field_name] for field_name in form.cleaned_data if
+                         field_name.startswith('pattern_')]
+
+        try:
+            with transaction.atomic():
+                self.object.patterns.all().delete()
+                regexrule = form.save(commit=False)
+                regexrule.name = form_cleaned_data['name']
+                regexrule.sensitivity = form_cleaned_data['sensitivity']
+                regexrule.description = form_cleaned_data['description']
+                regexrule.organization = form_cleaned_data['organization']
+                regexrule.save()
+
+                for pattern in form_patterns:
+                    r_ = RegexPattern.objects.create(regex=regexrule, pattern_string=pattern)
+                    r_.save()
+
+                return super().form_valid(form)
+        except:
+            return super().form_invalid(form)
+
+    def get_pattern_fields(self):
+        """
+        Used in the template to get the field names and their values
+        :return:
+        """
+
         form_fields = self.get_form().fields
         
         for field_name in form_fields:
             if field_name.startswith('pattern_'):
                 yield (field_name, form_fields.get(field_name).initial)
-
-        
 
     def get_success_url(self):
         """The URL to redirect to after successful update."""

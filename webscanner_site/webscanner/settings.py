@@ -15,7 +15,6 @@ PROJECT_DIR = os.path.dirname(BASE_DIR)
 VAR_DIR = os.path.join(PROJECT_DIR, 'var')
 LOGS_DIR = os.path.join(VAR_DIR, 'logs')
 
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

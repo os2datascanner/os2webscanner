@@ -141,14 +141,14 @@ display:block;
 .rule-description {
 max-width:20%;
 }
-
-form .pattern-container {
-  padding-top:1em;
+.wrapper-bgcolor {
+  padding:1em;
+  background-color:#f0f0f0;
+  border:1px solid #ddd;
+  border-radius:4px;
 }
 #button-add-expression {
-  margin-top:1em;
-  float:right;
-  clear:both;
+  margin-bottom:1em;
 }
 .rule-expression code {
   display:block;
@@ -160,11 +160,11 @@ form .pattern-container {
 .rule-expression .pattern-container {
   display:none;
 }
-.rule-expression #show-patterns:checked ~ .pattern-container {
+.rule-expression .show-patterns:checked ~ .pattern-container {
   display:block;
 }
-.rule-expression #show-patterns,
-.rule-expression [for="show-patterns"] {
+.rule-expression .show-patterns,
+.rule-expression .show-patterns + label {
   vertical-align:middle;
   line-height:1;
   margin:0;
