@@ -24,12 +24,12 @@ class BaseScannerSpider(Spider):
 
     """A base spider which is setup to filter offsite domains/excluded URLs."""
 
-    name = 'scanner'
+    name = 'base_scanner'
 
     def __init__(self, scanner, *a, **kw):
-        """Initialize the ScannerSpider with a Scanner object.
+        """Initialize the ScannerSpider with a WebScanner object.
 
-        The configuration will be loaded from the Scanner.
+        The configuration will be loaded from the WebScanner.
         """
         super(BaseScannerSpider, self).__init__(*a, **kw)
 
@@ -56,7 +56,7 @@ class BaseScannerSpider(Spider):
             match_against += "#" + url.fragment
 
         for rule in self.exclusion_rules:
-            if isinstance(rule, basestring):
+            if isinstance(rule, str):
                 # Do case-insensitive substring search
                 if match_against.lower().find(rule.lower()) != -1:
                     return True

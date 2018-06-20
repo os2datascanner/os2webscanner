@@ -46,7 +46,7 @@ Regler
               <td>
                 <strong>
                 <small>
-                Regulært udtryk
+                Udtryk
                 </small>
                 </strong>
               </td>
@@ -87,7 +87,15 @@ Regler
                 </span>
               </td>
               <td class="rule-expression">
-                <code>{{ rule.match_string }}</code>
+                <input type="checkbox" class="show-patterns" id="show-patterns-{{ forloop.counter }}" name="show-patterns-{{ forloop.counter }}">
+                <label for="show-patterns-{{ forloop.counter }}">
+                  Vis udtryk?
+                </label>
+                <div class="pattern-container clearfix">
+                  {% for pattern in rule.patterns.all %}
+                  <code>{{ pattern.pattern_string }}</code>
+                  {% endfor %}
+                </div>
               </td>
               <td class="rule-sensitivity">
                 <span>
@@ -118,7 +126,7 @@ Regler
 </div>
 {% endblock %}
 
-{% block heading %} 
+{% block heading %}
 Regler
 {% endblock %}
 

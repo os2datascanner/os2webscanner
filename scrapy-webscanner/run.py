@@ -15,8 +15,7 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 """Run a scan by Scan ID."""
-import collections
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 import os
 import sys
@@ -28,7 +27,7 @@ sys.path.append(base_dir + "/webscanner_site")
 os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 django.setup()
 
-os.umask(0007)
+os.umask(0o007)
 
 os.environ["SCRAPY_SETTINGS_MODULE"] = "scanner.settings"
 
@@ -44,7 +43,10 @@ from scrapy.exceptions import DontCloseSpider
 from django.utils import timezone
 
 from scanner.scanner.scanner import Scanner
-from os2webscanner.models import Scan, ConversionQueueItem, Url
+from os2webscanner.models.scan_model import Scan
+from os2webscanner.models.statistic_model import Statistic
+from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
+from os2webscanner.models.url_model import Url
 
 import linkchecker
 
@@ -65,97 +67,73 @@ def signal_handler(signal, frame):
 signal.signal(signal.SIGINT | signal.SIGTERM, signal_handler)
 
 
-class OrderedCrawlerProcess(CrawlerProcess):
-
-    """Override CrawlerProcess to use an ordered dict."""
-
-    crawlers = None
-
-    def __init__(self, *a, **kw):
-        """Initialize the CrawlerProcess with an OrderedDict of crawlers."""
-        super(OrderedCrawlerProcess, self).__init__(*a, **kw)
-        self.crawlers = collections.OrderedDict()
-
-    def _start_crawler(self):
-        """Override this method to pop the first crawler instead of last."""
-        if not self.crawlers or self.stopping:
-            return
-
-        name, crawler = self.crawlers.popitem(last=False)
-        self._active_crawler = crawler
-        sflo = logging.start_from_crawler(crawler)
-        crawler.configure()
-        crawler.install()
-        crawler.signals.connect(crawler.uninstall, signals.engine_stopped)
-        if sflo:
-            crawler.signals.connect(sflo.stop, signals.engine_stopped)
-        crawler.signals.connect(self._check_done, signals.engine_stopped)
-        crawler.start()
-        return name, crawler
-
-
 class ScannerApp:
-
     """A scanner application which can be run."""
 
     def __init__(self):
-        """Initialize the scanner application.
-
+        """
+        Initialize the scanner application.
+        Takes input, argv[1], which is directly related to the scan job id in the database.
         Updates the scan status and sets the pid.
         """
         self.scan_id = sys.argv[1]
 
         # Get scan object from DB
         self.scan_object = Scan.objects.get(pk=self.scan_id)
-
-        # Update start_time to now and status to STARTED
-        self.scan_object.start_time = timezone.now()
-        self.scan_object.status = Scan.STARTED
-        self.scan_object.reason = ""
-        self.scan_object.pid = os.getpid()
-        self.scan_object.save()
-
+        self.scan_object.set_scan_status_start()
         self.scanner = Scanner(self.scan_id)
 
     def run(self):
         """Run the scanner, blocking until finished."""
         settings = get_project_settings()
 
-        # job_dir = os.path.join(self.scan_object.scan_dir, 'job')
-        # settings.set('JOBDIR', job_dir)
-
         self.crawler_process = CrawlerProcess(settings)
 
-        # Don't sitemap scan when running over RPC
+        if hasattr(self.scan_object, 'webscan'):
+            self.start_webscan_crawlers()
+        else:
+            self.start_filescan_crawlers()
+
+        # Update scan status
+        self.scan_object.set_scan_status_done()
+
+    def start_filescan_crawlers(self):
+        self.sitemap_spider = None
+        self.scanner_spider = self.setup_scanner_spider()
+        self.start_crawlers()
+
+    def start_webscan_crawlers(self):
+        # Don't sitemap scan when running over RPC or if no sitemap is set on scan
         if not self.scan_object.scanner.process_urls:
-            self.sitemap_spider = self.setup_sitemap_spider()
+            if len(self.scanner.get_sitemap_urls()) is not 0\
+                    or len(self.scanner.get_uploaded_sitemap_urls()) is not 0:
+                self.sitemap_spider = self.setup_sitemap_spider()
+            else:
+                self.sitemap_spider = None
+        else:
+            self.sitemap_spider = None
+
         self.scanner_spider = self.setup_scanner_spider()
 
-        # Run the crawlers and block
-        self.crawler_process.start()
-
-        if (self.scanner.scan_object.do_link_check
-                and self.scanner.scan_object.do_external_link_check):
+        self.start_crawlers()
+        if (self.scan_object.webscan.do_link_check
+            and self.scan_object.webscan.do_external_link_check):
             # Do external link check
             self.external_link_check(self.scanner_spider.external_urls)
 
-        # Update scan status
-        scan_object = Scan.objects.get(pk=self.scan_id)
-        scan_object.status = Scan.DONE
-        scan_object.pid = None
-        scan_object.reason = ""
-        scan_object.save()
+    def start_crawlers(self):
+        # Run the crawlers and block
+        logging.info('Starting crawler process.')
+        self.crawler_process.start()
+        logging.info('Crawler process started.')
 
     def handle_killed(self):
         """Handle being killed by updating the scan status."""
-        self.scan_object = Scan.objects.get(pk=self.scan_id)
-        self.scan_object.pid = None
-        self.scan_object.status = Scan.FAILED
-        self.scan.log_occurrence("SCANNER FAILED: Killed")
+        # self.scan_object = Scan.objects.get(pk=self.scan_id)
+        self.scan_object.set_scan_status_failed()
+        self.scan.logging_occurrence("SCANNER FAILED: Killed")
         logging.error("Killed")
-        self.scan_object.reason = "Killed"
-        # TODO: Remove all non-processed conversion queue items.
-        self.scan_object.save()
+
 
     def setup_sitemap_spider(self):
         """Setup the sitemap spider."""
@@ -167,7 +145,7 @@ class ScannerApp:
             sitemap_urls=self.scanner.get_sitemap_urls(),
             uploaded_sitemap_urls=self.scanner.get_uploaded_sitemap_urls(),
             sitemap_alternate_links=True
-        )
+            )
         return crawler.spider
 
     def setup_scanner_spider(self):
@@ -191,16 +169,19 @@ class ScannerApp:
     def external_link_check(self, external_urls):
         """Perform external link checking."""
         logging.info("Link checking %d external URLs..." % len(external_urls))
+
         for url in external_urls:
             url_parse = urlparse(url)
             if url_parse.scheme not in ("http", "https"):
                 # We don't want to allow external URL checking of other
                 # schemes (file:// for example)
                 continue
+
             logging.info("Checking external URL %s" % url)
+
             result = linkchecker.check_url(url)
             if result is not None:
-                broken_url = Url(url=url, scan=self.scan_object,
+                broken_url = Url(url=url, scan=self.scan_object.webscan,
                                  status_code=result["status_code"],
                                  status_message=result["status_message"])
                 broken_url.save()
@@ -209,11 +190,40 @@ class ScannerApp:
     def handle_closed(self, spider, reason):
         """Handle the spider being finished."""
         # TODO: Check reason for if it was finished, cancelled, or shutdown
+        logging.debug('Spider is closing. Reason {0}'.format(reason))
+        self.store_stats()
         reactor.stop()
+
+    def store_stats(self):
+        logging.info('Stats: {0}'.format(self.scanner_spider.crawler.stats.get_stats()))
+        statistics = Statistic()
+        statistics.scan = self.scan_object
+        if self.scanner_spider.crawler.stats.get_value(
+            'last_modified_check/pages_skipped'):
+            statistics.files_skipped_count = self.scanner_spider.crawler.stats.get_value(
+                'last_modified_check/pages_skipped')
+        else:
+            statistics.files_skipped_count = 0
+        if self.scanner_spider.crawler.stats.get_value(
+            'downloader/request_count'):
+            statistics.files_scraped_count = self.scanner_spider.crawler.stats.get_value(
+                'downloader/request_count')
+        else:
+            statistics.files_scraped_count = 0
+        if self.scanner_spider.crawler.stats.get_value(
+            'downloader/exception_type_count/builtins.IsADirectoryError'
+        ):
+            statistics.files_is_dir_count = self.scanner_spider.crawler.stats.get_value(
+                'downloader/exception_type_count/builtins.IsADirectoryError')
+        else:
+            statistics.files_is_dir_count = 0
+        statistics.save()
+        logging.debug('Statistic saved.')
 
     def handle_error(self, failure, response, spider):
         """Handle spider errors, updating scan status."""
         logging.error("Scan failed: %s" % failure.getErrorMessage())
+        self.store_stats()
         scan_object = Scan.objects.get(pk=self.scan_id)
         scan_object.reason = failure.getErrorMessage()
         scan_object.save()

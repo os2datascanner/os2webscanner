@@ -15,10 +15,10 @@
 # source municipalities ( http://www.os2web.dk/ )
 """HTML Processors."""
 
-from processor import Processor
+from .processor import Processor
 from w3lib.html import replace_entities, remove_tags_with_content
 
-from text import TextProcessor
+from .text import TextProcessor
 import logging
 import os
 
@@ -74,5 +74,6 @@ class HTMLProcessor(Processor):
         replace_tags_text = _html_tag_re.sub('<>', collapsed_html)
 
         return self.text_processor.process(replace_tags_text, url_object)
+
 
 Processor.register_processor(HTMLProcessor.item_type, HTMLProcessor)

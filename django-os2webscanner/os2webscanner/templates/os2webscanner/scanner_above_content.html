@@ -1,0 +1,6 @@
+<ul class="nav nav-tabs" role="tablist">
+    <li role="presentation"{% if active == 'web' %} class="active"{% endif %}><a href="/webscanners/" role="tab">Web scan</a></li>
+    {% if settings.ENABLE_FILESCAN %}
+        <li role="presentation"{% if active == 'file' %} class="active"{% endif %}><a href="/filescanners/" role="tab">Fil scan</a></li>
+    {% endif %}
+</ul>

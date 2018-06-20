@@ -37,9 +37,8 @@ pid = os.getpid()
 queued_processor = Processor.processor_by_type(sys.argv[1])
 
 setup_args = [pid]
-if(len(sys.argv) > 2):
+if len(sys.argv) > 2:
     setup_args.extend(sys.argv[2:])
-
 
 if queued_processor is not None:
     queued_processor.setup_queue_processing(*setup_args)

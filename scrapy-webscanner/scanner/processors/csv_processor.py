@@ -14,12 +14,13 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 """CSV Processor."""
-import StringIO
-from os2webscanner.models import Match, Sensitivity
+import io
+from os2webscanner.models.match_model import Match
+from os2webscanner.models.sensitivity_level import Sensitivity
 
 from ..scanner.scanner import Scanner
-from processor import Processor
-from text import TextProcessor
+from .processor import Processor
+from .text import TextProcessor
 
 import os
 import unicodecsv
@@ -54,7 +55,7 @@ class CSVProcessor(Processor):
 
         # Check if scan is limited to certain columns.
         columns = scanner.scan_object.columns
-        columns = map(int, columns.split(',')) if columns else []
+        columns = list(map(int, columns.split(','))) if columns else []
 
         # Try to detect the CSV Dialect using the first 1024 characters of
         # the data
@@ -85,7 +86,7 @@ class CSVProcessor(Processor):
 
         # print "*** 3 ***"
         # Read CSV file
-        reader = unicodecsv.reader(StringIO.StringIO(data.encode('utf-8')),
+        reader = unicodecsv.reader(io.StringIO(data.encode('utf-8')),
                                    dialect)
         first_row = True
         header_row = []
@@ -158,5 +159,6 @@ class CSVProcessor(Processor):
             writer.writerows(rows)
         # print "*** 5 ***"
         return True
+
 
 Processor.register_processor(CSVProcessor.item_type, CSVProcessor)

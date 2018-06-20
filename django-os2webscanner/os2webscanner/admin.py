@@ -23,14 +23,29 @@ from django.utils.translation import ugettext, ugettext_lazy as _
 
 from django.conf import settings
 
-from .models import Organization, UserProfile, Domain, RegexRule, Scanner
-from .models import Scan, Match, Url, ConversionQueueItem
-from .models import ReferrerUrl, UrlLastModified, Group, Md5Sum
+from .models.authentication_model import Authentication
+from .models.organization_model import Organization
+from .models.userprofile_model import UserProfile
+from .models.webdomain_model import WebDomain
+from .models.filedomain_model import FileDomain
+from .models.regexrule_model import RegexRule
+from .models.scanner_model import Scanner
+from .models.match_model import Match
+from .models.url_model import Url
+from .models.scan_model import Scan
+from .models.conversionqueueitem_model import ConversionQueueItem
+from .models.referrerurl_model import ReferrerUrl
+from .models.urllastmodified_model import UrlLastModified
+from .models.group_model import Group
+from .models.md5sum_model import Md5Sum
+from .models.statistic_model import Statistic
+from .models.regexpattern_model import RegexPattern
 
 ar = admin.site.register
-classes = [Organization, Domain, RegexRule, Scanner, Scan, Match, Url,
-           ConversionQueueItem, ReferrerUrl, UrlLastModified, Group, Md5Sum]
-map(ar, classes)
+classes = [Authentication, Organization, WebDomain, FileDomain, RegexRule,
+           Scanner, Scan, Match, Url, ConversionQueueItem, ReferrerUrl,
+           UrlLastModified, Group, Md5Sum, Statistic, RegexPattern]
+list(map(ar, classes))
 
 
 class ProfileInline(admin.TabularInline):
@@ -44,9 +59,7 @@ class ProfileInline(admin.TabularInline):
     can_delete = False
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        field = super(
-            ProfileInline, self
-        ).formfield_for_foreignkey(db_field, request, **kwargs)
+        field = super().formfield_for_foreignkey(db_field, request, **kwargs)
 
         if db_field.name == 'organization':
             if not request.user.is_superuser:
@@ -69,8 +82,7 @@ class MyUserAdmin(UserAdmin):
         if not request.user.is_superuser:
             self.fieldsets = (
                 (None,
-                 {'fields': ('username', 'password', 'is_active')}
-                ),
+                 {'fields': ('username', 'password', 'is_active')}),
                 (_('Personal info'),
                  {'fields': ('first_name', 'last_name', 'email')}),
                 (_('Important dates'), {'fields': ('last_login',
@@ -78,12 +90,12 @@ class MyUserAdmin(UserAdmin):
             )
 
             self.exclude = ['is_superuser', 'permissions', 'groups']
-        return super(MyUserAdmin, self).get_form(request, obj, **kwargs)
+        return super().get_form(request, obj, **kwargs)
 
     def get_queryset(self, request):
         """Only allow users belonging to same organization to be edited."""
 
-        qs = super(MyUserAdmin, self).get_queryset(request)
+        qs = super().get_queryset(request)
 
         if request.user.is_superuser:
             return qs

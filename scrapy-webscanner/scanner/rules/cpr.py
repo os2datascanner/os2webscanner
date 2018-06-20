@@ -18,8 +18,8 @@
 import regex
 from datetime import datetime
 
-from rule import Rule
-from os2webscanner.models import Sensitivity
+from .rule import Rule
+from os2webscanner.models.sensitivity_level import Sensitivity
 from ..items import MatchItem
 
 
@@ -55,6 +55,8 @@ class CPRRule(Rule):
         return matches
 
 # TODO: Improve
+
+
 cpr_regex = regex.compile(
     r"\b(\d{2}[\s]?\d{2}[\s]?\d{2})(?:[\s\-/\.]|\s\-\s)?(\d{4})\b"
 )
@@ -183,7 +185,10 @@ def match_cprs(text, do_modulus11=True, ignore_irrelevant=True,
             continue
         valid_date = date_check(cpr, ignore_irrelevant)
         if do_modulus11:
-            valid_modulus11 = modulus11_check(cpr)
+            try:
+                valid_modulus11 = modulus11_check(cpr)
+            except ValueError:
+                valid_modulus11 = True
         else:
             valid_modulus11 = True
         original_cpr = m.group(0)

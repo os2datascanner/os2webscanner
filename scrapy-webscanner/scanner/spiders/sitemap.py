@@ -1,12 +1,13 @@
 """Sitemap spider which gathers URLs contained in sitemap files."""
 
-from scrapy.spiders.sitemap import SitemapSpider
+from scrapy.spiders import SitemapSpider
 from scrapy.spiders.sitemap import iterloc
 from scrapy.utils.sitemap import Sitemap, sitemap_urls_from_robots
 
 from scrapy.http import Request
+import logging
 
-from base_spider import BaseScannerSpider
+from .base_spider import BaseScannerSpider
 
 import dateutil.parser
 import datetime
@@ -19,14 +20,14 @@ class SitemapURLGathererSpider(BaseScannerSpider, SitemapSpider):
 
     """A sitemap spider that stores URLs found in the sitemaps provided."""
 
-    name = 'sitemap_url_gatherer'
+    name = 'sitemap'
 
     def __init__(self, scanner, sitemap_urls, uploaded_sitemap_urls,
                  sitemap_alternate_links,
                  *a,
                  **kw):
         """Initialize the sitemap spider."""
-        super(SitemapURLGathererSpider, self).__init__(scanner=scanner, *a,
+        super().__init__(scanner=scanner, *a,
                                                        **kw)
         self.sitemap_urls = sitemap_urls
         self.uploaded_sitemap_urls = uploaded_sitemap_urls
@@ -49,6 +50,7 @@ class SitemapURLGathererSpider(BaseScannerSpider, SitemapSpider):
 
     def _parse_sitemap(self, response):
         logging.info("Parsing sitemap %s" % response)
+
         if response.url.endswith('/robots.txt'):
             for url in sitemap_urls_from_robots(response.body):
                 yield Request(url, callback=self._parse_sitemap)
