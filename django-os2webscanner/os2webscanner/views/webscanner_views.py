@@ -13,6 +13,7 @@ class WebScannerCreate(ScannerCreate):
     """Web scanner create form."""
 
     model = WebScanner
+    type = 'web'
     fields = ['name', 'schedule', 'domains',
               'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
               'do_name_scan', 'do_ocr', 'do_address_scan',
@@ -29,6 +30,7 @@ class WebScannerUpdate(ScannerUpdate):
     """Update a scanner view."""
 
     model = WebScanner
+    type = 'web'
     fields = ['name', 'schedule', 'domains',
               'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
               'do_name_scan', 'do_ocr', 'do_address_scan',
