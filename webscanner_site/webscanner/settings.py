@@ -51,6 +51,7 @@ DEBUG = True
 
 TEMPLATE_DEBUG = True
 
+# Used for filescan and mounting
 PRODUCTION_MODE = False
 
 # If filescan on the current installation is needed, enable it here
