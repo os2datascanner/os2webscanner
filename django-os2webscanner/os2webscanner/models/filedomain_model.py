@@ -99,8 +99,8 @@ class FileDomain(Domain):
     def smb_umount(self):
         """Unmounts networkdrive if mounted."""
         if self.check_mountpoint() is 0:
-            call('sudo umount -l ' + self.mount_path, shell=True)
-            call('sudo umount -f ' + self.mount_path, shell=True)
+            call('sudo umount -l ' + self.mountpath, shell=True)
+            call('sudo umount -f ' + self.mountpath, shell=True)
 
     def __str__(self):
         """Return the URL for the domain."""
