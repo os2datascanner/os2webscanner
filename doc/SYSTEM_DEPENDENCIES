@@ -17,3 +17,4 @@ imagemagick
 unoconv
 mailutils
 libssl-dev
+cifs-util

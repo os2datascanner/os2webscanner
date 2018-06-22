@@ -65,7 +65,7 @@ class FileDomain(Domain):
         self.mountpath = tempdir
         self.save()
 
-    def smbmount(self):
+    def smb_mount(self):
         """Mounts networkdrive if not already mounted."""
 
         if self.check_mountpoint() is 0:
@@ -96,11 +96,11 @@ class FileDomain(Domain):
 
         return True
 
-    def smbunmount(self):
+    def smb_umount(self):
         """Unmounts networkdrive if mounted."""
         if self.check_mountpoint() is 0:
-            call('sudo umount -l ' + self.mount_path, shell=True)
-            call('sudo umount -f ' + self.mount_path, shell=True)
+            call('sudo umount -l ' + self.mountpath, shell=True)
+            call('sudo umount -f ' + self.mountpath, shell=True)
 
     def __str__(self):
         """Return the URL for the domain."""

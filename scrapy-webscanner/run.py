@@ -192,10 +192,12 @@ class ScannerApp:
         # TODO: Check reason for if it was finished, cancelled, or shutdown
         logging.debug('Spider is closing. Reason {0}'.format(reason))
         self.store_stats()
+        self.filescan_cleanup()
         reactor.stop()
 
     def store_stats(self):
         logging.info('Stats: {0}'.format(self.scanner_spider.crawler.stats.get_stats()))
+
         statistics = Statistic()
         statistics.scan = self.scan_object
         if self.scanner_spider.crawler.stats.get_value(
@@ -211,12 +213,12 @@ class ScannerApp:
         else:
             statistics.files_scraped_count = 0
         if self.scanner_spider.crawler.stats.get_value(
-            'downloader/exception_type_count/builtins.IsADirectoryError'
-        ):
+            'downloader/exception_type_count/builtins.IsADirectoryError'):
             statistics.files_is_dir_count = self.scanner_spider.crawler.stats.get_value(
                 'downloader/exception_type_count/builtins.IsADirectoryError')
         else:
             statistics.files_is_dir_count = 0
+
         statistics.save()
         logging.debug('Statistic saved.')
 
@@ -227,6 +229,12 @@ class ScannerApp:
         scan_object = Scan.objects.get(pk=self.scan_id)
         scan_object.reason = failure.getErrorMessage()
         scan_object.save()
+        self.filescan_cleanup()
+
+    def filescan_cleanup(self):
+        if hasattr(self.scan_object, 'filescan'):
+            for domain in self.scanner.valid_domains:
+                domain.filedomain.smb_umount()
 
     def handle_idle(self, spider):
         """Handle when the spider is idle.
