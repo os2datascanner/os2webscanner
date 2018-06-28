@@ -1,10 +1,16 @@
 import os
 import sys
+import time
+import logging
+from datetime import timedelta
 from exchangelib import FileAttachment, ItemAttachment
 from exchangelib import IMPERSONATION, ServiceAccount, Account
 from exchangelib import EWSDateTime, EWSTimeZone, EWSDate
+from exchangelib.errors import ErrorInternalServerTransientError
+from exchangelib.errors import ErrorTimeoutExpired
 import password
 
+logging.basicConfig(level=logging.ERROR)
 
 class ExchangeScan(object):
     """ Library to export a users mailbox from Exchange to a filesystem """
@@ -44,6 +50,8 @@ class ExchangeScan(object):
                     name = (str(item.datetime_created) + '_' +
                             attachment.name.replace('/', '_'))
                     path = os.path.join(self.export_path, name + '.txt')
+                    if path.exits:
+                        print('!')
                     with open(path, 'w') as f:
                         f.write(name)
                         if attachment.item.subject:
@@ -68,28 +76,60 @@ class ExchangeScan(object):
                 folder_list.append(folder)
         return folder_list
 
+    def _export_folder_subset(self, folder, start_dt=None, end_dt=None):
+        try:
+            attachments = 0
+            tz = EWSTimeZone.localzone()
+            if start_dt is None:
+                start_dt = tz.localize(EWSDateTime(1900, 1, 1, 0, 0))
+            if end_dt is None:
+                end_dt = tz.localize(EWSDateTime(2100, 1, 1, 0, 0))
+            items = folder.all().filter(datetime_received__range=(start_dt,
+                                                                  end_dt))
+            if items.count() > 20:
+                print('Subset: {}'.format(items.count()))
+            for item in items:
+                attachments += self.export_attachments(item)
+        except ErrorTimeoutExpired:
+            attachments = -1
+            time.sleep(10)
+            print('ErrorTimeoutExpired')
+        except ErrorInternalServerTransientError:
+            print('ErrorInternalServerTransientError')
+            time.sleep(10)
+            attachments = -1
+        return attachments
+
+    def _attempt_export(self, folder, start_dt=None, end_dt=None):
+        subset_attach = -1
+        while subset_attach < 0:
+            subset_attach = self._export_folder_subset(folder, start_dt,
+                                                       end_dt)
+        return subset_attach
+
     def export_folder(self, folder):
         attachments = 0
         if not os.path.exists(self.export_path):
             os.makedirs(self.export_path)
-        #items = folder.all()
-        import time
-        t = time.time()
-        #items = folder.all().order_by('datetime_created').filter('datetime_created' < '2010-01-01')
         tz = EWSTimeZone.localzone()
-        start_dt = tz.localize(EWSDateTime(2016, 1, 1, 0, 0))
-        end_dt = tz.localize(EWSDateTime(2017, 1, 1, 0, 0))
-        items = folder.all().filter(datetime_received__range=(start_dt, end_dt))
-        print(time.time() - t)
-        print('Exporting {} items'.format(len(items)))
-        print(time.time() - t)
-        i = 0
-        for item in items:
-            i = i + 1
-            print(i)
-            attachments += self.export_attachments(item)
+
+        if folder.total_count < 100:
+            start_dt = tz.localize(EWSDateTime(1900, 1, 1, 0, 0))
+            end_dt = tz.localize(EWSDateTime(2100, 1, 1, 0, 0))
+            attachments += self._attempt_export(folder)
+        else:
+            start_dt = tz.localize(EWSDateTime(2010, 1, 1, 0, 0))
+            # First, export everything before 2010
+            attachments += self._attempt_export(folder, end_dt=start_dt)
+            for i in range(0, 150):
+                end_dt = start_dt + timedelta(days=30)
+                attachments += self._attempt_export(folder, start_dt=start_dt,
+                                                    end_dt=end_dt)
+                start_dt = end_dt
+            # Finally, export everything later than ~2022
+            attachments += self._attempt_export(folder, start_dt=end_dt)
         return attachments
-    
+
     def check_mail(self, total_count=None):
         attachments = 0
         total_scanned = 0
@@ -97,6 +137,7 @@ class ExchangeScan(object):
             os.makedirs(self.export_path)
         folders = self.list_non_empty_folders()
         for folder in folders:
+            print('Exporting: {} ({} items)'.format(folder, folder.total_count))
             attachments += self.export_folder(folder)
             total_scanned += folder.total_count
             print("{} / {}".format(total_scanned, total_count))
