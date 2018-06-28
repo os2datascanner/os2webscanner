@@ -1,7 +1,9 @@
 import os
+import os.path
 import sys
 import time
 import logging
+import random
 from datetime import timedelta
 from exchangelib import FileAttachment, ItemAttachment
 from exchangelib import IMPERSONATION, ServiceAccount, Account
@@ -38,20 +40,21 @@ class ExchangeScan(object):
         """ Export all attachments to the user folder """
         i = 0
         for attachment in item.attachments:
-            i = i + 1
             if isinstance(attachment, FileAttachment):
+                i = i + 1
                 name = (str(item.datetime_created) + '_' +
+                        str(random.random()) + '_' +
                         attachment.name.replace('/', '_'))
                 path = os.path.join(self.export_path, name)
                 with open(path, 'wb') as f:
                     f.write(attachment.content)
             elif isinstance(attachment, ItemAttachment):
+                i = i + 1
                 try:
                     name = (str(item.datetime_created) + '_' +
+                            str(random.random()) + '_' +
                             attachment.name.replace('/', '_'))
                     path = os.path.join(self.export_path, name + '.txt')
-                    if path.exits:
-                        print('!')
                     with open(path, 'w') as f:
                         f.write(name)
                         if attachment.item.subject:
@@ -95,9 +98,9 @@ class ExchangeScan(object):
             time.sleep(10)
             print('ErrorTimeoutExpired')
         except ErrorInternalServerTransientError:
-            print('ErrorInternalServerTransientError')
-            time.sleep(10)
             attachments = -1
+            time.sleep(10)
+            print('ErrorInternalServerTransientError')
         return attachments
 
     def _attempt_export(self, folder, start_dt=None, end_dt=None):
@@ -109,10 +112,7 @@ class ExchangeScan(object):
 
     def export_folder(self, folder):
         attachments = 0
-        if not os.path.exists(self.export_path):
-            os.makedirs(self.export_path)
         tz = EWSTimeZone.localzone()
-
         if folder.total_count < 100:
             start_dt = tz.localize(EWSDateTime(1900, 1, 1, 0, 0))
             end_dt = tz.localize(EWSDateTime(2100, 1, 1, 0, 0))
