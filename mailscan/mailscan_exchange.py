@@ -1,24 +1,24 @@
 import os
 import os.path
-import sys
 import time
 import logging
 import random
+import multiprocessing
+from multiprocessing import Queue
 from datetime import timedelta
 from exchangelib import FileAttachment, ItemAttachment
 from exchangelib import IMPERSONATION, ServiceAccount, Account
-from exchangelib import EWSDateTime, EWSTimeZone, EWSDate
+from exchangelib import EWSDateTime, EWSTimeZone
 from exchangelib.errors import ErrorInternalServerTransientError
 from exchangelib.errors import ErrorTimeoutExpired
 import password
 
 logging.basicConfig(level=logging.ERROR)
 
-class ExchangeScan(object):
+
+class ExchangeMailboxScan(object):
     """ Library to export a users mailbox from Exchange to a filesystem """
     def __init__(self, user):
-        #credentials = Credentials(username="mailscan",
-        #                          password=password.password)
         credentials = ServiceAccount(username="mailscan",
                                      password=password.password)
         username = user + "@vordingborg.dk"
@@ -26,6 +26,7 @@ class ExchangeScan(object):
         self.account = Account(primary_smtp_address=username,
                                credentials=credentials, autodiscover=True,
                                access_type=IMPERSONATION)
+        self.account.root.refresh()
         print('Init complete')
 
     def total_mails(self):
@@ -44,16 +45,21 @@ class ExchangeScan(object):
                 i = i + 1
                 name = (str(item.datetime_created) + '_' +
                         str(random.random()) + '_' +
-                        attachment.name.replace('/', '_'))
+                        attachment.name.replace('/', '_')[-60:])
                 path = os.path.join(self.export_path, name)
-                with open(path, 'wb') as f:
-                    f.write(attachment.content)
+                try:
+                    with open(path, 'wb') as f:
+                        f.write(attachment.content)
+                except TypeError:
+                    pass  # Happens with empty attachments, consider logging
+
             elif isinstance(attachment, ItemAttachment):
                 i = i + 1
                 try:
+                    # Pick last 60 chars of name to prevens too-long filenames
                     name = (str(item.datetime_created) + '_' +
                             str(random.random()) + '_' +
-                            attachment.name.replace('/', '_'))
+                            attachment.name.replace('/', '_')[-60:])
                     path = os.path.join(self.export_path, name + '.txt')
                     with open(path, 'w') as f:
                         f.write(name)
@@ -89,8 +95,8 @@ class ExchangeScan(object):
                 end_dt = tz.localize(EWSDateTime(2100, 1, 1, 0, 0))
             items = folder.all().filter(datetime_received__range=(start_dt,
                                                                   end_dt))
-            if items.count() > 20:
-                print('Subset: {}'.format(items.count()))
+            if items.count() > 500:
+                print('{}: Subset: {}'.format(self.export_path, items.count()))
             for item in items:
                 attachments += self.export_attachments(item)
         except ErrorTimeoutExpired:
@@ -130,20 +136,38 @@ class ExchangeScan(object):
             attachments += self._attempt_export(folder, start_dt=end_dt)
         return attachments
 
-    def check_mail(self, total_count=None):
+    def check_mailbox(self, total_count=None):
         attachments = 0
         total_scanned = 0
         if not os.path.exists(self.export_path):
             os.makedirs(self.export_path)
         folders = self.list_non_empty_folders()
         for folder in folders:
-            print('Exporting: {} ({} items)'.format(folder, folder.total_count))
+            print('{}: Exporting: {} ({} items)'.format(self.export_path,
+                                                        folder,
+                                                        folder.total_count))
             attachments += self.export_folder(folder)
             total_scanned += folder.total_count
-            print("{} / {}".format(total_scanned, total_count))
+            #  print("{}: {} / {}".format(self.export_path, total_scanned,
+            #  total_count))
         print(attachments)
         print(len(os.listdir(self.export_path)))
-        assert(attachments == len(os.listdir(self.export_path)))
+        #  assert(attachments == len(os.listdir(self.export_path)))
+
+
+class ExchangeServerScan(multiprocessing.Process):
+    def __init__(self, user_queue):
+        multiprocessing.Process.__init__(self)
+        self.user_queue = user_queue
+
+    def run(self):
+        while not self.user_queue.empty():
+            user_name = self.user_queue.get()
+            print('Scaning {}'.format(user_name))
+            scanner = ExchangeMailboxScan(user_name)
+            total_count = scanner.total_mails()
+            scanner.check_mailbox(total_count)
+            print('Done with {}'.format(user_name))
 
 
 if __name__ == '__main__':
@@ -151,48 +175,11 @@ if __name__ == '__main__':
              'yela', 'miah', 'oene', 'paha', 'pasp', 'pala', 'pira', 'tikh',
              'tomo']
 
-    #import pdb; pdb.set_trace()
-    user = sys.argv[1]
-    if user in users:
-        scanner = ExchangeScan(user)
-        total_count = scanner.total_mails()
-        print(scanner.check_mail(total_count))
-    
-    """
-    user = sys.argv[1]
-    if user in users:
-        scanner = ExchangeScan(user)
-        #total_count = scanner.total_mails()
-        import cProfile, pstats, io
-        pr = cProfile.Profile()
-        pr.enable()
-        folder_list = scanner.list_non_empty_folders()
-        pr.disable()
-        s = io.StringIO()
-        sortby = 'cumulative'
-        ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
-        ps.print_stats()
-        print(s.getvalue())
-        #print(scanner.check_mail(total_count))
-
-            elif isinstance(attachment, CalendarIem):
-                name = (str(item.datetime_created) + '_' +
-                        attachment.uid.replace('/', '_'))
-                path = os.path.join(self.folder, name + '.txt')
-                with open(path, 'w') as f:
-                    f.write(attachment.item.subject)
-                    f.write(attachment.item.body)
-            elif isinstance(attachment, Contact):
-                name = (str(item.datetime_created) + '_' +
-                        attachment.display_name.replace('/', '_'))
-                path = os.path.join(self.folder, name + '.txt')
-                with open(path, 'w') as f:
-                    f.write(attachment.item.subject)
-                    f.write(attachment.item.body)
-
+    user_queue = Queue()
     for user in users:
-        print(user)
-        scanner = ExchangeScan(user)
-        print(scanner.total_mails())
-        print(scanner.check_mail())
-    """
+        user_queue.put(user)
+
+    scanners = {}
+    for i in range(0, 3):  # Number of threads
+        scanners[i] = ExchangeServerScan(user_queue)
+        scanners[i].start()
