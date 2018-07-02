@@ -1,9 +1,11 @@
-import os
-import os.path
+import sys
 import time
-import logging
+import shutil
 import random
+import logging
+import subprocess
 import multiprocessing
+from pathlib import Path
 from multiprocessing import Queue
 from datetime import timedelta
 from exchangelib import FileAttachment, ItemAttachment
@@ -17,8 +19,15 @@ from exchangelib.errors import ErrorInvalidOperation
 from exchangelib.errors import ErrorTimeoutExpired
 import password
 
-logging.basicConfig(level=logging.ERROR)
+exchangelogger = logging.getLogger('exchangelib')
+exchangelogger.setLevel(logging.ERROR)
 
+logger = logging.Logger('Mailscan_exchange')
+fh = logging.FileHandler('logfile.log')
+fh.setLevel(logging.DEBUG)
+logger.addHandler(fh)
+#logger.setLevel(logging.DEBUG)
+#print(dir(logger))
 
 class ExchangeMailboxScan(object):
     """ Library to export a users mailbox from Exchange to a filesystem """
@@ -26,13 +35,14 @@ class ExchangeMailboxScan(object):
         credentials = ServiceAccount(username="mailscan",
                                      password=password.password)
         username = user + "@vordingborg.dk"
-        self.export_path = 'users/' + username
+        self.export_path = Path('/mnt/new_var/mailscan/users/' + username)
+        self.current_path = None
         self.account = Account(primary_smtp_address=username,
                                credentials=credentials, autodiscover=True,
                                access_type=IMPERSONATION)
         self.start_date = start_date
         self.account.root.refresh()
-        print('Init complete')
+        logger.info('{}: Init complete'.format(username))
 
     def total_mails(self):
         """ Return the total amounts of content for the user
@@ -55,14 +65,14 @@ class ExchangeMailboxScan(object):
                 name = (str(item.datetime_created) + '_' +
                         str(random.random()) + '_' +
                         attachment.name.replace('/', '_')[-60:])
-                path = os.path.join(self.export_path, name)
+                path = self.current_path.joinpath(name)
                 try:
-                    with open(path, 'wb') as f:
+                    with path.open('wb') as f:
                         f.write(attachment.content)
                 except TypeError:
                     pass  # Happens with empty attachments, consider logging
                 except ErrorCannotOpenFileAttachment:
-                    pass # Do now know what triggers this
+                    pass # Do now know what triggers this?
             elif isinstance(attachment, ItemAttachment):
                 i = i + 1
                 try:
@@ -70,8 +80,8 @@ class ExchangeMailboxScan(object):
                     name = (str(item.datetime_created) + '_' +
                             str(random.random()) + '_' +
                             attachment.name.replace('/', '_')[-60:])
-                    path = os.path.join(self.export_path, name + '.txt')
-                    with open(path, 'w') as f:
+                    path = self.current_path.joinpath(name + '.txt')
+                    with path.open('w') as f:
                         f.write(name)
                         if attachment.item.subject:
                             f.write(attachment.item.subject)
@@ -80,8 +90,6 @@ class ExchangeMailboxScan(object):
                 except AttributeError:
                     pass
             else:
-                print(dir(attachment))
-                print(type(attachment))
                 raise(Exception('Unknown attachment'))
         assert(i == len(item.attachments))
         return len(item.attachments)
@@ -103,8 +111,6 @@ class ExchangeMailboxScan(object):
                 start_dt = tz.localize(EWSDateTime(1900, 1, 1, 0, 0))
             if end_dt is None:
                 end_dt = tz.localize(EWSDateTime(2100, 1, 1, 0, 0))
-            #items = folder.all().filter(datetime_received__range=(start_dt,
-            #                                                      end_dt))
             items = folder.all()
             items = items.filter(datetime_received__range=(start_dt,
                                                            end_dt))
@@ -113,31 +119,45 @@ class ExchangeMailboxScan(object):
                     attachments += self.export_attachments(item)
         except ErrorInternalServerError:
             attachments = -1
-            time.sleep(10)
-            print('ErrorInternalServerError')            
+            time.sleep(300)
+            logger.warning('{}: ErrorInternalServerError'.format(self.export_path))            
         except ErrorInvalidOperation:
             attachments = -1
-            time.sleep(10)
-            print('ErrorInvalidOperation')
+            time.sleep(300)
+            logger.warning('{}: ErrorInvalidOperation'.format(self.export_path))
         except ErrorTimeoutExpired:
             attachments = -1
-            time.sleep(10)
-            print('ErrorTimeoutExpired')
+            time.sleep(300)
+            logger.warning('{}: ErrorTimeoutExpired'.format(self.export_path))
         except ErrorInternalServerTransientError:
             attachments = -1
-            time.sleep(10)
-            print('ErrorInternalServerTransientError')
+            time.sleep(60)
+            warning = '{}, {}: ErrorInternalServerTransientError'
+            logger.warning(warning.format(self.export_path, folder))
         return attachments
 
     def _attempt_export(self, folder, start_dt=None, end_dt=None):
         subset_attach = -1
-        while subset_attach < 0:
+        attempts = 0
+        while subset_attach < 0 and attempts < 5:
+            attempts += 1
             subset_attach = self._export_folder_subset(folder, start_dt,
                                                        end_dt)
+        if subset_attach == -1:
+            raise Exception('Unable to export folder')
         return subset_attach
 
     def export_folder(self, folder):
-        # Todo: Export to filesystem folder with folder as name
+        folder_name = folder.name.replace(' ', '_').replace('/', '_')
+        self.current_path = self.export_path.joinpath(folder_name)
+        if self.export_path.joinpath(folder.name + '_done').exists():
+            # print('Aleady done: {}'.format(self.current_path))
+            return 0 # Already scanned
+        if self.current_path.exists():
+            print('Clean up: {}'.format(self.current_path))
+            shutil.rmtree(str(self.current_path))
+        self.current_path.mkdir()
+
         attachments = 0
         tz = EWSTimeZone.localzone()
         if folder.total_count < 100:
@@ -155,28 +175,28 @@ class ExchangeMailboxScan(object):
                 start_dt = end_dt
             # Finally, export everything later than ~2022
             attachments += self._attempt_export(folder, start_dt=end_dt)
+        self.current_path.rename(str(self.current_path) + '_done')
         #TODO: Write 'Done' file in directory to document it is done
         return attachments
 
-    def check_mailbox(self, total_count=None):
+    def check_mailbox(self, total_count=None, clear_mailbox=False):
         # Todo: Clean up folder
         # Todo: Only scan from self.start_date
         attachments = 0
         total_scanned = 0
-        if not os.path.exists(self.export_path):
-            os.makedirs(self.export_path)
+        if not self.export_path.exists():
+            self.export_path.mkdir()
         folders = self.list_non_empty_folders()
         for folder in folders:
-            print('{}: Exporting: {} ({} items)'.format(self.export_path,
-                                                        folder,
-                                                        folder.total_count))
+            info_string = '{}: Exporting: {} ({} items)'
+            logger.info(info_string.format(self.export_path,
+                                           folder,
+                                           folder.total_count))
             attachments += self.export_folder(folder)
             total_scanned += folder.total_count
-            #  print("{}: {} / {}".format(self.export_path, total_scanned,
-            #  total_count))
-        #TODO: Write 'Done' file in directory to document it is done
-        print(attachments)
-        print(len(os.listdir(self.export_path)))
+            logger.info("Exported {}: {} / {}".format(self.export_path,
+                                                      total_scanned,
+                                                      total_count))
         #  assert(attachments == len(os.listdir(self.export_path)))
 
 
@@ -189,13 +209,13 @@ class ExchangeServerScan(multiprocessing.Process):
         while not self.user_queue.empty():
             try:
                 user_name = self.user_queue.get()
-                print('Scaning {}'.format(user_name))
+                logger.info('Scaning {}'.format(user_name))
                 scanner = ExchangeMailboxScan(user_name)
                 total_count = scanner.total_mails()
                 scanner.check_mailbox(total_count)
-                print('Done with {}'.format(user_name))
+                logger.info('Done with {}'.format(user_name))
             except MemoryError:
-                print('We had a memory-error from {}'.format(user_name))
+                logger.error('We had a memory-error from {}'.format(user_name))
                 self.user_queue.put(user_name)
 
 
@@ -204,16 +224,27 @@ if __name__ == '__main__':
              'yela', 'miah', 'oene', 'paha', 'pasp', 'pala', 'pira', 'tikh',
              'tomo']
 
+    number_of_threads = int(sys.argv[1])
+    
     user_queue = Queue()
     for user in users:
         user_queue.put(user)
 
     scanners = {}
-    for i in range(0, 5):  # Number of threads
+    for i in range(0, number_of_threads):
         scanners[i] = ExchangeServerScan(user_queue)
         scanners[i].start()
 
+    start_time = time.time()
+    status = 'Threads: {}. Queue: {}. Export: {:.3f}GB. Time: {:.2f}'
     while True:
-        number_of_processes = multiprocessing.active_children()
-        print('Active threads: {}'.format(len(number_of_processes)))
-        time.sleep(10)
+        processes = multiprocessing.active_children()
+        du_output = subprocess.check_output(['du', '-s',
+                                             '/mnt/new_var/mailscan/users/'])
+        export_size = float(du_output.decode('utf-8').split('\t')[0])
+        print(status.format(len(processes),
+                           user_queue.qsize(),
+                           export_size  / 1024**2,
+                           (time.time() - start_time)/60.0)
+        )
+        time.sleep(20)
