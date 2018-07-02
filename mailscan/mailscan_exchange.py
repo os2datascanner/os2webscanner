@@ -12,6 +12,7 @@ from exchangelib import FileAttachment, ItemAttachment
 from exchangelib import IMPERSONATION, ServiceAccount, Account
 from exchangelib import EWSDateTime, EWSTimeZone
 from exchangelib.util import chunkify
+from exchangelib.errors import ErrorNonExistentMailbox
 from exchangelib.errors import ErrorInternalServerTransientError
 from exchangelib.errors import ErrorCannotOpenFileAttachment
 from exchangelib.errors import ErrorInternalServerError
@@ -26,8 +27,10 @@ logger = logging.Logger('Mailscan_exchange')
 fh = logging.FileHandler('logfile.log')
 fh.setLevel(logging.DEBUG)
 logger.addHandler(fh)
-#logger.setLevel(logging.DEBUG)
-#print(dir(logger))
+
+class ExportError(Exception):
+    def __init__(self, *args, **kwargs):
+        Exception.__init__(self, *args, **kwargs)
 
 class ExchangeMailboxScan(object):
     """ Library to export a users mailbox from Exchange to a filesystem """
@@ -37,16 +40,22 @@ class ExchangeMailboxScan(object):
         username = user + "@vordingborg.dk"
         self.export_path = Path('/mnt/new_var/mailscan/users/' + username)
         self.current_path = None
-        self.account = Account(primary_smtp_address=username,
-                               credentials=credentials, autodiscover=True,
-                               access_type=IMPERSONATION)
         self.start_date = start_date
-        self.account.root.refresh()
-        logger.info('{}: Init complete'.format(username))
+        try:
+            self.account = Account(primary_smtp_address=username,
+                                   credentials=credentials, autodiscover=True,
+                                   access_type=IMPERSONATION)
+            self.account.root.refresh()
+            logger.info('{}: Init complete'.format(username))
+        except ErrorNonExistentMailbox:
+            logger.error('No such user: {}'.format(username))
+            self.account = None
 
     def total_mails(self):
         """ Return the total amounts of content for the user
         this includes mails and calendar items """
+        if self.account is None: # This could be a decorator
+            return False
         total_count = 0
         for folder in self.account.root.walk():
             total_count += folder.total_count
@@ -97,6 +106,8 @@ class ExchangeMailboxScan(object):
     def list_non_empty_folders(self):
         """ Returns a list of all non-empty folders
         :return: A python list with all folders"""
+        if self.account is None: # This could be a decorator
+            return False
         folder_list = []
         for folder in self.account.root.walk():
             if folder.total_count > 0:
@@ -104,6 +115,7 @@ class ExchangeMailboxScan(object):
         return folder_list
 
     def _export_folder_subset(self, folder, start_dt=None, end_dt=None):
+        # Todo: Consider whether we need caching on date-level
         try:
             attachments = 0
             tz = EWSTimeZone.localzone()
@@ -144,7 +156,7 @@ class ExchangeMailboxScan(object):
             subset_attach = self._export_folder_subset(folder, start_dt,
                                                        end_dt)
         if subset_attach == -1:
-            raise Exception('Unable to export folder')
+            raise ExportError('Unable to export folder')
         return subset_attach
 
     def export_folder(self, folder):
@@ -176,12 +188,13 @@ class ExchangeMailboxScan(object):
             # Finally, export everything later than ~2022
             attachments += self._attempt_export(folder, start_dt=end_dt)
         self.current_path.rename(str(self.current_path) + '_done')
-        #TODO: Write 'Done' file in directory to document it is done
         return attachments
 
     def check_mailbox(self, total_count=None, clear_mailbox=False):
         # Todo: Clean up folder
         # Todo: Only scan from self.start_date
+        if self.account is None:
+            return False
         attachments = 0
         total_scanned = 0
         if not self.export_path.exists():
@@ -197,7 +210,7 @@ class ExchangeMailboxScan(object):
             logger.info("Exported {}: {} / {}".format(self.export_path,
                                                       total_scanned,
                                                       total_count))
-        #  assert(attachments == len(os.listdir(self.export_path)))
+        return True
 
 
 class ExchangeServerScan(multiprocessing.Process):
@@ -217,12 +230,22 @@ class ExchangeServerScan(multiprocessing.Process):
             except MemoryError:
                 logger.error('We had a memory-error from {}'.format(user_name))
                 self.user_queue.put(user_name)
+            except ExportError:
+                logger.error('Could not export all of {}'.format(user_name))
+                self.user_queue.put(user_name)
 
 
 if __name__ == '__main__':
     users = ['robj', 'brloe', 'clma', 'flho', 'henk', 'jewu', 'leim', 'mska',
              'yela', 'miah', 'oene', 'paha', 'pasp', 'pala', 'pira', 'tikh',
              'tomo']
+
+    user_path = Path('./user.txt')
+    with user_path.open('r') as f:
+        users = f.read().split('\n')
+    for user in users:
+        if len(user.strip()) == 0:
+            users.remove(user)
 
     number_of_threads = int(sys.argv[1])
     
