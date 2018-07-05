@@ -43,9 +43,13 @@ class ExchangeMailboxScan(object):
         credentials = ServiceAccount(username="mailscan",
                                      password=password.password)
         username = user + settings.mail_ending
-        self.export_path = Path(settings.export_path + username)
-        self.current_path = None
         self.start_date = start_date
+        if self.start_date is None:
+            self.export_path = Path(settings.export_path + username)
+        else:
+            self.export_path = Path(settings.export_path + username + '_'
+                                    + str(self.start_date))
+        self.current_path = None
         try:
             self.account = Account(primary_smtp_address=username,
                                    credentials=credentials, autodiscover=True,
@@ -166,15 +170,16 @@ class ExchangeMailboxScan(object):
                 for item in chunk:
                     skip_list = self.export_item_body(item)
                     attachments += self.export_attachments(item, skip_list)
+
         except ErrorInternalServerError:
-            attachments = -1
-            time.sleep(30)
-            msg = '{}: ErrorInternalServerError'
-            logger.warning(msg.format(self.export_path))
+            # Possibly happens on p7m files?
+            msg = '{}: ErrorInternalServerError, giving up sub-folder'
+            msg += ' Attachment value: {}'
+            logger.warning(msg.format(self.export_path, attachments))
         except ErrorInvalidOperation:
-            attachments = 0
-            msg = '{}: ErrorInvalidOperation, giving up subfolder'
-            logger.warning(msg.format(self.export_path))
+            msg = '{}: ErrorInvalidOperation, giving up sub-folder'
+            msg += ' Attachment value: {}'
+            logger.warning(msg.format(self.export_path), attachments)
         except ErrorTimeoutExpired:
             attachments = -1
             time.sleep(30)
@@ -216,7 +221,7 @@ class ExchangeMailboxScan(object):
         self.current_path = self.export_path.joinpath(folder_name)
         if self.export_path.joinpath(folder_name + '_done').exists():
             logger.info('Already done: {}'.format(self.current_path))
-            return 0  # Already scanned
+            return folder.total_count  # Already scanned
         if self.current_path.exists():
             logger.info('Clean up: {}'.format(self.current_path))
             shutil.rmtree(str(self.current_path))
@@ -224,32 +229,30 @@ class ExchangeMailboxScan(object):
 
         attachments = 0
         tz = EWSTimeZone.localzone()
-        if folder.total_count < 100:
-            logger.info('Export complete folder: {}'.format(self.current_path))
-            start_dt = tz.localize(EWSDateTime(1900, 1, 1, 0, 0))
-            end_dt = tz.localize(EWSDateTime(2100, 1, 1, 0, 0))
-            attachments += self._attempt_export(folder)
-        else:
+        if self.start_date is None:
             start_dt = tz.localize(EWSDateTime(2010, 1, 1, 0, 0))
             # First, export everything before 2010
             attachments += self._attempt_export(folder, end_dt=start_dt)
-            for i in range(0, 50):
-                end_dt = start_dt + timedelta(days=90)
+        else:
+            start_dt = self.start_date
+            end_dt = start_dt + timedelta(days=10)
+            while end_dt < tz.localize(EWSDateTime(2022, 1, 1, 0, 0)):
+                #for i in range(0, 500):
                 attachments += self._attempt_export(folder, start_dt=start_dt,
                                                     end_dt=end_dt)
                 start_dt = end_dt
-            # Finally, export everything later than ~2022
+                end_dt = start_dt + timedelta(days=10)
+            # Finally, export everything later than 2022
             attachments += self._attempt_export(folder, start_dt=end_dt)
         self.current_path.rename(str(self.current_path) + '_done')
         return attachments
-
-    def check_mailbox(self, total_count=None, start_dt=None):
+    
+    def check_mailbox(self, total_count=None):
         """ Run an export of the mailbox
         :param total_count: The total amount of mail for progress report
         :param start_dt: Only export from this time. NOT IMPLEMENTED
-        :return: Currently always retuns True
+        :return: Returns true if the account exists
         """
-        # Todo: Only scan from self.start_date
         if self.account is None:
             return False
         attachments = 0
@@ -275,14 +278,20 @@ class ExchangeServerScan(multiprocessing.Process):
         multiprocessing.Process.__init__(self)
         self.user_queue = user_queue
         self.scanner = None
-        self.user_name = None
-
+        self.user_name = None        
+        
     def run(self):
         while not self.user_queue.empty():
             try:
                 self.user_name = self.user_queue.get()
                 logger.info('Scaning {}'.format(self.user_name))
-                self.scanner = ExchangeMailboxScan(self.user_name)
+                # Todo: Handling of start_date should be done as a run-time 
+                # parameter
+                try:
+                    self.scanner = ExchangeMailboxScan(self.user_name,
+                                                       settings.start_date)
+                except NameError: # No start_time given
+                    self.scanner = ExchangeMailboxScan(self.user_name)
                 total_count = self.scanner.total_mails()
                 self.scanner.check_mailbox(total_count)
                 logger.info('Done with {}'.format(self.user_name))
@@ -296,23 +305,22 @@ class ExchangeServerScan(multiprocessing.Process):
                 self.user_queue.put(self.user_name)
 
 
-if __name__ == '__main__':
-    users = ['robj', 'brloe', 'clma', 'flho', 'henk', 'jewu', 'leim', 'mska',
-             'yela', 'miah', 'oene', 'paha', 'pasp', 'pala', 'pira', 'tikh',
-             'tomo']
-
-    user_path = Path('./user.txt')
+def read_users(user_queue, user_file):
+    user_path = Path(user_file)
     with user_path.open('r') as f:
         users = f.read().split('\n')
     for user in users:
         if len(user.strip()) == 0:
             users.remove(user)
 
-    number_of_threads = int(sys.argv[1])
-
-    user_queue = Queue()
     for user in users:
         user_queue.put(user)
+
+
+if __name__ == '__main__':
+    number_of_threads = int(sys.argv[1])
+    user_queue = Queue()
+    read_users(user_queue, settings.user_path)
 
     scanners = {}
     for i in range(0, number_of_threads):
@@ -352,3 +360,4 @@ if __name__ == '__main__':
                                   (time.time() - start_time)/60.0,
                                   export_incr / (time.time() - start_time)))
         time.sleep(10)
+
