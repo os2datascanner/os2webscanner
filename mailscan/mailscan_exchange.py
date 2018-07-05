@@ -32,6 +32,7 @@ logger.error('Program start')
 
 
 class ExportError(Exception):
+    """ Exception to indicate that export failed for unspecified reasons """
     def __init__(self, *args, **kwargs):
         logger.error('Export Exception')
         Exception.__init__(self, *args, **kwargs)
@@ -70,6 +71,10 @@ class ExchangeMailboxScan(object):
         return total_count
 
     def export_item_body(self, item):
+        """ Export the actual message body to a txt file
+        :param item: The exchange item to be exported
+        :return: List of inline attachments that should be ignored
+        """
         subject = item.subject
         if subject is None:
             subject = ''
@@ -96,7 +101,11 @@ class ExchangeMailboxScan(object):
         return footer_images
 
     def export_attachments(self, item, skip_list):
-        """ Export all attachments to the user folder """
+        """ Export all attachments to the users folder
+        :param item: The exchange item to export attachments from
+        :skip_list: List of attachments that should not be exported
+        :return: Number of attachments in item (including skipped...)
+        """
         i = 0
         for attachment in item.attachments:
             if attachment.name is None:
@@ -156,6 +165,12 @@ class ExchangeMailboxScan(object):
         return folder_list
 
     def _export_folder_subset(self, folder, start_dt=None, end_dt=None):
+        """ Export a time-subset of an exchange folder
+        :param folder: The exchange folder to export
+        :start_dt: The start date to export from, default 1900-01-01
+        :end_dt: The end date to export to, default 2100-01-01
+        :return: Number of attachments in folder
+        """
         try:
             attachments = 0
             if start_dt is None:
@@ -274,6 +289,9 @@ class ExchangeMailboxScan(object):
 
 
 class ExchangeServerScan(multiprocessing.Process):
+    """ Helper class to allow parallel processing of export
+    This classes inherits from multiprocessing and helps to
+    run a number of exporters in parallel """
     def __init__(self, user_queue, start_date=None):
         multiprocessing.Process.__init__(self)
         self.user_queue = user_queue
@@ -307,13 +325,16 @@ class ExchangeServerScan(multiprocessing.Process):
 
 
 def read_users(user_queue, user_file):
+    """ Small helper to read user-list from file
+    :param user_queue: The common multiprocess queue
+    :param user_file: Filename for user list
+    """
     user_path = Path(user_file)
     with user_path.open('r') as f:
         users = f.read().split('\n')
     for user in users:
         if len(user.strip()) == 0:
             users.remove(user)
-
     for user in users:
         user_queue.put(user)
 
