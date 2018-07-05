@@ -259,7 +259,16 @@ class ExchangeMailboxScan(object):
                 end_dt = start_dt + timedelta(days=10)
             # Finally, export everything later than 2022
             attachments += self._attempt_export(folder, start_dt=end_dt)
-        self.current_path.rename(str(self.current_path) + '_done')
+        try:
+            self.current_path.rename(str(self.current_path) + '_done')
+        except FileNotFoundError:
+            # This can happen if a user mistakenly is scanned twice at
+            # the same time
+            # For now we will log and do no more. The offending folder
+            # will still contain the export, but will lose the information
+            # that it is already scanned and thus will be re-scanned on
+            # next run.
+            logger.error('Rename error from {}'.format(self.current_path)
         return attachments
 
     def check_mailbox(self, total_count=None):
