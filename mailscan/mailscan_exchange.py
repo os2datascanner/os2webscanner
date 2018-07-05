@@ -268,7 +268,7 @@ class ExchangeMailboxScan(object):
             # will still contain the export, but will lose the information
             # that it is already scanned and thus will be re-scanned on
             # next run.
-            logger.error('Rename error from {}'.format(self.current_path)
+            logger.error('Rename error from {}'.format(self.current_path))
         return attachments
 
     def check_mailbox(self, total_count=None):
