@@ -7,10 +7,10 @@ import subprocess
 import multiprocessing
 from pathlib import Path
 from multiprocessing import Queue
-from datetime import timedelta
+from datetime import datetime, timedelta
+from exchangelib import EWSDateTime, EWSDate, UTC
 from exchangelib import FileAttachment, ItemAttachment
 from exchangelib import IMPERSONATION, ServiceAccount, Account
-from exchangelib import EWSDateTime, EWSTimeZone
 from exchangelib.util import chunkify
 from exchangelib.errors import ErrorNonExistentMailbox
 from exchangelib.errors import ErrorInternalServerTransientError
@@ -47,8 +47,8 @@ class ExchangeMailboxScan(object):
         if self.start_date is None:
             self.export_path = Path(settings.export_path + username)
         else:
-            self.export_path = Path(settings.export_path + username + '_'
-                                    + str(self.start_date))
+            self.export_path = Path(settings.export_path + username + '_' +
+                                    str(self.start_date))
         self.current_path = None
         try:
             self.account = Account(primary_smtp_address=username,
@@ -158,14 +158,16 @@ class ExchangeMailboxScan(object):
     def _export_folder_subset(self, folder, start_dt=None, end_dt=None):
         try:
             attachments = 0
-            tz = EWSTimeZone.localzone()
             if start_dt is None:
-                start_dt = tz.localize(EWSDateTime(1900, 1, 1, 0, 0))
+                start_dt = EWSDate(1900, 1, 1)
             if end_dt is None:
-                end_dt = tz.localize(EWSDateTime(2100, 1, 1, 0, 0))
+                end_dt = EWSDate(2100, 1, 1)
             items = folder.all()
-            items = items.filter(datetime_received__range=(start_dt,
-                                                           end_dt))
+            start_dt = UTC.localize(EWSDateTime(start_dt.year, start_dt.month,
+                                                start_dt.day, 0, 0))
+            end_dt = UTC.localize(EWSDateTime(end_dt.year, end_dt.month,
+                                              end_dt.day, 0, 0))
+            items = items.filter(datetime_received__range=(start_dt, end_dt))
             for chunk in chunkify(items, 10):
                 for item in chunk:
                     skip_list = self.export_item_body(item)
@@ -228,16 +230,14 @@ class ExchangeMailboxScan(object):
         self.current_path.mkdir()
 
         attachments = 0
-        tz = EWSTimeZone.localzone()
         if self.start_date is None:
-            start_dt = tz.localize(EWSDateTime(2010, 1, 1, 0, 0))
+            start_dt = EWSDate(2010, 1, 1)
             # First, export everything before 2010
             attachments += self._attempt_export(folder, end_dt=start_dt)
         else:
             start_dt = self.start_date
             end_dt = start_dt + timedelta(days=10)
-            while end_dt < tz.localize(EWSDateTime(2022, 1, 1, 0, 0)):
-                #for i in range(0, 500):
+            while end_dt < EWSDate(2022, 1, 1):
                 attachments += self._attempt_export(folder, start_dt=start_dt,
                                                     end_dt=end_dt)
                 start_dt = end_dt
@@ -246,11 +246,11 @@ class ExchangeMailboxScan(object):
             attachments += self._attempt_export(folder, start_dt=end_dt)
         self.current_path.rename(str(self.current_path) + '_done')
         return attachments
-    
+
     def check_mailbox(self, total_count=None):
         """ Run an export of the mailbox
         :param total_count: The total amount of mail for progress report
-        :param start_dt: Only export from this time. NOT IMPLEMENTED
+        :param start_dt: Only export from this time.
         :return: Returns true if the account exists
         """
         if self.account is None:
@@ -274,23 +274,24 @@ class ExchangeMailboxScan(object):
 
 
 class ExchangeServerScan(multiprocessing.Process):
-    def __init__(self, user_queue):
+    def __init__(self, user_queue, start_date=None):
         multiprocessing.Process.__init__(self)
         self.user_queue = user_queue
         self.scanner = None
-        self.user_name = None        
-        
+        self.user_name = None
+        self.start_date = start_date
+
     def run(self):
         while not self.user_queue.empty():
             try:
                 self.user_name = self.user_queue.get()
                 logger.info('Scaning {}'.format(self.user_name))
-                # Todo: Handling of start_date should be done as a run-time 
+                # Todo: Handling of start_date should be done as a run-time
                 # parameter
                 try:
                     self.scanner = ExchangeMailboxScan(self.user_name,
-                                                       settings.start_date)
-                except NameError: # No start_time given
+                                                       self.start_date)
+                except NameError:  # No start_time given
                     self.scanner = ExchangeMailboxScan(self.user_name)
                 total_count = self.scanner.total_mails()
                 self.scanner.check_mailbox(total_count)
@@ -319,12 +320,18 @@ def read_users(user_queue, user_file):
 
 if __name__ == '__main__':
     number_of_threads = int(sys.argv[1])
+    try:
+        start_arg = datetime.strptime(sys.argv[2], '%Y-%m-%d')
+        start_date = EWSDate.from_date(start_arg)
+    except IndexError:
+        start_date = None  # Scan from beginning of time
+
     user_queue = Queue()
     read_users(user_queue, settings.user_path)
 
     scanners = {}
     for i in range(0, number_of_threads):
-        scanners[i] = ExchangeServerScan(user_queue)
+        scanners[i] = ExchangeServerScan(user_queue, start_date)
         scanners[i].start()
 
     start_time = time.time()
@@ -360,4 +367,3 @@ if __name__ == '__main__':
                                   (time.time() - start_time)/60.0,
                                   export_incr / (time.time() - start_time)))
         time.sleep(10)
-
