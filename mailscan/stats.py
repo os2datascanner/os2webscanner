@@ -1,4 +1,5 @@
 import time
+# import curses
 import logging
 import subprocess
 import multiprocessing
@@ -6,13 +7,24 @@ import psutil
 import settings
 
 logger = logging.getLogger('Mailscan_exchange')
+fh = logging.FileHandler('logfile.log')
+fh.setLevel(logging.INFO)
+logger.addHandler(fh)
+logger.error('Stat start')
 
 
 class Stats(multiprocessing.Process):
     def __init__(self, user_queue):
+        psutil.cpu_percent(percpu=True)  # Initil dummy readout
         multiprocessing.Process.__init__(self)
         self.user_queue = user_queue
         self.scanners = []
+        # self.screen = curses.initscr()
+        # curses.noecho()
+        # curses.cbreak()
+        # curses.curs_set(False)
+        # self.screen.keypad(1)
+        # self.screen.nodelay(1)
         # Measure initial values while we have the chance
         self.start_time = time.time()
         self.total_users = self.user_queue.qsize()
@@ -44,7 +56,9 @@ class Stats(multiprocessing.Process):
                 error = False
             except subprocess.CalledProcessError:
                 # Happens if du is called while folder is being marked done
-                logger.warn('du-error')
+
+                # logger.warn('du-error') Warning ends up in the terminal...
+                # will need to investiate
                 time.sleep(1)
         size = float(du_output.decode('utf-8').split('\t')[0]) / 1024
         return size
@@ -100,7 +114,35 @@ class Stats(multiprocessing.Process):
     def run(self):
         processes = self.number_of_threads()[1]
         while processes > 0:
-            time.sleep(30)
+            time.sleep(5)
             status = self.status()
-            print(status)
             logger.info(status)
+            print(status)
+            """
+            dt = int((time.time() - self.start_time))
+            msg = 'Run-time: {}min {}s  '.format(int(dt / 60),
+                                                 int(dt % 60))
+            self.screen.addstr(2, 3, msg)
+
+            cpu_usage = psutil.cpu_percent(percpu=True)
+            msg = 'CPU{} usage: {}%  '
+            for i in range(0, len(cpu_usage)):
+                self.screen.addstr(2 + i, 40, msg.format(i, cpu_usage[i]))
+
+            users = self.exported_users()
+            msg = 'Exported users: {}/{}  '.format(users[0], users[1])
+            self.screen.addstr(3, 3, msg)
+
+            speed = self.amount_of_exported_data() / dt
+            msg = 'Avg eksport speed: {:.2f}MB/s   '.format(speed)
+            self.screen.addstr(4, 3, msg)
+
+            self.screen.addstr(6, 3, 'Memory usage:')
+            mem_info = self.memory_info()
+            for i in range(0, len(mem_info)):
+                msg = 'Worker {}: {:.1f}MB    '.format(i, mem_info[i])
+                self.screen.addstr(7 + i, 3, msg)
+            msg = 'Total: {:.0f}MB    '.format(sum(mem_info))
+            self.screen.addstr(8 + i, 3, msg)
+            self.screen.refresh()
+            """

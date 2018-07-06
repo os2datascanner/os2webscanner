@@ -313,8 +313,6 @@ class ExchangeServerScan(multiprocessing.Process):
             try:
                 self.user_name = self.user_queue.get()
                 logger.info('Scaning {}'.format(self.user_name))
-                # Todo: Handling of start_date should be done as a run-time
-                # parameter
                 try:
                     self.scanner = ExchangeMailboxScan(self.user_name,
                                                        self.start_date)
