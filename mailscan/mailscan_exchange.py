@@ -5,6 +5,7 @@ import random
 import logging
 import subprocess
 import multiprocessing
+import psutil
 from pathlib import Path
 from multiprocessing import Queue
 from datetime import datetime, timedelta
@@ -196,7 +197,7 @@ class ExchangeMailboxScan(object):
         except ErrorInvalidOperation:
             msg = '{}: ErrorInvalidOperation, giving up sub-folder'
             msg += ' Attachment value: {}'
-            logger.warning(msg.format(self.export_path), attachments)
+            logger.warning(msg.format(self.export_path, attachments))
         except ErrorTimeoutExpired:
             attachments = -1
             time.sleep(30)
@@ -348,6 +349,93 @@ def read_users(user_queue, user_file):
         user_queue.put(user)
 
 
+class statistics_module(multiprocessing.Process):
+    def __init__(self, user_queue):
+        multiprocessing.Process.__init__(self)
+        self.user_queue = user_queue
+        self.scanners = []
+        # Measure initial values while we have the chance
+        self.start_time = time.time()
+        self.total_users = self.user_queue.qsize()
+        self.init_du = self.disk_usage()
+
+    def number_of_threads(self):
+        """ Number of threads
+        :return: Tuple with Number of threads, and nuber of active threads
+        """
+        return (len(self.scanners), len(multiprocessing.active_children()))
+
+    def add_scanner(self, scanner):
+        """ Add a scanner to the internal list of scanners
+        :param scanner: The scanner object to be added
+        :return: The new number of threads
+        """
+        self.scanners.append(scanner)
+        return self.number_of_threads()
+
+    def disk_usage(self):
+        """ Return the current disk usage
+        :return: Disk usage in MB
+        """
+        error = True
+        while error:
+            try:
+                du_output = subprocess.check_output(['du', '-s',
+                                                     settings.export_path])
+                error = False
+            except subprocess.CalledProcessError:
+                # Happens if du is called while folder is being marked done
+                logger.warn('du-error')
+                time.sleep(1)
+        size = float(du_output.decode('utf-8').split('\t')[0]) / 1024
+        return size
+
+    def amount_of_exported_data(self):
+        """ Return the total amount of exported data (MB)
+        :return: The total amount of exported data sinze start
+        """
+        return self.disk_usage() - self.init_du
+
+    def memory_info(self):
+        """ Returns the memory consumption (in MB) of all threads
+        :return: List of memory consumptions
+        """
+        mem_list = []
+        for scanner in self.scanners:
+            pid = scanners[i].pid
+            process = psutil.Process(pid)
+            mem_info = process.memory_full_info()
+            used_memory = mem_info.uss/1024**2
+            mem_list.append(used_memory)
+        return mem_list
+
+    def status(self):
+        template = ('Threads: {}. ' +
+                    'Queue: {}. ' +
+                    'Export: {:.3f}GB. ' +
+                    'Time: {:.2f}min. ' +
+                    'Speed: {:.2f}MB/s. ' +
+                    'Memory consumption: {:.3f}GB')
+        memory = sum(stats.memory_info()) / 1024
+        processes = self.number_of_threads()[1]
+        dt = (time.time() - self.start_time)
+        ret_str = template.format(processes,
+                                  self.user_queue.qsize(),
+                                  stats.disk_usage() / 1024,
+                                  dt / 60.0,
+                                  stats.amount_of_exported_data() / dt,
+                                  memory)
+        return ret_str
+
+    def run(self):
+        processes = self.number_of_threads()[1]
+        while processes > 0:
+            time.sleep(10)
+            status = self.status()
+            print(status)
+            logger.info(status)
+
+
 if __name__ == '__main__':
     number_of_threads = int(sys.argv[1])
     try:
@@ -356,44 +444,20 @@ if __name__ == '__main__':
     except IndexError:
         start_date = None  # Scan from beginning of time
 
+    # Populate user queue
     user_queue = Queue()
     read_users(user_queue, settings.user_path)
+
+    stats = statistics_module(user_queue)
 
     scanners = {}
     for i in range(0, number_of_threads):
         scanners[i] = ExchangeServerScan(user_queue, start_date)
+        stats.add_scanner(scanners[i])
         scanners[i].start()
+        time.sleep(1)
 
-    start_time = time.time()
-    status = ('Threads: {}. Queue: {}. Export: {:.3f}GB. Time: {:.2f}. ' +
-              'Speed: {:.2f}')
-    processes = multiprocessing.active_children()
-    du_output = subprocess.check_output(['du', '-s',
-                                         settings.export_path])
-    init_size = float(du_output.decode('utf-8').split('\t')[0])
-    while len(processes) > 0:
-        # Todo: Restart processe if count goes too low
-        processes = multiprocessing.active_children()
-        try:
-            du_output = subprocess.check_output(['du', '-s',
-                                                 settings.export_path])
-        except subprocess.CalledProcessError:
-            # Happens if du is called excatly while folder is being marked done
-            logger.warn('du-error')
-            time.sleep(1)
-            continue
+    stats.run()
 
-        export_size = float(du_output.decode('utf-8').split('\t')[0])
-        export_incr = (export_size - init_size) / 1024
-        print(status.format(len(processes),
-                            user_queue.qsize(),
-                            export_size / 1024**2,
-                            (time.time() - start_time)/60.0,
-                            export_incr / (time.time() - start_time)))
-
-        logger.info(status.format(len(processes),
-                                  user_queue.qsize(),
-                                  export_size / 1024**2,
-                                  (time.time() - start_time)/60.0,
-                                  export_incr / (time.time() - start_time)))
-        time.sleep(10)
+    while stats.is_alive():
+        time.sleep(5)
