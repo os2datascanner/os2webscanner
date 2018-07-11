@@ -27,9 +27,9 @@ from .views.webscanner_views import WebScannerCreate, WebScannerUpdate, WebScann
 from .views.filescanner_views import FileScannerCreate, FileScannerRun, FileScannerAskRun, FileScannerUpdate, \
     FileScannerDelete, FileScannerList
 from .views.views import OrganizationUpdate, OrganizationList
+from .views.domain_views import DomainValidate
 from .views.filedomain_views import FileDomainList, FileDomainCreate, FileDomainUpdate, FileDomainDelete
-from .views.domain_views import WebDomainUpdate, DomainValidate, WebDomainDelete, \
-    WebDomainList, WebDomainCreate
+from .views.webdomain_views import WebDomainList, WebDomainCreate, WebDomainUpdate, WebDomainDelete
 from .views.views import GroupList, GroupCreate, GroupUpdate, GroupDelete
 from .views.rule_views import RuleList, RuleCreate, RuleUpdate, RuleDelete
 from .views.views import SummaryList, SummaryCreate, SummaryUpdate, SummaryDelete
