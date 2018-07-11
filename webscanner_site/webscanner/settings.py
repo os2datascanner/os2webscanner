@@ -55,11 +55,19 @@ TEMPLATE_DEBUG = True
 PRODUCTION_MODE = False
 
 # If filescan on the current installation is needed, enable it here
+ENABLE_WEBSCAN = True
+
+# If filescan on the current installation is needed, enable it here
 ENABLE_FILESCAN = True
+
+# If exchangescan on the current installation is needed, enable it here
+ENABLE_EXCHANGESCAN = True
 
 # Add settings here to make them accessible from templates
 SETTINGS_EXPORT = [
     'ENABLE_FILESCAN',
+    'ENABLE_EXCHANGESCAN',
+    'ENABLE_WEBSCAN',
 ]
 
 # Application definition

@@ -28,6 +28,7 @@ from .views.filescanner_views import FileScannerCreate, FileScannerRun, FileScan
     FileScannerDelete, FileScannerList
 from .views.views import OrganizationUpdate, OrganizationList
 from .views.domain_views import DomainValidate
+from .views.exchangedomain_views import ExchangeDomainList
 from .views.filedomain_views import FileDomainList, FileDomainCreate, FileDomainUpdate, FileDomainDelete
 from .views.webdomain_views import WebDomainList, WebDomainCreate, WebDomainUpdate, WebDomainDelete
 from .views.views import GroupList, GroupCreate, GroupUpdate, GroupDelete
@@ -70,6 +71,7 @@ urlpatterns = [
             template_name='os2webscanner/scanner_askrun.html',
             model=FileScanner),
         name='scanner_askrun'),
+    url(r'^exchangedomains/$', ExchangeDomainList.as_view(), name='exchangedomains'),
     url(r'^filescanners/(?P<pk>\d+)/$', FileScannerUpdate.as_view(),
         name='scanner_update'),
     url(r'^filedomains/$', FileDomainList.as_view(), name='filedomains'),
