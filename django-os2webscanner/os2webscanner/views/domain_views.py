@@ -5,7 +5,10 @@ from ..validate import validate_domain
 from .views import RestrictedListView, RestrictedCreateView, \
     RestrictedUpdateView, RestrictedDetailView
 
+from ..models.authentication_model import Authentication
 from ..models.domain_model import Domain
+
+from ..aescipher import encrypt, decrypt
 
 
 class DomainList(RestrictedListView):
@@ -61,6 +64,28 @@ class DomainCreate(RestrictedCreateView):
 
         return form
 
+    def form_valid(self, form):
+        """Makes sure password gets encrypted before stored in db."""
+        filedomain = form.save(commit=False)
+        authentication = Authentication()
+        if 'username' in form.cleaned_data and \
+                        len(form.cleaned_data['username']) > 0:
+            username = str(form.cleaned_data['username'])
+            authentication.username = username
+        if 'password' in form.cleaned_data and \
+                        len(form.cleaned_data['password']) > 0:
+            iv, ciphertext = encrypt(str(form.cleaned_data['password']))
+            authentication.ciphertext = ciphertext
+            authentication.iv = iv
+        if 'domain' in form.cleaned_data and \
+                        len(form.cleaned_data['domain']) > 0:
+            domain = str(form.cleaned_data['domain'])
+            authentication.domain = domain
+        authentication.save()
+        filedomain.authentication = authentication
+        filedomain.save()
+        return super().form_valid(form)
+
 
 class DomainUpdate(RestrictedUpdateView):
 
@@ -113,6 +138,19 @@ class DomainUpdate(RestrictedUpdateView):
             user_profile = self.request.user.profile
             self.object = form.save(commit=False)
             self.object.organization = user_profile.organization
+
+        domain = form.save(commit=False)
+        authentication = domain.authentication
+        if 'username' in form.cleaned_data:
+            authentication.username = form.cleaned_data['username']
+        if 'password' in form.cleaned_data:
+            iv, ciphertext = encrypt(form.cleaned_data['password'])
+            authentication.ciphertext = ciphertext
+            authentication.iv = iv
+        if 'domain' in form.cleaned_data:
+            authentication.domain = form.cleaned_data['domain']
+        if authentication is not None:
+            authentication.save()
 
         return super().form_valid(form)
 

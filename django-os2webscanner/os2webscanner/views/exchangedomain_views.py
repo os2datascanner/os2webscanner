@@ -1,27 +1,28 @@
 from django import forms
 
-from .domain_views import DomainList, DomainCreate, DomainUpdate
-
 from ..models.domain_model import Domain
-from ..models.filedomain_model import FileDomain
+from ..models.exchangedomain_model import ExchangeDomain
+
+from .domain_views import DomainList, DomainCreate, DomainUpdate
 from .views import RestrictedDeleteView
+
 from ..aescipher import decrypt
 
 
-class FileDomainList(DomainList):
+class ExchangeDomainList(DomainList):
 
     """Displays list of domains."""
 
-    model = FileDomain
-    type = 'file'
+    model = ExchangeDomain
+    type = 'exchange'
 
 
-class FileDomainCreate(DomainCreate):
+class ExchangeDomainCreate(DomainCreate):
 
     """File domain create form."""
 
-    model = FileDomain
-    fields = ['url', 'exclusion_rules']
+    model = ExchangeDomain
+    fields = ['url', 'userlist']
 
     def get_form(self, form_class=None):
         """Adds special field password."""
@@ -31,7 +32,6 @@ class FileDomainCreate(DomainCreate):
         form = super().get_form(form_class)
         form.fields['username'] = forms.CharField(max_length=1024, required=False)
         form.fields['password'] = forms.CharField(max_length=50, required=False)
-        form.fields['domain'] = forms.CharField(max_length=2024, required=False)
         return form
 
     def form_valid(self, form):
@@ -40,14 +40,14 @@ class FileDomainCreate(DomainCreate):
 
     def get_success_url(self):
         """The URL to redirect to after successful creation."""
-        return '/filedomains/%s/created/' % self.object.pk
+        return '/exchangedomains/%s/created/' % self.object.pk
 
 
-class FileDomainUpdate(DomainUpdate):
+class ExchangeDomainUpdate(DomainUpdate):
     """Update a file domain view."""
 
-    model = FileDomain
-    fields = ['url', 'exclusion_rules']
+    model = ExchangeDomain
+    fields = ['url', 'userlist']
 
     def get_form(self, form_class=None):
         """Adds special field password and decrypts password."""
@@ -55,19 +55,16 @@ class FileDomainUpdate(DomainUpdate):
             form_class = self.get_form_class()
 
         form = super().get_form(form_class)
-        filedomain = self.get_object()
-        authentication = filedomain.authentication
+        exchangedomain = self.get_object()
+        authentication = exchangedomain.authentication
         form.fields['username'] = forms.CharField(max_length=1024, required=False)
         form.fields['password'] = forms.CharField(max_length=50, required=False)
-        form.fields['domain'] = forms.CharField(max_length=2024, required=False)
         if len(authentication.username) > 0:
             form.fields['username'].initial = authentication.username
         if len(authentication.ciphertext) > 0:
             password = decrypt(bytes(authentication.iv),
                                bytes(authentication.ciphertext))
             form.fields['password'].initial = password
-        if len(authentication.domain) > 0:
-            form.fields['domain'].initial = authentication.domain
         return form
 
     def form_valid(self, form):
@@ -83,12 +80,12 @@ class FileDomainUpdate(DomainUpdate):
         if 'save_and_validate' in self.request.POST:
             return 'validate/'
         else:
-            return '/filedomains/%s/saved/' % self.object.pk
+            return '/exchangedomains/%s/saved/' % self.object.pk
 
 
-class FileDomainDelete(RestrictedDeleteView):
+class ExchangeDomainDelete(RestrictedDeleteView):
 
     """Delete a domain view."""
 
     model = Domain
-    success_url = '/filedomains/'
+    success_url = '/exchangedomains/'

@@ -28,7 +28,8 @@ from .views.filescanner_views import FileScannerCreate, FileScannerRun, FileScan
     FileScannerDelete, FileScannerList
 from .views.views import OrganizationUpdate, OrganizationList
 from .views.domain_views import DomainValidate
-from .views.exchangedomain_views import ExchangeDomainList
+from .views.exchangedomain_views import ExchangeDomainList, ExchangeDomainCreate, ExchangeDomainUpdate, \
+    ExchangeDomainDelete
 from .views.filedomain_views import FileDomainList, FileDomainCreate, FileDomainUpdate, FileDomainDelete
 from .views.webdomain_views import WebDomainList, WebDomainCreate, WebDomainUpdate, WebDomainDelete
 from .views.views import GroupList, GroupCreate, GroupUpdate, GroupDelete
@@ -72,6 +73,14 @@ urlpatterns = [
             model=FileScanner),
         name='scanner_askrun'),
     url(r'^exchangedomains/$', ExchangeDomainList.as_view(), name='exchangedomains'),
+    url(r'^exchangedomains/add/$', ExchangeDomainCreate.as_view(), name='exchangedomain_add'),
+    url(r'^exchangedomains/(?P<pk>\d+)/validate/$', DomainValidate.as_view(),
+        name='exchange_domain_validate'),
+    url(r'^(exchangedomains)/(\d+)/(success)/$', DialogSuccess.as_view()),
+    url(r'^exchangedomains/(?P<pk>\d+)/$', ExchangeDomainUpdate.as_view(),
+        name='exchange_domain_update'),
+    url(r'^exchangedomains/(?P<pk>\d+)/delete/$', ExchangeDomainDelete.as_view(),
+        name='exchange_domain_delete'),
     url(r'^filescanners/(?P<pk>\d+)/$', FileScannerUpdate.as_view(),
         name='scanner_update'),
     url(r'^filedomains/$', FileDomainList.as_view(), name='filedomains'),
@@ -165,6 +174,11 @@ urlpatterns = [
     url(r'^(filescanners|filedomains|rules|groups|reports/summaries)/(\d+)/(created)/$',
         DialogSuccess.as_view()),
     url(r'^(filescanners|filedomains|rules|groups|reports/summaries)/(\d+)/(saved)/$',
+        DialogSuccess.as_view()),
+    # General dialog success handler
+    url(r'^(exchangescanners|exchangedomains|rules|groups|reports/summaries)/(\d+)/(created)/$',
+        DialogSuccess.as_view()),
+    url(r'^(exchangescanners|exchangedomains|rules|groups|reports/summaries)/(\d+)/(saved)/$',
         DialogSuccess.as_view()),
     url(r'^jsi18n/$', javascript_catalog, js_info_dict),
     # System functions
