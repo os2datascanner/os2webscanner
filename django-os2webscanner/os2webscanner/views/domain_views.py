@@ -65,7 +65,7 @@ class DomainCreate(RestrictedCreateView):
         return form
 
     def form_valid(self, form):
-        """Makes sure password gets encrypted before stored in db."""
+        """Makes sure authentication info gets stored in db."""
         filedomain = form.save(commit=False)
         authentication = Authentication()
         if 'username' in form.cleaned_data and \
