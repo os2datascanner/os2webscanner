@@ -24,6 +24,7 @@ import json
 
 from subprocess import Popen
 
+from django.core.validators import validate_comma_separated_integer_list
 from django.conf import settings
 from django.db import models
 from recurrence.fields import RecurrenceField
@@ -62,9 +63,12 @@ class Scanner(models.Model):
     do_cpr_ignore_irrelevant = models.BooleanField(
         default=True,
         verbose_name='Ignorer ugyldige fødselsdatoer')
-    columns = models.CommaSeparatedIntegerField(max_length=128,
-                                                null=True,
-                                                blank=True)
+    columns = models.CharField(validators=[validate_comma_separated_integer_list],
+                               max_length=128,
+                               null=True,
+                               blank=True
+                               )
+
     regex_rules = models.ManyToManyField(RegexRule,
                                          blank=True,
                                          verbose_name='Regex regler')

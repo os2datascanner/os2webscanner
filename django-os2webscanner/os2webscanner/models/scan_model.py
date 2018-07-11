@@ -22,6 +22,7 @@ import datetime
 
 from django.utils import timezone
 from django.conf import settings
+from django.core.validators import validate_comma_separated_integer_list
 
 from django.db import models
 from django.db.models.aggregates import Count
@@ -92,9 +93,12 @@ class Scan(models.Model):
     do_last_modified_check = models.BooleanField(default=True,
                                                  verbose_name='Tjek sidst ændret dato')
 
-    columns = models.CommaSeparatedIntegerField(max_length=128,
-                                                null=True,
-                                                blank=True)
+    columns = models.CharField(validators=[validate_comma_separated_integer_list],
+                               max_length=128,
+                               null=True,
+                               blank=True
+                               )
+
     regex_rules = models.ManyToManyField(RegexRule,
                                          blank=True,
                                          verbose_name='Regex regler')
