@@ -28,13 +28,14 @@ import sys
 import subprocess
 import time
 import signal
+import settings as scanner_settings
 
 import django
 from datetime import timedelta
 from django.utils import timezone
 from django.db import transaction, IntegrityError, DatabaseError
 from django import db
-from django.conf import settings
+from django.conf import settings as django_settings
 
 
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -48,14 +49,14 @@ from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
 from os2webscanner.models.scan_model import Scan
 
 
-var_dir = settings.VAR_DIR
+var_dir = django_settings.VAR_DIR
 
 log_dir = os.path.join(var_dir, "logs")
 
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
-processes_per_type = 2
+processes_per_type = scanner_settings.NUMBER_OF_PROCESSES_PER_TYPE
 processing_timeout = timedelta(minutes=10)
 
 process_types = ('html', 'libreoffice', 'ocr', 'pdf', 'zip', 'text', 'csv')
