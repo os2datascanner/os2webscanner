@@ -23,7 +23,6 @@ from subprocess import call, CalledProcessError
 from django.conf import settings
 from django.db import models
 
-from os2webscanner.aescipher import decrypt
 from .domain_model import Domain
 
 # Get an instance of a logger
@@ -82,7 +81,7 @@ class FileDomain(Domain):
         if self.authentication.username != '':
             command += ',username=' + self.authentication.username
         if len(self.authentication.ciphertext) > 0:
-            password = decrypt(bytes(self.authentication.iv), bytes(self.authentication.ciphertext))
+            password = self.authentication.get_password()
             command += ',password=' + password
         if self.authentication.domain != '':
             command += ',domain=' + self.authentication.domain

@@ -8,8 +8,6 @@ from .views import RestrictedListView, RestrictedCreateView, \
 from ..models.authentication_model import Authentication
 from ..models.domain_model import Domain
 
-from ..aescipher import encrypt, decrypt
-
 
 class DomainList(RestrictedListView):
 
@@ -74,9 +72,7 @@ class DomainCreate(RestrictedCreateView):
             authentication.username = username
         if 'password' in form.cleaned_data and \
                         len(form.cleaned_data['password']) > 0:
-            iv, ciphertext = encrypt(str(form.cleaned_data['password']))
-            authentication.ciphertext = ciphertext
-            authentication.iv = iv
+            authentication.set_password(str(form.cleaned_data['password']))
         if 'domain' in form.cleaned_data and \
                         len(form.cleaned_data['domain']) > 0:
             domain = str(form.cleaned_data['domain'])
@@ -144,9 +140,7 @@ class DomainUpdate(RestrictedUpdateView):
         if 'username' in form.cleaned_data:
             authentication.username = form.cleaned_data['username']
         if 'password' in form.cleaned_data:
-            iv, ciphertext = encrypt(form.cleaned_data['password'])
-            authentication.ciphertext = ciphertext
-            authentication.iv = iv
+            authentication.set_password(str(form.cleaned_data['password']))
         if 'domain' in form.cleaned_data:
             authentication.domain = form.cleaned_data['domain']
         if authentication is not None:
