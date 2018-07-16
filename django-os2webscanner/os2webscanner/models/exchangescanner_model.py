@@ -15,7 +15,6 @@
 #
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
-
 from django.db import models
 
 from .scanner_model import Scanner
@@ -35,6 +34,10 @@ class ExchangeScanner(Scanner):
     def get_absolute_url(self):
         """Get the absolute URL for scanners."""
         return '/exchangescanners/'
+
+    def create_scan(self):
+        from .exchangescan_model import ExchangeScan
+        return ExchangeScan.create(self)
 
     class Meta:
         db_table = 'os2webscanner_exchangescanner'
