@@ -215,7 +215,7 @@ class ScannerSpider(BaseScannerSpider):
             elif isinstance(failure.value, IgnoreRequest):
                 return
         # Else if scanner is type webscan
-        elif  hasattr(self.scanner.scan_object, 'webscan'):
+        elif hasattr(self.scanner.scan_object, 'webscan'):
             # If we should not do link check or failure is ignore request
             # and it is not a http error we know it is a last-modified check.
             if (not self.scanner.scan_object.webscan.do_link_check or
