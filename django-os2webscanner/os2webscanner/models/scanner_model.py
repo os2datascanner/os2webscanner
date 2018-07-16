@@ -214,6 +214,7 @@ class Scanner(models.Model):
         # Add user as recipient on scan
         if user:
             scan.recipients.add(user.profile)
+
         # Get path to run script
         if isinstance(scan, ExchangeScan):
             SCANNER_DIR = os.path.join(settings.PROJECT_DIR, "scrapy-webscanner/mailscan")
