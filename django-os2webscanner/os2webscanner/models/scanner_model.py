@@ -33,6 +33,7 @@ from .organization_model import Organization
 from .group_model import Group
 from .regexrule_model import RegexRule
 from .userprofile_model import UserProfile
+from .exchangescan_model import ExchangeScan
 
 base_dir = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
@@ -214,7 +215,10 @@ class Scanner(models.Model):
         if user:
             scan.recipients.add(user.profile)
         # Get path to run script
-        SCRAPY_WEBSCANNER_DIR = os.path.join(settings.PROJECT_DIR, "scrapy-webscanner")
+        if isinstance(scan, ExchangeScan):
+            SCANNER_DIR = os.path.join(settings.PROJECT_DIR, "scrapy-webscanner/mailscan")
+        else:
+            SCANNER_DIR = os.path.join(settings.PROJECT_DIR, "scrapy-webscanner")
 
         if test_only:
             return scan
@@ -227,8 +231,8 @@ class Scanner(models.Model):
             os.makedirs(scan.scan_output_files_dir)
 
         try:
-            process = Popen([os.path.join(SCRAPY_WEBSCANNER_DIR, "run.sh"),
-                             str(scan.pk)], cwd=SCRAPY_WEBSCANNER_DIR,
+            process = Popen([os.path.join(SCANNER_DIR, "run.sh"),
+                             str(scan.pk)], cwd=SCANNER_DIR,
                             stderr=log_file,
                             stdout=log_file)
             if blocking:
