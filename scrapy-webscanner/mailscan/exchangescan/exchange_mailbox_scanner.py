@@ -10,7 +10,6 @@ ideas:
  - parse mail data directly to processer and put attachments in conversionqueue.
 """
 import logging
-import random
 import time
 
 from datetime import timedelta
