@@ -11,7 +11,6 @@ ideas:
 """
 import logging
 import random
-import shutil
 import time
 
 from datetime import timedelta
@@ -91,7 +90,7 @@ class ExchangeMailboxScanner(object):
                          scan=self.scanner.scan_object)
         url_object.save()
 
-        self.exchange_scanner.scan(msg_body, url_object)
+        self.exchange_scanner.scanner.scan(subject + ' ' + msg_body, url_object)
         # Make a list inline images, mostly used for logos in footers:
         footer_images = []
         cid_pos = 0
@@ -124,13 +123,11 @@ class ExchangeMailboxScanner(object):
                 continue
             if isinstance(attachment, FileAttachment):
                 i = i + 1
-                name = (str(item.datetime_created) + '_' +
-                        str(random.random()) + '_' +
-                        attachment.name.replace('/', '_')[-60:])
-                path = self.current_path.joinpath(name)
+                url_object = Url(url=attachment.name, mime_type=attachment.conten_type,
+                                 scan=self.scanner.scan_object)
+                url_object.save()
                 try:
-                    with path.open('wb') as f:
-                        f.write(attachment.content)
+                    self.exchange_scanner.scanner.scan(attachment.content, url_object)
                 except TypeError:
                     logger.error('Type Error')  # Happens for empty attachments
                 except ErrorCannotOpenFileAttachment:
@@ -140,17 +137,18 @@ class ExchangeMailboxScanner(object):
             elif isinstance(attachment, ItemAttachment):
                 i = i + 1
                 try:
-                    # Pick last 60 chars of name to prevens too-long filenames
-                    name = (str(item.datetime_created) + '_' +
-                            str(random.random()) + '_' +
-                            attachment.name.replace('/', '_')[-60:])
-                    path = self.current_path.joinpath(name + '.txt')
-                    with path.open('w') as f:
-                        f.write(name)
-                        if attachment.item.subject:
-                            f.write(attachment.item.subject)
-                        if attachment.item.body:
-                            f.write(attachment.item.body)
+                    subject = attachment.item.subject
+                    if subject:
+                        url_object = Url(url=subject, mime_type='utf-8',
+                                         scan=self.scanner.scan_object)
+                        url_object.save()
+                    else:
+                        url_object = Url(url=attachment.item.last_modified_time, mime_type='utf-8',
+                                         scan=self.scanner.scan_object)
+                        url_object.save()
+
+                    self.exchange_scanner.scanner.scan(subject + ' ' + attachment.item.body,
+                                                       url_object)
                 except AttributeError:
                     msg = 'AttributeError {}'
                     logger.error(msg.format(self.current_path))
@@ -240,16 +238,6 @@ class ExchangeMailboxScanner(object):
         :param folder: The folder to export
         :return: The number of exported attachments
         """
-        folder_name = folder.name.replace(' ', '_').replace('/', '_')
-        self.current_path = self.export_path.joinpath(folder_name)
-        if self.export_path.joinpath(folder_name + '_done').exists():
-            logger.info('Already done: {}'.format(self.current_path))
-            return folder.total_count  # Already scanned
-        if self.current_path.exists():
-            logger.info('Clean up: {}'.format(self.current_path))
-            shutil.rmtree(str(self.current_path))
-        self.current_path.mkdir()
-
         attachments = 0
         if self.start_date is None:
             start_dt = EWSDate(2010, 1, 1)
@@ -287,18 +275,15 @@ class ExchangeMailboxScanner(object):
             return False
         attachments = 0
         total_scanned = 0
-        if not self.export_path.exists():
-            self.export_path.mkdir()
+
         folders = self.list_non_empty_folders()
         for folder in folders:
-            info_string = '{}: Exporting: {} ({} items)'
-            logger.info(info_string.format(self.export_path,
-                                           folder,
+            info_string = 'Exporting: {} ({} items)'
+            logger.info(info_string.format(folder,
                                            folder.total_count))
             attachments += self.export_folder(folder)
             total_scanned += folder.total_count
-            logger.info("Exported {}: {} / {}".format(self.export_path,
-                                                      total_scanned,
+            logger.info("Exported: {} / {}".format(total_scanned,
                                                       total_count))
         return True
 
