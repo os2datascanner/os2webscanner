@@ -14,8 +14,8 @@ django.setup()
 
 from os2webscanner.models.scan_model import Scan
 
-from ..settings import NUMBER_OF_EMAIL_THREADS
-from ..scanner.scanner.scanner import Scanner
+from ...settings import NUMBER_OF_EMAIL_THREADS
+from ...scanner.scanner.scanner import Scanner
 from .exchange_server_scanner import ExchangeServerScanner
 
 logger = logging.Logger('Exchange_scanner')
