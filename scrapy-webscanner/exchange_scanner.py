@@ -1,3 +1,19 @@
+#!/usr/bin/env python
+# The contents of this file are subject to the Mozilla Public License
+# Version 2.0 (the "License"); you may not use this file except in
+# compliance with the License. You may obtain a copy of the License at
+#    http://www.mozilla.org/MPL/
+#
+# Software distributed under the License is distributed on an "AS IS"basis,
+# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+# for the specific language governing rights and limitations under the
+# License.
+#
+# OS2Webscanner was developed by Magenta in collaboration with OS2 the
+# Danish community of open source municipalities (http://www.os2web.dk/).
+#
+# The code is currently governed by OS2 the Danish community of open
+# source municipalities ( http://www.os2web.dk/ )
 import os
 import sys
 import time
@@ -6,16 +22,16 @@ import django
 from multiprocessing import Queue
 from pathlib import Path
 
-import settings
-
-from ...scanner.scanner.scanner import Scanner
-from .exchange_server_scanner import ExchangeServerScanner
-
 # Include the Django app
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(os.path.join(__file__, "../../"))))
 sys.path.append(base_dir + "/webscanner_site")
 os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 django.setup()
+
+from mailscan.exchangescan.settings import NUMBER_OF_EMAIL_THREADS
+
+from scanner.scanner.scanner import Scanner
+from mailscan.exchangescan.exchange_server_scanner import ExchangeServerScanner
 
 from os2webscanner.models.scan_model import Scan
 
@@ -59,7 +75,7 @@ class ExchangeScanner:
             user_queue = Queue()
             self.read_users(domain.exchangedomain.userlist, user_queue)
             scanners = {}
-            for i in range(0, settings.NUMBER_OF_EMAIL_THREADS):
+            for i in range(0, NUMBER_OF_EMAIL_THREADS):
                 scanners[i] = ExchangeServerScanner(user_queue, domain, self.scanner, None)
                 # stats.add_scanner(scanners[i])
                 scanners[i].start()
