@@ -8,7 +8,7 @@ from pathlib import Path
 
 import settings
 
-from scanner.scanner.scanner import Scanner
+from ...scanner.scanner.scanner import Scanner
 from .exchange_server_scanner import ExchangeServerScanner
 
 # Include the Django app
