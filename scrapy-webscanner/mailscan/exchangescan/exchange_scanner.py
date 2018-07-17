@@ -6,7 +6,8 @@ import django
 from multiprocessing import Queue
 from pathlib import Path
 
-from ...settings import NUMBER_OF_EMAIL_THREADS
+import settings
+
 from scanner.scanner.scanner import Scanner
 from .exchange_server_scanner import ExchangeServerScanner
 
@@ -58,7 +59,7 @@ class ExchangeScanner:
             user_queue = Queue()
             self.read_users(domain.exchangedomain.userlist, user_queue)
             scanners = {}
-            for i in range(0, NUMBER_OF_EMAIL_THREADS):
+            for i in range(0, settings.NUMBER_OF_EMAIL_THREADS):
                 scanners[i] = ExchangeServerScanner(user_queue, domain, self.scanner, None)
                 # stats.add_scanner(scanners[i])
                 scanners[i].start()
