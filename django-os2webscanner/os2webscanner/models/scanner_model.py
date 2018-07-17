@@ -217,8 +217,10 @@ class Scanner(models.Model):
         # Get path to run script
         if hasattr(scan, 'exchangescan'):
             SCANNER_DIR = os.path.join(settings.PROJECT_DIR, "scrapy-webscanner/mailscan")
+            FILE_NAME = 'mailscan_run.sh'
         else:
             SCANNER_DIR = os.path.join(settings.PROJECT_DIR, "scrapy-webscanner")
+            FILE_NAME = 'run.sh'
 
         if test_only:
             return scan
@@ -231,7 +233,7 @@ class Scanner(models.Model):
             os.makedirs(scan.scan_output_files_dir)
 
         try:
-            process = Popen([os.path.join(SCANNER_DIR, "run.sh"),
+            process = Popen([os.path.join(SCANNER_DIR, FILE_NAME),
                              str(scan.pk)], cwd=SCANNER_DIR,
                             stderr=log_file,
                             stdout=log_file)
