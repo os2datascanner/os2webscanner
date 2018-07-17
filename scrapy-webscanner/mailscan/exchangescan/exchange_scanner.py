@@ -6,6 +6,10 @@ import django
 from multiprocessing import Queue
 from pathlib import Path
 
+from ...settings import NUMBER_OF_EMAIL_THREADS
+from scanner.scanner.scanner import Scanner
+from .exchange_server_scanner import ExchangeServerScanner
+
 # Include the Django app
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(os.path.join(__file__, "../../"))))
 sys.path.append(base_dir + "/webscanner_site")
@@ -14,9 +18,6 @@ django.setup()
 
 from os2webscanner.models.scan_model import Scan
 
-from ...settings import NUMBER_OF_EMAIL_THREADS
-from ...scanner.scanner.scanner import Scanner
-from .exchange_server_scanner import ExchangeServerScanner
 
 logger = logging.Logger('Exchange_scanner')
 
