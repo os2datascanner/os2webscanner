@@ -2,5 +2,5 @@
 
 # Script to run run.py inside the virtualenv
 
-source ../python-env/bin/activate
+source ../../python-env/bin/activate
 python exchangescan/exchange_scanner.py $@
