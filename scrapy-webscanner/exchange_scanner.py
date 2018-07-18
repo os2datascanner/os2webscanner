@@ -74,7 +74,7 @@ class ExchangeScanner:
         for domain in domains:
             user_queue = Queue()
             self.read_users(user_queue,
-                            domain.exchangedomain.userlist.get_userlist_file_path()
+                            domain.exchangedomain.get_userlist_file_path()
                             )
             scanners = {}
             for i in range(0, NUMBER_OF_EMAIL_THREADS):
