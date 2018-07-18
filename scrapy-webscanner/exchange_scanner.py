@@ -73,10 +73,16 @@ class ExchangeScanner:
         domains = self.scanner.get_domain_objects()
         for domain in domains:
             user_queue = Queue()
-            self.read_users(user_queue, domain.exchangedomain.userlist)
+            self.read_users(user_queue,
+                            domain.exchangedomain.userlist.url
+                            )
             scanners = {}
             for i in range(0, NUMBER_OF_EMAIL_THREADS):
-                scanners[i] = ExchangeServerScanner(user_queue, domain, self.scanner, None)
+                scanners[i] = ExchangeServerScanner(user_queue,
+                                                    domain,
+                                                    self.scanner,
+                                                    None
+                                                    )
                 # stats.add_scanner(scanners[i])
                 scanners[i].start()
                 time.sleep(1)
