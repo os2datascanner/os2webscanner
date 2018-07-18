@@ -15,7 +15,6 @@
 # source municipalities ( http://www.os2web.dk/ )
 """Text Processors."""
 
-from ..scanner.scanner import Scanner
 from .processor import Processor
 import os
 
@@ -39,6 +38,7 @@ class TextProcessor(Processor):
 
     def process(self, data, url_object, page_no=None):
         """Process the text, by executing rules and saving matches."""
+        from ..scanner.scanner import Scanner
         scanner = Scanner(url_object.scan.pk)
         matches = scanner.execute_rules(data)
         for match in matches:
