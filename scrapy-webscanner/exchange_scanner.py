@@ -55,7 +55,7 @@ class ExchangeScanner:
         from scanner.scanner.scanner import Scanner
         self.scanner = Scanner(self.scan_id)
 
-    def read_users(user_queue, user_file):
+    def read_users(self, user_queue, user_file):
         """ Small helper to read user-list from file
         :param user_queue: The common multiprocess queue
         :param user_file: Filename for user list
@@ -73,7 +73,7 @@ class ExchangeScanner:
         domains = self.scanner.get_domain_objects()
         for domain in domains:
             user_queue = Queue()
-            self.read_users(domain.exchangedomain.userlist, user_queue)
+            self.read_users(user_queue, domain.exchangedomain.userlist)
             scanners = {}
             for i in range(0, NUMBER_OF_EMAIL_THREADS):
                 scanners[i] = ExchangeServerScanner(user_queue, domain, self.scanner, None)
