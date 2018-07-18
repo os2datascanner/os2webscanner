@@ -35,7 +35,7 @@ class ExchangeDomain(Domain):
     userlist = models.FileField(upload_to='mailscan/users/')
 
     def get_userlist_file_path(self):
-        return os.path.join(settings.MEDIA_ROOT, 'mailscan/users/' + self.userlist.name)
+        return os.path.join(settings.MEDIA_ROOT, self.userlist.name)
 
     class Meta:
         db_table = 'os2webscanner_exchangedomain'
