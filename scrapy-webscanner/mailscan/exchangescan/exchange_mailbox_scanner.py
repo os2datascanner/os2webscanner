@@ -31,10 +31,6 @@ exchangelogger = logging.getLogger('exchangelib')
 exchangelogger.setLevel(logging.ERROR)
 
 logger = logging.Logger('Echange_mailbox_scanner')
-fh = logging.FileHandler('logfile.log')
-fh.setLevel(logging.INFO)
-logger.addHandler(fh)
-logger.error('Program start')
 
 
 class ExportError(Exception):
@@ -49,20 +45,21 @@ class ExchangeMailboxScanner(object):
     def __init__(self, user, domain, exchange_scanner):
         self.exchange_scanner = exchange_scanner
         username = domain.authentication.username
+        logger.debug('Username: {}'.format(username))
         password = domain.authentication.get_password()
         credentials = ServiceAccount(username=username,
                                      password=password)
-        username = user + domain.url
-
+        emailaddress = user + domain.url
+        logger.debug('Email address: {}'.format(emailaddress))
         self.current_path = None
         try:
-            self.account = Account(primary_smtp_address=username,
+            self.account = Account(primary_smtp_address=emailaddress,
                                    credentials=credentials, autodiscover=True,
                                    access_type=IMPERSONATION)
             self.account.root.refresh()
-            logger.info('{}: Init complete'.format(username))
+            logger.info('{}: Init complete'.format(emailaddress))
         except ErrorNonExistentMailbox:
-            logger.error('No such user: {}'.format(username))
+            logger.error('No such user: {}'.format(emailaddress))
             self.account = None
 
     def total_mails(self):
