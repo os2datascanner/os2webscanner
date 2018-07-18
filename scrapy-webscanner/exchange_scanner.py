@@ -23,14 +23,13 @@ from multiprocessing import Queue
 from pathlib import Path
 
 # Include the Django app
-base_dir = os.path.dirname(os.path.dirname(os.path.realpath(os.path.join(__file__, "../../"))))
+base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(base_dir + "/webscanner_site")
 os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 django.setup()
 
 from mailscan.exchangescan.settings import NUMBER_OF_EMAIL_THREADS
 
-from scanner.scanner.scanner import Scanner
 from mailscan.exchangescan.exchange_server_scanner import ExchangeServerScanner
 
 from os2webscanner.models.scan_model import Scan
@@ -53,6 +52,7 @@ class ExchangeScanner:
         # Get scan object from DB
         self.scan_object = Scan.objects.get(pk=self.scan_id)
         self.scan_object.set_scan_status_start()
+        from scanner.scanner.scanner import Scanner
         self.scanner = Scanner(self.scan_id)
 
     def read_users(user_queue, user_file):
