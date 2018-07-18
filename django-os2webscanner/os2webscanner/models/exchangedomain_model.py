@@ -15,7 +15,9 @@
 #
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
+import os
 import logging
+from django.conf import settings
 from django.db import models
 
 from .domain_model import Domain
@@ -31,6 +33,9 @@ class ExchangeDomain(Domain):
     """
 
     userlist = models.FileField(upload_to='mailscan/users/')
+
+    def get_userlist_file_path(self):
+        return os.path.join(settings.MEDIA_ROOT, 'mailscan/users/' + self.userlist.name)
 
     class Meta:
         db_table = 'os2webscanner_exchangedomain'
