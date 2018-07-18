@@ -70,7 +70,7 @@ class ExchangeScanner:
             user_queue.put(user)
 
     def run(self):
-        domains = self.scanner.get_domains()
+        domains = self.scanner.get_domain_objects()
         for domain in domains:
             user_queue = Queue()
             self.read_users(domain.exchangedomain.userlist, user_queue)
