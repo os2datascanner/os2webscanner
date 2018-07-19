@@ -258,20 +258,20 @@ class ExchangeMailboxScanner(object):
         :return: The number of exported attachments
         """
         attachments = 0
-        if self.start_date is None:
-            start_dt = EWSDate(2010, 1, 1)
-            # First, export everything before 2010
-            attachments += self._attempt_export(folder, end_dt=start_dt)
-        else:
-            start_dt = self.start_date
-            end_dt = start_dt + timedelta(days=10)
-            while end_dt < EWSDate(2022, 1, 1):
-                attachments += self._attempt_export(folder, start_dt=start_dt,
-                                                    end_dt=end_dt)
-                start_dt = end_dt
-                end_dt = start_dt + timedelta(days=10)
-            # Finally, export everything later than 2022
-            attachments += self._attempt_export(folder, start_dt=end_dt)
+
+        start_dt = EWSDate(2010, 1, 1)
+        # First, export everything before 2010
+        attachments += self._attempt_export(folder, end_dt=start_dt)
+        # else:
+        #     start_dt = self.start_date
+        #     end_dt = start_dt + timedelta(days=10)
+        #     while end_dt < EWSDate(2022, 1, 1):
+        #         attachments += self._attempt_export(folder, start_dt=start_dt,
+        #                                             end_dt=end_dt)
+        #         start_dt = end_dt
+        #         end_dt = start_dt + timedelta(days=10)
+        #     # Finally, export everything later than 2022
+        #     attachments += self._attempt_export(folder, start_dt=end_dt)
         try:
             self.current_path.rename(str(self.current_path) + '_done')
         except FileNotFoundError:
