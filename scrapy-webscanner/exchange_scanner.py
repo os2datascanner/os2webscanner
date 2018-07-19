@@ -17,7 +17,7 @@
 import os
 import sys
 import time
-import logging
+# import logging
 import django
 from multiprocessing import Queue
 from pathlib import Path
@@ -35,8 +35,8 @@ from mailscan.exchangescan.exchange_server_scanner import ExchangeServerScanner
 from os2webscanner.models.scan_model import Scan
 
 
-logger = logging.Logger('Exchange_scanner')
-logger.setLevel(logging.DEBUG)
+# logger = logging.Logger('Exchange_scanner')
+# logger.setLevel(logging.DEBUG)
 
 
 class ExchangeScanner:
@@ -77,7 +77,7 @@ class ExchangeScanner:
             self.read_users(user_queue,
                             domain.exchangedomain.get_userlist_file_path()
                             )
-            logger.debug('User count: {}'.format(str(len(user_queue))))
+            print('Starting scanning for domain {}'.format(domain.url))
             scanners = {}
             for i in range(0, NUMBER_OF_EMAIL_THREADS):
                 scanners[i] = ExchangeServerScanner(user_queue,
