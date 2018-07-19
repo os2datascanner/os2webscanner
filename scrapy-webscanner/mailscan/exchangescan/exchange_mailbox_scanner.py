@@ -10,6 +10,7 @@ ideas:
  - parse mail data directly to processer and put attachments in conversionqueue.
 """
 import logging
+from .utils import init_logger
 import time
 
 from datetime import timedelta
@@ -31,7 +32,7 @@ exchangelogger = logging.getLogger('exchangelib')
 exchangelogger.setLevel(logging.DEBUG)
 
 logger = logging.Logger('Echange_mailbox_scanner')
-logger.setLevel(logging.DEBUG)
+# logger.setLevel(logging.DEBUG)
 
 
 class ExportError(Exception):
@@ -44,14 +45,17 @@ class ExportError(Exception):
 class ExchangeMailboxScanner(object):
     """ Library to export a users mailbox from Exchange to a filesystem """
     def __init__(self, user, domain, exchange_scanner):
+        self.logger = init_logger(self.__name__,
+                                        exchange_scanner,
+                                        logging.DEBUG)
         self.exchange_scanner = exchange_scanner
         username = domain.authentication.username
-        logger.debug('Username: {}'.format(username))
+        self.logger.debug('Username: {}'.format(username))
         password = domain.authentication.get_password()
         credentials = ServiceAccount(username=username,
                                      password=password)
         smtp_address = user + domain.url
-        logger.debug('Email address: {}'.format(smtp_address))
+        self.logger.debug('Email address: {}'.format(smtp_address))
         self.current_path = None
         try:
             self.account = Account(primary_smtp_address=smtp_address,
@@ -59,9 +63,9 @@ class ExchangeMailboxScanner(object):
                                    autodiscover=True,
                                    access_type=IMPERSONATION)
             self.account.root.refresh()
-            logger.info('{}: Init complete'.format(smtp_address))
+            self.logger.info('{}: Init complete'.format(smtp_address))
         except ErrorNonExistentMailbox:
-            logger.error('No such user: {}'.format(smtp_address))
+            self.logger.error('No such user: {}'.format(smtp_address))
             self.account = None
 
     def total_mails(self):
@@ -119,7 +123,7 @@ class ExchangeMailboxScanner(object):
                 i += 1  # Make end-assertion happy
                 continue
             if attachment.name in skip_list:
-                logger.debug('Skippig {}: '.format(attachment.name))
+                self.logger.debug('Skippig {}: '.format(attachment.name))
                 i += 1  # Make end-assertion happy
                 continue
             if isinstance(attachment, FileAttachment):
@@ -132,11 +136,11 @@ class ExchangeMailboxScanner(object):
                     self.exchange_scanner.scanner.scan(attachment.content,
                                                        url_object)
                 except TypeError:
-                    logger.error('Type Error')  # Happens for empty attachments
+                    self.logger.error('Type Error')  # Happens for empty attachments
                 except ErrorCannotOpenFileAttachment:
                     # Not sure when this happens
                     msg = 'ErrorCannotOpenFileAttachment {}'
-                    logger.error(msg.format(self.current_path))
+                    self.logger.error(msg.format(self.current_path))
             elif isinstance(attachment, ItemAttachment):
                 i = i + 1
                 try:
@@ -156,7 +160,7 @@ class ExchangeMailboxScanner(object):
                                                        url_object)
                 except AttributeError:
                     msg = 'AttributeError {}'
-                    logger.error(msg.format(self.current_path))
+                    self.logger.error(msg.format(self.current_path))
 
             else:
                 raise(Exception('Unknown attachment'))
@@ -201,20 +205,20 @@ class ExchangeMailboxScanner(object):
             # Possibly happens on p7m files?
             msg = '{}: ErrorInternalServerError, giving up sub-folder'
             msg += ' Attachment value: {}'
-            logger.warning(msg.format(self.export_path, attachments))
+            self.logger.warning(msg.format(self.export_path, attachments))
         except ErrorInvalidOperation:
             msg = '{}: ErrorInvalidOperation, giving up sub-folder'
             msg += ' Attachment value: {}'
-            logger.warning(msg.format(self.export_path, attachments))
+            self.logger.warning(msg.format(self.export_path, attachments))
         except ErrorTimeoutExpired:
             attachments = -1
             time.sleep(30)
-            logger.warning('{}: ErrorTimeoutExpired'.format(self.export_path))
+            self.logger.warning('{}: ErrorTimeoutExpired'.format(self.export_path))
         except ErrorInternalServerTransientError:
             attachments = -1
             time.sleep(30)
             warning = '{}, {}: ErrorInternalServerTransientError'
-            logger.warning(warning.format(self.export_path, folder))
+            self.logger.warning(warning.format(self.export_path, folder))
         return attachments
 
     def _attempt_export(self, folder, start_dt=None, end_dt=None):
@@ -225,14 +229,15 @@ class ExchangeMailboxScanner(object):
         :param end_dt: The end time of the export
         :return: Number of exported attachments
         """
-        logger.debug('Export {} from {} to {}'.format(self.current_path,
-                                                      start_dt,
-                                                      end_dt))
+        self.logger.debug('Export {} from {} to {}'.format(self.current_path,
+                                                           start_dt,
+                                                           end_dt))
         subset_attach = -1
         attempts = 0
         while subset_attach < 0 and attempts < 5:
             attempts += 1
-            subset_attach = self._export_folder_subset(folder, start_dt,
+            subset_attach = self._export_folder_subset(folder,
+                                                       start_dt,
                                                        end_dt)
         if subset_attach == -1:
             raise ExportError('Unable to export folder')
@@ -267,7 +272,7 @@ class ExchangeMailboxScanner(object):
             # will still contain the export, but will lose the information
             # that it is already scanned and thus will be re-scanned on
             # next run.
-            logger.error('Rename error from {}'.format(self.current_path))
+            self.logger.error('Rename error from {}'.format(self.current_path))
         return attachments
 
     def check_mailbox(self, total_count=None):
@@ -284,16 +289,12 @@ class ExchangeMailboxScanner(object):
         folders = self.list_non_empty_folders()
         for folder in folders:
             info_string = 'Exporting: {} ({} items)'
-            logger.info(info_string.format(folder,
-                                           folder.total_count
-                                           )
-                        )
+            self.logger.info(info_string.format(folder,
+                                                folder.total_count))
             attachments += self.export_folder(folder)
             total_scanned += folder.total_count
-            logger.info("Exported: {} / {}".format(total_scanned,
-                                                   total_count
-                                                   )
-                        )
+            self.logger.info("Exported: {} / {}".format(total_scanned,
+                                                        total_count))
         return True
 
 

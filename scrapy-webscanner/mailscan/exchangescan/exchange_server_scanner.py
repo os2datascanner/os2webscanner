@@ -1,4 +1,5 @@
 import logging
+from .utils import init_logger
 import multiprocessing
 
 from .exchange_mailbox_scanner import ExportError, ExchangeMailboxScanner
@@ -10,12 +11,9 @@ class ExchangeServerScanner(multiprocessing.Process):
     run a number of exporters in parallel """
     def __init__(self, user_queue, domain, exchange_scanner, start_date=None):
         multiprocessing.Process.__init__(self)
-        logger = logging.Logger('Exchange_server_scan')
-        logfile_path = exchange_scanner.scan_object.scan_log_file
-        fh = logging.FileHandler(logfile_path)
-        fh.setLevel(logging.INFO)
-        logger.addHandler(fh)
-        self.logger = logger
+        self.logger = init_logger(self.__name__,
+                                  exchange_scanner,
+                                  logging.DEBUG)
         self.user_queue = user_queue
         self.scanner = None
         self.user_name = None
