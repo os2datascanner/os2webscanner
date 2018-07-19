@@ -69,7 +69,7 @@ class Domain(models.Model):
     @property
     def display_name(self):
         """The name used when displaying the domain on the web page."""
-        return "Domain '%s'" % self.root_url
+        return "Domain '%s'" % self.url
 
     def exclusion_rule_list(self):
         """Return the exclusion rules as a list of strings or regexes."""
