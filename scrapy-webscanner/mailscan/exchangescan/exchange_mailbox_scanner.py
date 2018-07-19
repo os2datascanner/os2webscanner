@@ -10,7 +10,7 @@ ideas:
  - parse mail data directly to processer and put attachments in conversionqueue.
 """
 import logging
-import settings
+from .settings import MAX_WAIT_TIME
 from .utils import init_logger
 import time
 
@@ -59,7 +59,7 @@ class ExchangeMailboxScanner(object):
         # If password is wrong it will not fail before max_wait time is gone.
         credentials = ServiceAccount(username=username,
                                      password=password,
-                                     max_wait=settings.MAX_WAIT_TIME)
+                                     max_wait=MAX_WAIT_TIME)
 
         smtp_address = user + domain.url
         self.logger.debug('Email address: {}'.format(smtp_address))
