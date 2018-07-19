@@ -17,7 +17,6 @@
 import os
 import sys
 import time
-# import logging
 import django
 from multiprocessing import Queue
 from pathlib import Path
@@ -31,12 +30,6 @@ django.setup()
 from mailscan.exchangescan.settings import NUMBER_OF_EMAIL_THREADS
 
 from mailscan.exchangescan.exchange_server_scanner import ExchangeServerScanner
-
-from os2webscanner.models.scan_model import Scan
-
-
-# logger = logging.Logger('Exchange_scanner')
-# logger.setLevel(logging.DEBUG)
 
 
 class ExchangeScanner:
