@@ -43,12 +43,12 @@ class ExportError(Exception):
 
 class ExchangeMailboxScanner(object):
     """ Library to export a users mailbox from Exchange to a filesystem """
-    def __init__(self, user, domain, exchange_scanner):
+    def __init__(self, user, domain, scanner):
         self.logger = init_logger(self.__class__.__name__,
-                                  exchange_scanner,
+                                  scanner,
                                   logging.DEBUG)
 
-        self.exchange_scanner = exchange_scanner
+        self.scanner = scanner
         username = domain.authentication.username
 
         self.logger.debug('ServiceAccount Username: {}'.format(username))
@@ -94,12 +94,12 @@ class ExchangeMailboxScanner(object):
         msg_body = str(item.body)
 
         url_object = Url(url=subject, mime_type='utf-8',
-                         scan=self.exchange_scanner.scan_object)
+                         scan=self.scanner.scan_object)
         url_object.save()
 
         data_to_scan = '{} {}'.format(subject, msg_body)
-        self.exchange_scanner.scanner.scan(data_to_scan,
-                                           url_object)
+        self.scanner.scan(data_to_scan,
+                                  url_object)
 
         # Make a list inline images, mostly used for logos in footers:
         footer_images = []
@@ -135,11 +135,11 @@ class ExchangeMailboxScanner(object):
                 i = i + 1
                 url_object = Url(url=attachment.name,
                                  mime_type=attachment.conten_type,
-                                 scan=self.exchange_scanner.scan_object)
+                                 scan=self.scanner.scan_object)
                 url_object.save()
                 try:
-                    self.exchange_scanner.scanner.scan(attachment.content,
-                                                       url_object)
+                    self.scanner.scan(attachment.content,
+                                              url_object)
                 except TypeError:
                     self.logger.error('Type Error')  # Happens for empty attachments
                 except ErrorCannotOpenFileAttachment:
@@ -153,16 +153,16 @@ class ExchangeMailboxScanner(object):
                     if subject:
                         url_object = Url(url=subject,
                                          mime_type='utf-8',
-                                         scan=self.exchange_scanner.scan_object)
+                                         scan=self.scanner.scan_object)
                         url_object.save()
                     else:
                         url_object = Url(url=attachment.item.last_modified_time,
                                          mime_type='utf-8',
-                                         scan=self.exchange_scanner.scan_object)
+                                         scan=self.scanner.scan_object)
                         url_object.save()
                     data_to_scan = '{} {}'.format(subject, attachment.item.body)
-                    self.exchange_scanner.scanner.scan(data_to_scan,
-                                                       url_object)
+                    self.scanner.scan(data_to_scan,
+                                              url_object)
                 except AttributeError:
                     msg = 'AttributeError {}'
                     self.logger.error(msg.format(subject))
