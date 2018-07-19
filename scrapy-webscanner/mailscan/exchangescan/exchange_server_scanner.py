@@ -11,7 +11,7 @@ class ExchangeServerScanner(multiprocessing.Process):
     def __init__(self, user_queue, domain, exchange_scanner, start_date=None):
         multiprocessing.Process.__init__(self)
         logger = logging.Logger('Exchange_server_scan')
-        logfile_path = exchange_scanner.scan_object.scan_log_file()
+        logfile_path = exchange_scanner.scan_object.scan_log_file
         fh = logging.FileHandler(logfile_path)
         fh.setLevel(logging.INFO)
         logger.addHandler(fh)
