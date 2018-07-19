@@ -4,6 +4,7 @@ import multiprocessing
 from .exchange_mailbox_scanner import ExportError, ExchangeMailboxScanner
 
 logger = logging.Logger('Exchange_server_scan')
+logger.setLevel(logging.DEBUG)
 
 
 class ExchangeServerScanner(multiprocessing.Process):
@@ -23,7 +24,7 @@ class ExchangeServerScanner(multiprocessing.Process):
         while not self.user_queue.empty():
             try:
                 self.user_name = self.user_queue.get()
-                logger.info('Scanning {}'.format(self.user_name))
+                logger.debug('Scanning {}'.format(self.user_name))
 
                 self.scanner = ExchangeMailboxScanner(self.user_name,
                                                       self.domain,

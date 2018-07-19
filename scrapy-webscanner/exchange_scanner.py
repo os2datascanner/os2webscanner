@@ -36,6 +36,7 @@ from os2webscanner.models.scan_model import Scan
 
 
 logger = logging.Logger('Exchange_scanner')
+logger.setLevel(logging.DEBUG)
 
 
 class ExchangeScanner:
@@ -76,6 +77,7 @@ class ExchangeScanner:
             self.read_users(user_queue,
                             domain.exchangedomain.get_userlist_file_path()
                             )
+            logger.debug('User count: {}'.format(str(len(user_queue))))
             scanners = {}
             for i in range(0, NUMBER_OF_EMAIL_THREADS):
                 scanners[i] = ExchangeServerScanner(user_queue,
