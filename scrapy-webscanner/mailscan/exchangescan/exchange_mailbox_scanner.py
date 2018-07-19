@@ -236,7 +236,7 @@ class ExchangeMailboxScanner(object):
         :param end_dt: The end time of the export
         :return: Number of exported attachments
         """
-        self.logger.debug('Export {} from {} to {}'.format(,
+        self.logger.debug('Export {} from {} to {}'.format(folder,
                                                            start_dt,
                                                            end_dt))
         subset_attach = -1
