@@ -64,7 +64,6 @@ class ExchangeMailboxScanner(object):
         smtp_address = user + domain.url
         self.logger.debug('Email address: {}'.format(smtp_address))
 
-        self.current_path = None
         try:
             self.account = Account(primary_smtp_address=smtp_address,
                                    credentials=credentials,
@@ -148,7 +147,7 @@ class ExchangeMailboxScanner(object):
                 except ErrorCannotOpenFileAttachment:
                     # Not sure when this happens
                     msg = 'ErrorCannotOpenFileAttachment {}'
-                    self.logger.error(msg.format(self.current_path))
+                    self.logger.error(msg.format(attachment.name))
             elif isinstance(attachment, ItemAttachment):
                 i = i + 1
                 try:
@@ -168,7 +167,7 @@ class ExchangeMailboxScanner(object):
                                                        url_object)
                 except AttributeError:
                     msg = 'AttributeError {}'
-                    self.logger.error(msg.format(self.current_path))
+                    self.logger.error(msg.format(subject))
 
             else:
                 raise(Exception('Unknown attachment'))
@@ -211,22 +210,22 @@ class ExchangeMailboxScanner(object):
 
         except ErrorInternalServerError:
             # Possibly happens on p7m files?
-            msg = '{}: ErrorInternalServerError, giving up sub-folder'
+            msg = 'ErrorInternalServerError, giving up sub-folder'
             msg += ' Attachment value: {}'
-            self.logger.warning(msg.format(self.export_path, attachments))
+            self.logger.warning(msg.format(attachments))
         except ErrorInvalidOperation:
-            msg = '{}: ErrorInvalidOperation, giving up sub-folder'
+            msg = 'ErrorInvalidOperation, giving up sub-folder'
             msg += ' Attachment value: {}'
-            self.logger.warning(msg.format(self.export_path, attachments))
+            self.logger.warning(msg.format(attachments))
         except ErrorTimeoutExpired:
             attachments = -1
             time.sleep(30)
-            self.logger.warning('{}: ErrorTimeoutExpired'.format(self.export_path))
+            self.logger.warning('ErrorTimeoutExpired '.format(attachments))
         except ErrorInternalServerTransientError:
             attachments = -1
             time.sleep(30)
-            warning = '{}, {}: ErrorInternalServerTransientError'
-            self.logger.warning(warning.format(self.export_path, folder))
+            warning = '{}: ErrorInternalServerTransientError'
+            self.logger.warning(warning.format(folder))
         return attachments
 
     def _attempt_export(self, folder, start_dt=None, end_dt=None):
@@ -237,7 +236,7 @@ class ExchangeMailboxScanner(object):
         :param end_dt: The end time of the export
         :return: Number of exported attachments
         """
-        self.logger.debug('Export {} from {} to {}'.format(self.current_path,
+        self.logger.debug('Export {} from {} to {}'.format(,
                                                            start_dt,
                                                            end_dt))
         subset_attach = -1
@@ -272,16 +271,7 @@ class ExchangeMailboxScanner(object):
         #         end_dt = start_dt + timedelta(days=10)
         #     # Finally, export everything later than 2022
         #     attachments += self._attempt_export(folder, start_dt=end_dt)
-        try:
-            self.current_path.rename(str(self.current_path) + '_done')
-        except FileNotFoundError:
-            # This can happen if a user mistakenly is scanned twice at
-            # the same time
-            # For now we will log and do no more. The offending folder
-            # will still contain the export, but will lose the information
-            # that it is already scanned and thus will be re-scanned on
-            # next run.
-            self.logger.error('Rename error from {}'.format(self.current_path))
+
         return attachments
 
     def check_mailbox(self, total_count=None):
