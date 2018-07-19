@@ -28,9 +28,10 @@ from exchangelib.errors import ErrorTimeoutExpired
 from os2webscanner.models.url_model import Url
 
 exchangelogger = logging.getLogger('exchangelib')
-exchangelogger.setLevel(logging.ERROR)
+exchangelogger.setLevel(logging.DEBUG)
 
 logger = logging.Logger('Echange_mailbox_scanner')
+logger.setLevel(logging.DEBUG)
 
 
 class ExportError(Exception):
@@ -49,17 +50,18 @@ class ExchangeMailboxScanner(object):
         password = domain.authentication.get_password()
         credentials = ServiceAccount(username=username,
                                      password=password)
-        emailaddress = user + domain.url
-        logger.debug('Email address: {}'.format(emailaddress))
+        smtp_address = user + domain.url
+        logger.debug('Email address: {}'.format(smtp_address))
         self.current_path = None
         try:
-            self.account = Account(primary_smtp_address=emailaddress,
-                                   credentials=credentials, autodiscover=True,
+            self.account = Account(primary_smtp_address=smtp_address,
+                                   credentials=credentials,
+                                   autodiscover=True,
                                    access_type=IMPERSONATION)
             self.account.root.refresh()
-            logger.info('{}: Init complete'.format(emailaddress))
+            logger.info('{}: Init complete'.format(smtp_address))
         except ErrorNonExistentMailbox:
-            logger.error('No such user: {}'.format(emailaddress))
+            logger.error('No such user: {}'.format(smtp_address))
             self.account = None
 
     def total_mails(self):
@@ -86,7 +88,10 @@ class ExchangeMailboxScanner(object):
                          scan=self.scanner.scan_object)
         url_object.save()
 
-        self.exchange_scanner.scanner.scan(subject + ' ' + msg_body, url_object)
+        data_to_scan = '{} {}'.format(subject, msg_body)
+        self.exchange_scanner.scanner.scan(data_to_scan,
+                                           url_object)
+
         # Make a list inline images, mostly used for logos in footers:
         footer_images = []
         cid_pos = 0
@@ -119,11 +124,13 @@ class ExchangeMailboxScanner(object):
                 continue
             if isinstance(attachment, FileAttachment):
                 i = i + 1
-                url_object = Url(url=attachment.name, mime_type=attachment.conten_type,
+                url_object = Url(url=attachment.name,
+                                 mime_type=attachment.conten_type,
                                  scan=self.scanner.scan_object)
                 url_object.save()
                 try:
-                    self.exchange_scanner.scanner.scan(attachment.content, url_object)
+                    self.exchange_scanner.scanner.scan(attachment.content,
+                                                       url_object)
                 except TypeError:
                     logger.error('Type Error')  # Happens for empty attachments
                 except ErrorCannotOpenFileAttachment:
@@ -135,15 +142,17 @@ class ExchangeMailboxScanner(object):
                 try:
                     subject = attachment.item.subject
                     if subject:
-                        url_object = Url(url=subject, mime_type='utf-8',
+                        url_object = Url(url=subject,
+                                         mime_type='utf-8',
                                          scan=self.scanner.scan_object)
                         url_object.save()
                     else:
-                        url_object = Url(url=attachment.item.last_modified_time, mime_type='utf-8',
+                        url_object = Url(url=attachment.item.last_modified_time,
+                                         mime_type='utf-8',
                                          scan=self.scanner.scan_object)
                         url_object.save()
-
-                    self.exchange_scanner.scanner.scan(subject + ' ' + attachment.item.body,
+                    data_to_scan = '{} {}'.format(subject, attachment.item.body)
+                    self.exchange_scanner.scanner.scan(data_to_scan,
                                                        url_object)
                 except AttributeError:
                     msg = 'AttributeError {}'
@@ -276,11 +285,15 @@ class ExchangeMailboxScanner(object):
         for folder in folders:
             info_string = 'Exporting: {} ({} items)'
             logger.info(info_string.format(folder,
-                                           folder.total_count))
+                                           folder.total_count
+                                           )
+                        )
             attachments += self.export_folder(folder)
             total_scanned += folder.total_count
             logger.info("Exported: {} / {}".format(total_scanned,
-                                                      total_count))
+                                                   total_count
+                                                   )
+                        )
         return True
 
 
