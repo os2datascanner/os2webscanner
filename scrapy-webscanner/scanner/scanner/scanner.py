@@ -24,18 +24,15 @@ from ..rules.cpr import CPRRule
 
 from ..processors.processor import Processor
 from os2webscanner.models.domain_model import Domain
-from os2webscanner.models.scan_model import Scan
 
 
 class Scanner:
     """Represents a scanner which can scan data using configured rules."""
 
-    def __init__(self, scan_id):
+    def __init__(self, scan_object):
         """Load the scanner settings from the given scan ID."""
-        # Get scan object from DB
-        # TODO: Parse object around instead of making db query. However impact should be tested.
-        self.scan_object = Scan.objects.get(pk=scan_id)
-
+        self.scan_object = scan_object
+        self.scan_object.set_scan_status_start()
         self.rules = self._load_rules()
         self.valid_domains = self.scan_object.domains.filter(
             validation_status=Domain.VALID

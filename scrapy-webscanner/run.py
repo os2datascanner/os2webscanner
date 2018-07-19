@@ -80,8 +80,7 @@ class ScannerApp:
 
         # Get scan object from DB
         self.scan_object = Scan.objects.get(pk=self.scan_id)
-        self.scan_object.set_scan_status_start()
-        self.scanner = Scanner(self.scan_id)
+        self.scanner = Scanner(self.scan_object)
 
     def run(self):
         """Run the scanner, blocking until finished."""
