@@ -50,9 +50,6 @@ class ExchangeScanner:
         """
         self.scan_id = sys.argv[1]
 
-        # Get scan object from DB
-        self.scan_object = Scan.objects.get(pk=self.scan_id)
-        self.scan_object.set_scan_status_start()
         from scanner.scanner.scanner import Scanner
         self.scanner = Scanner(self.scan_id)
 
