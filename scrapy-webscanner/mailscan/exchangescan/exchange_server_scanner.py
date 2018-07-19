@@ -11,7 +11,7 @@ class ExchangeServerScanner(multiprocessing.Process):
     run a number of exporters in parallel """
     def __init__(self, user_queue, domain, exchange_scanner, start_date=None):
         multiprocessing.Process.__init__(self)
-        self.logger = init_logger(self.__name__,
+        self.logger = init_logger(self.__class__.__name__,
                                   exchange_scanner,
                                   logging.DEBUG)
         self.user_queue = user_queue

@@ -45,7 +45,7 @@ class ExportError(Exception):
 class ExchangeMailboxScanner(object):
     """ Library to export a users mailbox from Exchange to a filesystem """
     def __init__(self, user, domain, exchange_scanner):
-        self.logger = init_logger(self.__name__,
+        self.logger = init_logger(self.__class__.__name__,
                                         exchange_scanner,
                                         logging.DEBUG)
         self.exchange_scanner = exchange_scanner
