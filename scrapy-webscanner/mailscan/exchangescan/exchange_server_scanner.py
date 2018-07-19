@@ -1,10 +1,10 @@
-import logging
+# import logging
 import multiprocessing
 
 from .exchange_mailbox_scanner import ExportError, ExchangeMailboxScanner
 
-logger = logging.Logger('Exchange_server_scan')
-logger.setLevel(logging.DEBUG)
+# logger = logging.Logger('Exchange_server_scan')
+# logger.setLevel(logging.DEBUG)
 
 
 class ExchangeServerScanner(multiprocessing.Process):
@@ -24,7 +24,7 @@ class ExchangeServerScanner(multiprocessing.Process):
         while not self.user_queue.empty():
             try:
                 self.user_name = self.user_queue.get()
-                logger.debug('Scanning {}'.format(self.user_name))
+                print('Scanning {}'.format(self.user_name))
 
                 self.scanner = ExchangeMailboxScanner(self.user_name,
                                                       self.domain,
@@ -32,12 +32,12 @@ class ExchangeServerScanner(multiprocessing.Process):
 
                 total_count = self.scanner.total_mails()
                 self.scanner.check_mailbox(total_count)
-                logger.info('Done with {}'.format(self.user_name))
+                print('Done with {}'.format(self.user_name))
             except MemoryError:
                 msg = 'We had a memory-error from {}'
-                logger.error(msg.format(self.user_name))
+                print(msg.format(self.user_name))
                 self.user_queue.put(self.user_name)
             except ExportError:
                 msg = 'Could not export all of {}'
-                logger.error(msg.format(self.user_name))
+                print(msg.format(self.user_name))
                 self.user_queue.put(self.user_name)
