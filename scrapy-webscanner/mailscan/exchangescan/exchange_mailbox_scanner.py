@@ -10,6 +10,7 @@ ideas:
  - parse mail data directly to processer and put attachments in conversionqueue.
 """
 import logging
+import settings
 from .utils import init_logger
 import time
 
@@ -46,16 +47,23 @@ class ExchangeMailboxScanner(object):
     """ Library to export a users mailbox from Exchange to a filesystem """
     def __init__(self, user, domain, exchange_scanner):
         self.logger = init_logger(self.__class__.__name__,
-                                        exchange_scanner,
-                                        logging.DEBUG)
+                                  exchange_scanner,
+                                  logging.DEBUG)
+
         self.exchange_scanner = exchange_scanner
         username = domain.authentication.username
-        self.logger.debug('Username: {}'.format(username))
+
+        self.logger.debug('ServiceAccount Username: {}'.format(username))
         password = domain.authentication.get_password()
+
+        # If password is wrong it will not fail before max_wait time is gone.
         credentials = ServiceAccount(username=username,
-                                     password=password)
+                                     password=password,
+                                     max_wait=settings.MAX_WAIT_TIME)
+
         smtp_address = user + domain.url
         self.logger.debug('Email address: {}'.format(smtp_address))
+
         self.current_path = None
         try:
             self.account = Account(primary_smtp_address=smtp_address,
@@ -239,6 +247,7 @@ class ExchangeMailboxScanner(object):
             subset_attach = self._export_folder_subset(folder,
                                                        start_dt,
                                                        end_dt)
+
         if subset_attach == -1:
             raise ExportError('Unable to export folder')
         return subset_attach
