@@ -14,8 +14,6 @@ from .settings import MAX_WAIT_TIME
 from .utils import init_logger
 import time
 
-from datetime import timedelta
-
 from exchangelib import EWSDateTime, EWSDate, UTC
 from exchangelib import FileAttachment, ItemAttachment
 from exchangelib import IMPERSONATION, ServiceAccount, Account
@@ -96,7 +94,7 @@ class ExchangeMailboxScanner(object):
         msg_body = str(item.body)
 
         url_object = Url(url=subject, mime_type='utf-8',
-                         scan=self.scanner.scan_object)
+                         scan=self.exchange_scanner.scan_object)
         url_object.save()
 
         data_to_scan = '{} {}'.format(subject, msg_body)
@@ -137,7 +135,7 @@ class ExchangeMailboxScanner(object):
                 i = i + 1
                 url_object = Url(url=attachment.name,
                                  mime_type=attachment.conten_type,
-                                 scan=self.scanner.scan_object)
+                                 scan=self.exchange_scanner.scan_object)
                 url_object.save()
                 try:
                     self.exchange_scanner.scanner.scan(attachment.content,
@@ -155,12 +153,12 @@ class ExchangeMailboxScanner(object):
                     if subject:
                         url_object = Url(url=subject,
                                          mime_type='utf-8',
-                                         scan=self.scanner.scan_object)
+                                         scan=self.exchange_scanner.scan_object)
                         url_object.save()
                     else:
                         url_object = Url(url=attachment.item.last_modified_time,
                                          mime_type='utf-8',
-                                         scan=self.scanner.scan_object)
+                                         scan=self.exchange_scanner.scan_object)
                         url_object.save()
                     data_to_scan = '{} {}'.format(subject, attachment.item.body)
                     self.exchange_scanner.scanner.scan(data_to_scan,
