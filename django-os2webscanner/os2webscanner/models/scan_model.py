@@ -377,13 +377,20 @@ class Scan(models.Model):
         self.reason = ""
         self.save()
 
-    def set_scan_status_failed(self):
+    def set_scan_status_failed(self, reason):
         self.pid = None
         self.status = Scan.FAILED
         scanner = self.scanner
         scanner.is_running = False
         scanner.save()
-        self.reason = "Killed"
+        if reason is None:
+            self.reason = "Killed"
+        else:
+            self.reason = reason
+
+        self.log_occurrence(
+            self.reason
+        )
         # TODO: Remove all non-processed conversion queue items.
         self.save()
 
