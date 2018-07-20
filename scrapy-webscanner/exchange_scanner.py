@@ -80,10 +80,12 @@ class ExchangeScanner:
                 time.sleep(1)
 
             for key, value in scanners.items():
-                value.join()
+                while value.is_alive():
+                    print('Process with pid {} is still alive'.format(value.pid))
+                    time.sleep(1)
 
-            self.scan_object.set_scan_status_done()
-            print('Finished scanning.')
+        self.scan_object.set_scan_status_done()
+        print('Finished scanning.')
 
 
 exchange_scanner = ExchangeScanner()
