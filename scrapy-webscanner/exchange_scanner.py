@@ -82,7 +82,7 @@ class ExchangeScanner:
                     print('Process with pid {} is still alive'.format(value.pid))
                     time.sleep(1)
 
-        self.scan_object.set_scan_status_done()
+        self.scanner.scan_object.set_scan_status_done()
         print('Finished scanning.')
 
 
