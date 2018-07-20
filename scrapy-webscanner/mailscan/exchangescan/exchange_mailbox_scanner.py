@@ -30,14 +30,14 @@ from os2webscanner.models.url_model import Url
 exchangelogger = logging.getLogger('exchangelib')
 exchangelogger.setLevel(logging.DEBUG)
 
-logger = logging.Logger('Echange_mailbox_scanner')
+exception_logger = logging.Logger('Echange_mailbox_scanner')
 # logger.setLevel(logging.DEBUG)
 
 
 class ExportError(Exception):
     """ Exception to indicate that export failed for unspecified reasons """
     def __init__(self, *args, **kwargs):
-        logger.error('Export Exception')
+        exception_logger.error('Export Exception')
         Exception.__init__(self, *args, **kwargs)
 
 
