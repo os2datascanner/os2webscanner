@@ -27,7 +27,6 @@ sys.path.append(base_dir + "/webscanner_site")
 os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 django.setup()
 
-from os2webscanner.models.scan_model import Scan
 from mailscan.exchangescan.settings import NUMBER_OF_EMAIL_THREADS
 from mailscan.exchangescan.exchange_server_scanner import ExchangeServerScanner
 
@@ -42,9 +41,8 @@ class ExchangeScanner:
         Updates the scan status and sets the pid.
         """
         self.scan_id = sys.argv[1]
-        self.scan_object = Scan.objects.get(pk=self.scan_id)
         from scanner.scanner.scanner import Scanner
-        self.scanner = Scanner(self.scan_object)
+        self.scanner = Scanner(self.scan_id)
 
     def read_users(self, user_queue, user_file):
         """ Small helper to read user-list from file

@@ -77,10 +77,7 @@ class ScannerApp:
         Updates the scan status and sets the pid.
         """
         self.scan_id = sys.argv[1]
-
-        # Get scan object from DB
-        self.scan_object = Scan.objects.get(pk=self.scan_id)
-        self.scanner = Scanner(self.scan_object)
+        self.scanner = Scanner(self.scan_id)
 
     def run(self):
         """Run the scanner, blocking until finished."""
@@ -88,13 +85,13 @@ class ScannerApp:
 
         self.crawler_process = CrawlerProcess(settings)
 
-        if hasattr(self.scan_object, 'webscan'):
+        if hasattr(self.scanner.scan_object, 'webscan'):
             self.start_webscan_crawlers()
         else:
             self.start_filescan_crawlers()
 
         # Update scan status
-        self.scan_object.set_scan_status_done()
+        self.scanner.scan_object.set_scan_status_done()
 
     def start_filescan_crawlers(self):
         self.sitemap_spider = None
@@ -103,7 +100,7 @@ class ScannerApp:
 
     def start_webscan_crawlers(self):
         # Don't sitemap scan when running over RPC or if no sitemap is set on scan
-        if not self.scan_object.scanner.process_urls:
+        if not self.scanner.scan_object.scanner.process_urls:
             if len(self.scanner.get_sitemap_urls()) is not 0\
                     or len(self.scanner.get_uploaded_sitemap_urls()) is not 0:
                 self.sitemap_spider = self.setup_sitemap_spider()
@@ -115,8 +112,8 @@ class ScannerApp:
         self.scanner_spider = self.setup_scanner_spider()
 
         self.start_crawlers()
-        if (self.scan_object.webscan.do_link_check
-            and self.scan_object.webscan.do_external_link_check):
+        if (self.scanner.scan_object.webscan.do_link_check
+            and self.scanner.scan_object.webscan.do_external_link_check):
             # Do external link check
             self.external_link_check(self.scanner_spider.external_urls)
 
@@ -128,11 +125,10 @@ class ScannerApp:
 
     def handle_killed(self):
         """Handle being killed by updating the scan status."""
-        # self.scan_object = Scan.objects.get(pk=self.scan_id)
-        self.scan_object.set_scan_status_failed()
+        # self.scanner.scan_object = Scan.objects.get(pk=self.scan_id)
+        self.scanner.scan_object.set_scan_status_failed()
         self.scan.logging_occurrence("SCANNER FAILED: Killed")
         logging.error("Killed")
-
 
     def setup_sitemap_spider(self):
         """Setup the sitemap spider."""
@@ -180,7 +176,7 @@ class ScannerApp:
 
             result = linkchecker.check_url(url)
             if result is not None:
-                broken_url = Url(url=url, scan=self.scan_object.webscan,
+                broken_url = Url(url=url, scan=self.scanner.scan_object.webscan,
                                  status_code=result["status_code"],
                                  status_message=result["status_message"])
                 broken_url.save()
@@ -198,7 +194,7 @@ class ScannerApp:
         logging.info('Stats: {0}'.format(self.scanner_spider.crawler.stats.get_stats()))
 
         statistics = Statistic()
-        statistics.scan = self.scan_object
+        statistics.scan = self.scanner.scan_object
         if self.scanner_spider.crawler.stats.get_value(
             'last_modified_check/pages_skipped'):
             statistics.files_skipped_count = self.scanner_spider.crawler.stats.get_value(
@@ -231,7 +227,7 @@ class ScannerApp:
         self.filescan_cleanup()
 
     def filescan_cleanup(self):
-        if hasattr(self.scan_object, 'filescan'):
+        if hasattr(self.scanner.scan_object, 'filescan'):
             for domain in self.scanner.valid_domains:
                 domain.filedomain.smb_umount()
 
@@ -245,7 +241,7 @@ class ScannerApp:
         remaining_queue_items = ConversionQueueItem.objects.filter(
             status__in=[ConversionQueueItem.NEW,
                         ConversionQueueItem.PROCESSING],
-            url__scan=self.scan_object
+            url__scan=self.scanner.scan_object
         ).count()
 
         if remaining_queue_items > 0:
