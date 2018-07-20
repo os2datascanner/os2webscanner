@@ -93,7 +93,7 @@ class ExchangeMailboxScanner(object):
 
         msg_body = str(item.body)
 
-        url_object = Url(url=subject, mime_type='utf-8',
+        url_object = Url(url=subject, mime_type='text',
                          scan=self.scanner.scan_object)
         url_object.save()
 
@@ -153,12 +153,12 @@ class ExchangeMailboxScanner(object):
                     subject = attachment.item.subject
                     if subject:
                         url_object = Url(url=subject,
-                                         mime_type='utf-8',
+                                         mime_type='text',
                                          scan=self.scanner.scan_object)
                         url_object.save()
                     else:
                         url_object = Url(url=attachment.item.last_modified_time,
-                                         mime_type='utf-8',
+                                         mime_type='text',
                                          scan=self.scanner.scan_object)
                         url_object.save()
                     data_to_scan = '{} {}'.format(subject, attachment.item.body)
