@@ -82,6 +82,7 @@ class ExchangeScanner:
             for key, value in scanners.items():
                 value.join()
 
+            self.scan_object.set_scan_status_done()
             print('Finished scanning.')
 
 
