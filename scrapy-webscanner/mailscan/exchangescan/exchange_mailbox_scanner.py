@@ -98,9 +98,10 @@ class ExchangeMailboxScanner(object):
         url_object.save()
 
         data_to_scan = '{} {}'.format(subject, msg_body)
-        self.scanner.scan(data_to_scan,
-                          url_object)
-
+        self.logger('Scanning email with subject {}'.format(subject))
+        success = self.scanner.scan(data_to_scan,
+                                    url_object)
+        self.logger('Scanning of email {} returned {}'.format(subject, success))
         # Make a list inline images, mostly used for logos in footers:
         footer_images = []
         cid_pos = 0
@@ -200,6 +201,7 @@ class ExchangeMailboxScanner(object):
                                                 start_dt.day, 0, 0))
             end_dt = UTC.localize(EWSDateTime(end_dt.year, end_dt.month,
                                               end_dt.day, 0, 0))
+            self.logger('Ready to chunkify folder {}'.format(folder))
             items = items.filter(datetime_received__range=(start_dt, end_dt))
             for chunk in chunkify(items, 10):
                 for item in chunk:
