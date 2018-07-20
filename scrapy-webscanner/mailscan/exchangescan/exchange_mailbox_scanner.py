@@ -139,8 +139,17 @@ class ExchangeMailboxScanner(object):
                                  scan=self.scanner.scan_object)
                 url_object.save()
                 try:
-                    self.scanner.scan(attachment.content,
-                                      url_object)
+                    self.logger('Trying to scan file {} with contenttype {}'.format(
+                        attachment.name,
+                        attachment.content_type))
+
+                    success = self.scanner.scan(attachment.content,
+                                                url_object)
+
+                    self.logger('Scanning of file {} returned {}'.format(
+                        attachment.name,
+                        success))
+
                 except TypeError:
                     self.logger.error('Type Error')  # Happens for empty attachments
                 except ErrorCannotOpenFileAttachment:
