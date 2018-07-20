@@ -99,7 +99,7 @@ class ExchangeMailboxScanner(object):
 
         data_to_scan = '{} {}'.format(subject, msg_body)
         self.scanner.scan(data_to_scan,
-                                  url_object)
+                          url_object)
 
         # Make a list inline images, mostly used for logos in footers:
         footer_images = []
@@ -128,7 +128,7 @@ class ExchangeMailboxScanner(object):
                 i += 1  # Make end-assertion happy
                 continue
             if attachment.name in skip_list:
-                self.logger.debug('Skippig {}: '.format(attachment.name))
+                self.logger.debug('Skipping {}: '.format(attachment.name))
                 i += 1  # Make end-assertion happy
                 continue
             if isinstance(attachment, FileAttachment):
@@ -139,7 +139,7 @@ class ExchangeMailboxScanner(object):
                 url_object.save()
                 try:
                     self.scanner.scan(attachment.content,
-                                              url_object)
+                                      url_object)
                 except TypeError:
                     self.logger.error('Type Error')  # Happens for empty attachments
                 except ErrorCannotOpenFileAttachment:
@@ -162,7 +162,7 @@ class ExchangeMailboxScanner(object):
                         url_object.save()
                     data_to_scan = '{} {}'.format(subject, attachment.item.body)
                     self.scanner.scan(data_to_scan,
-                                              url_object)
+                                      url_object)
                 except AttributeError:
                     msg = 'AttributeError {}'
                     self.logger.error(msg.format(subject))
