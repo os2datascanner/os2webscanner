@@ -252,14 +252,8 @@ def main():
                         # Check if process is still running
                         os.kill(scan.pid, 0)
                     except OSError:
-                        scan.status = Scan.FAILED
-                        scan.log_occurrence(
-                            "SCAN FAILED: Process died"
-                        )
-                        scanner = scan.scanner
-                        scanner.is_running = False
-                        scanner.save()
-                        scan.save()
+                        scan.set_scan_status_failed(
+                            "SCAN FAILED: Process died")
         except (DatabaseError, IntegrityError) as ex:
             print('Error occured while trying to kill process %s' % scan.pid)
             print('Error message %s' % ex)
