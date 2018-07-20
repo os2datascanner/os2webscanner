@@ -29,6 +29,7 @@ django.setup()
 
 from mailscan.exchangescan.settings import NUMBER_OF_EMAIL_THREADS
 from mailscan.exchangescan.exchange_server_scanner import ExchangeServerScanner
+from os2webscanner.models.scan_model import Scan
 
 
 class ExchangeScanner:
@@ -81,8 +82,8 @@ class ExchangeScanner:
                 while value.is_alive():
                     print('Process with pid {} is still alive'.format(value.pid))
                     time.sleep(1)
-
-        self.scanner.scan_object.set_scan_status_done()
+        scan_object = Scan.objects.get(pk=self.scan_id)
+        scan_object.set_scan_status_done()
         print('Finished scanning.')
 
 
