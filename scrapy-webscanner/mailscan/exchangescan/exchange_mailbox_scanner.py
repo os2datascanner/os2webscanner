@@ -98,10 +98,10 @@ class ExchangeMailboxScanner(object):
         url_object.save()
 
         data_to_scan = '{} {}'.format(subject, msg_body)
-        self.logger('Scanning email with subject {}'.format(subject))
+        self.logger.debug('Scanning email with subject {}'.format(subject))
         success = self.scanner.scan(data_to_scan,
                                     url_object)
-        self.logger('Scanning of email {} returned {}'.format(subject, success))
+        self.logger.debug('Scanning of email {} returned {}'.format(subject, success))
         # Make a list inline images, mostly used for logos in footers:
         footer_images = []
         cid_pos = 0
@@ -139,14 +139,14 @@ class ExchangeMailboxScanner(object):
                                  scan=self.scanner.scan_object)
                 url_object.save()
                 try:
-                    self.logger('Trying to scan file {} with contenttype {}'.format(
+                    self.logger.debug('Trying to scan file {} with contenttype {}'.format(
                         attachment.name,
                         attachment.content_type))
 
                     success = self.scanner.scan(attachment.content,
                                                 url_object)
 
-                    self.logger('Scanning of file {} returned {}'.format(
+                    self.logger.debug('Scanning of file {} returned {}'.format(
                         attachment.name,
                         success))
 
@@ -210,7 +210,7 @@ class ExchangeMailboxScanner(object):
                                                 start_dt.day, 0, 0))
             end_dt = UTC.localize(EWSDateTime(end_dt.year, end_dt.month,
                                               end_dt.day, 0, 0))
-            self.logger('Ready to chunkify folder {}'.format(folder))
+            self.logger.debug('Ready to chunkify folder {}'.format(folder))
             items = items.filter(datetime_received__range=(start_dt, end_dt))
             for chunk in chunkify(items, 10):
                 for item in chunk:
