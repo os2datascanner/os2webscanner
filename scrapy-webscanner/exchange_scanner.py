@@ -79,7 +79,7 @@ class ExchangeScanner:
                 scanners[i].start()
                 time.sleep(1)
 
-            for scan in scanners:
+            for scan in scanners.items():
                 scan.join()
 
             print('Finished scanning.')
