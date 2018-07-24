@@ -25,7 +25,7 @@ from exchangelib.errors import ErrorInternalServerError
 from exchangelib.errors import ErrorInvalidOperation
 from exchangelib.errors import ErrorTimeoutExpired
 
-from .db_worker import get_scan_by_id, store_url_object
+from .db_worker import DBWorker, store_url_object
 
 exchangelogger = logging.getLogger('exchangelib')
 exchangelogger.setLevel(logging.DEBUG)
@@ -45,7 +45,8 @@ class ExchangeMailboxScanner(object):
     """ Library to export a users mailbox from Exchange to a filesystem """
     def __init__(self, user, domain, scan_id, scanner):
         self.scanner = scanner
-        self.scan_object = get_scan_by_id(scan_id)
+        db_worker = DBWorker()
+        self.scan_object = db_worker.get_scan_by_id(scan_id)
         self.logger = init_logger(self.__class__.__name__,
                                   self.scan_object,
                                   logging.DEBUG)
