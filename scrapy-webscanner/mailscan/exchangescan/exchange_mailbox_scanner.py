@@ -25,7 +25,7 @@ from exchangelib.errors import ErrorInternalServerError
 from exchangelib.errors import ErrorInvalidOperation
 from exchangelib.errors import ErrorTimeoutExpired
 
-import db_worker
+from .db_worker import get_scan_by_id, store_url_object
 
 exchangelogger = logging.getLogger('exchangelib')
 exchangelogger.setLevel(logging.DEBUG)
@@ -45,7 +45,7 @@ class ExchangeMailboxScanner(object):
     """ Library to export a users mailbox from Exchange to a filesystem """
     def __init__(self, user, domain, scan_id, scanner):
         self.scanner = scanner
-        self.scan_object = db_worker.get_scan_by_id(scan_id)
+        self.scan_object = get_scan_by_id(scan_id)
         self.logger = init_logger(self.__class__.__name__,
                                   self.scan_object,
                                   logging.DEBUG)
@@ -94,7 +94,7 @@ class ExchangeMailboxScanner(object):
 
         msg_body = str(item.body)
 
-        url_object = db_worker.store_url_object(subject, 'text', self.scan_object)
+        url_object = store_url_object(subject, 'text', self.scan_object)
 
         data_to_scan = '{} {}'.format(subject, msg_body)
         self.logger.debug('Scanning email with subject {}'.format(subject))
@@ -134,7 +134,7 @@ class ExchangeMailboxScanner(object):
             if isinstance(attachment, FileAttachment):
                 i = i + 1
 
-                url_object = db_worker.store_url_object(attachment.name,
+                url_object = store_url_object(attachment.name,
                                                         attachment.content_type,
                                                         self.scan_object)
                 try:
@@ -160,9 +160,9 @@ class ExchangeMailboxScanner(object):
                 try:
                     subject = attachment.item.subject
                     if subject:
-                        url_object = db_worker.store_url_object(subject, 'text', self.scan_object)
+                        url_object = store_url_object(subject, 'text', self.scan_object)
                     else:
-                        url_object = db_worker.store_url_object(attachment.item.last_modified_time,
+                        url_object = store_url_object(attachment.item.last_modified_time,
                                                                 'text',
                                                                 self.scan_object)
                     data_to_scan = '{} {}'.format(subject, attachment.item.body)
