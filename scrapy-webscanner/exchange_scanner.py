@@ -60,6 +60,8 @@ class ExchangeScanner:
 
     def run(self):
         domains = self.scanner.get_domain_objects()
+        from django import db
+        db.connections.close_all()
         for domain in domains:
             user_queue = Queue()
             self.read_users(user_queue,
