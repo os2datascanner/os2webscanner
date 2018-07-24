@@ -77,7 +77,7 @@ class ExchangeScanner:
                                                     None)
                 # stats.add_scanner(scanners[i])
                 scanners[i].start()
-                time.sleep(1)
+                time.sleep(10)
 
             for key, value in scanners.items():
                 while value.is_alive():

@@ -31,7 +31,8 @@ class ExchangeServerScanner(multiprocessing.Process):
         while not self.user_queue.empty():
             try:
                 self.user_name = self.user_queue.get()
-                self.logger.info('Scanning {}'.format(self.user_name))
+                self.logger.info('{}: Scanning {}'.format(self.pid,
+                                                          self.user_name))
 
                 self.exchange_scanner = ExchangeMailboxScanner(self.user_name,
                                                                self.domain,
@@ -39,8 +40,13 @@ class ExchangeServerScanner(multiprocessing.Process):
                                                                self.scanner)
 
                 total_count = self.exchange_scanner.total_mails()
-                self.exchange_scanner.check_mailbox(total_count)
-                self.logger.info('Done with {}'.format(self.user_name))
+                success = self.exchange_scanner.check_mailbox(total_count)
+                if success:
+                    self.logger.info('{}: Done with {}'.format(self.pid,
+                                                               self.user_name))
+                else:
+                    self.logger.info('{}: Failed with {}'.format(self.pid,
+                                                                 self.user_name))
             except MemoryError:
                 msg = 'We had a memory-error from {}'
                 self.logger.error(msg.format(self.user_name))
