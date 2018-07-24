@@ -11,6 +11,7 @@ from exchangelib import EWSDateTime, EWSDate, UTC
 from exchangelib import FileAttachment, ItemAttachment
 from exchangelib import IMPERSONATION, ServiceAccount, Account
 from exchangelib.util import chunkify
+from exchangelib.folders import AllItems, FreebusyData
 from exchangelib.errors import ErrorNonExistentMailbox
 from exchangelib.errors import ErrorInternalServerTransientError
 from exchangelib.errors import ErrorCannotOpenFileAttachment
@@ -159,8 +160,15 @@ class ExchangeMailboxScan(object):
         :return: A python list with all folders"""
         folder_list = []
         if self.account is not None:
+            search_folders = []
+            for folder in self.account.search_folders.walk():
+                search_folders.append(folder)
             for folder in self.account.root.walk():
-                if folder.total_count > 0:
+                if ((folder.total_count > 0) and
+                    (folder not in search_folders) and
+                    (not isinstance(folder, AllItems)) and
+                    (not isinstance(folder, FreebusyData))
+                ):
                     folder_list.append(folder)
         return folder_list
 
