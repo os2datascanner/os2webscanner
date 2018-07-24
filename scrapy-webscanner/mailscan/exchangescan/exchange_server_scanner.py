@@ -9,17 +9,18 @@ class ExchangeServerScanner(multiprocessing.Process):
     """ Helper class to allow parallel processing of export
     This classes inherits from multiprocessing and helps to
     run a number of exporters in parallel """
-    def __init__(self, user_queue, domain, exchange_scanner, start_date=None):
+    def __init__(self, user_queue, domain, scan_id, start_date=None):
         multiprocessing.Process.__init__(self)
+        from scanner.scanner.scanner import Scanner
+        self.scanner = Scanner(self.scan_id)
         self.logger = init_logger(self.__class__.__name__,
-                                  exchange_scanner,
+                                  self.scanner,
                                   logging.DEBUG)
         self.user_queue = user_queue
-        self.scanner = None
         self.user_name = None
         self.start_date = start_date
         self.domain = domain
-        self.exchange_scanner = exchange_scanner
+        self.scan_id = scan_id
 
     def run(self):
         while not self.user_queue.empty():
@@ -29,7 +30,7 @@ class ExchangeServerScanner(multiprocessing.Process):
 
                 self.scanner = ExchangeMailboxScanner(self.user_name,
                                                       self.domain,
-                                                      self.exchange_scanner)
+                                                      self.scan_id)
 
                 total_count = self.scanner.total_mails()
                 self.scanner.check_mailbox(total_count)

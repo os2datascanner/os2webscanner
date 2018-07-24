@@ -70,7 +70,7 @@ class ExchangeScanner:
             for i in range(0, NUMBER_OF_EMAIL_THREADS):
                 scanners[i] = ExchangeServerScanner(user_queue,
                                                     domain,
-                                                    self.scanner,
+                                                    self.scan_id,
                                                     None
                                                     )
                 # stats.add_scanner(scanners[i])
