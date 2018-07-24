@@ -14,8 +14,6 @@ from .settings import MAX_WAIT_TIME
 from .utils import init_logger
 import time
 
-from django.db import transaction, IntegrityError, DatabaseError
-
 from exchangelib import EWSDateTime, EWSDate, UTC
 from exchangelib import FileAttachment, ItemAttachment
 from exchangelib import IMPERSONATION, ServiceAccount, Account
@@ -27,8 +25,7 @@ from exchangelib.errors import ErrorInternalServerError
 from exchangelib.errors import ErrorInvalidOperation
 from exchangelib.errors import ErrorTimeoutExpired
 
-from os2webscanner.models.url_model import Url
-from os2webscanner.models.scan_model import Scan
+import db_worker
 
 exchangelogger = logging.getLogger('exchangelib')
 exchangelogger.setLevel(logging.DEBUG)
@@ -48,16 +45,10 @@ class ExchangeMailboxScanner(object):
     """ Library to export a users mailbox from Exchange to a filesystem """
     def __init__(self, user, domain, scan_id, scanner):
         self.scanner = scanner
-
-        try:
-            with transaction.atomic():
-                self.scan_object = Scan.objects.get(pk=scan_id)
-                self.logger = init_logger(self.__class__.__name__,
-                                          self.scan_object,
-                                          logging.DEBUG)
-        except (DatabaseError, IntegrityError) as ex:
-            self.logger('Error occured while getting scan object with id {}'.format(scan_id))
-            self.logger('Error message {}'.format(ex))
+        self.scan_object = db_worker.get_scan_by_id(scan_id)
+        self.logger = init_logger(self.__class__.__name__,
+                                  self.scan_object,
+                                  logging.DEBUG)
 
         username = domain.authentication.username
 
@@ -103,9 +94,7 @@ class ExchangeMailboxScanner(object):
 
         msg_body = str(item.body)
 
-        url_object = Url(url=subject, mime_type='text',
-                         scan=self.scan_object)
-        url_object.save()
+        url_object = db_worker.store_url_object(subject, 'text', self.scan_object)
 
         data_to_scan = '{} {}'.format(subject, msg_body)
         self.logger.debug('Scanning email with subject {}'.format(subject))
@@ -144,10 +133,10 @@ class ExchangeMailboxScanner(object):
                 continue
             if isinstance(attachment, FileAttachment):
                 i = i + 1
-                url_object = Url(url=attachment.name,
-                                 mime_type=attachment.conten_type,
-                                 scan=self.scan_object)
-                url_object.save()
+
+                url_object = db_worker.store_url_object(attachment.name,
+                                                        attachment.content_type,
+                                                        self.scan_object)
                 try:
                     self.logger.debug('Trying to scan file {} with contenttype {}'.format(
                         attachment.name,
@@ -171,15 +160,11 @@ class ExchangeMailboxScanner(object):
                 try:
                     subject = attachment.item.subject
                     if subject:
-                        url_object = Url(url=subject,
-                                         mime_type='text',
-                                         scan=self.scan_object)
-                        url_object.save()
+                        url_object = db_worker.store_url_object(subject, 'text', self.scan_object)
                     else:
-                        url_object = Url(url=attachment.item.last_modified_time,
-                                         mime_type='text',
-                                         scan=self.scan_object)
-                        url_object.save()
+                        url_object = db_worker.store_url_object(attachment.item.last_modified_time,
+                                                                'text',
+                                                                self.scan_object)
                     data_to_scan = '{} {}'.format(subject, attachment.item.body)
                     self.scanner.scan(data_to_scan,
                                       url_object)
