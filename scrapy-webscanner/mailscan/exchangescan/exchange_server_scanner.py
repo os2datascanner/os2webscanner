@@ -1,7 +1,7 @@
 import logging
 import multiprocessing
 
-import db_worker
+from .db_worker import close_all_db_connections, get_scan_by_id
 from .exchange_mailbox_scanner import ExportError, ExchangeMailboxScanner
 from .utils import init_logger
 
@@ -20,8 +20,8 @@ class ExchangeServerScanner(multiprocessing.Process):
         self.scan_id = scan_id
         self.exchange_scanner = None
         self.scanner = scanner
-        db_worker.close_all_db_connections()
-        self.scan_object = db_worker.get_scan_by_id(scan_id)
+        close_all_db_connections()
+        self.scan_object = get_scan_by_id(scan_id)
         self.logger = init_logger(self.__class__.__name__,
                                   self.scan_object,
                                   logging.DEBUG)
