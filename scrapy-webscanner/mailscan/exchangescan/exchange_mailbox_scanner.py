@@ -14,6 +14,8 @@ from .settings import MAX_WAIT_TIME
 from .utils import init_logger
 import time
 
+from django.db import transaction, IntegrityError, DatabaseError
+
 from exchangelib import EWSDateTime, EWSDate, UTC
 from exchangelib import FileAttachment, ItemAttachment
 from exchangelib import IMPERSONATION, ServiceAccount, Account
@@ -46,10 +48,17 @@ class ExchangeMailboxScanner(object):
     """ Library to export a users mailbox from Exchange to a filesystem """
     def __init__(self, user, domain, scan_id, scanner):
         self.scanner = scanner
-        self.scan_object = Scan.objects.get(pk=scan_id)
+
         self.logger = init_logger(self.__class__.__name__,
                                   self.scan_object,
                                   logging.DEBUG)
+
+        try:
+            with transaction.atomic():
+                self.scan_object = Scan.objects.get(pk=scan_id)
+        except (DatabaseError, IntegrityError) as ex:
+            self.logger('Error occured while getting scan object with id {}'.format(scan_id))
+            self.logger('Error message {}'.format(ex))
 
         username = domain.authentication.username
 
