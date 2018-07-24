@@ -49,13 +49,12 @@ class ExchangeMailboxScanner(object):
     def __init__(self, user, domain, scan_id, scanner):
         self.scanner = scanner
 
-        self.logger = init_logger(self.__class__.__name__,
-                                  self.scan_object,
-                                  logging.DEBUG)
-
         try:
             with transaction.atomic():
                 self.scan_object = Scan.objects.get(pk=scan_id)
+                self.logger = init_logger(self.__class__.__name__,
+                                          self.scan_object,
+                                          logging.DEBUG)
         except (DatabaseError, IntegrityError) as ex:
             self.logger('Error occured while getting scan object with id {}'.format(scan_id))
             self.logger('Error message {}'.format(ex))
