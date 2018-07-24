@@ -26,6 +26,7 @@ from exchangelib.errors import ErrorInvalidOperation
 from exchangelib.errors import ErrorTimeoutExpired
 
 from os2webscanner.models.url_model import Url
+from os2webscanner.models.scan_model import Scan
 
 exchangelogger = logging.getLogger('exchangelib')
 exchangelogger.setLevel(logging.DEBUG)
@@ -43,12 +44,11 @@ class ExportError(Exception):
 
 class ExchangeMailboxScanner(object):
     """ Library to export a users mailbox from Exchange to a filesystem """
-    def __init__(self, user, domain, scan_id):
-
-        from scanner.scanner.scanner import Scanner
-        self.scanner = Scanner(scan_id)
+    def __init__(self, user, domain, scan_id, scanner):
+        self.scanner = scanner
+        self.scan_object = Scan.objects.get(pk=scan_id)
         self.logger = init_logger(self.__class__.__name__,
-                                  self.scanner,
+                                  self.scan_object,
                                   logging.DEBUG)
 
         username = domain.authentication.username
@@ -96,7 +96,7 @@ class ExchangeMailboxScanner(object):
         msg_body = str(item.body)
 
         url_object = Url(url=subject, mime_type='text',
-                         scan=self.scanner.scan_object)
+                         scan=self.scan_object)
         url_object.save()
 
         data_to_scan = '{} {}'.format(subject, msg_body)
@@ -138,7 +138,7 @@ class ExchangeMailboxScanner(object):
                 i = i + 1
                 url_object = Url(url=attachment.name,
                                  mime_type=attachment.conten_type,
-                                 scan=self.scanner.scan_object)
+                                 scan=self.scan_object)
                 url_object.save()
                 try:
                     self.logger.debug('Trying to scan file {} with contenttype {}'.format(
@@ -165,12 +165,12 @@ class ExchangeMailboxScanner(object):
                     if subject:
                         url_object = Url(url=subject,
                                          mime_type='text',
-                                         scan=self.scanner.scan_object)
+                                         scan=self.scan_object)
                         url_object.save()
                     else:
                         url_object = Url(url=attachment.item.last_modified_time,
                                          mime_type='text',
-                                         scan=self.scanner.scan_object)
+                                         scan=self.scan_object)
                         url_object.save()
                     data_to_scan = '{} {}'.format(subject, attachment.item.body)
                     self.scanner.scan(data_to_scan,

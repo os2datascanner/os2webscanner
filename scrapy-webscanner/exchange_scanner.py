@@ -71,8 +71,8 @@ class ExchangeScanner:
                 scanners[i] = ExchangeServerScanner(user_queue,
                                                     domain,
                                                     self.scan_id,
-                                                    None
-                                                    )
+                                                    self.scanner,
+                                                    None)
                 # stats.add_scanner(scanners[i])
                 scanners[i].start()
                 time.sleep(1)
