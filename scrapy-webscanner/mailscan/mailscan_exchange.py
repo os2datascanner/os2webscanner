@@ -309,9 +309,10 @@ class ExchangeServerScan(multiprocessing.Process):
     """ Helper class to allow parallel processing of export
     This classes inherits from multiprocessing and helps to
     run a number of exporters in parallel """
-    def __init__(self, user_queue, start_date=None):
+    def __init__(self, user_queue, done_queue, start_date=None):
         multiprocessing.Process.__init__(self)
         self.user_queue = user_queue
+        self.done_queue = done_queue
         self.scanner = None
         self.user_name = None
         self.start_date = start_date
@@ -337,6 +338,7 @@ class ExchangeServerScan(multiprocessing.Process):
                 msg = 'Could not export all of {}'
                 logger.error(msg.format(self.user_name))
                 self.user_queue.put(self.user_name)
+        self.done_queue.put(self.user_name)
 
 
 def read_users(user_queue, user_file):
@@ -364,13 +366,14 @@ if __name__ == '__main__':
 
     # Populate user queue
     user_queue = Queue()
+    done_queue = Queue()
     read_users(user_queue, settings.user_path)
 
     stats = Stats(user_queue)
 
     scanners = {}
     for i in range(0, number_of_threads):
-        scanners[i] = ExchangeServerScan(user_queue, start_date)
+        scanners[i] = ExchangeServerScan(user_queue, done_queue, start_date)
         stats.add_scanner(scanners[i])
         scanners[i].start()
         time.sleep(1)
