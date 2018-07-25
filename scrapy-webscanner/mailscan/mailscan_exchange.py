@@ -1,4 +1,5 @@
 import sys
+# import pika
 import time
 import shutil
 import random
@@ -19,8 +20,6 @@ from exchangelib.errors import ErrorInternalServerError
 from exchangelib.errors import ErrorInvalidOperation
 from exchangelib.errors import ErrorTimeoutExpired
 from stats import Stats
-import settings
-import password
 
 exchangelogger = logging.getLogger('exchangelib')
 exchangelogger.setLevel(logging.ERROR)
@@ -41,15 +40,15 @@ class ExportError(Exception):
 
 class ExchangeMailboxScan(object):
     """ Library to export a users mailbox from Exchange to a filesystem """
-    def __init__(self, user, start_date=None):
+    def __init__(self, user, export_path, mail_ending, start_date=None):
         credentials = ServiceAccount(username="mailscan",
                                      password=password.password)
-        username = user + settings.mail_ending
+        username = user + mail_ending
         self.start_date = start_date
         if self.start_date is None:
-            self.export_path = Path(settings.export_path + username)
+            self.export_path = Path(export_path + username)
         else:
-            self.export_path = Path(settings.export_path + username + '_' +
+            self.export_path = Path(export_path + username + '_' +
                                     str(self.start_date))
         self.current_path = None
         try:
@@ -309,21 +308,33 @@ class ExchangeServerScan(multiprocessing.Process):
     """ Helper class to allow parallel processing of export
     This classes inherits from multiprocessing and helps to
     run a number of exporters in parallel """
-    def __init__(self, user_queue, done_queue, start_date=None):
+    def __init__(self, user_queue, done_queue, export_path, mail_ending,
+                 start_date=None):
         multiprocessing.Process.__init__(self)
+        # conn_params = pika.ConnectionParameters('localhost')
+        # connection = pika.BlockingConnection(conn_params)
+        # self.channel = connection.channel()
+        # self.chanel.queue_declare(queue='Test')
         self.user_queue = user_queue
         self.done_queue = done_queue
         self.scanner = None
         self.user_name = None
         self.start_date = start_date
+        self.mail_ending = mail_ending
+        self.export_path = export_path
 
     def run(self):
         while not self.user_queue.empty():
             try:
                 self.user_name = self.user_queue.get()
+                # self.channel.basic_publish(exchange='',
+                #                            routing_key='Test',
+                #                            body=self.user_name)
                 logger.info('Scaning {}'.format(self.user_name))
                 try:
                     self.scanner = ExchangeMailboxScan(self.user_name,
+                                                       self.export_path,
+                                                       self.mail_ending,
                                                        self.start_date)
                 except NameError:  # No start_time given
                     self.scanner = ExchangeMailboxScan(self.user_name)
@@ -338,7 +349,7 @@ class ExchangeServerScan(multiprocessing.Process):
                 msg = 'Could not export all of {}'
                 logger.error(msg.format(self.user_name))
                 self.user_queue.put(self.user_name)
-        self.done_queue.put(self.user_name)
+        self.done_queue.put(export_path)
 
 
 def read_users(user_queue, user_file):
@@ -357,6 +368,9 @@ def read_users(user_queue, user_file):
 
 
 if __name__ == '__main__':
+    import settings
+    import password
+
     number_of_threads = int(sys.argv[1])
     try:
         start_arg = datetime.strptime(sys.argv[2], '%Y-%m-%d')
@@ -373,7 +387,9 @@ if __name__ == '__main__':
 
     scanners = {}
     for i in range(0, number_of_threads):
-        scanners[i] = ExchangeServerScan(user_queue, done_queue, start_date)
+        scanners[i] = ExchangeServerScan(user_queue, done_queue,
+                                         settings.export_path,
+                                         settings.mail_ending, start_date)
         stats.add_scanner(scanners[i])
         scanners[i].start()
         time.sleep(1)
