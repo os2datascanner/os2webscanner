@@ -1,5 +1,5 @@
 import time
-# import curses
+import curses
 import logging
 import subprocess
 import multiprocessing
@@ -19,12 +19,12 @@ class Stats(multiprocessing.Process):
         multiprocessing.Process.__init__(self)
         self.user_queue = user_queue
         self.scanners = []
-        # self.screen = curses.initscr()
-        # curses.noecho()
-        # curses.cbreak()
-        # curses.curs_set(False)
-        # self.screen.keypad(1)
-        # self.screen.nodelay(1)
+        self.screen = curses.initscr()
+        curses.noecho()
+        curses.cbreak()
+        curses.curs_set(False)
+        self.screen.keypad(1)
+        self.screen.nodelay(1)
         # Measure initial values while we have the chance
         self.start_time = time.time()
         self.total_users = self.user_queue.qsize()
@@ -115,10 +115,12 @@ class Stats(multiprocessing.Process):
         processes = self.number_of_threads()[1]
         while processes > 0:
             time.sleep(5)
+            thread_info = self.number_of_threads()
+            processes = thread_info[1]
             status = self.status()
             logger.info(status)
-            print(status)
-            """
+            #print(status)
+
             dt = int((time.time() - self.start_time))
             msg = 'Run-time: {}min {}s  '.format(int(dt / 60),
                                                  int(dt % 60))
@@ -129,6 +131,10 @@ class Stats(multiprocessing.Process):
             for i in range(0, len(cpu_usage)):
                 self.screen.addstr(2 + i, 40, msg.format(i, cpu_usage[i]))
 
+            msg = 'Total threads: {}. Active threads: {}  '
+            self.screen.addstr(2 + i + 1, 40,
+                               msg.format(thread_info[0], thread_info[1]))
+    
             users = self.exported_users()
             msg = 'Exported users: {}/{}  '.format(users[0], users[1])
             self.screen.addstr(3, 3, msg)
@@ -145,4 +151,4 @@ class Stats(multiprocessing.Process):
             msg = 'Total: {:.0f}MB    '.format(sum(mem_info))
             self.screen.addstr(8 + i, 3, msg)
             self.screen.refresh()
-            """
+
