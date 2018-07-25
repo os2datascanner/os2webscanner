@@ -1,4 +1,5 @@
 import time
+# import pika
 import curses
 import logging
 import subprocess
@@ -17,6 +18,12 @@ class Stats(multiprocessing.Process):
     def __init__(self, user_queue):
         psutil.cpu_percent(percpu=True)  # Initil dummy readout
         multiprocessing.Process.__init__(self)
+
+        # conn_params = pika.ConnectionParameters('localhost')
+        # connection = pika.BlockingConnection(conn_params)
+        # self.channel = connection.channel()
+        # self.chanel.queue_declare(queue='Test')
+
         self.user_queue = user_queue
         self.scanners = []
         self.screen = curses.initscr()
