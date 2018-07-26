@@ -35,7 +35,7 @@ class ExchangeFilescanner(object):
             read_users(user_queue,
                        domain.exchangedomain.get_userlist_file_path())
             done_queue = multiprocessing.Queue()
-            scan_dir = self.scanner.scan_object.scan_dir
+            scan_dir = self.scan_object.scan_dir
 
             scanners = {}
             for i in range(0, NUMBER_OF_EMAIL_THREADS):
@@ -79,9 +79,9 @@ class ExchangeFilescanner(object):
         Starts a file scan on downloaded exchange folder
         :param path: path to folder
         """
-        self.scanner.scan_object.exchangescan.folder_to_scan = path
-        scanner__dir = self.scanner.scan_object.scan_dir
-        log_file = open(self.scanner.scan_object.scan_log_file, "a")
+        self.scan_object.exchangescan.folder_to_scan = path
+        scanner__dir = self.scan_object.scan_dir
+        log_file = open(self.scan_object.scan_log_file, "a")
         try:
             process = subprocess.Popen([os.path.join(scanner__dir, 'run.sh'),
                                         str(self.scan_id)], cwd=scanner__dir,
