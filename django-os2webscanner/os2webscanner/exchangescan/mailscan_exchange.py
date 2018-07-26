@@ -1,5 +1,5 @@
 import sys
-# import pika
+import pika
 import time
 import shutil
 import random
@@ -40,10 +40,12 @@ class ExportError(Exception):
 
 class ExchangeMailboxScan(object):
     """ Library to export a users mailbox from Exchange to a filesystem """
-    def __init__(self, user, export_path, mail_ending, start_date=None):
-        credentials = ServiceAccount(username="mailscan",
-                                     password=password.password)
+    def __init__(self, credentials, user, export_path, mail_ending,
+                 start_date=None, amqp_info=None):
+        exchange_credentials = ServiceAccount(username=credentials[0],
+                                              password=credentials[1])
         username = user + mail_ending
+        self.amqp_info = amqp_info
         self.start_date = start_date
         if self.start_date is None:
             self.export_path = Path(export_path + username)
@@ -53,7 +55,8 @@ class ExchangeMailboxScan(object):
         self.current_path = None
         try:
             self.account = Account(primary_smtp_address=username,
-                                   credentials=credentials, autodiscover=True,
+                                   credentials=exchange_credentials,
+                                   autodiscover=True,
                                    access_type=IMPERSONATION)
             self.account.root.refresh()
             logger.info('{}: Init complete'.format(username))
@@ -148,7 +151,6 @@ class ExchangeMailboxScan(object):
                 except AttributeError:
                     msg = 'AttributeError {}'
                     logger.error(msg.format(self.current_path))
-
             else:
                 raise(Exception('Unknown attachment'))
         assert(i == len(item.attachments))
@@ -164,10 +166,10 @@ class ExchangeMailboxScan(object):
                 search_folders.append(folder)
             for folder in self.account.root.walk():
                 if ((folder.total_count > 0) and
-                    (folder not in search_folders) and
-                    (not isinstance(folder, AllItems)) and
-                    (not isinstance(folder, FreebusyData))
-                ):
+                        (folder not in search_folders) and
+                        (not isinstance(folder, AllItems)) and
+                        (not isinstance(folder, FreebusyData))
+                    ):
                     folder_list.append(folder)
         return folder_list
 
@@ -292,6 +294,15 @@ class ExchangeMailboxScan(object):
             self.export_path.mkdir()
         folders = self.list_non_empty_folders()
         for folder in folders:
+            if self.amqp_info:  # AMQP enabled
+                parent = self.export_path.parents[0]
+                rel_path = self.export_path.relative_to(parent)
+                body = '{}/{}: {} / {}'.format(rel_path, folder, total_scanned,
+                                               total_count)
+                self.amqp_info[0].basic_publish(exchange='',
+                                                routing_key=self.amqp_info[1],
+                                                body=body)
+
             info_string = '{}: Exporting: {} ({} items)'
             logger.info(info_string.format(self.export_path,
                                            folder,
@@ -308,13 +319,10 @@ class ExchangeServerScan(multiprocessing.Process):
     """ Helper class to allow parallel processing of export
     This classes inherits from multiprocessing and helps to
     run a number of exporters in parallel """
-    def __init__(self, user_queue, done_queue, export_path, mail_ending,
-                 start_date=None):
+    def __init__(self, credentials, user_queue, done_queue, export_path,
+                 mail_ending, start_date=None, amqp=False):
         multiprocessing.Process.__init__(self)
-        # conn_params = pika.ConnectionParameters('localhost')
-        # connection = pika.BlockingConnection(conn_params)
-        # self.channel = connection.channel()
-        # self.chanel.queue_declare(queue='Test')
+        self.credentials = credentials
         self.user_queue = user_queue
         self.done_queue = done_queue
         self.scanner = None
@@ -322,21 +330,32 @@ class ExchangeServerScan(multiprocessing.Process):
         self.start_date = start_date
         self.mail_ending = mail_ending
         self.export_path = export_path
+        self.amqp = amqp
+        self.amqp_channel = None
+
+    def start_amqp(self):
+        if self.amqp:
+            conn_params = pika.ConnectionParameters('localhost',
+                                                    heartbeat_interval=600)
+            connection = pika.BlockingConnection(conn_params)
+            self.amqp_channel = connection.channel()
+            self.amqp_channel.queue_declare(queue=str(self.pid))
 
     def run(self):
+        self.start_amqp()  # pid not known until know
         while not self.user_queue.empty():
             try:
                 self.user_name = self.user_queue.get()
-                # self.channel.basic_publish(exchange='',
-                #                            routing_key='Test',
-                #                            body=self.user_name)
-                logger.info('Scanning {}'.format(self.user_name))
+                logger.info('Scaning {}'.format(self.user_name))
                 try:
-                    self.scanner = ExchangeMailboxScan(self.user_name,
+                    amqp_info = (self.amqp_channel, str(self.pid))
+                    self.scanner = ExchangeMailboxScan(self.credentials,
+                                                       self.user_name,
                                                        self.export_path,
                                                        self.mail_ending,
-                                                       self.start_date)
-                except NameError:  # No start_time given
+                                                       self.start_date,
+                                                       amqp_info)
+                except NameError:   # No start_time given
                     self.scanner = ExchangeMailboxScan(self.user_name)
                 total_count = self.scanner.total_mails()
                 self.scanner.check_mailbox(total_count)
@@ -371,6 +390,7 @@ if __name__ == '__main__':
     import settings
     import password
 
+    credentials = ('mailscan', password.password)
     number_of_threads = int(sys.argv[1])
     try:
         start_arg = datetime.strptime(sys.argv[2], '%Y-%m-%d')
@@ -383,13 +403,16 @@ if __name__ == '__main__':
     done_queue = Queue()
     read_users(user_queue, settings.user_path)
 
+    # Stats should be run before the scanners to allow stats to mke the
+    # correct initial-value measurements
     stats = Stats(user_queue)
 
     scanners = {}
     for i in range(0, number_of_threads):
-        scanners[i] = ExchangeServerScan(user_queue, done_queue,
+        scanners[i] = ExchangeServerScan(credentials, user_queue, done_queue,
                                          settings.export_path,
-                                         settings.mail_ending, start_date)
+                                         settings.mail_ending, start_date,
+                                         amqp=True)
         stats.add_scanner(scanners[i])
         scanners[i].start()
         time.sleep(1)
