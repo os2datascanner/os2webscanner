@@ -1,1 +1,1 @@
-"""Modules relating to the exchange mail scanner."""
+"""Modules relating to the Scrapy-based webscanner."""

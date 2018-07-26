@@ -166,10 +166,10 @@ class ExchangeMailboxScan(object):
                 search_folders.append(folder)
             for folder in self.account.root.walk():
                 if ((folder.total_count > 0) and
-                        (folder not in search_folders) and
-                        (not isinstance(folder, AllItems)) and
-                        (not isinstance(folder, FreebusyData))
-                    ):
+                    (folder not in search_folders) and
+                    (not isinstance(folder, AllItems)) and
+                    (not isinstance(folder, FreebusyData))
+                ):
                     folder_list.append(folder)
         return folder_list
 
