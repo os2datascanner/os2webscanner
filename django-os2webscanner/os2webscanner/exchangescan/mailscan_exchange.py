@@ -386,7 +386,7 @@ class ExchangeServerScan(multiprocessing.Process):
                 logger.error(msg.format(self.user_name))
                 self.user_queue.put(self.user_name)
             self.exported_users = self.exported_users + 1
-            self.done_queue.put(self.export_path)
+            self.done_queue.put(self.scanner.export_path)
 
 
 def read_users(user_queue, user_file):
