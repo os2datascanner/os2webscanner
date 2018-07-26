@@ -294,7 +294,7 @@ class ExchangeMailboxScan(object):
             self.export_path.mkdir()
         folders = self.list_non_empty_folders()
         for folder in folders:
-            if self.amqp_info is not None:  # AMQP enabled
+            if self.amqp_info:  # AMQP enabled
                 parent = self.export_path.parents[0]
                 rel_path = self.export_path.relative_to(parent)
                 body = '{}/{}: {} / {}'.format(rel_path, folder, total_scanned,
@@ -346,15 +346,15 @@ class ExchangeServerScan(multiprocessing.Process):
         while not self.user_queue.empty():
             try:
                 self.user_name = self.user_queue.get()
-                logger.info('Scaning {}'.format(self.user_name))
+                logger.info('Scanning {}'.format(self.user_name))
                 try:
-                    amqp_info = (self.amqp_channel, str(self.pid))
+                    # amqp_info = (self.amqp_channel, str(self.pid))
                     self.scanner = ExchangeMailboxScan(self.credentials,
                                                        self.user_name,
                                                        self.export_path,
                                                        self.mail_ending,
                                                        self.start_date,
-                                                       amqp_info)
+                                                       amqp_info=None)
                 except NameError:   # No start_time given
                     self.scanner = ExchangeMailboxScan(self.user_name)
                 total_count = self.scanner.total_mails()
