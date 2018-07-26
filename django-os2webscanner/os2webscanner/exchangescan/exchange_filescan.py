@@ -36,6 +36,7 @@ class ExchangeFilescanner(object):
                        domain.exchangedomain.get_userlist_file_path())
             done_queue = multiprocessing.Queue()
             scan_dir = self.scan_object.scan_dir
+            mail_ending = domain.url
 
             scanners = {}
             for i in range(0, NUMBER_OF_EMAIL_THREADS):
@@ -43,7 +44,7 @@ class ExchangeFilescanner(object):
                                                  user_queue,
                                                  done_queue,
                                                  scan_dir,
-                                                 domain)
+                                                 mail_ending)
                 scanners[i].start()
                 print('Started scanner {}'.format(i))
                 time.sleep(1)
