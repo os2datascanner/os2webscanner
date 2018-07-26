@@ -1,23 +1,21 @@
 import time
 import pika
+import pickle
 import curses
 import logging
 import subprocess
 import multiprocessing
 import psutil
-from .settings import export_path
+try:
+    from settings_local import export_path
+except ImportError:
+    from .settings import export_path
 
 logger = logging.getLogger('Mailscan_exchange')
 fh = logging.FileHandler('logfile.log')
 fh.setLevel(logging.INFO)
 logger.addHandler(fh)
 logger.error('Stat start')
-
-
-class amqp_listener(multiprocessing.Process):
-    def __init__(self, stat_module):
-        multiprocessing.Process.__init__(self)
-        self.stat_module = stat_module
 
 
 class Stats(multiprocessing.Process):
@@ -48,7 +46,8 @@ class Stats(multiprocessing.Process):
             self.channel.queue_declare(queue=pid)
             method_frame, header_frame, body = self.channel.basic_get(pid)
             if method_frame:  # Ensures result is not None
-                self.amqp_messages[pid] = body.decode()
+                body_dict = pickle.loads(body)
+                self.amqp_messages[pid] = body_dict
 
     def number_of_threads(self):
         """ Number of threads
@@ -101,13 +100,13 @@ class Stats(multiprocessing.Process):
         """ Returns the memory consumption (in MB) of all threads
         :return: List of memory consumptions
         """
-        mem_list = []
+        mem_list = {}
         for scanner in self.scanners:
             pid = scanner.pid
             process = psutil.Process(pid)
             mem_info = process.memory_full_info()
             used_memory = mem_info.uss/1024**2
-            mem_list.append(used_memory)
+            mem_list[str(pid)] = used_memory
         return mem_list
 
     def status(self):
@@ -118,7 +117,7 @@ class Stats(multiprocessing.Process):
                     'Speed: {:.2f}MB/s. ' +
                     'Memory consumption: {:.3f}GB. ' +
                     'Scanned users: {} / {}')
-        memory = sum(self.memory_info()) / 1024
+        memory = sum(self.memory_info().values()) / 1024
         processes = self.number_of_threads()[1]
         dt = (time.time() - self.start_time)
         users = self.exported_users()
@@ -152,20 +151,16 @@ class Stats(multiprocessing.Process):
             self.screen.addstr(3, 3, msg)
 
             total_export_size = self.amount_of_exported_data()
-            msg = 'Total export: {:.2f}MB   '.format(total_export_size)
+            msg = 'Total export: {:.3f}MB   '.format(total_export_size)
             self.screen.addstr(4, 3, msg)
 
             speed = total_export_size / dt
-            msg = 'Avg eksport speed: {:.2f}MB/s   '.format(speed)
+            msg = 'Avg eksport speed: {:.3f}MB/s   '.format(speed)
             self.screen.addstr(5, 3, msg)
 
-            self.screen.addstr(6, 3, 'Memory usage:')
             mem_info = self.memory_info()
-            for i in range(0, len(mem_info)):
-                msg = 'Worker {}: {:.1f}MB    '.format(i, mem_info[i])
-                self.screen.addstr(7 + i, 3, msg)
-            msg = 'Total: {:.0f}MB    '.format(sum(mem_info))
-            self.screen.addstr(8 + i, 3, msg)
+            msg = 'Memory usage: {:.1f}MB'
+            self.screen.addstr(6, 3, msg.format(sum(mem_info.values())))
 
             cpu_usage = psutil.cpu_percent(percpu=True)
             msg = 'CPU{} usage: {}%  '
@@ -177,12 +172,29 @@ class Stats(multiprocessing.Process):
             self.screen.addstr(2 + i, 40,
                                msg.format(thread_info[0], thread_info[1]))
 
-            i = i + 2
+            i = i + 3
             self.screen.addstr(2 + i, 40, 'Scan status:')
-            for key, value in self.amqp_messages.items():
+            i = i + 1
+            for key, data in self.amqp_messages.items():
+                msg = 'ID {}'.format(key)
+                self.screen.addstr(2 + i, 40, msg)
                 i = i + 1
-                msg = 'ID {} scanning: {}'
-                self.screen.addstr(2 + i, 40, msg.format(key, value))
+                msg = 'Current path: {}/{}'.format(data['rel_path'],
+                                                   data['folder'])
+                self.screen.addstr(2 + i, 40, msg)
                 self.screen.clrtoeol()
-
+                i = i + 1
+                run_time = (time.time() - data['start_time']) / 60.0
+                msg = 'Progress: {} of {} mails. Export time: {:.1f}min'
+                self.screen.addstr(2 + i, 40, msg.format(data['total_scanned'],
+                                                         data['total_count'],
+                                                         run_time))
+                self.screen.clrtoeol()
+                i = i + 1
+                msg = 'Exported users: {}. Memory consumption: {:.1f}MB'
+                self.screen.addstr(2 + i, 40, msg.format(data['exported_users'],
+                                                         mem_info[key]))
+                self.screen.clrtoeol()
+                i = i + 2
             self.screen.refresh()
+
