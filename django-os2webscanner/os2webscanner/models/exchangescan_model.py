@@ -10,6 +10,7 @@ class ExchangeScan(Scan):
         """
         super().__init__(*args, **kwargs)
         self._old_status = self.status
+        self.folder_to_scan = None
 
     # Create method - copies fields from scanner
     @classmethod
