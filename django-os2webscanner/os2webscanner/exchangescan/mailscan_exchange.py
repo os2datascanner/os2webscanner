@@ -294,7 +294,7 @@ class ExchangeMailboxScan(object):
             self.export_path.mkdir()
         folders = self.list_non_empty_folders()
         for folder in folders:
-            if self.amqp_info:  # AMQP enabled
+            if self.amqp_info is not None:  # AMQP enabled
                 parent = self.export_path.parents[0]
                 rel_path = self.export_path.relative_to(parent)
                 body = '{}/{}: {} / {}'.format(rel_path, folder, total_scanned,
