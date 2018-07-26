@@ -40,10 +40,10 @@ class ExportError(Exception):
 
 class ExchangeMailboxScan(object):
     """ Library to export a users mailbox from Exchange to a filesystem """
-    def __init__(self, user, export_path, mail_ending,
+    def __init__(self, credentials, user, export_path, mail_ending,
                  start_date=None, amqp_info=None):
-        credentials = ServiceAccount(username="mailscan",
-                                     password=password.password)
+        exchange_credentials = ServiceAccount(username=credentials[0],
+                                              password=credentials[1])
         username = user + mail_ending
         self.amqp_info = amqp_info
         self.start_date = start_date
@@ -55,7 +55,8 @@ class ExchangeMailboxScan(object):
         self.current_path = None
         try:
             self.account = Account(primary_smtp_address=username,
-                                   credentials=credentials, autodiscover=True,
+                                   credentials=exchange_credentials,
+                                   autodiscover=True,
                                    access_type=IMPERSONATION)
             self.account.root.refresh()
             logger.info('{}: Init complete'.format(username))
@@ -318,9 +319,10 @@ class ExchangeServerScan(multiprocessing.Process):
     """ Helper class to allow parallel processing of export
     This classes inherits from multiprocessing and helps to
     run a number of exporters in parallel """
-    def __init__(self, user_queue, done_queue, export_path,
+    def __init__(self, credentials, user_queue, done_queue, export_path,
                  mail_ending, start_date=None, amqp=False):
         multiprocessing.Process.__init__(self)
+        self.credentials = credentials
         self.user_queue = user_queue
         self.done_queue = done_queue
         self.scanner = None
@@ -347,7 +349,8 @@ class ExchangeServerScan(multiprocessing.Process):
                 logger.info('Scaning {}'.format(self.user_name))
                 try:
                     amqp_info = (self.amqp_channel, str(self.pid))
-                    self.scanner = ExchangeMailboxScan(self.user_name,
+                    self.scanner = ExchangeMailboxScan(self.credentials,
+                                                       self.user_name,
                                                        self.export_path,
                                                        self.mail_ending,
                                                        self.start_date,
@@ -387,6 +390,7 @@ if __name__ == '__main__':
     import settings
     import password
 
+    credentials = ('mailscan', password.password)
     number_of_threads = int(sys.argv[1])
     try:
         start_arg = datetime.strptime(sys.argv[2], '%Y-%m-%d')
@@ -405,7 +409,7 @@ if __name__ == '__main__':
 
     scanners = {}
     for i in range(0, number_of_threads):
-        scanners[i] = ExchangeServerScan(user_queue, done_queue,
+        scanners[i] = ExchangeServerScan(credentials, user_queue, done_queue,
                                          settings.export_path,
                                          settings.mail_ending, start_date,
                                          amqp=True)
