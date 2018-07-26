@@ -33,7 +33,7 @@ class ExchangeFilescanner(object):
         if not os.path.exists(scan_object.scan_dir):
             os.makedirs(scan_object.scan_dir)
 
-        scan_dir = scan_object.scan_dir
+        scan_dir = scan_object.scan_dir + '/'
         
         for domain in valid_domains:
             credentials = (domain.authentication.username,
