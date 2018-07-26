@@ -12,7 +12,7 @@ import subprocess
 
 from .mailscan_exchange import ExchangeServerScan, read_users
 from .settings import NUMBER_OF_EMAIL_THREADS
-from ..models.scan_model import Scan
+from os2webscanner.models.scan_model import Scan
 
 
 class ExchangeFilescanner(object):
