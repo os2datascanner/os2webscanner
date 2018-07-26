@@ -330,7 +330,7 @@ class ExchangeServerScan(multiprocessing.Process):
                 # self.channel.basic_publish(exchange='',
                 #                            routing_key='Test',
                 #                            body=self.user_name)
-                logger.info('Scaning {}'.format(self.user_name))
+                logger.info('Scanning {}'.format(self.user_name))
                 try:
                     self.scanner = ExchangeMailboxScan(self.user_name,
                                                        self.export_path,
@@ -349,7 +349,7 @@ class ExchangeServerScan(multiprocessing.Process):
                 msg = 'Could not export all of {}'
                 logger.error(msg.format(self.user_name))
                 self.user_queue.put(self.user_name)
-        self.done_queue.put(export_path)
+        self.done_queue.put(self.export_path)
 
 
 def read_users(user_queue, user_file):
