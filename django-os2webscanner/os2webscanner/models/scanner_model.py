@@ -34,6 +34,8 @@ from .group_model import Group
 from .regexrule_model import RegexRule
 from .userprofile_model import UserProfile
 
+from ..exchangescan.exchange_filescan import ExchangeFilescanner
+
 base_dir = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
@@ -214,12 +216,15 @@ class Scanner(models.Model):
         if user:
             scan.recipients.add(user.profile)
 
+        if hasattr(scan, 'exchangescan'):
+            exchange_file_scan = ExchangeFilescanner(scan.pk)
+            exchange_file_scan.run()
+            return scan
+
         # Get path to run script
         SCANNER_DIR = os.path.join(settings.PROJECT_DIR, "scrapy-webscanner")
-        if hasattr(scan, 'exchangescan'):
-            FILE_NAME = 'mailscan_run.sh'
-        else:
-            FILE_NAME = 'run.sh'
+
+        FILE_NAME = 'run.sh'
 
         if test_only:
             return scan
