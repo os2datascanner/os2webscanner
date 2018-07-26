@@ -59,6 +59,12 @@ class ScannerSpider(BaseScannerSpider):
 
         self.start_urls = []
 
+        self.crawl = False
+
+        self.do_last_modified_check = False
+
+        self.do_last_modified_check_head_request = False
+
         self.setup_spider()
 
     def setup_spider(self):
@@ -67,7 +73,6 @@ class ScannerSpider(BaseScannerSpider):
         if scan_object.scanner.process_urls:
             # from the scanner.
             self.start_urls = scan_object.scanner.process_urls
-            self.crawl = False
         else:
             self.crawl = True
             # Otherwise, use the roots of the domains as starting URLs
@@ -84,6 +89,7 @@ class ScannerSpider(BaseScannerSpider):
                     url = url.replace('*.', '')
                     logging.info("Start url %s" % str(url))
                     self.start_urls.append(url)
+
                 self.do_last_modified_check = getattr(
                     scan_object.webscan, "do_last_modified_check"
                 )
@@ -102,17 +108,28 @@ class ScannerSpider(BaseScannerSpider):
                 self.external_urls = set()
             elif hasattr(scan_object, 'filescan'):
                 for path in self.allowed_domains:
-                    logging.info("Start path %s" % str(path))
-                    if not path.startswith('file://'):
-                        path = 'file://%s' % path
-
+                    path = self.add_correct_file_path_prefix(path)
                     self.start_urls.append(path)
 
                 self.do_last_modified_check = getattr(
                     scan_object.filescan, "do_last_modified_check"
                 )
-                # Not used on type filescan
-                self.do_last_modified_check_head_request = False
+            elif hasattr(scan_object, 'exchangescan'):
+                path = self.scanner.scan_object.exchangescan.folder_to_scan
+                path = self.add_correct_file_path_prefix(path)
+                self.start_urls.append(path)
+
+    def add_correct_file_path_prefix(self, path):
+        """
+        Helper method for making sure file path starts with file://.
+        This prefix is needed by scrapy, or else scrapy does not know it is a file path.
+        :param path: path to folder or file
+        :return: path with prefix file://
+        """
+        logging.info("Start path %s" % str(path))
+        if not path.startswith('file://'):
+            path = 'file://%s' % path
+        return path
 
     def start_requests(self):
         """Return requests for all starting URLs AND sitemap URLs."""
@@ -139,7 +156,7 @@ class ScannerSpider(BaseScannerSpider):
 
             else:
                 requests.append(Request(url, callback=self.parse,
-                                         errback=self.handle_error))
+                                        errback=self.handle_error))
         return requests
 
     def parse(self, response):
