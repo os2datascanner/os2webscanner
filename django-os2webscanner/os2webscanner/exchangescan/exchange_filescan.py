@@ -55,15 +55,18 @@ class ExchangeFilescanner(object):
         while item is not None:
             print('Getting item from q: {}'.format(item))
             try:
+                self.start_filescan(item)
                 item = q.get(True, 1)
-                self.start_filescan()
 
             except queue.Empty:
                 print('Queue is empty')
                 item = None
 
-    def start_filescan(self):
-        # TODO: start file scan on item.
+    def start_filescan(self, path):
+        """
+        Starts a file scan on downloaded folder
+        """
+        self.scanner.scan_object.exchangescan.folder_to_scan = path
         scanner__dir = self.scanner.scan_object.scan_dir
         log_file = open(self.scanner.scan_object.scan_log_file, "a")
         try:
@@ -74,14 +77,5 @@ class ExchangeFilescanner(object):
             process.communicate()
         except Exception as e:
             print(e)
-            return None
-
-
-def main():
-    exchange_file_scanner = ExchangeFilescanner()
-    exchange_file_scanner.run()
 
 # TODO: læg user elementer i en python list og tjek tilsidst eller løbende at alle users er scannet.
-
-
-main()
