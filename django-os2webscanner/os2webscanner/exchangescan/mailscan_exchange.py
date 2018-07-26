@@ -20,7 +20,10 @@ from exchangelib.errors import ErrorCannotOpenFileAttachment
 from exchangelib.errors import ErrorInternalServerError
 from exchangelib.errors import ErrorInvalidOperation
 from exchangelib.errors import ErrorTimeoutExpired
-from stats import Stats
+try:
+    from .stats import Stats
+except SystemError:
+    from stats import Stats
 
 exchangelogger = logging.getLogger('exchangelib')
 exchangelogger.setLevel(logging.ERROR)
@@ -356,7 +359,7 @@ class ExchangeServerScan(multiprocessing.Process):
         while not self.user_queue.empty():
             try:
                 self.user_name = self.user_queue.get()
-                logger.info('Scaning {}'.format(self.user_name))
+                logger.info('Scanning {}'.format(self.user_name))
                 try:
                     amqp_data = {}
                     amqp_data['exported_users'] = self.exported_users

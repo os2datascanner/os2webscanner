@@ -19,3 +19,5 @@
 NUMBER_OF_EMAIL_THREADS = 1
 
 MAX_WAIT_TIME = 1000
+
+export_path = ''

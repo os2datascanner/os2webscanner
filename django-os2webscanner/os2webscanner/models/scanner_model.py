@@ -21,6 +21,7 @@
 import os
 import datetime
 import json
+import threading
 
 from subprocess import Popen
 
@@ -218,7 +219,8 @@ class Scanner(models.Model):
 
         if hasattr(scan, 'exchangescan'):
             exchange_file_scan = ExchangeFilescanner(scan.pk)
-            exchange_file_scan.run()
+            thread = threading.Thread(target=exchange_file_scan.start_mail_scan())
+            thread.start()
             return scan
 
         # Get path to run script

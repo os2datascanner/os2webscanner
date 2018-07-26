@@ -12,6 +12,7 @@ import subprocess
 
 from .mailscan_exchange import ExchangeServerScan, read_users
 from .settings import NUMBER_OF_EMAIL_THREADS
+from os2webscanner.models.domain_model import Domain
 
 
 class ExchangeFilescanner(object):
@@ -19,23 +20,31 @@ class ExchangeFilescanner(object):
     def __init__(self, scan_id):
         print('Program started')
         self.scan_id = scan_id
-        from scanner.scanner.scanner import Scanner
-        self.scanner = Scanner(scan_id)
+        from os2webscanner.models.scan_model import Scan
+        self.scan_object = Scan.objects.get(pk=scan_id)
 
-    def run(self):
-        domains = self.scanner.get_domain_objects()
-        for domain in domains:
+    def start_mail_scan(self):
+        valid_domains = self.scan_object.domains.filter(
+            validation_status=Domain.VALID
+        )
+
+        for domain in valid_domains:
+            credentials = (domain.authentication.username,
+                           domain.authentication.get_password())
             user_queue = multiprocessing.Queue()
             read_users(user_queue,
                        domain.exchangedomain.get_userlist_file_path())
             done_queue = multiprocessing.Queue()
+            scan_dir = self.scan_object.scan_dir
+            mail_ending = domain.url
 
             scanners = {}
             for i in range(0, NUMBER_OF_EMAIL_THREADS):
-                scanners[i] = ExchangeServerScan(user_queue,
+                scanners[i] = ExchangeServerScan(credentials,
+                                                 user_queue,
                                                  done_queue,
-                                                 self.scanner.scan_object.scan_dir,
-                                                 domain)
+                                                 scan_dir,
+                                                 mail_ending)
                 scanners[i].start()
                 print('Started scanner {}'.format(i))
                 time.sleep(1)
@@ -51,6 +60,10 @@ class ExchangeFilescanner(object):
                 time.sleep(1)
 
     def get_queue_item(self, q):
+        """
+        Getting next queue item and starting file scan on item, until queue is empty.
+        :param q: shared queue
+        """
         item = q.get()
         while item is not None:
             print('Getting item from q: {}'.format(item))
@@ -64,11 +77,12 @@ class ExchangeFilescanner(object):
 
     def start_filescan(self, path):
         """
-        Starts a file scan on downloaded folder
+        Starts a file scan on downloaded exchange folder
+        :param path: path to folder
         """
-        self.scanner.scan_object.exchangescan.folder_to_scan = path
-        scanner__dir = self.scanner.scan_object.scan_dir
-        log_file = open(self.scanner.scan_object.scan_log_file, "a")
+        self.scan_object.exchangescan.folder_to_scan = path
+        scanner__dir = self.scan_object.scan_dir
+        log_file = open(self.scan_object.scan_log_file, "a")
         try:
             process = subprocess.Popen([os.path.join(scanner__dir, 'run.sh'),
                                         str(self.scan_id)], cwd=scanner__dir,
