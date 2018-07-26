@@ -362,9 +362,8 @@ class ExchangeServerScan(multiprocessing.Process):
                 logger.info('Scanning {}'.format(self.user_name))
                 try:
                     amqp_data = {}
-                    if self.amqp:
-                        amqp_data['exported_users'] = self.exported_users
-                        amqp_info = (self.amqp_channel, str(self.pid), amqp_data)
+                    amqp_data['exported_users'] = self.exported_users
+                    amqp_info = (self.amqp_channel, str(self.pid), amqp_data)
                     self.scanner = ExchangeMailboxScan(self.credentials,
                                                        self.user_name,
                                                        self.export_path,
@@ -374,6 +373,7 @@ class ExchangeServerScan(multiprocessing.Process):
                     self.scanner.amqp_data['exported_users'] = self.exported_users
                 except NameError:   # No start_time given
                     self.scanner = ExchangeMailboxScan(self.user_name)
+
                 total_count = self.scanner.total_mails()
                 self.scanner.check_mailbox(total_count)
                 logger.info('Done with {}'.format(self.user_name))
