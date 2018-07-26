@@ -1,3 +1,4 @@
+from django.db import models
 from .scan_model import Scan
 
 
@@ -10,7 +11,6 @@ class ExchangeScan(Scan):
         """
         super().__init__(*args, **kwargs)
         self._old_status = self.status
-        self.folder_to_scan = None
 
     # Create method - copies fields from scanner
     @classmethod
@@ -37,7 +37,10 @@ class ExchangeScan(Scan):
             do_name_replace=scanner.do_name_replace,
             name_replace_text=scanner.name_replace_text,
             do_address_replace=scanner.do_address_replace,
-            address_replace_text=scanner.address_replace_text
+            address_replace_text=scanner.address_replace_text,
+            folder_to_scan=models.CharField(max_length=2048,
+                                            null=True,
+                                            blank=True)
         )
         #
         scanner.is_running = True
