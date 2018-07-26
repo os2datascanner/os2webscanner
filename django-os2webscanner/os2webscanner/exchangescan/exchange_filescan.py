@@ -51,6 +51,10 @@ class ExchangeFilescanner(object):
                 time.sleep(1)
 
     def get_queue_item(self, q):
+        """
+        Getting next queue item and starting file scan on item, until queue is empty.
+        :param q: shared queue
+        """
         item = q.get()
         while item is not None:
             print('Getting item from q: {}'.format(item))
@@ -64,7 +68,8 @@ class ExchangeFilescanner(object):
 
     def start_filescan(self, path):
         """
-        Starts a file scan on downloaded folder
+        Starts a file scan on downloaded exchange folder
+        :param path: path to folder
         """
         self.scanner.scan_object.exchangescan.folder_to_scan = path
         scanner__dir = self.scanner.scan_object.scan_dir
