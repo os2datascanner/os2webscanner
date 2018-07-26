@@ -12,6 +12,7 @@ import subprocess
 
 from .mailscan_exchange import ExchangeServerScan, read_users
 from .settings import NUMBER_OF_EMAIL_THREADS
+from ..models.scan_model import Scan
 
 
 class ExchangeFilescanner(object):
@@ -19,11 +20,10 @@ class ExchangeFilescanner(object):
     def __init__(self, scan_id):
         print('Program started')
         self.scan_id = scan_id
-        from scanner.scanner.scanner import Scanner
-        self.scanner = Scanner(scan_id)
+        self.scan_object = Scan.objects.get(pk=scan_id)
 
     def start_mail_scan(self):
-        domains = self.scanner.get_domain_objects()
+        domains = self.scan_object.domains
         for domain in domains:
             credentials = (domain.authentication.username,
                            domain.authentication.get_password())
