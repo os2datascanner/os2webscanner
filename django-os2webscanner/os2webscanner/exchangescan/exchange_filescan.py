@@ -92,6 +92,7 @@ class ExchangeFilescanner(object):
         scan_object = Scan.objects.get(pk=self.scan_id)
         scan_object.exchangescan.folder_to_scan = path
         scan_object.save()
+        print('Starting file scan for path {}'.format(path))
         scanner_dir = os.path.join(settings.PROJECT_DIR, "scrapy-webscanner")
         log_file = open(scan_object.scan_log_file, "a")
         try:
