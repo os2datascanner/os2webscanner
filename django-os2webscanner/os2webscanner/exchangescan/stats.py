@@ -5,7 +5,7 @@ import logging
 import subprocess
 import multiprocessing
 import psutil
-import settings
+from .settings import export_path
 
 logger = logging.getLogger('Mailscan_exchange')
 fh = logging.FileHandler('logfile.log')
@@ -72,7 +72,7 @@ class Stats(multiprocessing.Process):
         while error:
             try:
                 du_output = subprocess.check_output(['du', '-s',
-                                                     settings.export_path])
+                                                     export_path])
                 error = False
             except subprocess.CalledProcessError:
                 # Happens if du is called while folder is being marked done
