@@ -12,7 +12,6 @@ import subprocess
 
 from .mailscan_exchange import ExchangeServerScan, read_users
 from .settings import NUMBER_OF_EMAIL_THREADS
-from os2webscanner.models.scan_model import Scan
 
 
 class ExchangeFilescanner(object):
@@ -20,6 +19,7 @@ class ExchangeFilescanner(object):
     def __init__(self, scan_id):
         print('Program started')
         self.scan_id = scan_id
+        from os2webscanner.models.scan_model import Scan
         self.scan_object = Scan.objects.get(pk=scan_id)
 
     def start_mail_scan(self):
