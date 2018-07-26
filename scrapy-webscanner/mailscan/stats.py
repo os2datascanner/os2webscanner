@@ -1,5 +1,5 @@
 import time
-# import pika
+import pika
 import curses
 import logging
 import subprocess
@@ -14,16 +14,21 @@ logger.addHandler(fh)
 logger.error('Stat start')
 
 
+class amqp_listener(multiprocessing.Process):
+    def __init__(self, stat_module):
+        multiprocessing.Process.__init__(self)
+        self.stat_module = stat_module
+
+
 class Stats(multiprocessing.Process):
     def __init__(self, user_queue):
         psutil.cpu_percent(percpu=True)  # Initil dummy readout
         multiprocessing.Process.__init__(self)
 
-        # conn_params = pika.ConnectionParameters('localhost')
-        # connection = pika.BlockingConnection(conn_params)
-        # self.channel = connection.channel()
-        # self.chanel.queue_declare(queue='Test')
-
+        conn_params = pika.ConnectionParameters('localhost')
+        connection = pika.BlockingConnection(conn_params)
+        self.channel = connection.channel()
+        self.amqp_messages = {}
         self.user_queue = user_queue
         self.scanners = []
         self.screen = curses.initscr()
@@ -37,13 +42,21 @@ class Stats(multiprocessing.Process):
         self.total_users = self.user_queue.qsize()
         self.init_du = self.disk_usage()
 
+    def amqp_update(self):
+        for scanner in self.scanners:
+            pid = str(scanner.pid)
+            self.channel.queue_declare(queue=pid)
+            method_frame, header_frame, body = self.channel.basic_get(pid)
+            if method_frame:  # Ensures result is not None
+                self.amqp_messages[pid] = body.decode()
+
     def number_of_threads(self):
         """ Number of threads
         :return: Tuple with Number of threads, and nuber of active threads
         """
         return (len(self.scanners), len(multiprocessing.active_children()))
 
-    def add_scanner(self, scanner):
+    def add_scanner(self, scanner, amqp_name=None):
         """ Add a scanner to the internal list of scanners
         :param scanner: The scanner object to be added
         :return: The new number of threads
@@ -122,33 +135,29 @@ class Stats(multiprocessing.Process):
         processes = self.number_of_threads()[1]
         while processes > 0:
             time.sleep(5)
+            self.amqp_update()
             thread_info = self.number_of_threads()
             processes = thread_info[1]
             status = self.status()
             logger.info(status)
-            #print(status)
+            # print(status)
 
             dt = int((time.time() - self.start_time))
             msg = 'Run-time: {}min {}s  '.format(int(dt / 60),
                                                  int(dt % 60))
             self.screen.addstr(2, 3, msg)
 
-            cpu_usage = psutil.cpu_percent(percpu=True)
-            msg = 'CPU{} usage: {}%  '
-            for i in range(0, len(cpu_usage)):
-                self.screen.addstr(2 + i, 40, msg.format(i, cpu_usage[i]))
-
-            msg = 'Total threads: {}. Active threads: {}  '
-            self.screen.addstr(2 + i + 1, 40,
-                               msg.format(thread_info[0], thread_info[1]))
-    
             users = self.exported_users()
             msg = 'Exported users: {}/{}  '.format(users[0], users[1])
             self.screen.addstr(3, 3, msg)
 
-            speed = self.amount_of_exported_data() / dt
-            msg = 'Avg eksport speed: {:.2f}MB/s   '.format(speed)
+            total_export_size = self.amount_of_exported_data()
+            msg = 'Total export: {:.2f}MB   '.format(total_export_size)
             self.screen.addstr(4, 3, msg)
+
+            speed = total_export_size / dt
+            msg = 'Avg eksport speed: {:.2f}MB/s   '.format(speed)
+            self.screen.addstr(5, 3, msg)
 
             self.screen.addstr(6, 3, 'Memory usage:')
             mem_info = self.memory_info()
@@ -157,5 +166,23 @@ class Stats(multiprocessing.Process):
                 self.screen.addstr(7 + i, 3, msg)
             msg = 'Total: {:.0f}MB    '.format(sum(mem_info))
             self.screen.addstr(8 + i, 3, msg)
-            self.screen.refresh()
 
+            cpu_usage = psutil.cpu_percent(percpu=True)
+            msg = 'CPU{} usage: {}%  '
+            for i in range(0, len(cpu_usage)):
+                self.screen.addstr(2 + i, 40, msg.format(i, cpu_usage[i]))
+
+            i = i + 1
+            msg = 'Total threads: {}. Active threads: {}  '
+            self.screen.addstr(2 + i, 40,
+                               msg.format(thread_info[0], thread_info[1]))
+
+            i = i + 2
+            self.screen.addstr(2 + i, 40, 'Scan status:')
+            for key, value in self.amqp_messages.items():
+                i = i + 1
+                msg = 'ID {} scanning: {}'
+                self.screen.addstr(2 + i, 40, msg.format(key, value))
+                self.screen.clrtoeol()
+
+            self.screen.refresh()
