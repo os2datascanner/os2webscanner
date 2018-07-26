@@ -22,19 +22,23 @@ class ExchangeFilescanner(object):
         from scanner.scanner.scanner import Scanner
         self.scanner = Scanner(scan_id)
 
-    def run(self):
+    def start_mail_scan(self):
         domains = self.scanner.get_domain_objects()
         for domain in domains:
+            credentials = (domain.authentication.username,
+                           domain.authentication.get_password())
             user_queue = multiprocessing.Queue()
             read_users(user_queue,
                        domain.exchangedomain.get_userlist_file_path())
             done_queue = multiprocessing.Queue()
+            scan_dir = self.scanner.scan_object.scan_dir
 
             scanners = {}
             for i in range(0, NUMBER_OF_EMAIL_THREADS):
-                scanners[i] = ExchangeServerScan(user_queue,
+                scanners[i] = ExchangeServerScan(credentials,
+                                                 user_queue,
                                                  done_queue,
-                                                 self.scanner.scan_object.scan_dir,
+                                                 scan_dir,
                                                  domain)
                 scanners[i].start()
                 print('Started scanner {}'.format(i))
