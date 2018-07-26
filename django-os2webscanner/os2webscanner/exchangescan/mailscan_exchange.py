@@ -1,6 +1,7 @@
 import sys
-import pika
 import time
+import pika
+import pickle
 import shutil
 import random
 import logging
@@ -45,7 +46,11 @@ class ExchangeMailboxScan(object):
         exchange_credentials = ServiceAccount(username=credentials[0],
                                               password=credentials[1])
         username = user + mail_ending
+
         self.amqp_info = amqp_info
+        self.amqp_data = amqp_info[2]
+        self.amqp_data['start_time'] = time.time()
+
         self.start_date = start_date
         if self.start_date is None:
             self.export_path = Path(export_path + username)
@@ -297,11 +302,15 @@ class ExchangeMailboxScan(object):
             if self.amqp_info:  # AMQP enabled
                 parent = self.export_path.parents[0]
                 rel_path = self.export_path.relative_to(parent)
-                body = '{}/{}: {} / {}'.format(rel_path, folder, total_scanned,
-                                               total_count)
+
+                self.amqp_data['rel_path'] = str(rel_path)
+                self.amqp_data['folder'] = str(folder)
+                self.amqp_data['total_scanned'] = total_scanned
+                self.amqp_data['total_count'] = total_count
+                amqp_data = pickle.dumps(self.amqp_data)
                 self.amqp_info[0].basic_publish(exchange='',
                                                 routing_key=self.amqp_info[1],
-                                                body=body)
+                                                body=amqp_data)
 
             info_string = '{}: Exporting: {} ({} items)'
             logger.info(info_string.format(self.export_path,
@@ -332,11 +341,12 @@ class ExchangeServerScan(multiprocessing.Process):
         self.export_path = export_path
         self.amqp = amqp
         self.amqp_channel = None
+        self.exported_users = 0
 
     def start_amqp(self):
         if self.amqp:
             conn_params = pika.ConnectionParameters('localhost',
-                                                    heartbeat_interval=600)
+                                                    heartbeat_interval=6000)
             connection = pika.BlockingConnection(conn_params)
             self.amqp_channel = connection.channel()
             self.amqp_channel.queue_declare(queue=str(self.pid))
@@ -348,13 +358,16 @@ class ExchangeServerScan(multiprocessing.Process):
                 self.user_name = self.user_queue.get()
                 logger.info('Scaning {}'.format(self.user_name))
                 try:
-                    amqp_info = (self.amqp_channel, str(self.pid))
+                    amqp_data = {}
+                    amqp_data['exported_users'] = self.exported_users
+                    amqp_info = (self.amqp_channel, str(self.pid), amqp_data)
                     self.scanner = ExchangeMailboxScan(self.credentials,
                                                        self.user_name,
                                                        self.export_path,
                                                        self.mail_ending,
                                                        self.start_date,
                                                        amqp_info)
+                    self.scanner.amqp_data['exported_users'] = self.exported_users
                 except NameError:   # No start_time given
                     self.scanner = ExchangeMailboxScan(self.user_name)
                 total_count = self.scanner.total_mails()
@@ -368,7 +381,8 @@ class ExchangeServerScan(multiprocessing.Process):
                 msg = 'Could not export all of {}'
                 logger.error(msg.format(self.user_name))
                 self.user_queue.put(self.user_name)
-        self.done_queue.put(self.export_path)
+            self.exported_users = self.exported_users + 1
+            self.done_queue.put(self.export_path)
 
 
 def read_users(user_queue, user_file):
@@ -387,7 +401,7 @@ def read_users(user_queue, user_file):
 
 
 if __name__ == '__main__':
-    import settings
+    import settings_local as settings
     import password
 
     credentials = ('mailscan', password.password)
@@ -415,7 +429,7 @@ if __name__ == '__main__':
                                          amqp=True)
         stats.add_scanner(scanners[i])
         scanners[i].start()
-        time.sleep(1)
+        time.sleep(0.25)
 
     stats.run()
 
