@@ -19,7 +19,7 @@ from exchangelib.errors import ErrorCannotOpenFileAttachment
 from exchangelib.errors import ErrorInternalServerError
 from exchangelib.errors import ErrorInvalidOperation
 from exchangelib.errors import ErrorTimeoutExpired
-from stats import Stats
+from .stats import Stats
 
 exchangelogger = logging.getLogger('exchangelib')
 exchangelogger.setLevel(logging.ERROR)
