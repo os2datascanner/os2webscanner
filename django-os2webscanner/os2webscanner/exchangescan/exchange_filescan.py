@@ -12,6 +12,7 @@ import subprocess
 
 from .mailscan_exchange import ExchangeServerScan, read_users
 from .settings import NUMBER_OF_EMAIL_THREADS
+from os2webscanner.models.domain_model import Domain
 
 
 class ExchangeFilescanner(object):
@@ -23,8 +24,11 @@ class ExchangeFilescanner(object):
         self.scan_object = Scan.objects.get(pk=scan_id)
 
     def start_mail_scan(self):
-        domains = self.scan_object.domains
-        for domain in domains:
+        valid_domains = self.scan_object.domains.filter(
+            validation_status=Domain.VALID
+        )
+
+        for domain in valid_domains:
             credentials = (domain.authentication.username,
                            domain.authentication.get_password())
             user_queue = multiprocessing.Queue()
