@@ -44,7 +44,6 @@ class Stats(multiprocessing.Process):
         self.total_users = self.user_queue.qsize()
         self.init_du = self.disk_usage()
 
-
     def _amqp_single_update(self, queue_name):
         method, header, body = self.channel.basic_get(queue_name)
         while method:  # Always empty queue, do now show old data
@@ -146,8 +145,7 @@ class Stats(multiprocessing.Process):
     def run(self):
         self.amqp_update()
         processes = self.number_of_threads()[1]
-        #while processes > 0:
-        while True:
+        while processes is not 0:
             self.amqp_update()
             thread_info = self.number_of_threads()
             processes = thread_info[1]
@@ -203,19 +201,25 @@ class Stats(multiprocessing.Process):
                 self.screen.addstr(2 + i, 50, msg)
                 i = i + 1
                 try:
-                    msg = 'Current path: {}/{}'.format(data['rel_path'],
-                                                       data['folder'])
+                    if mem_info[key] > 0:
+                        msg = 'Current path: {}/{}'.format(data['rel_path'],
+                                                           data['folder'])
+                    else:
+                        msg = 'Current path: {}'.format(data['rel_path'])
                     self.screen.addstr(2 + i, 50, msg)
                     self.screen.clrtoeol()
                     i = i + 1
-                    run_time = (time.time() - data['start_time']) / 60.0
+                    if mem_info[key] > 0:
+                        run_time = (time.time() - data['start_time']) / 60.0
+                    else:
+                        run_time = 0
                     msg = 'Progress: {} of {} mails. Export time: {:.1f}min'
                     self.screen.addstr(2 + i, 50, msg.format(data['total_scanned'],
                                                              data['total_count'],
                                                              run_time))
                     self.screen.clrtoeol()
                     i = i + 1
-                    msg = 'Exported users: {}. Memory consumption: {:.1f}MB'
+                    msg = 'Exported users: {}. Memory consumption: {:.1f}MB   '
                     msg = msg.format(data['exported_users'], mem_info[key])
                     self.screen.addstr(2 + i, 50, msg)
                     i = i + 1
@@ -228,4 +232,13 @@ class Stats(multiprocessing.Process):
                     self.screen.addstr(2 + i, 50, str(mem_info))
                 i = i + 2
             self.screen.refresh()
+            key = self.screen.getch()
+            if key == ord('q'):
+                # Quit program
+                pass
             time.sleep(2)
+
+        curses.nocbreak()
+        self.screen.keypad(0)
+        curses.echo()
+        curses.endwin()
