@@ -88,10 +88,14 @@ class ExchangeFilescanner(object):
         Starts a file scan on downloaded exchange folder
         :param path: path to folder
         """
-        from os2webscanner.models.scan_model import Scan
-        scan_object = Scan.objects.get(pk=self.scan_id)
-        scan_object.exchangescan.folder_to_scan = path
-        scan_object.save()
+        try:
+            from os2webscanner.models.scan_model import Scan
+            scan_object = Scan.objects.get(pk=self.scan_id)
+            scan_object.exchangescan.folder_to_scan = str(path)
+            scan_object.save()
+        except Exception as ex:
+            print('Error occured while storing path to scan: {}'.format(path))
+            print(ex)
         print('Starting file scan for path {}'.format(path))
         scanner_dir = os.path.join(settings.PROJECT_DIR, "scrapy-webscanner")
         log_file = open(scan_object.scan_log_file, "a")
