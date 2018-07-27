@@ -282,12 +282,12 @@ class ExchangeMailboxScan(object):
             attachments += self._attempt_export(folder, end_dt=start_dt)
         else:
             start_dt = self.start_date
+        end_dt = start_dt + timedelta(days=10)
+        while end_dt < EWSDate(2022, 1, 1):
+            attachments += self._attempt_export(folder, start_dt=start_dt,
+                                                end_dt=end_dt)
+            start_dt = end_dt
             end_dt = start_dt + timedelta(days=10)
-            while end_dt < EWSDate(2022, 1, 1):
-                attachments += self._attempt_export(folder, start_dt=start_dt,
-                                                    end_dt=end_dt)
-                start_dt = end_dt
-                end_dt = start_dt + timedelta(days=10)
             # Finally, export everything later than 2022
             attachments += self._attempt_export(folder, start_dt=end_dt)
         try:
