@@ -221,7 +221,8 @@ class ScannerSpider(BaseScannerSpider):
         If link checking is enabled, saves the broken URL and referrers.
         """
         # If scanner is type filescan
-        if hasattr(self.scanner.scan_object, 'filescan'):
+        if hasattr(self.scanner.scan_object, 'filescan') \
+                or hasattr(self.scanner.scan_object, 'exchangescan'):
             # If file is a directory loop through files within
             if isinstance(failure.value, IOError) \
                     and failure.value.errno == errno.EISDIR:
