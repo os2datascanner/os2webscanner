@@ -246,7 +246,8 @@ def main():
                     status=Scan.STARTED
                 ).select_for_update(nowait=True)
                 for scan in running_scans:
-                    if not scan.pid:
+                    if not scan.pid \
+                            and not hasattr(scan, 'exchangescan'):
                         continue
                     try:
                         # Check if process is still running
