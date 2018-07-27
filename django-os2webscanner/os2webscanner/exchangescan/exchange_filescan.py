@@ -31,6 +31,7 @@ class ExchangeFilescanner(object):
         )
 
         if not os.path.exists(scan_object.scan_dir):
+            print('Creating scan dir {}'.format(scan_object.scan_dir))
             os.makedirs(scan_object.scan_dir)
 
         scan_dir = scan_object.scan_dir + '/'
@@ -89,9 +90,9 @@ class ExchangeFilescanner(object):
         :param path: path to folder
         """
         try:
-            from os2webscanner.models.scan_model import Scan
-            scan_object = Scan.objects.get(pk=self.scan_id)
-            scan_object.exchangescan.folder_to_scan = str(path)
+            from os2webscanner.models.exchangescan_model import ExchangeScan
+            scan_object = ExchangeScan.objects.get(pk=self.scan_id)
+            scan_object.folder_to_scan = str(path)
             scan_object.save()
         except Exception as ex:
             print('Error occured while storing path to scan: {}'.format(path))
