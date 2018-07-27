@@ -20,13 +20,17 @@ logger.error('Stat start')
 
 class Stats(multiprocessing.Process):
     def __init__(self, user_queue):
-        psutil.cpu_percent(percpu=True)  # Initil dummy readout
+        psutil.cpu_percent(percpu=True)  # Initial dummy readout
         multiprocessing.Process.__init__(self)
 
         conn_params = pika.ConnectionParameters('localhost')
         connection = pika.BlockingConnection(conn_params)
         self.channel = connection.channel()
+        self.channel.queue_declare('global')
         self.amqp_messages = {}
+        self.amqp_messages['global'] = {}
+        self.amqp_messages['global']['children'] = -1
+        self.amqp_messages['global']['amqp_time'] = -1
         self.user_queue = user_queue
         self.scanners = []
         self.screen = curses.initscr()
@@ -40,28 +44,34 @@ class Stats(multiprocessing.Process):
         self.total_users = self.user_queue.qsize()
         self.init_du = self.disk_usage()
 
+
+    def _amqp_single_update(self, queue_name):
+        method, header, body = self.channel.basic_get(queue_name)
+        while method:  # Always empty queue, do now show old data
+            body_dict = pickle.loads(body)
+            self.amqp_messages[queue_name] = body_dict
+            method, header, body = self.channel.basic_get(queue_name)
+
     def amqp_update(self):
-        for scanner in self.scanners:
-            pid = str(scanner.pid)
-            self.channel.queue_declare(queue=pid)
-            method_frame, header_frame, body = self.channel.basic_get(pid)
-            if method_frame:  # Ensures result is not None
-                body_dict = pickle.loads(body)
-                self.amqp_messages[pid] = body_dict
+        t = time.time()
+        self._amqp_single_update('global')
+        for pid in self.scanners:
+            self._amqp_single_update(str(pid))
+        self.amqp_messages['global']['amqp_time'] = time.time() - t
 
     def number_of_threads(self):
         """ Number of threads
         :return: Tuple with Number of threads, and nuber of active threads
         """
-        return (len(self.scanners), len(multiprocessing.active_children()))
+        return (len(self.scanners), self.amqp_messages['global']['children'])
 
-    def add_scanner(self, scanner, amqp_name=None):
+    def add_scanner(self, scanner):
         """ Add a scanner to the internal list of scanners
         :param scanner: The scanner object to be added
-        :return: The new number of threads
+        :return: The new number of scanners
         """
         self.scanners.append(scanner)
-        return self.number_of_threads()
+        return len(self.scanners)
 
     def disk_usage(self):
         """ Return the current disk usage
@@ -71,7 +81,8 @@ class Stats(multiprocessing.Process):
         while error:
             try:
                 du_output = subprocess.check_output(['du', '-s',
-                                                     export_path])
+                                                     export_path],
+                                                    stderr=subprocess.DEVNULL)
                 error = False
             except subprocess.CalledProcessError:
                 # Happens if du is called while folder is being marked done
@@ -101,11 +112,13 @@ class Stats(multiprocessing.Process):
         :return: List of memory consumptions
         """
         mem_list = {}
-        for scanner in self.scanners:
-            pid = scanner.pid
-            process = psutil.Process(pid)
-            mem_info = process.memory_full_info()
-            used_memory = mem_info.uss/1024**2
+        for pid in self.scanners:
+            try:
+                process = psutil.Process(pid)
+                mem_info = process.memory_full_info()
+                used_memory = mem_info.uss/1024**2
+            except psutil._exceptions.NoSuchProcess:
+                used_memory = -1
             mem_list[str(pid)] = used_memory
         return mem_list
 
@@ -131,9 +144,10 @@ class Stats(multiprocessing.Process):
         return ret_str
 
     def run(self):
+        self.amqp_update()
         processes = self.number_of_threads()[1]
-        while processes > 0:
-            time.sleep(5)
+        #while processes > 0:
+        while True:
             self.amqp_update()
             thread_info = self.number_of_threads()
             processes = thread_info[1]
@@ -162,39 +176,56 @@ class Stats(multiprocessing.Process):
             msg = 'Memory usage: {:.1f}MB'
             self.screen.addstr(6, 3, msg.format(sum(mem_info.values())))
 
+            msg = 'amqp update time: {:.1f}ms  '
+            update_time = self.amqp_messages['global']['amqp_time'] * 1000
+            self.screen.addstr(7, 3, msg.format(update_time))
+                                                    
             cpu_usage = psutil.cpu_percent(percpu=True)
             msg = 'CPU{} usage: {}%  '
             for i in range(0, len(cpu_usage)):
-                self.screen.addstr(2 + i, 40, msg.format(i, cpu_usage[i]))
+                self.screen.addstr(9 + i, 3, msg.format(i, cpu_usage[i]))
+
+            i = i + 2
+            msg = 'Total threads: {}.  '
+            self.screen.addstr(9 + i, 3, msg.format(thread_info[0]))
 
             i = i + 1
-            msg = 'Total threads: {}. Active threads: {}  '
-            self.screen.addstr(2 + i, 40,
-                               msg.format(thread_info[0], thread_info[1]))
+            msg = 'Active threads: {}  '
+            self.screen.addstr(9 + i, 3, msg.format(thread_info[1]))
 
-            i = i + 3
-            self.screen.addstr(2 + i, 40, 'Scan status:')
+            i = 0
+            self.screen.addstr(2 + i, 50, 'Scan status:')
             i = i + 1
             for key, data in self.amqp_messages.items():
+                if key == 'global':
+                    continue
                 msg = 'ID {}'.format(key)
-                self.screen.addstr(2 + i, 40, msg)
+                self.screen.addstr(2 + i, 50, msg)
                 i = i + 1
-                msg = 'Current path: {}/{}'.format(data['rel_path'],
-                                                   data['folder'])
-                self.screen.addstr(2 + i, 40, msg)
-                self.screen.clrtoeol()
-                i = i + 1
-                run_time = (time.time() - data['start_time']) / 60.0
-                msg = 'Progress: {} of {} mails. Export time: {:.1f}min'
-                self.screen.addstr(2 + i, 40, msg.format(data['total_scanned'],
-                                                         data['total_count'],
-                                                         run_time))
-                self.screen.clrtoeol()
-                i = i + 1
-                msg = 'Exported users: {}. Memory consumption: {:.1f}MB'
-                self.screen.addstr(2 + i, 40, msg.format(data['exported_users'],
-                                                         mem_info[key]))
-                self.screen.clrtoeol()
+                try:
+                    msg = 'Current path: {}/{}'.format(data['rel_path'],
+                                                       data['folder'])
+                    self.screen.addstr(2 + i, 50, msg)
+                    self.screen.clrtoeol()
+                    i = i + 1
+                    run_time = (time.time() - data['start_time']) / 60.0
+                    msg = 'Progress: {} of {} mails. Export time: {:.1f}min'
+                    self.screen.addstr(2 + i, 50, msg.format(data['total_scanned'],
+                                                             data['total_count'],
+                                                             run_time))
+                    self.screen.clrtoeol()
+                    i = i + 1
+                    msg = 'Exported users: {}. Memory consumption: {:.1f}MB'
+                    msg = msg.format(data['exported_users'], mem_info[key])
+                    self.screen.addstr(2 + i, 50, msg)
+                    i = i + 1
+                    msg = 'Last amqp update: {}'.format(data['latest_update'])
+                    self.screen.addstr(2 + i, 50, msg)
+                    self.screen.clrtoeol()
+                except KeyError:
+                    self.screen.addstr(2 + i, 50, str(data))
+                    i = i + 1
+                    self.screen.addstr(2 + i, 50, str(mem_info))
                 i = i + 2
             self.screen.refresh()
-
+            time.sleep(2)

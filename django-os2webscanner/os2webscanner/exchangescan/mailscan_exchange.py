@@ -46,13 +46,11 @@ class ExchangeMailboxScan(object):
     """ Library to export a users mailbox from Exchange to a filesystem """
     def __init__(self, credentials, user, export_path, mail_ending,
                  start_date=None, amqp_info=None):
+        logger.info('Start New MailboxScan: {}'.format(user))
         exchange_credentials = ServiceAccount(username=credentials[0],
                                               password=credentials[1])
         username = user + mail_ending
 
-        self.amqp_info = amqp_info
-        self.amqp_data = amqp_info[2]
-        self.amqp_data['start_time'] = time.time()
 
         self.start_date = start_date
         if self.start_date is None:
@@ -61,6 +59,12 @@ class ExchangeMailboxScan(object):
             self.export_path = Path(export_path + username + '_' +
                                     str(self.start_date))
         self.current_path = None
+
+        self.amqp_info = amqp_info
+        self.amqp_data = amqp_info[2]
+        self.amqp_data['start_time'] = time.time()
+        self.update_amqp()
+        
         try:
             self.account = Account(primary_smtp_address=username,
                                    credentials=exchange_credentials,
@@ -73,6 +77,7 @@ class ExchangeMailboxScan(object):
             self.account = None
 
     def total_mails(self):
+        # NOTICE!!!!!!!!!!!! # exchangelib.errors.ErrorMailboxStoreUnavailable
         """ Return the total amounts of content for the user
         this includes mails and calendar items """
         total_count = 0
@@ -288,6 +293,22 @@ class ExchangeMailboxScan(object):
             logger.error('Rename error from {}'.format(self.current_path))
         return attachments
 
+    def update_amqp(self, folder=None, total_scanned=None, total_count=None):
+        if self.amqp_info[0]:  # AMQP enabled
+            parent = self.export_path.parents[0]
+            rel_path = self.export_path.relative_to(parent)
+            self.amqp_data['rel_path'] = str(rel_path)
+            self.amqp_data['folder'] = str(folder)
+            self.amqp_data['total_scanned'] = total_scanned
+            self.amqp_data['total_count'] = total_count
+            self.amqp_data['latest_update'] = datetime.now()
+            amqp_data = pickle.dumps(self.amqp_data)
+            logger.info('{} AMQP-data: {}'.format(self.amqp_info[1],
+                                                  self.amqp_data))
+            self.amqp_info[0].basic_publish(exchange='',
+                                            routing_key=self.amqp_info[1],
+                                            body=amqp_data)
+    
     def check_mailbox(self, total_count=None):
         """ Run an export of the mailbox
         :param total_count: The total amount of mail for progress report
@@ -302,19 +323,7 @@ class ExchangeMailboxScan(object):
             self.export_path.mkdir()
         folders = self.list_non_empty_folders()
         for folder in folders:
-            if self.amqp_info[0]:  # AMQP enabled
-                parent = self.export_path.parents[0]
-                rel_path = self.export_path.relative_to(parent)
-
-                self.amqp_data['rel_path'] = str(rel_path)
-                self.amqp_data['folder'] = str(folder)
-                self.amqp_data['total_scanned'] = total_scanned
-                self.amqp_data['total_count'] = total_count
-                amqp_data = pickle.dumps(self.amqp_data)
-                self.amqp_info[0].basic_publish(exchange='',
-                                                routing_key=self.amqp_info[1],
-                                                body=amqp_data)
-
+            self.update_amqp(folder, total_scanned, total_count)
             info_string = '{}: Exporting: {} ({} items)'
             logger.info(info_string.format(self.export_path,
                                            folder,
@@ -355,7 +364,7 @@ class ExchangeServerScan(multiprocessing.Process):
             self.amqp_channel.queue_declare(queue=str(self.pid))
 
     def run(self):
-        self.start_amqp()  # pid not known until know
+        self.start_amqp()  # pid not known until now
         while not self.user_queue.empty():
             try:
                 self.user_name = self.user_queue.get()
@@ -387,6 +396,7 @@ class ExchangeServerScan(multiprocessing.Process):
                 self.user_queue.put(self.user_name)
             self.exported_users = self.exported_users + 1
             self.done_queue.put(self.scanner.export_path)
+            logger.fatal('DONE: ' + str(self.pid) + ' ' + str(self.exported_users))
 
 
 def read_users(user_queue, user_file):
@@ -407,7 +417,8 @@ def read_users(user_queue, user_file):
 if __name__ == '__main__':
     import settings_local as settings
     import password
-
+    amqp = True
+    
     credentials = ('mailscan', password.password)
     number_of_threads = int(sys.argv[1])
     try:
@@ -425,17 +436,32 @@ if __name__ == '__main__':
     # correct initial-value measurements
     stats = Stats(user_queue)
 
-    scanners = {}
     for i in range(0, number_of_threads):
-        scanners[i] = ExchangeServerScan(credentials, user_queue, done_queue,
+        scanner = ExchangeServerScan(credentials, user_queue, done_queue,
                                          settings.export_path,
                                          settings.mail_ending, start_date,
-                                         amqp=True)
-        stats.add_scanner(scanners[i])
-        scanners[i].start()
+                                         amqp=amqp)
+        scanner.start()
         time.sleep(0.25)
+        stats.add_scanner(scanner.pid)
+        logger.info('Added scanner {} to stats'.format(scanner.pid))
+    time.sleep(10)
+    stats.start()
 
-    stats.run()
-
+    if amqp:
+        amqp_data = {}
+        amqp_data['children'] = str(len(multiprocessing.active_children()))
+        conn_params = pika.ConnectionParameters('localhost')
+        connection = pika.BlockingConnection(conn_params)
+        amqp_channel = connection.channel()
+        amqp_channel.queue_declare('global')
+    
     while stats.is_alive():
+        # One child is the stat module, all others are workers
+        amqp_data['children'] = len(multiprocessing.active_children()) - 1
+        amqp_body = pickle.dumps(amqp_data)
+        amqp_channel.basic_publish(exchange='',
+                                   routing_key='global',
+                                   body=amqp_body)
         time.sleep(5)
+
