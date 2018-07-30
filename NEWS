@@ -1,3 +1,9 @@
+* Version 1.8.0.1, July 30. 2018
+
+Hotfix:
+ - Webscanner threw an error when extracting response objects that are files. Is now checking if response object is a HTMLResponse object.
+ - Default email address is changed from info@magenta-aps.dk to os2webscanner@magenta-aps.dk which is the mail group related to webscanner.
+
 * Version 1.8.0, June 20. 2018
 
 New in this version:
