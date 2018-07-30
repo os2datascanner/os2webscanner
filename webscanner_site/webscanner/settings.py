@@ -140,8 +140,8 @@ LOGIN_REDIRECT_URL = '/'
 
 # Email settings
 
-DEFAULT_FROM_EMAIL = 'info@magenta.dk'
-ADMIN_EMAIL = 'info@magenta.dk'
+DEFAULT_FROM_EMAIL = 'os2webscanner@magenta.dk'
+ADMIN_EMAIL = 'os2webscanner@magenta.dk'
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = 25
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

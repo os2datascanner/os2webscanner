@@ -172,9 +172,10 @@ class ScannerSpider(BaseScannerSpider):
     def _extract_requests(self, response):
         """Extract requests from the response."""
         r = []
-        links = self.link_extractor.extract_links(response)
-        r.extend(Request(x.url, callback=self.parse,
-                         errback=self.handle_error) for x in links)
+        if isinstance(response, HtmlResponse):
+            links = self.link_extractor.extract_links(response)
+            r.extend(Request(x.url, callback=self.parse,
+                             errback=self.handle_error) for x in links)
         return r
 
     def file_extractor(self, filepath):
