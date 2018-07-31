@@ -269,25 +269,8 @@ class Scan(models.Model):
 
     def cleanup_finished_scan(self, log=False):
         """Delete pending conversion queue items and remove the scan dir."""
-        # Delete all pending conversionqueue items
-        from .conversionqueueitem_model import ConversionQueueItem
-        pending_items = ConversionQueueItem.objects.filter(
-            url__scan=self,
-            status=ConversionQueueItem.NEW
-        )
-        if log:
-            if pending_items.exists():
-                print("Deleting %d remaining conversion queue items from " \
-                      "finished scan %s" % (
-                          pending_items.count(), self))
-
-        pending_items.delete()
-
-        # remove all files associated with the scan
         if self.is_scan_dir_writable():
-            if log:
-                print("Deleting scan directory: %s %s", self.scan_dir,
-            shutil.rmtree(self.scan_dir, True))
+            self.delete_scan_dir(log)
 
     @classmethod
     def cleanup_finished_scans(cls, scan_age, log=False):
@@ -303,8 +286,29 @@ class Scan(models.Model):
             Q(status__in=(Scan.DONE, Scan.FAILED)),
             Q(end_time__gt=oldest_end_time) | Q(end_time__isnull=True)
         )
+
         for scan in inactive_scans:
+            scan.delete_all_pending_conversionqueue_items(log)
             scan.cleanup_finished_scan(log=log)
+
+    def delete_all_pending_conversionqueue_items(self, log):
+        # Delete all pending conversionqueue items
+        from .conversionqueueitem_model import ConversionQueueItem
+        pending_items = ConversionQueueItem.objects.filter(
+            url__scan=self,
+            status=ConversionQueueItem.NEW
+        )
+        if log:
+            if pending_items.exists():
+                print("Deleting %d remaining conversion queue items from "
+                      "finished scan %s" % (
+                          pending_items.count(), self))
+        pending_items.delete()
+
+    def delete_scan_dir(self, log):
+        if log:
+            print("Deleting scan directory: %s %s", self.scan_dir,
+                  shutil.rmtree(self.scan_dir, True))
 
     @classmethod
     def pause_non_ocr_conversions_on_scans_with_too_many_ocr_items(cls):
