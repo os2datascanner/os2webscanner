@@ -59,16 +59,16 @@ class ExchangeFilescanner(object):
             print('Scanners started...')
 
         for key, value in scanners.items():
-            self.get_queue_item(done_queue)
+            self.start_folder_scan(done_queue)
 
             while value.is_alive():
                 print('Process with pid {} is still alive'.format(value.pid))
-                self.get_queue_item(done_queue)
+                self.start_folder_scan(done_queue)
                 time.sleep(1)
 
-        # TODO: Clean up scan_dir
+        self.mark_scan_job_as_done(True)
 
-    def get_queue_item(self, q):
+    def start_folder_scan(self, q):
         """
         Getting next queue item and starting file scan on item, until queue is empty.
         :param q: shared queue
@@ -89,14 +89,7 @@ class ExchangeFilescanner(object):
         Starts a file scan on downloaded exchange folder
         :param path: path to folder
         """
-        try:
-            from os2webscanner.models.exchangescan_model import ExchangeScan
-            scan_object = ExchangeScan.objects.get(pk=self.scan_id)
-            scan_object.folder_to_scan = str(path)
-            scan_object.save()
-        except Exception as ex:
-            print('Error occured while storing path to scan: {}'.format(path))
-            print(ex)
+        scan_object = self.update_scan_job_path(path)
         print('Starting file scan for path {}'.format(path))
         scanner_dir = os.path.join(settings.PROJECT_DIR, "scrapy-webscanner")
         log_file = open(scan_object.scan_log_file, "a")
@@ -108,5 +101,27 @@ class ExchangeFilescanner(object):
             process.communicate()
         except Exception as e:
             print(e)
+
+    def update_scan_job_path(self, path):
+        try:
+            from os2webscanner.models.exchangescan_model import ExchangeScan
+            scan_object = ExchangeScan.objects.get(pk=self.scan_id)
+            scan_object.folder_to_scan = str(path)
+            scan_object.save()
+        except Exception as ex:
+            print('Error occured while storing path to scan: {}'.format(path))
+            print(ex)
+        return scan_object
+
+    def mark_scan_job_as_done(self, is_done):
+        try:
+            from os2webscanner.models.exchangescan_model import ExchangeScan
+            scan_object = ExchangeScan.objects.get(pk=self.scan_id)
+            scan_object.mark_scan_as_done = is_done
+            scan_object.save()
+        except Exception as ex:
+            print('Error occured while storing path to scan: {}'.format(is_done))
+            print(ex)
+        return scan_object
 
 # TODO: læg user elementer i en python list og tjek tilsidst eller løbende at alle users er scannet.
