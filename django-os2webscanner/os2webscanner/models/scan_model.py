@@ -269,8 +269,7 @@ class Scan(models.Model):
 
     def cleanup_finished_scan(self, log=False):
         """Delete pending conversion queue items and remove the scan dir."""
-        if self.is_scan_dir_writable():
-            self.delete_scan_dir(log)
+        raise NotImplementedError
 
     @classmethod
     def cleanup_finished_scans(cls, scan_age, log=False):
