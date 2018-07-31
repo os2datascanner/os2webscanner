@@ -16,6 +16,8 @@ class ExchangeScan(Scan):
                                       null=True,
                                       blank=True)
 
+    mark_scan_as_done = models.BooleanField(default=False)
+
     # Create method - copies fields from scanner
     @classmethod
     def create(scan_cls, scanner):
