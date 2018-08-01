@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('os2webscanner', '0042_merge_20180717_1119'),
+        ('os2webscanner', '0041_exchangescan'),
     ]
 
     operations = [
