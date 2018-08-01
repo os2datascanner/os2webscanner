@@ -18,16 +18,6 @@ class ExchangeScan(Scan):
 
     mark_scan_as_done = models.BooleanField(default=False)
 
-    def cleanup_finished_scan(self, log=False):
-        """
-        If scan job is marked as done and log is enabled, then delete scan dir
-        :param log: boolean log
-        """
-        # remove all files associated with the scan
-        if self.exchangescan.mark_scan_as_done \
-                and self.is_scan_dir_writable():
-            self.delete_scan_dir(log)
-
     # Create method - copies fields from scanner
     @classmethod
     def create(scan_cls, scanner):

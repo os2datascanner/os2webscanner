@@ -55,11 +55,6 @@ class WebScan(Scan):
     # Statistics
     # TODO: Add field for sitemap.xml url count
 
-    def cleanup_finished_scan(self, log=False):
-        """Delete pending conversion queue items and remove the scan dir."""
-        if self.is_scan_dir_writable():
-            self.delete_scan_dir(log)
-
     # Create method - copies fields from scanner
     @classmethod
     def create(scan_cls, scanner):

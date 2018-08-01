@@ -269,7 +269,12 @@ class Scan(models.Model):
 
     def cleanup_finished_scan(self, log=False):
         """Delete pending conversion queue items and remove the scan dir."""
-        raise NotImplementedError
+        # remove all files associated with the scan
+        if self.is_scan_dir_writable():
+            if not hasattr(self, 'exchangescan'):
+                self.delete_scan_dir(log)
+            elif self.exchangescan.mark_scan_as_done:
+                self.delete_scan_dir(log)
 
     @classmethod
     def cleanup_finished_scans(cls, scan_age, log=False):
@@ -306,8 +311,9 @@ class Scan(models.Model):
 
     def delete_scan_dir(self, log):
         if log:
-            print("Deleting scan directory: %s %s", self.scan_dir,
-                  shutil.rmtree(self.scan_dir, True))
+            print("Deleting scan directory: {}".format(self.scan_dir))
+            shutil.rmtree(self.scan_dir, True)
+            print('Directory deleted: {}'.format(self.scan_dir))
 
     @classmethod
     def pause_non_ocr_conversions_on_scans_with_too_many_ocr_items(cls):
