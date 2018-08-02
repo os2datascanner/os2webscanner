@@ -41,6 +41,7 @@ from scanner.spiders.sitemap import SitemapURLGathererSpider
 from scrapy.exceptions import DontCloseSpider
 
 from django.utils import timezone
+from django.core.exceptions import MultipleObjectsReturned
 
 from scanner.scanner.scanner import Scanner
 from os2webscanner.models.scan_model import Scan
@@ -191,28 +192,31 @@ class ScannerApp:
         reactor.stop()
 
     def store_stats(self):
+        """Stores scrapy scanning stats when scan is completed."""
         logging.info('Stats: {0}'.format(self.scanner_spider.crawler.stats.get_stats()))
 
-        statistics = Statistic()
-        statistics.scan = self.scanner.scan_object
+        try:
+            statistics = Statistic.objects.get_or_create(scan=self.scanner.scan_object)
+        except MultipleObjectsReturned:
+            logging.error('Multiple statistics objects found for scan job {}'.format(
+                self.scan_id)
+            )
+
         if self.scanner_spider.crawler.stats.get_value(
-            'last_modified_check/pages_skipped'):
-            statistics.files_skipped_count = self.scanner_spider.crawler.stats.get_value(
-                'last_modified_check/pages_skipped')
-        else:
-            statistics.files_skipped_count = 0
+                'last_modified_check/pages_skipped'):
+            statistics.files_skipped_count += self.scanner_spider.crawler.stats.get_value(
+                'last_modified_check/pages_skipped'
+            )
         if self.scanner_spider.crawler.stats.get_value(
-            'downloader/request_count'):
-            statistics.files_scraped_count = self.scanner_spider.crawler.stats.get_value(
-                'downloader/request_count')
-        else:
-            statistics.files_scraped_count = 0
+                'downloader/request_count'):
+            statistics.files_scraped_count += self.scanner_spider.crawler.stats.get_value(
+                'downloader/request_count'
+            )
         if self.scanner_spider.crawler.stats.get_value(
-            'downloader/exception_type_count/builtins.IsADirectoryError'):
-            statistics.files_is_dir_count = self.scanner_spider.crawler.stats.get_value(
-                'downloader/exception_type_count/builtins.IsADirectoryError')
-        else:
-            statistics.files_is_dir_count = 0
+                'downloader/exception_type_count/builtins.IsADirectoryError'):
+            statistics.files_is_dir_count += self.scanner_spider.crawler.stats.get_value(
+                'downloader/exception_type_count/builtins.IsADirectoryError'
+            )
 
         statistics.save()
         logging.debug('Statistic saved.')
