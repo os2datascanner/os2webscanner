@@ -21,4 +21,4 @@
 NUMBER_OF_PROCESSES_PER_TYPE = 2
 
 # # Number of email downloader threads that should be running.
-NUMBER_OF_EMAIL_THREADS = 4
+# NUMBER_OF_EMAIL_THREADS = 4
