@@ -11,6 +11,7 @@ import multiprocessing
 import subprocess
 
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 
 from exchangelib import EWSDate
 
@@ -124,9 +125,14 @@ class ExchangeFilescanner(object):
             print(e)
 
     def update_scan_job_path(self, path):
+        """
+        When an exchange users data has been downloaded
+        the path to the downloaded files are stored.
+        :param path: path to downloaded files
+        :return: scan_object with updated folder_to_scan path
+        """
         try:
-            from os2webscanner.models.exchangescan_model import ExchangeScan
-            scan_object = ExchangeScan.objects.get(pk=self.scan_id)
+            scan_object = self.get_scan_object()
             scan_object.folder_to_scan = str(path)
             scan_object.save()
         except Exception as ex:
@@ -134,10 +140,25 @@ class ExchangeFilescanner(object):
             print(ex)
         return scan_object
 
-    def mark_scan_job_as_done(self, is_done):
+    def get_scan_object(self):
+        """Gets the scan object from db"""
         try:
             from os2webscanner.models.exchangescan_model import ExchangeScan
             scan_object = ExchangeScan.objects.get(pk=self.scan_id)
+        except ObjectDoesNotExist:
+            print('Scan object with id {} does not exists.'.format(
+                self.scan_id)
+            )
+        return scan_object
+
+    def mark_scan_job_as_done(self, is_done):
+        """
+        Marks the exchange scan job as done
+        :param is_done: boolean value marking the job as completed or not.
+        :return: the updated scan_object.
+        """
+        try:
+            scan_object = self.get_scan_object()
             scan_object.mark_scan_as_done = is_done
             scan_object.save()
         except Exception as ex:
