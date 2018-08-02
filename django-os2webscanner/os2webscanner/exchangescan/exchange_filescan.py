@@ -12,6 +12,8 @@ import subprocess
 
 from django.conf import settings
 
+from exchangelib import EWSDate
+
 from .mailscan_exchange import ExchangeServerScan, read_users
 from .settings import NUMBER_OF_EMAIL_THREADS
 from os2webscanner.models.domain_model import Domain
@@ -24,18 +26,31 @@ class ExchangeFilescanner(object):
         self.scan_id = scan_id
 
     def start_mail_scan(self):
+        """
+        Starts an exchange mail server scan.
+        """
         from os2webscanner.models.scan_model import Scan
         scan_object = Scan.objects.get(pk=self.scan_id)
         valid_domains = scan_object.domains.filter(
             validation_status=Domain.VALID
         )
 
+        """Making scan dir if it does not exists"""
         if not os.path.exists(scan_object.scan_dir):
             print('Creating scan dir {}'.format(scan_object.scan_dir))
             os.makedirs(scan_object.scan_dir)
 
         scan_dir = scan_object.scan_dir + '/'
-        
+
+        """Handling last scannings date"""
+        last_scannings_date = None
+        if scan_object.do_last_modified_check:
+            last_scannings_date = scan_object.exchangescan.last_scannings_date
+            if last_scannings_date:
+                last_scannings_date = EWSDate.from_date(
+                    last_scannings_date)
+
+        """Foreach domain x number of mail processors are started."""
         for domain in valid_domains:
             credentials = (domain.authentication.username,
                            domain.authentication.get_password())
@@ -51,13 +66,19 @@ class ExchangeFilescanner(object):
                                                  user_queue,
                                                  done_queue,
                                                  scan_dir,
-                                                 mail_ending)
+                                                 mail_ending,
+                                                 start_date=
+                                                 last_scannings_date)
                 scanners[i].start()
                 print('Started scanner {}'.format(i))
                 time.sleep(1)
 
             print('Scanners started...')
 
+        """
+        As long as mail scanners are running file scanners will be started 
+        when there is something in the shared queue.
+        """
         for key, value in scanners.items():
             self.start_folder_scan(done_queue)
 
