@@ -18,7 +18,11 @@ class ExchangeScan(Scan):
 
     mark_scan_as_done = models.BooleanField(default=False)
 
-    # Create method - copies fields from scanner
+    last_scannings_date = models.DateField(blank=True, null=True,
+                                           verbose_name='Sidste scanningstidspunkt')
+
+
+# Create method - copies fields from scanner
     @classmethod
     def create(scan_cls, scanner):
         """ Create and copy fields from scanner. """
@@ -44,6 +48,7 @@ class ExchangeScan(Scan):
             name_replace_text=scanner.name_replace_text,
             do_address_replace=scanner.do_address_replace,
             address_replace_text=scanner.address_replace_text,
+            last_scannings_date=scanner.exchangescanner.last_scannings_date
         )
         #
         scanner.is_running = True
