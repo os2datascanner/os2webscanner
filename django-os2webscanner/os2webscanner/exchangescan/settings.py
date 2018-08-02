@@ -16,7 +16,7 @@
 """Settings file for the Scanner modul"""
 
 # # Number of email downloader threads that should be running.
-NUMBER_OF_EMAIL_THREADS = 1
+NUMBER_OF_EMAIL_THREADS = 4
 
 MAX_WAIT_TIME = 1000
 
