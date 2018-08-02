@@ -28,6 +28,9 @@ class ExchangeScanner(Scanner):
     domains = models.ManyToManyField(ExchangeDomain, related_name='exchangedomains',
                                      verbose_name='Exchange Domæner')
 
+    last_scannings_date = models.DateField(blank=True, null=True,
+                                           verbose_name='Sidste scanningstidspunkt')
+
     def get_type(self):
         return 'exchange'
 
