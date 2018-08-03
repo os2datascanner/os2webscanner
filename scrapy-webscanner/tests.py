@@ -35,6 +35,7 @@ import re
 import linkchecker
 
 import unittest
+from scanner.scanner.scanner import Scanner
 from scanner.rules import cpr, name
 from scanner.spiders import scanner_spider
 from scanner.processors import pdf, libreoffice, html
@@ -42,6 +43,10 @@ from scanner.processors import pdf, libreoffice, html
 from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
 from os2webscanner.models.url_model import Url
 from os2webscanner.models.scan_model import Scan
+from os2webscanner.models.webscan_model import WebScan
+from os2webscanner.models.webscanner_model import WebScanner
+from os2webscanner.models.webdomain_model import WebDomain
+from os2webscanner.models.organization_model import Organization
 
 
 class FileExtractorTest(unittest.TestCase):
@@ -260,6 +265,95 @@ class HTMLTest(unittest.TestCase):
         html_processor = html.HTMLProcessor()
         result = html_processor.handle_queue_item(item)
         self.assertEqual(result, False)
+
+
+class StoreStatsTest(unittest.TestCase):
+
+    def test_store_stats(self):
+        scan_id, scannerapp, webscan = self.create_ressources()
+
+        files_skipped_count = 110
+        files_scraped_count = 5
+        scannerapp.scanner = Scanner(scan_id)
+        scannerapp.scanner_spider = scannerapp.setup_scanner_spider()
+        scannerapp.scanner_spider.crawler.stats.set_value('last_modified_check/pages_skipped', files_skipped_count)
+        scannerapp.scanner_spider.crawler.stats.set_value('downloader/request_count', files_scraped_count)
+        scannerapp.scanner_spider.crawler.stats.get_stats()
+        scannerapp.store_stats()
+        from os2webscanner.models.statistic_model import Statistic
+        statistic = Statistic.objects.get(scan=webscan)
+        self.assertEqual(statistic.files_skipped_count, files_skipped_count)
+        self.assertEqual(statistic.files_scraped_count, files_scraped_count)
+
+    def create_ressources(self):
+        webscan = CreateWebScan.create_webscan(self)
+        try:
+            # python 3.4+ should use builtin unittest.mock not mock package
+            from unittest.mock import patch
+        except ImportError:
+            from mock import patch
+        scan_id = webscan.pk
+        args = ['does not matter', scan_id]
+        with patch.object(sys, 'argv', args):
+            from run import ScannerApp, get_project_settings
+            scannerapp = ScannerApp()
+            settings = get_project_settings()
+            from scrapy.crawler import CrawlerProcess
+            scannerapp.crawler_process = CrawlerProcess(settings)
+        return scan_id, scannerapp, webscan
+
+    def test_store_multiple_stats(self):
+        scan_id, scannerapp, webscan = self.create_ressources()
+
+        for i in range(2):
+            files_skipped_count = 110
+            files_scraped_count = 5
+            scannerapp.scanner = Scanner(scan_id)
+            scannerapp.scanner_spider = scannerapp.setup_scanner_spider()
+            scannerapp.scanner_spider.crawler.stats.set_value('last_modified_check/pages_skipped', files_skipped_count)
+            scannerapp.scanner_spider.crawler.stats.set_value('downloader/request_count', files_scraped_count)
+            scannerapp.scanner_spider.crawler.stats.get_stats()
+            scannerapp.store_stats()
+
+        from os2webscanner.models.statistic_model import Statistic
+        statistic = Statistic.objects.get(scan=webscan)
+        self.assertEqual(statistic.files_skipped_count, files_skipped_count*2)
+        self.assertEqual(statistic.files_scraped_count, files_scraped_count*2)
+
+
+class CreateWebScan(object):
+
+    def create_webscan(self):
+        return WebScan.objects.create(
+            status=Scan.NEW,
+            scanner=WebScanner.objects.filter()[:1].get()
+        )
+
+
+class CreateWebScanner(object):
+
+    def create_webscanner(self):
+        return WebScanner.objects.create(
+            organization=Organization.objects.filter()[:1].get()
+        )
+
+
+class CreateOrganization(object):
+
+    def create_organization(self):
+        return Organization.objects.create(
+            name='Magenta',
+            contact_email='info@magenta.dk',
+            contact_phone='39393939'
+        )
+
+class CreateWebDomain(object):
+
+    def create_webdomain(self):
+        return WebDomain.objects.create(
+            url='/something/test',
+            organization=Organization.objects.get()
+        )
 
 
 def main():
