@@ -196,7 +196,7 @@ class ScannerApp:
         logging.info('Stats: {0}'.format(self.scanner_spider.crawler.stats.get_stats()))
 
         try:
-            statistics = Statistic.objects.get_or_create(scan=self.scanner.scan_object)
+            statistics, created = Statistic.objects.get_or_create(scan=self.scanner.scan_object)
         except MultipleObjectsReturned:
             logging.error('Multiple statistics objects found for scan job {}'.format(
                 self.scan_id)
