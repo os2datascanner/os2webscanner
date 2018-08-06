@@ -31,7 +31,7 @@ exchangelogger.setLevel(logging.ERROR)
 
 logger = logging.Logger('Mailscan_exchange')
 fh = logging.FileHandler('logfile.log')
-fh.setLevel(logging.INFO)
+fh.setLevel(logging.DEBUG)
 logger.addHandler(fh)
 logger.error('Program start')
 
@@ -151,7 +151,7 @@ class ExchangeMailboxScan(object):
                     with path.open('wb') as f:
                         f.write(attachment.content)
                 except TypeError:
-                    logger.error('Type Error')  # Happens for empty attachments
+                    logger.error('Type Error: {}'.format(self.current_path))  # Happens for empty attachments
                 except ErrorCannotOpenFileAttachment:
                     # Not sure when this happens
                     msg = 'ErrorCannotOpenFileAttachment {}'
@@ -203,6 +203,7 @@ class ExchangeMailboxScan(object):
         :return: Number of attachments in folder
         """
         try:
+            logger.info('Export subset: {} to {}'.format(start_dt, end_dt))
             attachments = 0
             if start_dt is None:
                 start_dt = EWSDate(1900, 1, 1)
@@ -216,6 +217,7 @@ class ExchangeMailboxScan(object):
             items = items.filter(datetime_received__range=(start_dt, end_dt))
             for chunk in chunkify(items, 10):
                 for item in chunk:
+                    logger.error(str(item.datetime_created) + ':' + str(item.subject))
                     skip_list = self.export_item_body(item)
                     attachments += self.export_attachments(item, skip_list)
 
@@ -284,12 +286,14 @@ class ExchangeMailboxScan(object):
             start_dt = self.start_date
         end_dt = start_dt + timedelta(days=10)
         while end_dt < EWSDate(2022, 1, 1):
+            msg = 'Export folder, currently from {} to {}'
+            logger.debug(msg.format(start_dt, end_dt))
             attachments += self._attempt_export(folder, start_dt=start_dt,
                                                 end_dt=end_dt)
             start_dt = end_dt
             end_dt = start_dt + timedelta(days=10)
-            # Finally, export everything later than 2022
-            attachments += self._attempt_export(folder, start_dt=end_dt)
+        # Finally, export everything later than 2022
+        attachments += self._attempt_export(folder, start_dt=end_dt)
         try:
             self.current_path.rename(str(self.current_path) + '_done')
         except FileNotFoundError:
