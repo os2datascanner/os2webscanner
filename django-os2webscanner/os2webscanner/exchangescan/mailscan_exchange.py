@@ -103,9 +103,14 @@ class ExchangeMailboxScan(object):
         subject = item.subject
         if subject is None:
             subject = ''
+        if str(item.body).lower().find('<html') > -1:
+            ending = '.html'
+        else:
+            ending = '.txt'
+            
         name = ('body_' + str(item.datetime_created) + '_' +
                 str(random.random()) + '_' +
-                subject.replace('/', '_')[-60:] + '.txt')
+                subject.replace('/', '_')[-60:] + ending)
         path = self.current_path.joinpath(name)
         msg_body = str(item.body)
         with path.open('w') as f:
@@ -367,7 +372,7 @@ class ExchangeServerScan(multiprocessing.Process):
         self.export_path = export_path
         self.amqp = amqp
         self.amqp_channel = None
-        self.exported_users = 0
+        self.exported_users = 0 # Number of exported users in this process
 
     def start_amqp(self):
         if self.amqp:
@@ -395,7 +400,10 @@ class ExchangeServerScan(multiprocessing.Process):
                                                        amqp_info)
                     self.scanner.amqp_data['exported_users'] = self.exported_users
                 except NameError:   # No start_time given
-                    self.scanner = ExchangeMailboxScan(self.user_name)
+                    # TODO: When do we end here??!?!?
+                    msg = '{} ended up in name error'.format(self.user_name)
+                    logger.fatal(msg)
+                    self.user_queue.put(self.user_name)
 
                 total_count = self.scanner.total_mails()
                 self.scanner.check_mailbox(total_count)
