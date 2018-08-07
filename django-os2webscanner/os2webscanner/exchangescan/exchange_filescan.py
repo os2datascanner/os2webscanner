@@ -20,13 +20,14 @@ from .settings import NUMBER_OF_EMAIL_THREADS
 from os2webscanner.models.domain_model import Domain
 
 
-class ExchangeFilescanner(object):
+class ExchangeFilescanner(multiprocessing.Process):
 
     def __init__(self, scan_id):
+        multiprocessing.Process.__init__(self)
         print('Program started')
         self.scan_id = scan_id
 
-    def start_mail_scan(self):
+    def run(self):
         """
         Starts an exchange mail server scan.
         """
