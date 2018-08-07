@@ -285,14 +285,14 @@ class ExchangeMailboxScan(object):
         else:
             start_dt = self.start_date
         end_dt = start_dt + timedelta(days=10)
-        while end_dt < EWSDate(2022, 1, 1):
+        while end_dt < (EWSDate.today() + timedelta(days=10)):
             msg = 'Export folder, currently from {} to {}'
             logger.debug(msg.format(start_dt, end_dt))
             attachments += self._attempt_export(folder, start_dt=start_dt,
                                                 end_dt=end_dt)
             start_dt = end_dt
             end_dt = start_dt + timedelta(days=10)
-        # Finally, export everything later than 2022
+        # Finally, export everything later than today (hopefully nothing)
         attachments += self._attempt_export(folder, start_dt=end_dt)
         try:
             self.current_path.rename(str(self.current_path) + '_done')
