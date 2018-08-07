@@ -218,9 +218,8 @@ class Scanner(models.Model):
             scan.recipients.add(user.profile)
 
         if hasattr(scan, 'exchangescan'):
-            exchange_file_scan = ExchangeFilescanner(scan.pk)
-            thread = multiprocessing.Process(target=exchange_file_scan.start_mail_scan())
-            thread.start()
+            exchange_file_scanner = ExchangeFilescanner(scan.pk)
+            exchange_file_scanner.start()
             return scan
 
         # Get path to run script
