@@ -218,6 +218,8 @@ class Scanner(models.Model):
             scan.recipients.add(user.profile)
 
         if hasattr(scan, 'exchangescan'):
+            from django.db import connections
+            connections.close_all()
             exchange_file_scanner = ExchangeFilescanner(scan.pk)
             exchange_file_scanner.start()
             return scan
