@@ -63,7 +63,7 @@
     function cleanupPatternNumbers() {
       $("#{{ form.pattern_0.auto_id }}_container").find(".form-group").each(function(idx) {
         var $this = $(this);
-        var input = $this.find("input[type=\"text\"]");
+        var input = $this.find("input[type=\"text\"], input[type=\"hidden\"]");
         var label = $this.find("label");
         var oldInputName = input.attr("name").split(/(.+_)/);
         input.attr("name", oldInputName[1] + idx).attr("id", "id_" + oldInputName[1] + idx);
@@ -71,6 +71,22 @@
       });
       recalcIframeHeight();
     }
+
+    // Handle the CPR Options when Do CPR scan is (un)checked
+    $("#id_do_cpr_scan").change(function() {
+      handleSubChoices($(this));
+    });
+    {% if not view.cpr_settings.do_cpr_scan %}
+    handleSubChoices($("#id_do_cpr_scan"));
+    {% endif %}
+
+    // Toggle appropriate hidden input field when selecting/deselecting a CPR setting
+    $("#cpr_settings_container input[type=\"checkbox\"]").change(function() {
+      var $this = $(this);
+      var inp = $("#{{ form.pattern_0.auto_id }}_container").find("input[value=\"_M463N74_" + $this.val() + "\"]");
+      var state = $this.prop("checked");
+      inp.prop("disabled", !state);
+    });
   })(jQuery);
 </script>
 {% endblock %}
@@ -95,8 +111,8 @@
 {% endif %}
 
 <form class="form-horizontal" role="form" method="post">
-{% csrf_token %}    
-    
+{% csrf_token %}
+
   <div id="{{ form.name.auto_id }}_container" class="col-sm-12{% if form.name.errors %} has-error{% endif %}">
     <div class="form-group">
       <label class="control-label col-sm-2" for="id_{{ form.name.name }}">{{ form.name.label }}</label>
@@ -111,7 +127,7 @@
       </div>
     </div>
   </div>
-  
+
   {% if form.organization %}
   <div id="{{ form.organization.auto_id }}_container" class="col-sm-12{% if form.organization.errors %} has-error{% endif %}">
     <div class="form-group">
@@ -131,8 +147,8 @@
       </div>
     </div>
   </div>
-  {% endif %}    
-  
+  {% endif %}
+
   {% if form.group %}
   <div id="{{ form.group.auto_id }}_container" class="col-sm-12{% if form.group.errors %} has-error{% endif %}">
     <div class="form-group">
@@ -152,7 +168,7 @@
       </div>
     </div>
   </div>
-  {% endif %}    
+  {% endif %}
 
   <div id="{{ form.pattern_0.auto_id }}_container" class="col-sm-12{% if form.pattern_0.errors %} has-error{% endif %}">
     {% for pattern_name, pattern_value in view.get_pattern_fields %}
@@ -181,9 +197,41 @@
     </div>
     {% endfor %}
 
+    <div class="form-group displaynone">
+      <input type="hidden" value="_M463N74_DOCPR" name="{{ form.pattern_0.name }}" id="id_{{ form.pattern_0.name }}" {% if not view.cpr_settings.do_cpr_scan %} disabled="disabled" {% endif %} readonly>
+    </div>
+    <div class="form-group displaynone">
+      <input type="hidden" value="_M463N74_DOCPRMOD11" name="{{ form.pattern_0.name }}" id="id_{{ form.pattern_0.name }}" {% if not view.cpr_settings.check_mod11 %} disabled="disabled" {% endif %} readonly>
+    </div>
+    <div class="form-group displaynone">
+      <input type="hidden" value="_M463N74_DOCPRDOB" name="{{ form.pattern_0.name }}" id="id_{{ form.pattern_0.name }}" {% if not view.cpr_settings.ignore_irrelevant %} disabled="disabled" {% endif %} readonly>
+    </div>
+
     <div class="row">
       <div class="col-sm-offset-2 col-sm-10">
         <button id="button-add-expression" type="button" class="btn btn-default">Tilføj udtryk</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="cpr_settings_container" class="col-sm-12">
+    <div class="form-group">
+      <strong class="control-label col-sm-2" for="id_cpr_rule">CPR-indstillinger</strong>
+      <div class="col-sm-10">
+        <div class="checkbox-group">
+          <input type="checkbox" id="id_do_cpr_scan" value="DOCPR" {% if view.cpr_settings.do_cpr_scan %} checked="checked" {% endif %}>
+          <label for="id_do_cpr_scan">
+            Scan CPR
+          </label>
+          <input type="checkbox" id="id_check_mod11" value="DOCPRMOD11" {% if view.cpr_settings.check_mod11 %} checked="checked" {% endif %}>
+          <label class="cpr_option" for="id_check_mod11">
+            Tjek modulus-11
+          </label>
+          <input type="checkbox" id="id_ignore_irrelevant" value="DOCPRDOB" {% if view.cpr_settings.ignore_irrelevant %} checked="checked" {% endif %}>
+          <label class="cpr_option" for="id_ignore_irrelevant">
+            Ignorer ugyldige fødselsdatoer
+          </label>
+        </div>
       </div>
     </div>
   </div>

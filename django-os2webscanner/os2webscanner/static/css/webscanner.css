@@ -1,5 +1,9 @@
 /* GENERAL */
 
+.displaynone {
+  display:none!important;
+}
+
 .btn-disabled {
 opacity:.5;
 }
@@ -75,7 +79,7 @@ margin-bottom:0;
 border-top:none;
 padding-top:0;
 }
-#select_scan_rules_container input[disabled] + label {
+.checkbox-group input[disabled] + label {
   color:#aaa;
 }
 .checkbox-group,
@@ -149,6 +153,9 @@ max-width:20%;
 }
 #button-add-expression {
   margin-bottom:1em;
+}
+#cpr_settings_container .checkbox-group {
+  margin-bottom:0;
 }
 .rule-expression code {
   display:block;
