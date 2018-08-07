@@ -27,10 +27,6 @@ class ExchangeFilescanner(multiprocessing.Process):
         print('Program started')
         self.scan_id = scan_id
 
-    def run(self):
-        """
-        Starts an exchange mail server scan.
-        """
         from os2webscanner.models.scan_model import Scan
         scan_object = Scan.objects.get(pk=self.scan_id)
         valid_domains = scan_object.domains.filter(
@@ -59,14 +55,14 @@ class ExchangeFilescanner(multiprocessing.Process):
             user_queue = multiprocessing.Queue()
             read_users(user_queue,
                        domain.exchangedomain.get_userlist_file_path())
-            done_queue = multiprocessing.Queue()
+            self.done_queue = multiprocessing.Queue()
             mail_ending = domain.url
 
             scanners = {}
             for i in range(0, NUMBER_OF_EMAIL_THREADS):
                 scanners[i] = ExchangeServerScan(credentials,
                                                  user_queue,
-                                                 done_queue,
+                                                 self.done_queue,
                                                  scan_dir,
                                                  mail_ending,
                                                  start_date=
@@ -75,18 +71,24 @@ class ExchangeFilescanner(multiprocessing.Process):
                 print('Started scanner {}'.format(i))
                 time.sleep(1)
 
+            self.scanners = scanners
             print('Scanners started...')
+
+    def run(self):
+        """
+        Starts an exchange mail server scan.
+        """
 
         """
         As long as mail scanners are running file scanners will be started 
         when there is something in the shared queue.
         """
-        for key, value in scanners.items():
-            self.start_folder_scan(done_queue)
+        for key, value in self.scanners.items():
+            self.start_folder_scan(self.done_queue)
 
             while value.is_alive():
                 print('Process with pid {} is still alive'.format(value.pid))
-                self.start_folder_scan(done_queue)
+                self.start_folder_scan(self.done_queue)
                 time.sleep(1)
 
         self.mark_scan_job_as_done(True)
