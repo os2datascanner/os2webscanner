@@ -1,3 +1,10 @@
+* Version 1.8.0.2, August 8. 2018
+
+Hotfix:
+ - cron.py was failing due to wrong import path.
+ - Migration was failing. Corrected error.
+ - In production the number of processors should be 8.
+
 * Version 1.8.0.1, July 30. 2018
 
 Hotfix:
