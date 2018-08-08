@@ -41,3 +41,5 @@ Nu kan du overføre dataen fra den overførte tabel til den eksisterende:
 .. code:: console
 
     $ INSERT INTO os2webscanner_userprofile_new (id, is_group_admin, is_upload_only, organization_id, user_id) SELECT * FROM os2webscanner_userprofile;
+
+Reference: https://stackoverflow.com/questions/3049864/transfer-data-between-databases-with-postgresql
