@@ -219,7 +219,7 @@ class RuleDelete(RestrictedDeleteView):
 
 def extract_pattern_fields(form_fields):
     if not form_fields:
-        return [('pattern_0', '')]
+        return [('pattern_3', '')] # start from 3 because 0-2 are the unique keys for CPR settings
 
     return [(field_name, form_fields[field_name]) for field_name in form_fields if
             field_name.startswith('pattern_')]

@@ -7,17 +7,18 @@
   (function($) {
     // adding a new expression
     $("#button-add-expression").click(function() {
-      var inputContainer = $("#{{ form.pattern_0.auto_id }}_container").find(".form-group").last(); // Take the last item instead of just number _1, as we may have added more items
+      var inputContainer = $("#{{ form.pattern_3.auto_id }}_container").find(".form-group:not(.displaynone)").last(); // Take the last item instead of just number _1, as we may have added more items
       var inputNameParts = inputContainer.find("input[type=\"text\"]").first().attr("name").split(/(.+_)/); // define .+_ as capturing group so we can get at the delimiter inside nameParts[1]
       var baseName = inputNameParts[1];
       var numInput = parseInt(inputNameParts[2]) + 1;
+      var numLabel = $("#{{ form.pattern_3.auto_id }}_container .form-group:not(.displaynone)").index(inputContainer);
       var newInputName = baseName + (numInput);
       var containerClone = inputContainer.clone();
       var inputClone = containerClone.find("input[type=\"text\"]").first().prop("required", false);
       var labelClone = containerClone.find("label").first();
 
       labelClone.attr("for", "id_" + newInputName);
-      labelClone.text("{{ form.pattern_0.label }}" + " " + (numInput + 1)); // plus one because the numInput is 0-indexed, and label should be 1-indexed
+      labelClone.text("{{ form.pattern_3.label }}" + " " + (numLabel + 2)); // plus two because index is zero-based, *and* we want to increment by one
       inputClone.attr("name", newInputName).attr("id", "id_" + newInputName).val("").attr("value", "");
       if(!containerClone.find(".button-remove-expression").length) { // if we haven't already cloned a button for removal...
         inputClone.after($("<span/>", { // ... add the button to remove expression
@@ -51,7 +52,7 @@
 
     $("form").submit(function() {
       // delete any empty expression fields, BUT not the first one
-      $("#{{ form.pattern_0.auto_id }}_container").find("input[type=\"text\"]").filter(function(idx) {
+      $("#{{ form.pattern_3.auto_id }}_container").find("input[type=\"text\"]").filter(function(idx) {
         return !this.value && idx > 0;
       }).closest(".form-group").remove();
 
@@ -61,14 +62,16 @@
 
     // function to clean up pattern numbers, as we need to have them numbered sequentially without gaps
     function cleanupPatternNumbers() {
-      $("#{{ form.pattern_0.auto_id }}_container").find(".form-group").each(function(idx) {
+      $("#{{ form.pattern_3.auto_id }}_container").find("input[type=\"text\"]").closest(".form-group").each(function(idx) { // filter specifically for input[type="text"], as we don't want to re-number the reserved fields used for CPR settings
         var $this = $(this);
-        var input = $this.find("input[type=\"text\"], input[type=\"hidden\"]");
+        var input = $this.find("input[type=\"text\"]");
         var label = $this.find("label");
         var oldInputName = input.attr("name").split(/(.+_)/);
-        input.attr("name", oldInputName[1] + idx).attr("id", "id_" + oldInputName[1] + idx);
-        label.attr("for", "id_" + oldInputName[1] + idx).text("{{ form.pattern_0.label }} " + (idx + 1)); // we want 1-indexed label texts
+        input.attr("name", oldInputName[1] + idx + 3).attr("id", "id_" + oldInputName[1] + idx + 3); // plus 3 because items 0-2 are reserved for CPR settings
+        label.attr("for", "id_" + oldInputName[1] + idx + 3).text("{{ form.pattern_3.label }} " + (idx + 1)); // we want 1-indexed labels
       });
+
+      // @TODO: Reorder reserved patterns so that they are correctly ordered
       recalcIframeHeight();
     }
 
@@ -80,13 +83,15 @@
     handleSubChoices($("#id_do_cpr_scan"));
     {% endif %}
 
-    // Toggle appropriate hidden input field when selecting/deselecting a CPR setting
+    // toggle hidden input field when selecting/deselecting a CPR setting
     $("#cpr_settings_container input[type=\"checkbox\"]").change(function() {
-      var $this = $(this);
-      var inp = $("#{{ form.pattern_0.auto_id }}_container").find("input[value=\"_M463N74_" + $this.val() + "\"]");
-      var state = $this.prop("checked");
-      inp.prop("disabled", !state);
+      $("input[value=\"_M463N74_" + $(this).val() + "\"]").prop("disabled", !$(this).prop("checked"));
     });
+
+    // If we selected to do a CPR scan, it shouldn't be mandatory to input a regex pattern.
+    $("#id_do_cpr_scan").change(function() {
+      $("#id_{{ form.pattern_3.name }}").prop("required", !$(this).prop("checked")); // if CPR is checked (true), pattern_3 required attr should be false (and vice versa)
+    })
   })(jQuery);
 </script>
 {% endblock %}
@@ -117,9 +122,9 @@
     <div class="form-group">
       <label class="control-label col-sm-2" for="id_{{ form.name.name }}">{{ form.name.label }}</label>
       <div class="col-sm-10">
-	<input type="text" class="form-control" name="{{ form.name.name }}" id="id_{{ form.name.name }}" {% if form.name.value %}value="{{ form.name.value }}"{% endif %} {% if form.name.field.required %}required{% endif %}>
-	{% if form.name.help_text %}
-	  <p>
+      	<input type="text" class="form-control" name="{{ form.name.name }}" id="id_{{ form.name.name }}" {% if form.name.value %}value="{{ form.name.value }}"{% endif %} {% if form.name.field.required %}required{% endif %}>
+      	{% if form.name.help_text %}
+      	  <p>
             <small>{{ form.name.help_text }}</small>
           </p>
         {% endif %}
@@ -170,42 +175,47 @@
   </div>
   {% endif %}
 
-  <div id="{{ form.pattern_0.auto_id }}_container" class="col-sm-12{% if form.pattern_0.errors %} has-error{% endif %}">
+  <div id="{{ form.pattern_3.auto_id }}_container" class="col-sm-12{% if form.pattern_3.errors %} has-error{% endif %}">
+    <p>TODO: A problem. If we saved a rule with only the CPR setting checked, that rule won't have a pattern_3 field to output, because its pattern_3 value will be the unique _M463N74_ key, which we don't want to output as a text field.</p>
+    <p>So we need some way to check if this is only a CPR scan, and if so, render an extra text input just in case we want to also add our own pattern at a later time.</p>
+
+    <div class="form-group displaynone">
+      <input type="hidden" value="_M463N74_DOCPR" name="pattern_0" {% if not view.get_cpr_settings.do_cpr_scan %} disabled="disabled" {% endif %} readonly>
+    </div>
+    <div class="form-group displaynone">
+      <input type="hidden" value="_M463N74_DOCPRMOD11" name="pattern_1" {% if not view.get_cpr_settings.check_mod11 %} disabled="disabled" {% endif %} readonly>
+    </div>
+    <div class="form-group displaynone">
+      <input type="hidden" value="_M463N74_DOCPRDOB" name="pattern_2" {% if not view.get_cpr_settings.ignore_irrelevant %} disabled="disabled" {% endif %} readonly>
+    </div>
+
     {% for pattern_name, pattern_value in view.get_pattern_fields %}
+    {% if not '_M463N74_' in pattern_value %}
     <div class="form-group">
-      <label class="control-label col-sm-2" for="id_{{ pattern_name }}">{{ form.pattern_0.label }} {{ forloop.counter }}</label>
+      <label class="control-label col-sm-2" for="id_{{ pattern_name }}">{{ form.pattern_3.label }} {{ forloop.counter }}</label>
       <div class="col-sm-10">
         {% if forloop.counter > 1 %}
         <div class="input-group">
         {% endif %}
-	      <input type="text" class="form-control" name="{{ pattern_name }}" id="id_{{ pattern_name }}" {% if pattern_value %}value="{{ pattern_value }}"{% endif %} {% if forloop.counter == 1 %}required{% endif %}> {# forloop.counter is 1-indexed #}
+	      <input type="text" class="form-control" name="{{ pattern_name }}" id="id_{{ pattern_name }}" {% if pattern_value %}value="{{ pattern_value }}"{% endif %} {% if forloop.counter == 4 %}required{% endif %}> {# forloop.counter is 1-indexed #}
         {% if forloop.counter > 1 %}
         <span class="input-group-btn">
           <button class="btn btn-default button-remove-expression" type="button">Fjern udtryk</button>
         </span>
         {% endif %}
-	      {% if form.pattern_0.help_text %}
+	      {% if form.pattern_3.help_text %}
 	        <p>
-            <small>{{ form.pattern_0.help_text }}</small>
+            <small>{{ form.pattern_3.help_text }}</small>
           </p>
         {% endif %}
-        {% if form.pattern_0.errors %}{{ form.pattern_0.errors }}{% endif %}
+        {% if form.pattern_3.errors %}{{ form.pattern_3.errors }}{% endif %}
         {% if forloop.counter > 1 %}
         </div>
         {% endif %}
       </div>
     </div>
+    {% endif %}
     {% endfor %}
-
-    <div class="form-group displaynone">
-      <input type="hidden" value="_M463N74_DOCPR" name="{{ form.pattern_0.name }}" id="id_{{ form.pattern_0.name }}" {% if not view.cpr_settings.do_cpr_scan %} disabled="disabled" {% endif %} readonly>
-    </div>
-    <div class="form-group displaynone">
-      <input type="hidden" value="_M463N74_DOCPRMOD11" name="{{ form.pattern_0.name }}" id="id_{{ form.pattern_0.name }}" {% if not view.cpr_settings.check_mod11 %} disabled="disabled" {% endif %} readonly>
-    </div>
-    <div class="form-group displaynone">
-      <input type="hidden" value="_M463N74_DOCPRDOB" name="{{ form.pattern_0.name }}" id="id_{{ form.pattern_0.name }}" {% if not view.cpr_settings.ignore_irrelevant %} disabled="disabled" {% endif %} readonly>
-    </div>
 
     <div class="row">
       <div class="col-sm-offset-2 col-sm-10">
@@ -218,23 +228,16 @@
     <div class="form-group">
       <strong class="control-label col-sm-2" for="id_cpr_rule">CPR-indstillinger</strong>
       <div class="col-sm-10">
-      <p>TODO: We need a view method <code>view.cpr_settings</code> that returns an object à la</p>
-      <pre>{
-  do_cpr: true,
-  check_mod11: false,
-  ignore_irrelevant: false
-}</pre>
-      <p>That way, we can call <code>view.cpr_settings.do_cpr</code> etc from within the template, and tick/untick the CPR checkboxes accordingly</p>
         <div class="checkbox-group">
-          <input type="checkbox" id="id_do_cpr_scan" value="DOCPR" {% if view.cpr_settings.do_cpr_scan %} checked="checked" {% endif %}>
+          <input type="checkbox" id="id_do_cpr_scan" value="DOCPR" {% if view.get_cpr_settings.do_cpr_scan %} checked="checked" {% endif %}>
           <label for="id_do_cpr_scan">
             Scan CPR
           </label>
-          <input type="checkbox" id="id_check_mod11" value="DOCPRMOD11" {% if view.cpr_settings.check_mod11 %} checked="checked" {% endif %}>
+          <input type="checkbox" id="id_check_mod11" value="DOCPRMOD11" {% if view.get_cpr_settings.check_mod11 %} checked="checked" {% endif %}>
           <label class="cpr_option" for="id_check_mod11">
             Tjek modulus-11
           </label>
-          <input type="checkbox" id="id_ignore_irrelevant" value="DOCPRDOB" {% if view.cpr_settings.ignore_irrelevant %} checked="checked" {% endif %}>
+          <input type="checkbox" id="id_ignore_irrelevant" value="DOCPRDOB" {% if view.get_cpr_settings.ignore_irrelevant %} checked="checked" {% endif %}>
           <label class="cpr_option" for="id_ignore_irrelevant">
             Ignorer ugyldige fødselsdatoer
           </label>
