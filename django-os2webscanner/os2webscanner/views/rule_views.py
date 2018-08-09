@@ -14,14 +14,6 @@ class RuleList(RestrictedListView):
     template_name = 'os2webscanner/rules.html'
 
 
-def extract_pattern_fields(form_fields):
-    if not form_fields:
-        return [('pattern_0', '')]
-
-    return [(field_name, form_fields[field_name]) for field_name in form_fields if
-            field_name.startswith('pattern_')]
-
-
 class RuleCreate(RestrictedCreateView):
     """Create a rule view."""
 
@@ -70,7 +62,7 @@ class RuleCreate(RestrictedCreateView):
                 for pattern in form_patterns:
                     r_ = RegexPattern.objects.create(regex=regexrule, pattern_string=pattern)
                     r_.save()
-                    
+
                 return super().form_valid(form)
         except:
             return super().form_invalid(form)
@@ -89,6 +81,23 @@ class RuleCreate(RestrictedCreateView):
     def get_success_url(self):
         """The URL to redirect to after successful creation."""
         return '/rules/%s/created/' % self.object.pk
+
+    def get_cpr_settings(self):
+        cpr_scan_settings = dict()
+
+        form_fields = self.get_form().fields
+        for field_name in form_fields:
+            if field_name.startswith('pattern_'):
+                if field_name.value == _docpr() or field_name.initial == _docpr():
+                    cpr_scan_settings.do_cpr_scan = True
+
+                if field_name.value == _docprmod11() or field_name.initial == _docprmod11():
+                    cpr_scan_settings.check_mod11 = True
+
+                if field_name.value == _docprdob() or field_name.initial == _docprdob():
+                    cpr_scan_settings.ignore_irrelevant = True
+
+        return cpr_scan_settings
 
 
 class RuleUpdate(RestrictedUpdateView):
@@ -164,7 +173,7 @@ class RuleUpdate(RestrictedUpdateView):
         """
 
         form_fields = self.get_form().fields
-        
+
         for field_name in form_fields:
             if field_name.startswith('pattern_'):
                 yield (field_name, form_fields.get(field_name).initial)
@@ -173,9 +182,49 @@ class RuleUpdate(RestrictedUpdateView):
         """The URL to redirect to after successful update."""
         return '/rules/%s/created/' % self.object.pk
 
+    def get_cpr_settings(self):
+        cpr_scan_settings = dict()
+
+        form_fields = self.get_form().fields
+        for field_name in form_fields:
+            if field_name.startswith('pattern_'):
+                if field_name.value == _docpr() or field_name.initial == _docpr():
+                    cpr_scan_settings.do_cpr_scan = True
+
+                if field_name.value == _docprmod11() or field_name.initial == _docprmod11():
+                    cpr_scan_settings.check_mod11 = True
+
+                if field_name.value == _docprdob() or field_name.initial == _docprdob():
+                    cpr_scan_settings.ignore_irrelevant = True
+
+        return cpr_scan_settings
+
 
 class RuleDelete(RestrictedDeleteView):
     """Delete a rule view."""
 
     model = RegexRule
     success_url = '/rules/'
+
+
+'''============ Methods required by multiple views ============'''
+
+
+def extract_pattern_fields(form_fields):
+    if not form_fields:
+        return [('pattern_0', '')]
+
+    return [(field_name, form_fields[field_name]) for field_name in form_fields if
+            field_name.startswith('pattern_')]
+
+
+def _docpr():
+    return "_M463N74_DOCPR"
+
+
+def _docprmod11():
+    return "_M463N74_DOCPRMOD11"
+
+
+def _docprdob():
+    return "_M463N74_DOCPRDOB"
