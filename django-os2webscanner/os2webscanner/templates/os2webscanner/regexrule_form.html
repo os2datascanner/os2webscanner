@@ -218,6 +218,13 @@
     <div class="form-group">
       <strong class="control-label col-sm-2" for="id_cpr_rule">CPR-indstillinger</strong>
       <div class="col-sm-10">
+      <p>TODO: We need a view method <code>view.cpr_settings</code> that returns an object à la</p>
+      <pre>{
+  do_cpr: true,
+  check_mod11: false,
+  ignore_irrelevant: false
+}</pre>
+      <p>That way, we can call <code>view.cpr_settings.do_cpr</code> etc from within the template, and tick/untick the CPR checkboxes accordingly</p>
         <div class="checkbox-group">
           <input type="checkbox" id="id_do_cpr_scan" value="DOCPR" {% if view.cpr_settings.do_cpr_scan %} checked="checked" {% endif %}>
           <label for="id_do_cpr_scan">
