@@ -27,11 +27,6 @@ class Migration(migrations.Migration):
             field=models.BooleanField(default=True, verbose_name=b'Tjek Last-Modified'),
         ),
         migrations.AlterField(
-            model_name='scan',
-            name='do_link_check',
-            field=models.BooleanField(default=False, verbose_name=b'Tjek links'),
-        ),
-        migrations.AlterField(
             model_name='scanner',
             name='do_cpr_ignore_irrelevant',
             field=models.BooleanField(default=True, verbose_name=b'Ignorer ugyldige f\xc3\xb8dselsdatoer'),
@@ -45,10 +40,5 @@ class Migration(migrations.Migration):
             model_name='scanner',
             name='do_last_modified_check',
             field=models.BooleanField(default=True, verbose_name=b'Tjek Last-Modified'),
-        ),
-        migrations.AlterField(
-            model_name='scanner',
-            name='do_link_check',
-            field=models.BooleanField(default=False, verbose_name=b'Tjek links'),
         ),
     ]
