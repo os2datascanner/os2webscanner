@@ -6,7 +6,6 @@ from ..models.regexpattern_model import RegexPattern
 from django import forms
 from django.db import transaction
 
-
 class RuleList(RestrictedListView):
     """Displays list of scanners."""
 
@@ -83,19 +82,23 @@ class RuleCreate(RestrictedCreateView):
         return '/rules/%s/created/' % self.object.pk
 
     def get_cpr_settings(self):
-        cpr_scan_settings = dict()
+        cpr_scan_settings = {
+            'do_cpr_scan': False,
+            'check_mod11': False,
+            'ignore_irrelevant': False
+        }
 
         form_fields = self.get_form().fields
         for field_name in form_fields:
             if field_name.startswith('pattern_'):
-                if field_name.value == _docpr() or field_name.initial == _docpr():
-                    cpr_scan_settings.do_cpr_scan = True
+                if form_fields[field_name].initial == _docpr():
+                    cpr_scan_settings['do_cpr_scan'] = True
 
-                if field_name.value == _docprmod11() or field_name.initial == _docprmod11():
-                    cpr_scan_settings.check_mod11 = True
+                if form_fields[field_name].initial == _docprmod11():
+                    cpr_scan_settings['check_mod11'] = True
 
-                if field_name.value == _docprdob() or field_name.initial == _docprdob():
-                    cpr_scan_settings.ignore_irrelevant = True
+                if form_fields[field_name].initial == _docprdob():
+                    cpr_scan_settings['ignore_irrelevant'] = True
 
         return cpr_scan_settings
 
@@ -183,19 +186,23 @@ class RuleUpdate(RestrictedUpdateView):
         return '/rules/%s/created/' % self.object.pk
 
     def get_cpr_settings(self):
-        cpr_scan_settings = dict()
+        cpr_scan_settings = {
+            'do_cpr_scan': False,
+            'check_mod11': False,
+            'ignore_irrelevant': False
+        }
 
         form_fields = self.get_form().fields
         for field_name in form_fields:
             if field_name.startswith('pattern_'):
-                if field_name.value == _docpr() or field_name.initial == _docpr():
-                    cpr_scan_settings.do_cpr_scan = True
+                if form_fields[field_name].initial == _docpr():
+                    cpr_scan_settings['do_cpr_scan'] = True
 
-                if field_name.value == _docprmod11() or field_name.initial == _docprmod11():
-                    cpr_scan_settings.check_mod11 = True
+                if form_fields[field_name].initial == _docprmod11():
+                    cpr_scan_settings['check_mod11'] = True
 
-                if field_name.value == _docprdob() or field_name.initial == _docprdob():
-                    cpr_scan_settings.ignore_irrelevant = True
+                if form_fields[field_name].initial == _docprdob():
+                    cpr_scan_settings['ignore_irrelevant'] = True
 
         return cpr_scan_settings
 
