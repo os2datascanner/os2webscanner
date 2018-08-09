@@ -6,6 +6,8 @@ from ..models.regexpattern_model import RegexPattern
 from django import forms
 from django.db import transaction
 
+import ipdb
+
 class RuleList(RestrictedListView):
     """Displays list of scanners."""
 
@@ -46,8 +48,10 @@ class RuleCreate(RestrictedCreateView):
         :return:
         """
         form_cleaned_data = form.cleaned_data
-        form_patterns = [form.cleaned_data[field_name] for field_name in form.cleaned_data if
+        buffer = [form.cleaned_data[field_name] for field_name in form.cleaned_data if
                          field_name.startswith('pattern_')]
+        form_patterns = set(buffer)
+        # ipdb.set_trace()
 
         try:
             with transaction.atomic():
@@ -64,6 +68,7 @@ class RuleCreate(RestrictedCreateView):
 
                 return super().form_valid(form)
         except:
+            # ipdb.set_trace()
             return super().form_invalid(form)
 
     def get_pattern_fields(self):
@@ -124,15 +129,13 @@ class RuleUpdate(RestrictedUpdateView):
             # create extra fields to hold the pattern strings
             for i in range(len(regex_patterns)):
                 field_name = 'pattern_%s' % (i,)
-                form.fields[field_name] = forms.CharField(required=False if i > 0 else True,
+                form.fields[field_name] = forms.CharField(required=False,
                                                           initial=regex_patterns[i].pattern_string, label='Udtryk')
         else:
             self.patterns = extract_pattern_fields(form.data)
-            idx = 0
             for field_name, value in self.patterns:
-                form.fields[field_name] = forms.CharField(required=False if idx > 0 else True, initial=value,
+                form.fields[field_name] = forms.CharField(required=False, initial=value,
                                                           label='Udtryk')
-                idx += 1
 
         # assign class attribute to all fields
         for fname in form.fields:
@@ -177,6 +180,7 @@ class RuleUpdate(RestrictedUpdateView):
 
         form_fields = self.get_form().fields
 
+        ipdb.set_trace()
         for field_name in form_fields:
             if field_name.startswith('pattern_'):
                 yield (field_name, form_fields.get(field_name).initial)

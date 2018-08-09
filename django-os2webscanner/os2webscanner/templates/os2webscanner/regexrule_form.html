@@ -58,6 +58,14 @@
 
       // clean up the pattern numbers on form submit, just to be safe (even though we already did it when adding a new expression field).
       cleanupPatternNumbers();
+
+      // If pattern_3 is set, and pattern_0 has not been set, copy value from 3 to 0, because 0 is mandatory. Also handle the disabled attr
+      var pat0 = $("[name=\"pattern_0\"]");
+      var pat3 = $("[name=\"pattern_3\"]");
+      if(pat3.val() && pat0.prop("disabled")) {
+        pat3.attr("name", "pattern_0");
+        pat0.removeAttr("name");
+      }
     });
 
     // function to clean up pattern numbers, as we need to have them numbered sequentially without gaps
@@ -67,11 +75,9 @@
         var input = $this.find("input[type=\"text\"]");
         var label = $this.find("label");
         var oldInputName = input.attr("name").split(/(.+_)/);
-        input.attr("name", oldInputName[1] + idx + 3).attr("id", "id_" + oldInputName[1] + idx + 3); // plus 3 because items 0-2 are reserved for CPR settings
-        label.attr("for", "id_" + oldInputName[1] + idx + 3).text("{{ form.pattern_3.label }} " + (idx + 1)); // we want 1-indexed labels
+        input.attr("name", oldInputName[1] + (idx + 3)).attr("id", "id_" + oldInputName[1] + (idx + 3)); // plus 3 because items 0-2 are reserved for CPR settings
+        label.attr("for", "id_" + oldInputName[1] + (idx + 3)).text("{{ form.pattern_3.label }} " + (idx + 1)); // we want 1-indexed labels
       });
-
-      // @TODO: Reorder reserved patterns so that they are correctly ordered
       recalcIframeHeight();
     }
 
@@ -180,13 +186,13 @@
     <p>So we need some way to check if this is only a CPR scan, and if so, render an extra text input just in case we want to also add our own pattern at a later time.</p>
 
     <div class="form-group displaynone">
-      <input type="hidden" value="_M463N74_DOCPR" name="pattern_0" {% if not view.get_cpr_settings.do_cpr_scan %} disabled="disabled" {% endif %} readonly>
+      <input type="hidden" value="_M463N74_DOCPR" name="pattern_0" {% if not view.get_cpr_settings.do_cpr_scan %} disabled="disabled" {% endif %}>
     </div>
     <div class="form-group displaynone">
-      <input type="hidden" value="_M463N74_DOCPRMOD11" name="pattern_1" {% if not view.get_cpr_settings.check_mod11 %} disabled="disabled" {% endif %} readonly>
+      <input type="hidden" value="_M463N74_DOCPRMOD11" name="pattern_1" {% if not view.get_cpr_settings.check_mod11 %} disabled="disabled" {% endif %}>
     </div>
     <div class="form-group displaynone">
-      <input type="hidden" value="_M463N74_DOCPRDOB" name="pattern_2" {% if not view.get_cpr_settings.ignore_irrelevant %} disabled="disabled" {% endif %} readonly>
+      <input type="hidden" value="_M463N74_DOCPRDOB" name="pattern_2" {% if not view.get_cpr_settings.ignore_irrelevant %} disabled="disabled" {% endif %}>
     </div>
 
     {% for pattern_name, pattern_value in view.get_pattern_fields %}
