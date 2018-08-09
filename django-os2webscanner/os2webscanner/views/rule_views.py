@@ -33,11 +33,13 @@ class RuleCreate(RestrictedCreateView):
         # See - https://www.caktusgroup.com/blog/2018/05/07/creating-dynamic-forms-django/ (Creating a dynamic form)
         self.patterns = extract_pattern_fields(form.data)
 
-        idx = 0
+        form.fields["pattern_0"] = forms.CharField(required=True, initial='_M463N74_DOCPR')
+        form.fields["pattern_1"] = forms.CharField(required=False, initial='_M463N74_DOCPRMOD11')
+        form.fields["pattern_2"] = forms.CharField(required=False, initial='_M463N74_DOCPRDOB')
+
         for field_name, value in self.patterns:
-            form.fields[field_name] = forms.CharField(required=False if idx > 0 else True, initial=value,
+            form.fields[field_name] = forms.CharField(required=False, initial=value,
                                                       label='Udtryk')
-            idx += 1
 
         return form
 
@@ -51,7 +53,6 @@ class RuleCreate(RestrictedCreateView):
         buffer = [form.cleaned_data[field_name] for field_name in form.cleaned_data if
                          field_name.startswith('pattern_')]
         form_patterns = set(buffer)
-        # ipdb.set_trace()
 
         try:
             with transaction.atomic():
@@ -68,7 +69,6 @@ class RuleCreate(RestrictedCreateView):
 
                 return super().form_valid(form)
         except:
-            # ipdb.set_trace()
             return super().form_invalid(form)
 
     def get_pattern_fields(self):
@@ -93,18 +93,6 @@ class RuleCreate(RestrictedCreateView):
             'ignore_irrelevant': False
         }
 
-        form_fields = self.get_form().fields
-        for field_name in form_fields:
-            if field_name.startswith('pattern_'):
-                if form_fields[field_name].initial == _docpr():
-                    cpr_scan_settings['do_cpr_scan'] = True
-
-                if form_fields[field_name].initial == _docprmod11():
-                    cpr_scan_settings['check_mod11'] = True
-
-                if form_fields[field_name].initial == _docprdob():
-                    cpr_scan_settings['ignore_irrelevant'] = True
-
         return cpr_scan_settings
 
 
@@ -125,12 +113,16 @@ class RuleUpdate(RestrictedUpdateView):
         form = super().get_form(form_class)
         regex_patterns = self.object.patterns.all().order_by('-id')
 
+        form.fields["pattern_0"] = forms.CharField(required=True, initial='_M463N74_DOCPR')
+        form.fields["pattern_1"] = forms.CharField(required=False, initial='_M463N74_DOCPRMOD11')
+        form.fields["pattern_2"] = forms.CharField(required=False, initial='_M463N74_DOCPRDOB')
+
         if not form.data:
             # create extra fields to hold the pattern strings
-            for i in range(len(regex_patterns)):
+            for i in range(3, len(regex_patterns) + 3):
                 field_name = 'pattern_%s' % (i,)
                 form.fields[field_name] = forms.CharField(required=False,
-                                                          initial=regex_patterns[i].pattern_string, label='Udtryk')
+                                                          initial=regex_patterns[i - 3].pattern_string, label='Udtryk')
         else:
             self.patterns = extract_pattern_fields(form.data)
             for field_name, value in self.patterns:
@@ -180,7 +172,6 @@ class RuleUpdate(RestrictedUpdateView):
 
         form_fields = self.get_form().fields
 
-        ipdb.set_trace()
         for field_name in form_fields:
             if field_name.startswith('pattern_'):
                 yield (field_name, form_fields.get(field_name).initial)
@@ -196,17 +187,21 @@ class RuleUpdate(RestrictedUpdateView):
             'ignore_irrelevant': False
         }
 
+        regex_patterns = self.object.patterns.all().order_by('-id')
+
         form_fields = self.get_form().fields
         for field_name in form_fields:
             if field_name.startswith('pattern_'):
-                if form_fields[field_name].initial == _docpr():
+                if regex_patterns.get(pattern_string = _docpr()):
                     cpr_scan_settings['do_cpr_scan'] = True
 
-                if form_fields[field_name].initial == _docprmod11():
+                if regex_patterns.get(pattern_string = _docprmod11()):
                     cpr_scan_settings['check_mod11'] = True
 
-                if form_fields[field_name].initial == _docprdob():
+                if regex_patterns.get(pattern_string = _docprdob()):
                     cpr_scan_settings['ignore_irrelevant'] = True
+
+        ipdb.set_trace()
 
         return cpr_scan_settings
 
