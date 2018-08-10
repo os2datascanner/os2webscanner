@@ -37,6 +37,10 @@ class RegexRule(models.Model):
     sensitivity = models.IntegerField(choices=Sensitivity.choices,
                                       default=Sensitivity.HIGH,
                                       verbose_name='Følsomhed')
+    
+    cpr_enabled = models.BooleanField(required=True, default=False)
+    mod11_enabled = models.BooleanField(default=False)
+    ignore_irrelevant = models.BooleanField(default=False)
 
     @property
     def display_name(self):

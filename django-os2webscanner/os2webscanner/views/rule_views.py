@@ -6,8 +6,6 @@ from ..models.regexpattern_model import RegexPattern
 from django import forms
 from django.db import transaction
 
-import ipdb
-
 class RuleList(RestrictedListView):
     """Displays list of scanners."""
 
@@ -19,7 +17,7 @@ class RuleCreate(RestrictedCreateView):
     """Create a rule view."""
 
     model = RegexRule
-    fields = ['name', 'description', 'sensitivity']
+    fields = ['name', 'description', 'sensitivity', 'cpr_enabled', 'mod11_enabled', 'ignore_irrelevant']
 
     def get_form(self, form_class=None):
         """Get the form for the view.
@@ -33,13 +31,11 @@ class RuleCreate(RestrictedCreateView):
         # See - https://www.caktusgroup.com/blog/2018/05/07/creating-dynamic-forms-django/ (Creating a dynamic form)
         self.patterns = extract_pattern_fields(form.data)
 
-        form.fields["pattern_0"] = forms.CharField(required=True, initial='_M463N74_DOCPR')
-        form.fields["pattern_1"] = forms.CharField(required=False, initial='_M463N74_DOCPRMOD11')
-        form.fields["pattern_2"] = forms.CharField(required=False, initial='_M463N74_DOCPRDOB')
-
+        idx = 0
         for field_name, value in self.patterns:
-            form.fields[field_name] = forms.CharField(required=False, initial=value,
+            form.fields[field_name] = forms.CharField(required=False if idx > 0 else True, initial=value,
                                                       label='Udtryk')
+            idx += 1
 
         return form
 
@@ -50,9 +46,8 @@ class RuleCreate(RestrictedCreateView):
         :return:
         """
         form_cleaned_data = form.cleaned_data
-        buffer = [form.cleaned_data[field_name] for field_name in form.cleaned_data if
+        form_patterns = [form.cleaned_data[field_name] for field_name in form.cleaned_data if
                          field_name.startswith('pattern_')]
-        form_patterns = set(buffer)
 
         try:
             with transaction.atomic():
@@ -86,21 +81,12 @@ class RuleCreate(RestrictedCreateView):
         """The URL to redirect to after successful creation."""
         return '/rules/%s/created/' % self.object.pk
 
-    def get_cpr_settings(self):
-        cpr_scan_settings = {
-            'do_cpr_scan': False,
-            'check_mod11': False,
-            'ignore_irrelevant': False
-        }
-
-        return cpr_scan_settings
-
 
 class RuleUpdate(RestrictedUpdateView):
     """Update a rule view."""
 
     model = RegexRule
-    fields = ['name', 'description', 'sensitivity']
+    fields = ['name', 'description', 'sensitivity', 'cpr_enabled', 'mod11_enabled', 'ignore_irrelevant']
 
     def get_form(self, form_class=None):
         """Get the form for the view.
@@ -113,21 +99,19 @@ class RuleUpdate(RestrictedUpdateView):
         form = super().get_form(form_class)
         regex_patterns = self.object.patterns.all().order_by('-id')
 
-        form.fields["pattern_0"] = forms.CharField(required=True, initial='_M463N74_DOCPR')
-        form.fields["pattern_1"] = forms.CharField(required=False, initial='_M463N74_DOCPRMOD11')
-        form.fields["pattern_2"] = forms.CharField(required=False, initial='_M463N74_DOCPRDOB')
-
         if not form.data:
             # create extra fields to hold the pattern strings
-            for i in range(3, len(regex_patterns) + 3):
+            for i in range(len(regex_patterns)):
                 field_name = 'pattern_%s' % (i,)
-                form.fields[field_name] = forms.CharField(required=False,
-                                                          initial=regex_patterns[i - 3].pattern_string, label='Udtryk')
+                form.fields[field_name] = forms.CharField(required=False if i > 0 else True,
+                                                          initial=regex_patterns[i].pattern_string, label='Udtryk')
         else:
             self.patterns = extract_pattern_fields(form.data)
+            idx = 0
             for field_name, value in self.patterns:
-                form.fields[field_name] = forms.CharField(required=False, initial=value,
+                form.fields[field_name] = forms.CharField(required=False if idx > 0 else True, initial=value,
                                                           label='Udtryk')
+                idx += 1
 
         # assign class attribute to all fields
         for fname in form.fields:
@@ -180,31 +164,6 @@ class RuleUpdate(RestrictedUpdateView):
         """The URL to redirect to after successful update."""
         return '/rules/%s/created/' % self.object.pk
 
-    def get_cpr_settings(self):
-        cpr_scan_settings = {
-            'do_cpr_scan': False,
-            'check_mod11': False,
-            'ignore_irrelevant': False
-        }
-
-        regex_patterns = self.object.patterns.all().order_by('-id')
-
-        form_fields = self.get_form().fields
-        for field_name in form_fields:
-            if field_name.startswith('pattern_'):
-                if regex_patterns.get(pattern_string = _docpr()):
-                    cpr_scan_settings['do_cpr_scan'] = True
-
-                if regex_patterns.get(pattern_string = _docprmod11()):
-                    cpr_scan_settings['check_mod11'] = True
-
-                if regex_patterns.get(pattern_string = _docprdob()):
-                    cpr_scan_settings['ignore_irrelevant'] = True
-
-        ipdb.set_trace()
-
-        return cpr_scan_settings
-
 
 class RuleDelete(RestrictedDeleteView):
     """Delete a rule view."""
@@ -222,15 +181,3 @@ def extract_pattern_fields(form_fields):
 
     return [(field_name, form_fields[field_name]) for field_name in form_fields if
             field_name.startswith('pattern_')]
-
-
-def _docpr():
-    return "_M463N74_DOCPR"
-
-
-def _docprmod11():
-    return "_M463N74_DOCPRMOD11"
-
-
-def _docprdob():
-    return "_M463N74_DOCPRDOB"

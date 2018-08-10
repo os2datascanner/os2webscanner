@@ -15,35 +15,42 @@
 # source municipalities ( http://www.os2web.dk/ )
 """Regular expression-based rules."""
 
-import re
-import regex
 import logging
+import re
 
+import regex
+
+from .cpr import CPRRule
 from .rule import Rule
 from ..items import MatchItem
-from os2webscanner.models.regexpattern_model import RegexPattern
 
 
 class RegexRule(Rule):
     """Represents a rule which matches using a regular expression."""
 
-    def __init__(self, name, pattern_strings, sensitivity):
+    def __init__(self, name, pattern_strings, sensitivity, cpr_enabled=False, ignore_irrelevant=False, do_modulus11=False):
         """Initialize the rule.
         The sensitivity is used to assign a sensitivity value to matches.
         """
         # Convert QuerySet to list
         self.regex_patterns = list(pattern_strings.all())
-        print('Rules is now list: ' + str(type(self.regex_patterns) is list))
-        print('Rules 1 is string: ' + str(type(self.regex_patterns[0]) is RegexPattern))
+        logging.INFO('------- Regex patters ---------')
         for _psuedoRule in self.regex_patterns:
-            print('----------------')
-            print(_psuedoRule.pattern_string)
-            print('-----------\n')
+            logging.INFO(_psuedoRule.pattern_string)
+        logging.INFO('-----------------------------\n')
 
         self.name = name
         self.sensitivity = sensitivity
         self.regex_str = self.compund_rules()
         self.regex = regex.compile(self.regex_str, regex.DOTALL)
+        self.cpr_enabled = cpr_enabled
+        self.ignore_irrelevant = ignore_irrelevant
+        self.do_modulus11 = do_modulus11
+        # bind the 'do_modulus11' and 'ignore_irrelevant' variables to the cpr_enabled property so that they're always
+        # false if it is false
+        if not cpr_enabled:
+            self.do_modulus11 = cpr_enabled
+            self.ignore_irrelevant = cpr_enabled
 
     def __str__(self):
         """
@@ -56,8 +63,8 @@ class RegexRule(Rule):
 
     def compund_rules(self):
         """
-        What this method does is it compounds al the rules in the rule set into one regex rule that is OR'ed
-        e.g. A ruleSet of {rule1, rule2, rule3} becomes (rule1 | rule2 | rule3)
+        What this method does is it compounds all the regex patterns in the rule set into one regex rule that is OR'ed
+        e.g. A ruleSet of {pattern1, pattern2, pattern3} becomes (pattern1 | pattern2 | pattern3)
         :return: RegexRule representing the compound rule
         """
 
@@ -79,6 +86,11 @@ class RegexRule(Rule):
         """Execute the rule on the text."""
         matches = set()
         re_matches = self.regex.finditer(text)
+
+        if self.cpr_enabled:
+            cpr_rule = CPRRule(self.do_modulus11, self.ignore_irrelevant, whitelist=None)
+            matches.add(cpr_rule.execute(text))
+
         for match in re_matches:
             matched_data = match.group(0)
             if len(matched_data) > 1024:
@@ -97,6 +109,8 @@ class RegexRule(Rule):
         if not isinstance(matches, set):
             return False
 
+        cpr_match = False
+
         regex_patterns = set(self.regex_patterns)
 
         # for rule in self.regex_patterns:
@@ -107,8 +121,11 @@ class RegexRule(Rule):
                 if re.match(pattern.pattern_string, match['matched_data']) and regex_patterns:
                     regex_patterns.pop()
                     break
+                if self.cpr_enabled:
+                    if re.match(self.cpr_pattern, match['matched_data']):
+                        cpr_match = True
 
             if not regex_patterns:
                 break
 
-        return not regex_patterns
+        return not regex_patterns and cpr_match
