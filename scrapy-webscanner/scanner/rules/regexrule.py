@@ -33,12 +33,6 @@ class RegexRule(Rule):
         """
         # Convert QuerySet to list
         self.regex_patterns = list(pattern_strings.all())
-        print('Rules is now list: ' + str(type(self.regex_patterns) is list))
-        print('Rules 1 is string: ' + str(type(self.regex_patterns[0]) is RegexPattern))
-        for _psuedoRule in self.regex_patterns:
-            print('----------------')
-            print(_psuedoRule.pattern_string)
-            print('-----------\n')
 
         self.name = name
         self.sensitivity = sensitivity
@@ -102,7 +96,6 @@ class RegexRule(Rule):
         # for rule in self.regex_patterns:
         for pattern in self.regex_patterns:
             for match in matches:
-                print('The matched data vs matched_string ' + pattern.pattern_string + ' :: ' + match['matched_data'])
 
                 if re.match(pattern.pattern_string, match['matched_data']) and regex_patterns:
                     regex_patterns.pop()
