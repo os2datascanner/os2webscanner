@@ -32,8 +32,13 @@ class RuleCreate(RestrictedCreateView):
         self.patterns = extract_pattern_fields(form.data)
 
         idx = 0
+        if 'cpr_enabled' in form.data:
+            is_cpr_enabled = True
+        else:
+            is_cpr_enabled = False
+
         for field_name, value in self.patterns:
-            form.fields[field_name] = forms.CharField(required=False if idx > 0 else True, initial=value,
+            form.fields[field_name] = forms.CharField(required=False if idx > 0 or is_cpr_enabled else True, initial=value,
                                                       label='Udtryk')
             idx += 1
 
@@ -47,7 +52,7 @@ class RuleCreate(RestrictedCreateView):
         """
         form_cleaned_data = form.cleaned_data
         form_patterns = [form.cleaned_data[field_name] for field_name in form.cleaned_data if
-                         field_name.startswith('pattern_')]
+                         field_name.startswith('pattern_') and form.cleaned_data[field_name] != '']
 
         try:
             with transaction.atomic():
@@ -99,17 +104,25 @@ class RuleUpdate(RestrictedUpdateView):
         form = super().get_form(form_class)
         regex_patterns = self.object.patterns.all().order_by('-id')
 
+        if 'cpr_enabled' in form.data:
+            is_cpr_enabled = True
+        else:
+            is_cpr_enabled = False
+
         if not form.data:
             # create extra fields to hold the pattern strings
-            for i in range(len(regex_patterns)):
-                field_name = 'pattern_%s' % (i,)
-                form.fields[field_name] = forms.CharField(required=False if i > 0 else True,
-                                                          initial=regex_patterns[i].pattern_string, label='Udtryk')
+            if len(regex_patterns) == 0: # if we have no patterns already, we should at least render one field
+                form.fields['pattern_0'] = forms.CharField(required=True, initial='', label='Udtryk')
+            else: # otherwise, render the appropriate number of fields
+                for i in range(len(regex_patterns)):
+                    field_name = 'pattern_%s' % (i,)
+                    form.fields[field_name] = forms.CharField(required=False if i > 0 or is_cpr_enabled else True,
+                                                              initial=regex_patterns[i].pattern_string, label='Udtryk')
         else:
             self.patterns = extract_pattern_fields(form.data)
             idx = 0
             for field_name, value in self.patterns:
-                form.fields[field_name] = forms.CharField(required=False if idx > 0 else True, initial=value,
+                form.fields[field_name] = forms.CharField(required=False if idx > 0 or is_cpr_enabled else True, initial=value,
                                                           label='Udtryk')
                 idx += 1
 
@@ -128,7 +141,7 @@ class RuleUpdate(RestrictedUpdateView):
         """
         form_cleaned_data = form.cleaned_data
         form_patterns = [form.cleaned_data[field_name] for field_name in form.cleaned_data if
-                         field_name.startswith('pattern_')]
+                         field_name.startswith('pattern_') and form.cleaned_data[field_name] != '']
 
         try:
             with transaction.atomic():
@@ -177,7 +190,7 @@ class RuleDelete(RestrictedDeleteView):
 
 def extract_pattern_fields(form_fields):
     if not form_fields:
-        return [('pattern_3', '')] # start from 3 because 0-2 are the unique keys for CPR settings
+        return [('pattern_0', '')]
 
     return [(field_name, form_fields[field_name]) for field_name in form_fields if
             field_name.startswith('pattern_')]
