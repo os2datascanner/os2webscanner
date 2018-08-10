@@ -1,3 +1,8 @@
+* Version 1.8.0.3, August 10. 2018
+
+Hotfix:
+ - Corrected indexerror during processor logging.
+
 * Version 1.8.0.2, August 8. 2018
 
 Hotfix:

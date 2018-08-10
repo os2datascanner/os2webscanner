@@ -374,8 +374,8 @@ class Processor(object):
                     result.save()
             except (DatabaseError, IntegrityError) as e:
                 # Database transaction failed, we just try again
-                datetime_print('Error message {1}'.format(e))
-                datetime_print('Transaction failed while getting queue item of type {1}'.format(
+                datetime_print('Error message {0}'.format(e))
+                datetime_print('Transaction failed while getting queue item of type {0}'.format(
                     self.item_type)
                 )
                 result = None
