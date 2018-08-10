@@ -460,7 +460,7 @@ if __name__ == '__main__':
 
     # Stats should be run before the scanners to allow stats to mke the
     # correct initial-value measurements
-    stats = Stats(user_queue)
+    stats = Stats(user_queue, log_data=True)
 
     for i in range(0, number_of_threads):
         scanner = ExchangeServerScan(credentials, user_queue, done_queue,

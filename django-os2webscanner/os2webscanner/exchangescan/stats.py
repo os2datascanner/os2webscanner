@@ -11,6 +11,13 @@ try:
 except ImportError:
     from .settings import export_path
 
+try:
+    from PyExpLabSys.common.database_saver import DataSetSaver, CustomColumn
+    from PyExpLabSys.common.supported_versions import python3_only
+    import credentials
+except ImportError:
+    pass
+
 logger = logging.getLogger('Mailscan_exchange')
 fh = logging.FileHandler('logfile.log')
 fh.setLevel(logging.INFO)
@@ -19,10 +26,9 @@ logger.error('Stat start')
 
 
 class Stats(multiprocessing.Process):
-    def __init__(self, user_queue):
+    def __init__(self, user_queue, log_data=False):
         psutil.cpu_percent(percpu=True)  # Initial dummy readout
         multiprocessing.Process.__init__(self)
-
         conn_params = pika.ConnectionParameters('localhost')
         connection = pika.BlockingConnection(conn_params)
         self.channel = connection.channel()
@@ -43,6 +49,29 @@ class Stats(multiprocessing.Process):
         self.start_time = time.time()
         self.total_users = self.user_queue.qsize()
         self.init_du = self.disk_usage()
+        self.log_data = log_data
+        if self.log_data:
+            self.comment = 'Test run'
+            self.data_set_saver = DataSetSaver('measurements_mailscan',
+                                               'xy_values_mailscan',
+                                               credentials.user, credentials.passwd)
+            self.data_set_saver.start()
+            label = 'Avg export speed'
+            metadata = {"Time": CustomColumn(self.start_time, "FROM_UNIXTIME(%s)"),
+                             "comment": self.comment, "type": 1, "label": label}
+            self.data_set_saver.add_measurement(label, metadata)
+            label = 'Total export size'
+            metadata = {"Time": CustomColumn(self.start_time, "FROM_UNIXTIME(%s)"),
+                        "comment": self.comment, "type": 1, "label": label}
+            self.data_set_saver.add_measurement(label, metadata)
+            label = 'Total users'
+            metadata = {"Time": CustomColumn(self.start_time, "FROM_UNIXTIME(%s)"),
+                        "comment": self.comment, "type": 1, "label": label}
+            self.data_set_saver.add_measurement(label, metadata)
+            label = 'Total memory'
+            metadata = {"Time": CustomColumn(self.start_time, "FROM_UNIXTIME(%s)"),
+                        "comment": self.comment, "type": 1, "label": label}
+            self.data_set_saver.add_measurement(label, metadata)
 
     def _amqp_single_update(self, queue_name):
         method, header, body = self.channel.basic_get(queue_name)
@@ -70,6 +99,15 @@ class Stats(multiprocessing.Process):
         :return: The new number of scanners
         """
         self.scanners.append(scanner)
+        if self.log_data:
+            label = '{} memory'.format(scanner)
+            metadata = {"Time": CustomColumn(self.start_time, "FROM_UNIXTIME(%s)"),
+                             "comment": self.comment, "type": 1, "label": label}
+            self.data_set_saver.add_measurement(label, metadata)
+            label = '{} exported users'.format(scanner)
+            metadata = {"Time": CustomColumn(self.start_time, "FROM_UNIXTIME(%s)"),
+                        "comment": self.comment, "type": 1, "label": label}
+            self.data_set_saver.add_measurement(label, metadata)
         return len(self.scanners)
 
     def disk_usage(self):
@@ -116,6 +154,10 @@ class Stats(multiprocessing.Process):
                 process = psutil.Process(pid)
                 mem_info = process.memory_full_info()
                 used_memory = mem_info.uss/1024**2
+                if self.log_data:
+                    label = '{} memory'.format(pid)
+                    dt = (time.time() - self.start_time)
+                    self.data_set_saver.save_point(label, (dt, used_memory))
             except psutil._exceptions.NoSuchProcess:
                 used_memory = -1
             mem_list[str(pid)] = used_memory
@@ -162,6 +204,7 @@ class Stats(multiprocessing.Process):
             msg = 'Exported users: {}/{}  '.format(users[0], users[1])
             self.screen.addstr(3, 3, msg)
 
+           
             total_export_size = self.amount_of_exported_data()
             msg = 'Total export: {:.3f}MB   '.format(total_export_size)
             self.screen.addstr(4, 3, msg)
@@ -173,6 +216,18 @@ class Stats(multiprocessing.Process):
             mem_info = self.memory_info()
             msg = 'Memory usage: {:.1f}MB'
             self.screen.addstr(6, 3, msg.format(sum(mem_info.values())))
+
+            if self.log_data:
+                dt = (time.time() - self.start_time)
+                label = 'Total users'
+                self.data_set_saver.save_point(label, (dt, users[0]))
+                label = 'Total export size'
+                self.data_set_saver.save_point(label, (dt, total_export_size))
+                label = 'Avg export speed'
+                self.data_set_saver.save_point(label, (dt, speed))
+                label = 'Total memory'
+                self.data_set_saver.save_point(label,
+                                               (dt, sum(mem_info.values())))
 
             msg = 'amqp update time: {:.1f}ms  '
             update_time = self.amqp_messages['global']['amqp_time'] * 1000
@@ -220,6 +275,11 @@ class Stats(multiprocessing.Process):
                     self.screen.clrtoeol()
                     i = i + 1
                     msg = 'Exported users: {}. Memory consumption: {:.1f}MB   '
+                    if self.log_data:
+                        label = '{} exported users'.format(key)
+                        dt = (time.time() - self.start_time)
+                        eu = data['exported_users']
+                        self.data_set_saver.save_point(label, (dt, eu))
                     msg = msg.format(data['exported_users'], mem_info[key])
                     self.screen.addstr(2 + i, 50, msg)
                     i = i + 1
@@ -236,7 +296,7 @@ class Stats(multiprocessing.Process):
             if key == ord('q'):
                 # Quit program
                 pass
-            time.sleep(2)
+            time.sleep(1)
 
         curses.nocbreak()
         self.screen.keypad(0)
