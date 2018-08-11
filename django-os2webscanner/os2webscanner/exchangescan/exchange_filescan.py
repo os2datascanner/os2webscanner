@@ -52,8 +52,8 @@ class ExchangeFilescanner(multiprocessing.Process):
         for domain in valid_domains:
             credentials = (domain.authentication.username,
                            domain.authentication.get_password())
-            user_queue = multiprocessing.Queue()
-            read_users(user_queue,
+            self.user_queue = multiprocessing.Queue()
+            read_users(self.user_queue,
                        domain.exchangedomain.get_userlist_file_path())
             self.done_queue = multiprocessing.Queue()
             mail_ending = domain.url
@@ -61,7 +61,7 @@ class ExchangeFilescanner(multiprocessing.Process):
             scanners = {}
             for i in range(0, NUMBER_OF_EMAIL_THREADS):
                 scanners[i] = ExchangeServerScan(credentials,
-                                                 user_queue,
+                                                 self.user_queue,
                                                  self.done_queue,
                                                  scan_dir,
                                                  mail_ending,
