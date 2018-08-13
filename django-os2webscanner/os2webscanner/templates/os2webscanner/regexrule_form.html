@@ -59,6 +59,29 @@
       cleanupPatternNumbers();
     });
 
+    // If we edit a rule containing some expression(s), and we want to remove those expressions and change the rule into only a CPR scan,
+    // then we get the error that pattern_0 is mandatory, because it's mandatory setting was done on the server, before we decided that we wanted
+    // to change the rule into only a CPR scan. Thus, on form save, we need to check on the front end whether we have an empty string as value in
+    // pattern_0, and actually allow that if CPR is checked.
+    // Note: We can't just do this on form submit, because we don't even get to the submit event if the form contains errors (i.e. a required field with no value)
+    function handleRequiredPattern0() {
+      var pat0 = $("#id_{{ form.pattern_0.name }}");
+      if(!pat0.val() && $("#id_{{ form.cpr_enabled.name }}").prop("checked")) { // if no value in pattern_0 AND CPR is checked
+        pat0.prop("required", false); // ... then don't require pattern_0
+      } else {
+        pat0.prop("required", true);
+      }
+    }
+
+    $("#id_{{ form.pattern_0.name }}").keyup(function() {
+      handleRequiredPattern0();
+    });
+
+    // If we selected to do a CPR scan, it shouldn't be mandatory to input a regex pattern.
+    $("#id_{{ form.cpr_enabled.name }}").change(function() {
+      handleRequiredPattern0();
+    })
+
     // function to clean up pattern numbers, as we need to have them numbered sequentially without gaps
     function cleanupPatternNumbers() {
       $("#{{ form.pattern_0.auto_id }}_container").find(".form-group").each(function(idx) {
@@ -72,15 +95,10 @@
       recalcIframeHeight();
     }
 
-    // Handle the CPR Options when Do CPR scan is (un)checked
+    // Toggle the disabled state of CPR Options when Do CPR scan is (un)checked
     $("#id_{{ form.cpr_enabled.name }}").change(function() {
       handleSubChoices($(this));
     });
-
-    // If we selected to do a CPR scan, it shouldn't be mandatory to input a regex pattern.
-    $("#id_{{ form.cpr_enabled.name }}").change(function() {
-      $("#id_{{ form.pattern_0.name }}").prop("required", !$(this).prop("checked")); // if CPR is checked (true), pattern_0 required attr should be false (and vice versa)
-    })
   })(jQuery);
 </script>
 {% endblock %}
@@ -172,7 +190,7 @@
         {% if forloop.counter > 1 %}
         <div class="input-group">
         {% endif %}
-	      <input type="text" class="form-control" name="{{ pattern_name }}" id="id_{{ pattern_name }}" {% if pattern_value %}value="{{ pattern_value }}"{% endif %} {% if forloop.counter == 1 %}required{% endif %}> {# forloop.counter is 1-indexed #}
+	      <input type="text" class="form-control" name="{{ pattern_name }}" id="id_{{ pattern_name }}" {% if pattern_value %}value="{{ pattern_value }}"{% endif %} {% if forloop.counter == 1 and form.pattern_0.field.required %}required{% endif %}> {# required state of pattern_0 is variable #}
         {% if forloop.counter > 1 %}
         <span class="input-group-btn">
           <button class="btn btn-default button-remove-expression" type="button">Fjern udtryk</button>
@@ -200,7 +218,6 @@
 
   <div id="cpr_settings_container" class="col-sm-12">
     <div class="form-group">
-      <p>TODO: If we edit a rule containing some expressions, and we want to remove those expressions and change the rule into a CPR scan, then we get the error that pattern_0 is mandatory</p>
       <strong class="control-label col-sm-2" for="id_cpr_rule">CPR-indstillinger</strong>
       <div class="col-sm-10">
         <div class="checkbox-group">
