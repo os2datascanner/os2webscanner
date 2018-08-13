@@ -34,10 +34,10 @@ class RegexRule(Rule):
         """
         # Convert QuerySet to list
         self.regex_patterns = list(pattern_strings.all())
-        logging.INFO('------- Regex patters ---------')
+        logging.info('------- Regex patters ---------')
         for _psuedoRule in self.regex_patterns:
-            logging.INFO(_psuedoRule.pattern_string)
-        logging.INFO('-----------------------------\n')
+            logging.info(_psuedoRule.pattern_string)
+        logging.info('-----------------------------\n')
 
         self.name = name
         self.sensitivity = sensitivity
