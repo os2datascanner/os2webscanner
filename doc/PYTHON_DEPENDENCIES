@@ -1,4 +1,4 @@
-Django==1.11.9
+Django==1.11.14
 SQLAlchemy==1.1.14
 Scrapy==1.5.0
 scrapy-djangoitem==1.1.1
