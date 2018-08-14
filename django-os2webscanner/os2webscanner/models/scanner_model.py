@@ -24,6 +24,7 @@ import json
 
 from subprocess import Popen
 
+from model_utils.managers import InheritanceManager
 from django.conf import settings
 from django.db import models
 from recurrence.fields import RecurrenceField
@@ -40,34 +41,47 @@ base_dir = os.path.dirname(
 class Scanner(models.Model):
 
     """A scanner, i.e. a template for actual scanning jobs."""
+    objects = InheritanceManager()
 
     name = models.CharField(max_length=256, unique=True, null=False,
                             verbose_name='Navn')
+
     organization = models.ForeignKey(Organization, null=False,
                                      verbose_name='Organisation')
 
     group = models.ForeignKey(Group, null=True, blank=True,
                               verbose_name='Gruppe')
+
     schedule = RecurrenceField(max_length=1024,
                                verbose_name='Planlagt afvikling')
+
     do_cpr_scan = models.BooleanField(default=True, verbose_name='CPR')
+
     do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
+
     do_address_scan = models.BooleanField(default=False,
                                           verbose_name='Adresse')
+
     do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder')
+
     do_last_modified_check = models.BooleanField(default=True,
                                                  verbose_name='Tjek sidst ændret dato')
+
     do_cpr_modulus11 = models.BooleanField(default=True,
                                            verbose_name='Tjek modulus-11')
+
     do_cpr_ignore_irrelevant = models.BooleanField(
         default=True,
         verbose_name='Ignorer ugyldige fødselsdatoer')
+
     columns = models.CommaSeparatedIntegerField(max_length=128,
                                                 null=True,
                                                 blank=True)
+
     regex_rules = models.ManyToManyField(RegexRule,
                                          blank=True,
                                          verbose_name='Regex regler')
+
     recipients = models.ManyToManyField(UserProfile, blank=True,
                                         verbose_name='Modtagere')
 
@@ -81,19 +95,24 @@ class Scanner(models.Model):
 
     # Replace CPRs?
     do_cpr_replace = models.BooleanField(default=False)
+
     # Text to replace CPRs with
     cpr_replace_text = models.CharField(max_length=2048, null=True,
                                         blank=True)
+
     # Replace names?
     do_name_replace = models.BooleanField(default=False)
+
     # Text to replace names with
     name_replace_text = models.CharField(max_length=2048, null=True,
                                          blank=True)
     # Replace addresses?
     do_address_replace = models.BooleanField(default=False)
+
     # Text to replace addresses with
     address_replace_text = models.CharField(max_length=2048, null=True,
                                             blank=True)
+
     is_running = models.BooleanField(default=False)
 
     @property
