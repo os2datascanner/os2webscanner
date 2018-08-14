@@ -28,21 +28,24 @@ from ..items import MatchItem
 class RegexRule(Rule):
     """Represents a rule which matches using a regular expression."""
 
-    def __init__(self, name, pattern_strings, sensitivity, cpr_enabled=False, ignore_irrelevant=False, do_modulus11=False):
+    def __init__(self, name, pattern_strings, sensitivity, cpr_enabled=False, ignore_irrelevant=False,
+                 do_modulus11=False, *args, **kwargs):
         """Initialize the rule.
         The sensitivity is used to assign a sensitivity value to matches.
         """
         # Convert QuerySet to list
+        super().__init__(*args, **kwargs)
         self.regex_patterns = list(pattern_strings.all())
-        logging.info('------- Regex patters ---------')
-        for _psuedoRule in self.regex_patterns:
-            logging.info(_psuedoRule.pattern_string)
-        logging.info('-----------------------------\n')
+        if not self._is_cpr_only():
+            logging.INFO('------- Regex patters ---------')
+            for _psuedoRule in self.regex_patterns:
+                logging.INFO(_psuedoRule.pattern_string)
+            logging.INFO('-----------------------------\n')
+            self.regex_str = self.compund_rules()
+            self.regex = regex.compile(self.regex_str, regex.DOTALL)
 
         self.name = name
         self.sensitivity = sensitivity
-        self.regex_str = self.compund_rules()
-        self.regex = regex.compile(self.regex_str, regex.DOTALL)
         self.cpr_enabled = cpr_enabled
         self.ignore_irrelevant = ignore_irrelevant
         self.do_modulus11 = do_modulus11
@@ -54,16 +57,17 @@ class RegexRule(Rule):
 
     def __str__(self):
         """
-        Returns a string object repreesentation of this object
+        Returns a string object representation of this object
         :return:
         """
         return '{\n\tname: ' + self.name + \
                ',\n\tregex: ' + self.regex_str + \
+               ',\n\tcpr_enabled: ' + str(self._is_cpr_only()) + \
                ',\n\tsensitivity: ' + str(self.sensitivity) + '\n}'
 
     def compund_rules(self):
         """
-        What this method does is it compounds all the regex patterns in the rule set into one regex rule that is OR'ed
+        This method compounds all the regex patterns in the rule set into one regex rule that is OR'ed
         e.g. A ruleSet of {pattern1, pattern2, pattern3} becomes (pattern1 | pattern2 | pattern3)
         :return: RegexRule representing the compound rule
         """
@@ -81,23 +85,28 @@ class RegexRule(Rule):
                     compound_rule += '|'
             print('Returning< '+compound_rule+' >')
             return compound_rule
+        if len(rule_set) < 1:
+            return None
 
     def execute(self, text):
         """Execute the rule on the text."""
         matches = set()
-        re_matches = self.regex.finditer(text)
-
-        if self.cpr_enabled:
+        if self._is_cpr_only():
             cpr_rule = CPRRule(self.do_modulus11, self.ignore_irrelevant, whitelist=None)
             matches.add(cpr_rule.execute(text))
+        else:
+            re_matches = self.regex.finditer(text)
+            if self.cpr_enabled:
+                cpr_rule = CPRRule(self.do_modulus11, self.ignore_irrelevant, whitelist=None)
+                matches.add(cpr_rule.execute(text))
 
-        for match in re_matches:
-            matched_data = match.group(0)
-            if len(matched_data) > 1024:
-                # TODO: Get rid of magic number
-                matched_data = match.group(1)
-            matches.add(MatchItem(matched_data=matched_data,
-                                  sensitivity=self.sensitivity))
+            for match in re_matches:
+                matched_data = match.group(0)
+                if len(matched_data) > 1024:
+                    # TODO: Get rid of magic number
+                    matched_data = match.group(1)
+                matches.add(MatchItem(matched_data=matched_data,
+                                      sensitivity=self.sensitivity))
         return matches
 
     def is_all_match(self, matches):
@@ -111,21 +120,34 @@ class RegexRule(Rule):
 
         cpr_match = False
 
-        regex_patterns = set(self.regex_patterns)
-
-        # for rule in self.regex_patterns:
-        for pattern in self.regex_patterns:
+        # If it turns out that we're only doing a cpr scan then scan for the first match and return true
+        if self._is_cpr_only():
             for match in matches:
-                print('The matched data vs matched_string ' + pattern.pattern_string + ' :: ' + match['matched_data'])
+                if re.match(self.cpr_pattern, match['matched_data']):
+                    return True
+        else:
+            regex_patterns = set(self.regex_patterns)
 
-                if re.match(pattern.pattern_string, match['matched_data']) and regex_patterns:
-                    regex_patterns.pop()
+            # for rule in self.regex_patterns:
+            for pattern in self.regex_patterns:
+                for match in matches:
+                    print('The matched data vs matched_string ' + pattern.pattern_string + ' :: ' + match['matched_data'])
+
+                    if re.match(pattern.pattern_string, match['matched_data']) and regex_patterns:
+                        regex_patterns.pop()
+                        break
+                    if self.cpr_enabled:
+                        if re.match(self.cpr_pattern, match['matched_data']):
+                            cpr_match = True
+
+                if not regex_patterns:
                     break
-                if self.cpr_enabled:
-                    if re.match(self.cpr_pattern, match['matched_data']):
-                        cpr_match = True
+            if not self.cpr_enabled:
+                return not regex_patterns
+            else:
+                return not regex_patterns and cpr_match
 
-            if not regex_patterns:
-                break
+    def _is_cpr_only(self):
+        """Just a method to decide if we are only doing a CPR scan."""
 
-        return not regex_patterns and cpr_match
+        return self.cpr_enabled and len(self.regex_patterns) < 0
