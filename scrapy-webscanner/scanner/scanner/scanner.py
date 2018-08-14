@@ -67,7 +67,10 @@ class Scanner:
                 RegexRule(
                     name=rule.name,
                     pattern_strings=rule.patterns.all(),
-                    sensitivity=rule.sensitivity
+                    sensitivity=rule.sensitivity,
+                    cpr_enabled=rule.cpr_enabled,
+                    ignore_irrelevant=rule.ignore_irrelevant,
+                    do_modulus11=rule.do_modulus11
                 )
             )
         return rules
