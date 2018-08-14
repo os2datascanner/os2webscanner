@@ -51,7 +51,7 @@ class Stats(multiprocessing.Process):
         self.init_du = self.disk_usage()
         self.log_data = log_data
         if self.log_data:
-            self.comment = 'Test run'
+            self.comment = 'Run with 6 processes'
             self.data_set_saver = DataSetSaver('measurements_mailscan',
                                                'xy_values_mailscan',
                                                credentials.user, credentials.passwd)
@@ -69,6 +69,14 @@ class Stats(multiprocessing.Process):
                         "comment": self.comment, "type": 1, "label": label}
             self.data_set_saver.add_measurement(label, metadata)
             label = 'Total memory'
+            metadata = {"Time": CustomColumn(self.start_time, "FROM_UNIXTIME(%s)"),
+                        "comment": self.comment, "type": 1, "label": label}
+            self.data_set_saver.add_measurement(label, metadata)
+            label = 'Total CPU'
+            metadata = {"Time": CustomColumn(self.start_time, "FROM_UNIXTIME(%s)"),
+                        "comment": self.comment, "type": 1, "label": label}
+            self.data_set_saver.add_measurement(label, metadata)
+            label = 'Total Mails'
             metadata = {"Time": CustomColumn(self.start_time, "FROM_UNIXTIME(%s)"),
                         "comment": self.comment, "type": 1, "label": label}
             self.data_set_saver.add_measurement(label, metadata)
@@ -217,18 +225,6 @@ class Stats(multiprocessing.Process):
             msg = 'Memory usage: {:.1f}MB'
             self.screen.addstr(6, 3, msg.format(sum(mem_info.values())))
 
-            if self.log_data:
-                dt = (time.time() - self.start_time)
-                label = 'Total users'
-                self.data_set_saver.save_point(label, (dt, users[0]))
-                label = 'Total export size'
-                self.data_set_saver.save_point(label, (dt, total_export_size))
-                label = 'Avg export speed'
-                self.data_set_saver.save_point(label, (dt, speed))
-                label = 'Total memory'
-                self.data_set_saver.save_point(label,
-                                               (dt, sum(mem_info.values())))
-
             msg = 'amqp update time: {:.1f}ms  '
             update_time = self.amqp_messages['global']['amqp_time'] * 1000
             self.screen.addstr(7, 3, msg.format(update_time))
@@ -237,6 +233,21 @@ class Stats(multiprocessing.Process):
             msg = 'CPU{} usage: {}%  '
             for i in range(0, len(cpu_usage)):
                 self.screen.addstr(9 + i, 3, msg.format(i, cpu_usage[i]))
+
+            if self.log_data:
+                dt = (time.time() - self.start_time)
+                label = 'Total users'
+                self.data_set_saver.save_point(label, (dt, users[0]))
+                label = 'Total export size'
+                self.data_set_saver.save_point(label, (dt, total_export_size))
+                label = 'Avg export speed'
+                self.data_set_saver.save_point(label, (dt, speed))
+                label = 'Total CPU'
+                self.data_set_saver.save_point(label, (dt, sum(cpu_usage)))
+                label = 'Total memory'
+                self.data_set_saver.save_point(label,
+                                               (dt, sum(mem_info.values())))
+
 
             i = i + 2
             msg = 'Total threads: {}.  '
@@ -247,6 +258,7 @@ class Stats(multiprocessing.Process):
             self.screen.addstr(9 + i, 3, msg.format(thread_info[1]))
 
             i = 0
+            exported_grand_total = 0
             self.screen.addstr(2 + i, 50, 'Scan status:')
             i = i + 1
             for key, data in self.amqp_messages.items():
@@ -274,13 +286,18 @@ class Stats(multiprocessing.Process):
                                                              run_time))
                     self.screen.clrtoeol()
                     i = i + 1
-                    msg = 'Exported users: {}. Memory consumption: {:.1f}MB   '
+                    msg = 'Exported users: {}. Exported mails: {} Total mails: {}. Memory consumption: {:.1f}MB   '
                     if self.log_data:
                         label = '{} exported users'.format(key)
                         dt = (time.time() - self.start_time)
                         eu = data['exported_users']
                         self.data_set_saver.save_point(label, (dt, eu))
-                    msg = msg.format(data['exported_users'], mem_info[key])
+                    msg = msg.format(data['exported_users'],
+                                     data['exported_mails'],
+                                     data['total_mails'],
+                                     mem_info[key])
+                    exported_grand_total += data['exported_mails']
+                    exported_grand_total += data['total_mails']
                     self.screen.addstr(2 + i, 50, msg)
                     i = i + 1
                     msg = 'Last amqp update: {}'.format(data['latest_update'])
@@ -292,6 +309,14 @@ class Stats(multiprocessing.Process):
                     self.screen.addstr(2 + i, 50, str(mem_info))
                 i = i + 2
             self.screen.refresh()
+
+            if self.log_data:
+                dt = (time.time() - self.start_time)
+                label = 'Total Mails'
+                self.data_set_saver.save_point(label,
+                                               (dt, exported_grand_total))
+
+            
             key = self.screen.getch()
             if key == ord('q'):
                 # Quit program

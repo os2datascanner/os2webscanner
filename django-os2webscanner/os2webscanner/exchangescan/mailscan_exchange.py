@@ -59,6 +59,7 @@ class ExchangeMailboxScan(object):
                                     str(self.start_date))
         self.current_path = None
 
+        self.actual_exported_mails = 0
         self.amqp_info = amqp_info
         self.amqp_data = amqp_info[2]
         self.amqp_data['start_time'] = time.time()
@@ -222,10 +223,13 @@ class ExchangeMailboxScan(object):
             items = items.filter(datetime_received__range=(start_dt, end_dt))
             for chunk in chunkify(items, 10):
                 for item in chunk:
+                    self.actual_exported_mails += 1
                     logger.error(str(item.datetime_created) + ':' + str(item.subject))
                     skip_list = self.export_item_body(item)
                     attachments += self.export_attachments(item, skip_list)
+            self.update_amqp(only_mails=True)
 
+                    
         except ErrorInternalServerError:
             # Possibly happens on p7m files?
             msg = '{}: ErrorInternalServerError, giving up sub-folder'
@@ -311,15 +315,18 @@ class ExchangeMailboxScan(object):
             logger.error('Rename error from {}'.format(self.current_path))
         return attachments
 
-    def update_amqp(self, folder=None, total_scanned=None, total_count=None):
+    def update_amqp(self, folder=None, total_scanned=None, total_count=None,
+                    only_mails=False):
         if self.amqp_info[0]:  # AMQP enabled
-            parent = self.export_path.parents[0]
-            rel_path = self.export_path.relative_to(parent)
-            self.amqp_data['rel_path'] = str(rel_path)
-            self.amqp_data['folder'] = str(folder)
-            self.amqp_data['total_scanned'] = total_scanned
-            self.amqp_data['total_count'] = total_count
-            self.amqp_data['latest_update'] = datetime.now()
+            if not only_mails:
+                parent = self.export_path.parents[0]
+                rel_path = self.export_path.relative_to(parent)
+                self.amqp_data['rel_path'] = str(rel_path)
+                self.amqp_data['folder'] = str(folder)
+                self.amqp_data['total_scanned'] = total_scanned
+                self.amqp_data['total_count'] = total_count
+                self.amqp_data['latest_update'] = datetime.now()
+            self.amqp_data['exported_mails'] = self.actual_exported_mails
             amqp_data = pickle.dumps(self.amqp_data)
             logger.info('{} AMQP-data: {}'.format(self.amqp_info[1],
                                                   self.amqp_data))
@@ -373,6 +380,7 @@ class ExchangeServerScan(multiprocessing.Process):
         self.amqp = amqp
         self.amqp_channel = None
         self.exported_users = 0 # Number of exported users in this process
+        self.exported_mails = 0 # Number of exported mails in this process
 
     def start_amqp(self):
         if self.amqp:
@@ -391,6 +399,7 @@ class ExchangeServerScan(multiprocessing.Process):
                 try:
                     amqp_data = {}
                     amqp_data['exported_users'] = self.exported_users
+                    amqp_data['total_mails'] = self.exported_mails
                     amqp_info = (self.amqp_channel, str(self.pid), amqp_data)
                     self.scanner = ExchangeMailboxScan(self.credentials,
                                                        self.user_name,
@@ -407,18 +416,22 @@ class ExchangeServerScan(multiprocessing.Process):
 
                 total_count = self.scanner.total_mails()
                 self.scanner.check_mailbox(total_count)
+                self.exported_mails = self.scanner.actual_exported_mails
                 logger.info('Done with {}'.format(self.user_name))
             except MemoryError:
                 msg = 'We had a memory-error from {}'
                 logger.error(msg.format(self.user_name))
+                self.exported_mails = self.scanner.actual_exported_mails
                 self.user_queue.put(self.user_name)
             except ExportError:
                 msg = 'Could not export all of {}'
                 logger.error(msg.format(self.user_name))
+                self.exported_mails = self.scanner.actual_exported_mails
                 self.user_queue.put(self.user_name)
             except ErrorMailboxStoreUnavailable:
                 msg = 'ErrorMailboxStoreUnavailable {}'
                 logger.error(msg.format(self.user_name))
+                self.exported_mails = self.scanner.actual_exported_mails
                 self.user_queue.put(self.user_name)
                 time.sleep(30)
             self.exported_users = self.exported_users + 1
