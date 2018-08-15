@@ -39,7 +39,7 @@ class RegexRule(models.Model):
                                       verbose_name='Følsomhed')
 
     cpr_enabled = models.BooleanField(default=False, verbose_name='Scan CPR')
-    mod11_enabled = models.BooleanField(default=False, verbose_name='Tjek modulus-11')
+    do_modulus11 = models.BooleanField(default=False, verbose_name='Tjek modulus-11')
     ignore_irrelevant = models.BooleanField(default=False, verbose_name='Ignorer ugyldige fødselsdatoer')
 
     @property
