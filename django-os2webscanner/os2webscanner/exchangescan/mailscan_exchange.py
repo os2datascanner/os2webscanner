@@ -21,6 +21,7 @@ from exchangelib.errors import ErrorCannotOpenFileAttachment
 from exchangelib.errors import ErrorInternalServerError
 from exchangelib.errors import ErrorInvalidOperation
 from exchangelib.errors import ErrorTimeoutExpired
+from exchangelib.errors import ErrorMimeContentConversionFailed
 try:
     from .stats import Stats
 except SystemError:
@@ -228,8 +229,10 @@ class ExchangeMailboxScan(object):
                     skip_list = self.export_item_body(item)
                     attachments += self.export_attachments(item, skip_list)
             self.update_amqp(only_mails=True)
-
-                    
+        except ErrorMimeContentConversionFailed:
+            msg = '{}: ErrorMimeContentConversionFailed, giving up sub-folder'
+            msg += ' Attachment value: {}'
+            logger.warning(msg.format(self.export_path, attachments))                    
         except ErrorInternalServerError:
             # Possibly happens on p7m files?
             msg = '{}: ErrorInternalServerError, giving up sub-folder'
@@ -359,7 +362,8 @@ class ExchangeMailboxScan(object):
                                                       total_scanned,
                                                       total_count))
             self.update_amqp(folder, total_scanned, total_count)
-        return True
+        return self.actual_exported_mails
+
 
 
 class ExchangeServerScan(multiprocessing.Process):
@@ -415,23 +419,20 @@ class ExchangeServerScan(multiprocessing.Process):
                     self.user_queue.put(self.user_name)
 
                 total_count = self.scanner.total_mails()
-                self.scanner.check_mailbox(total_count)
-                self.exported_mails = self.scanner.actual_exported_mails
+                self.exported_mails += self.scanner.check_mailbox(total_count)
+                self.scanner.actual_exported_mails
                 logger.info('Done with {}'.format(self.user_name))
             except MemoryError:
                 msg = 'We had a memory-error from {}'
                 logger.error(msg.format(self.user_name))
-                self.exported_mails = self.scanner.actual_exported_mails
                 self.user_queue.put(self.user_name)
             except ExportError:
                 msg = 'Could not export all of {}'
                 logger.error(msg.format(self.user_name))
-                self.exported_mails = self.scanner.actual_exported_mails
                 self.user_queue.put(self.user_name)
             except ErrorMailboxStoreUnavailable:
                 msg = 'ErrorMailboxStoreUnavailable {}'
                 logger.error(msg.format(self.user_name))
-                self.exported_mails = self.scanner.actual_exported_mails
                 self.user_queue.put(self.user_name)
                 time.sleep(30)
             self.exported_users = self.exported_users + 1
