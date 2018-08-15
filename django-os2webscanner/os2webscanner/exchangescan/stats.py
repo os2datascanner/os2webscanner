@@ -50,36 +50,6 @@ class Stats(multiprocessing.Process):
         self.total_users = self.user_queue.qsize()
         self.init_du = self.disk_usage()
         self.log_data = log_data
-        if self.log_data:
-            self.comment = 'Run with 6 processes'
-            self.data_set_saver = DataSetSaver('measurements_mailscan',
-                                               'xy_values_mailscan',
-                                               credentials.user, credentials.passwd)
-            self.data_set_saver.start()
-            label = 'Avg export speed'
-            metadata = {"Time": CustomColumn(self.start_time, "FROM_UNIXTIME(%s)"),
-                             "comment": self.comment, "type": 1, "label": label}
-            self.data_set_saver.add_measurement(label, metadata)
-            label = 'Total export size'
-            metadata = {"Time": CustomColumn(self.start_time, "FROM_UNIXTIME(%s)"),
-                        "comment": self.comment, "type": 1, "label": label}
-            self.data_set_saver.add_measurement(label, metadata)
-            label = 'Total users'
-            metadata = {"Time": CustomColumn(self.start_time, "FROM_UNIXTIME(%s)"),
-                        "comment": self.comment, "type": 1, "label": label}
-            self.data_set_saver.add_measurement(label, metadata)
-            label = 'Total memory'
-            metadata = {"Time": CustomColumn(self.start_time, "FROM_UNIXTIME(%s)"),
-                        "comment": self.comment, "type": 1, "label": label}
-            self.data_set_saver.add_measurement(label, metadata)
-            label = 'Total CPU'
-            metadata = {"Time": CustomColumn(self.start_time, "FROM_UNIXTIME(%s)"),
-                        "comment": self.comment, "type": 1, "label": label}
-            self.data_set_saver.add_measurement(label, metadata)
-            label = 'Total Mails'
-            metadata = {"Time": CustomColumn(self.start_time, "FROM_UNIXTIME(%s)"),
-                        "comment": self.comment, "type": 1, "label": label}
-            self.data_set_saver.add_measurement(label, metadata)
 
     def _amqp_single_update(self, queue_name):
         method, header, body = self.channel.basic_get(queue_name)
@@ -107,15 +77,6 @@ class Stats(multiprocessing.Process):
         :return: The new number of scanners
         """
         self.scanners.append(scanner)
-        if self.log_data:
-            label = '{} memory'.format(scanner)
-            metadata = {"Time": CustomColumn(self.start_time, "FROM_UNIXTIME(%s)"),
-                             "comment": self.comment, "type": 1, "label": label}
-            self.data_set_saver.add_measurement(label, metadata)
-            label = '{} exported users'.format(scanner)
-            metadata = {"Time": CustomColumn(self.start_time, "FROM_UNIXTIME(%s)"),
-                        "comment": self.comment, "type": 1, "label": label}
-            self.data_set_saver.add_measurement(label, metadata)
         return len(self.scanners)
 
     def disk_usage(self):
@@ -192,8 +153,43 @@ class Stats(multiprocessing.Process):
                                   users[0], users[1])
         return ret_str
 
+    def init_logging(self):
+        if self.log_data:
+            self.comment = 'Run'
+            self.data_set_saver = DataSetSaver('measurements_mailscan',
+                                               'xy_values_mailscan',
+                                               credentials.user, credentials.passwd)
+            self.data_set_saver.start()
+            # PyExpLabSys does does not excell in db-normalization - add
+            # metadata to all channels
+            metadata = {"Time": CustomColumn(self.start_time, "FROM_UNIXTIME(%s)"),
+                        "comment": self.comment, "type": 1, "label": None,
+                        "processes": self.number_of_threads()[1]}
+
+            metadata['label'] = 'Avg export speed'
+            self.data_set_saver.add_measurement(metadata['label'], metadata)
+            metadata['label'] = 'Total export size'
+            self.data_set_saver.add_measurement(metadata['label'], metadata)
+            metadata['label'] = 'Total users'
+            self.data_set_saver.add_measurement(metadata['label'], metadata)
+            metadata['label'] = 'Total memory'
+            self.data_set_saver.add_measurement(metadata['label'], metadata)
+            metadata['label'] = 'Total CPU'
+            self.data_set_saver.add_measurement(metadata['label'], metadata)
+            metadata['label'] = 'Total Mails'
+            self.data_set_saver.add_measurement(metadata['label'], metadata)
+            for scanner in self.amqp_messages.keys():
+                if scanner == 'global':
+                    continue
+                metadata['processes'] = 1
+                metadata['label'] = '{} memory'.format(scanner)
+                self.data_set_saver.add_measurement(metadata['label'], metadata)
+                metadata['label'] = '{} exported users'.format(scanner)
+                self.data_set_saver.add_measurement(metadata['label'], metadata)
+
     def run(self):
         self.amqp_update()
+        self.init_logging()
         processes = self.number_of_threads()[1]
         while processes is not 0:
             self.amqp_update()
