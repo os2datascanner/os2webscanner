@@ -17,7 +17,7 @@ class RuleCreate(RestrictedCreateView):
     """Create a rule view."""
 
     model = RegexRule
-    fields = ['name', 'description', 'sensitivity', 'cpr_enabled', 'mod11_enabled', 'ignore_irrelevant']
+    fields = ['name', 'description', 'sensitivity', 'cpr_enabled', 'do_modulus11', 'ignore_irrelevant']
 
     def get_form(self, form_class=None):
         """Get the form for the view.
@@ -91,7 +91,7 @@ class RuleUpdate(RestrictedUpdateView):
     """Update a rule view."""
 
     model = RegexRule
-    fields = ['name', 'description', 'sensitivity', 'cpr_enabled', 'mod11_enabled', 'ignore_irrelevant']
+    fields = ['name', 'description', 'sensitivity', 'cpr_enabled', 'do_modulus11', 'ignore_irrelevant']
 
     def get_form(self, form_class=None):
         """Get the form for the view.

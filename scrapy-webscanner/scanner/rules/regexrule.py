@@ -36,6 +36,14 @@ class RegexRule(Rule):
         # Convert QuerySet to list
         super().__init__(*args, **kwargs)
         self.regex_patterns = list(pattern_strings.all())
+
+        self.name = name
+        self.sensitivity = sensitivity
+        self.cpr_enabled = cpr_enabled
+        self.ignore_irrelevant = ignore_irrelevant
+        self.do_modulus11 = do_modulus11
+        self.regex_str = ''
+
         if not self._is_cpr_only():
             logging.info('------- Regex patters ---------')
             for _psuedoRule in self.regex_patterns:
@@ -44,11 +52,6 @@ class RegexRule(Rule):
             self.regex_str = self.compund_rules()
             self.regex = regex.compile(self.regex_str, regex.DOTALL)
 
-        self.name = name
-        self.sensitivity = sensitivity
-        self.cpr_enabled = cpr_enabled
-        self.ignore_irrelevant = ignore_irrelevant
-        self.do_modulus11 = do_modulus11
         # bind the 'do_modulus11' and 'ignore_irrelevant' variables to the cpr_enabled property so that they're always
         # false if it is false
         if not cpr_enabled:
@@ -93,12 +96,12 @@ class RegexRule(Rule):
         matches = set()
         if self._is_cpr_only():
             cpr_rule = CPRRule(self.do_modulus11, self.ignore_irrelevant, whitelist=None)
-            matches.add(cpr_rule.execute(text))
+            matches.union(cpr_rule.execute(text))
         else:
             re_matches = self.regex.finditer(text)
             if self.cpr_enabled:
                 cpr_rule = CPRRule(self.do_modulus11, self.ignore_irrelevant, whitelist=None)
-                matches.add(cpr_rule.execute(text))
+                matches.union(cpr_rule.execute(text))
 
             for match in re_matches:
                 matched_data = match.group(0)
@@ -150,4 +153,4 @@ class RegexRule(Rule):
     def _is_cpr_only(self):
         """Just a method to decide if we are only doing a CPR scan."""
 
-        return self.cpr_enabled and len(self.regex_patterns) < 0
+        return self.cpr_enabled and len(self.regex_patterns) <= 0
