@@ -1,3 +1,10 @@
+* Version 1.8.0.5, August 20. 2018
+
+Hotfix:
+    - Fixed change password page so it does not return error code 500.
+    - Fixed orgs and domains page so it does not return error code 500.
+    - Removed unneccesary logging from scanner log showed in the final report.
+
 * Version 1.8.0.4, August 14. 2018
 
 Hotfix:

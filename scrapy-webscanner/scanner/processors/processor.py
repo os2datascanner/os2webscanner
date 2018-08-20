@@ -197,9 +197,8 @@ class Processor(object):
             data = data.encode('utf-8')
 
         if self.is_md5_known(data, url_object.scan):
-            url_object.scan.log_occurrence('Add_to_queue: MD5 is already stored for file {0} '
-                                    'so it is not scanned.'.format(url_object.url))
             return True
+
         tmp_dir = url_object.tmp_dir
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
@@ -396,10 +395,6 @@ class Processor(object):
             data = f.read()
             if self.is_md5_known(data, item.url.scan):
                 # Already processed this file, nothing more to do
-                item.url.scan.log_occurrence(
-                    'Convert_queue_item: MD5 is already stored for file {0} '
-                    'so it is not scanned.'.format(item.url.url)
-                )
                 return True
 
         tmp_dir = item.tmp_dir
