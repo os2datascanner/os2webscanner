@@ -94,14 +94,16 @@ class RegexRule(Rule):
     def execute(self, text):
         """Execute the rule on the text."""
         matches = set()
+
         if self._is_cpr_only():
             cpr_rule = CPRRule(self.do_modulus11, self.ignore_irrelevant, whitelist=None)
-            matches.union(cpr_rule.execute(text))
+            temp_matches = cpr_rule.execute(text)
+            matches.update(temp_matches)
         else:
             re_matches = self.regex.finditer(text)
             if self.cpr_enabled:
                 cpr_rule = CPRRule(self.do_modulus11, self.ignore_irrelevant, whitelist=None)
-                matches.union(cpr_rule.execute(text))
+                matches.update(cpr_rule.execute(text))
 
             for match in re_matches:
                 matched_data = match.group(0)
@@ -126,7 +128,7 @@ class RegexRule(Rule):
         # If it turns out that we're only doing a cpr scan then scan for the first match and return true
         if self._is_cpr_only():
             for match in matches:
-                if re.match(self.cpr_pattern, match['matched_data']):
+                if re.match(self.cpr_pattern, match['original_matched_data']):
                     return True
         else:
             regex_patterns = set(self.regex_patterns)
@@ -134,13 +136,11 @@ class RegexRule(Rule):
             # for rule in self.regex_patterns:
             for pattern in self.regex_patterns:
                 for match in matches:
-                    print('The matched data vs matched_string ' + pattern.pattern_string + ' :: ' + match['matched_data'])
-
                     if re.match(pattern.pattern_string, match['matched_data']) and regex_patterns:
                         regex_patterns.pop()
-                        break
-                    if self.cpr_enabled:
-                        if re.match(self.cpr_pattern, match['matched_data']):
+                        continue
+                    if self.cpr_enabled and not cpr_match and 'original_matched_data' in match:
+                        if re.match(self.cpr_pattern, match['original_matched_data']):
                             cpr_match = True
 
                 if not regex_patterns:
