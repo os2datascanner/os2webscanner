@@ -21,6 +21,7 @@ from exchangelib.errors import ErrorCannotOpenFileAttachment
 from exchangelib.errors import ErrorInternalServerError
 from exchangelib.errors import ErrorInvalidOperation
 from exchangelib.errors import ErrorTimeoutExpired
+from exchangelib.errors import ErrorMimeContentConversionFailed
 try:
     from .stats import Stats
 except SystemError:
@@ -59,6 +60,7 @@ class ExchangeMailboxScan(object):
                                     str(self.start_date))
         self.current_path = None
 
+        self.actual_exported_mails = 0
         self.amqp_info = amqp_info
         self.amqp_data = amqp_info[2]
         self.amqp_data['start_time'] = time.time()
@@ -103,9 +105,14 @@ class ExchangeMailboxScan(object):
         subject = item.subject
         if subject is None:
             subject = ''
+        if str(item.body).lower().find('<html') > -1:
+            ending = '.html'
+        else:
+            ending = '.txt'
+            
         name = ('body_' + str(item.datetime_created) + '_' +
                 str(random.random()) + '_' +
-                subject.replace('/', '_')[-60:] + '.txt')
+                subject.replace('/', '_')[-60:] + ending)
         path = self.current_path.joinpath(name)
         msg_body = str(item.body)
         with path.open('w') as f:
@@ -217,10 +224,15 @@ class ExchangeMailboxScan(object):
             items = items.filter(datetime_received__range=(start_dt, end_dt))
             for chunk in chunkify(items, 10):
                 for item in chunk:
+                    self.actual_exported_mails += 1
                     logger.error(str(item.datetime_created) + ':' + str(item.subject))
                     skip_list = self.export_item_body(item)
                     attachments += self.export_attachments(item, skip_list)
-
+            self.update_amqp(only_mails=True)
+        except ErrorMimeContentConversionFailed:
+            msg = '{}: ErrorMimeContentConversionFailed, giving up sub-folder'
+            msg += ' Attachment value: {}'
+            logger.warning(msg.format(self.export_path, attachments))                    
         except ErrorInternalServerError:
             # Possibly happens on p7m files?
             msg = '{}: ErrorInternalServerError, giving up sub-folder'
@@ -306,15 +318,18 @@ class ExchangeMailboxScan(object):
             logger.error('Rename error from {}'.format(self.current_path))
         return attachments
 
-    def update_amqp(self, folder=None, total_scanned=None, total_count=None):
+    def update_amqp(self, folder=None, total_scanned=None, total_count=None,
+                    only_mails=False):
         if self.amqp_info[0]:  # AMQP enabled
-            parent = self.export_path.parents[0]
-            rel_path = self.export_path.relative_to(parent)
-            self.amqp_data['rel_path'] = str(rel_path)
-            self.amqp_data['folder'] = str(folder)
-            self.amqp_data['total_scanned'] = total_scanned
-            self.amqp_data['total_count'] = total_count
-            self.amqp_data['latest_update'] = datetime.now()
+            if not only_mails:
+                parent = self.export_path.parents[0]
+                rel_path = self.export_path.relative_to(parent)
+                self.amqp_data['rel_path'] = str(rel_path)
+                self.amqp_data['folder'] = str(folder)
+                self.amqp_data['total_scanned'] = total_scanned
+                self.amqp_data['total_count'] = total_count
+                self.amqp_data['latest_update'] = datetime.now()
+            self.amqp_data['exported_mails'] = self.actual_exported_mails
             amqp_data = pickle.dumps(self.amqp_data)
             logger.info('{} AMQP-data: {}'.format(self.amqp_info[1],
                                                   self.amqp_data))
@@ -347,7 +362,8 @@ class ExchangeMailboxScan(object):
                                                       total_scanned,
                                                       total_count))
             self.update_amqp(folder, total_scanned, total_count)
-        return True
+        return self.actual_exported_mails
+
 
 
 class ExchangeServerScan(multiprocessing.Process):
@@ -367,7 +383,8 @@ class ExchangeServerScan(multiprocessing.Process):
         self.export_path = export_path
         self.amqp = amqp
         self.amqp_channel = None
-        self.exported_users = 0
+        self.exported_users = 0 # Number of exported users in this process
+        self.exported_mails = 0 # Number of exported mails in this process
 
     def start_amqp(self):
         if self.amqp:
@@ -386,6 +403,7 @@ class ExchangeServerScan(multiprocessing.Process):
                 try:
                     amqp_data = {}
                     amqp_data['exported_users'] = self.exported_users
+                    amqp_data['total_mails'] = self.exported_mails
                     amqp_info = (self.amqp_channel, str(self.pid), amqp_data)
                     self.scanner = ExchangeMailboxScan(self.credentials,
                                                        self.user_name,
@@ -395,10 +413,14 @@ class ExchangeServerScan(multiprocessing.Process):
                                                        amqp_info)
                     self.scanner.amqp_data['exported_users'] = self.exported_users
                 except NameError:   # No start_time given
-                    self.scanner = ExchangeMailboxScan(self.user_name)
+                    # TODO: When do we end here??!?!?
+                    msg = '{} ended up in name error'.format(self.user_name)
+                    logger.fatal(msg)
+                    self.user_queue.put(self.user_name)
 
                 total_count = self.scanner.total_mails()
-                self.scanner.check_mailbox(total_count)
+                self.exported_mails += self.scanner.check_mailbox(total_count)
+                self.scanner.actual_exported_mails
                 logger.info('Done with {}'.format(self.user_name))
             except MemoryError:
                 msg = 'We had a memory-error from {}'
@@ -452,7 +474,7 @@ if __name__ == '__main__':
 
     # Stats should be run before the scanners to allow stats to mke the
     # correct initial-value measurements
-    stats = Stats(user_queue)
+    stats = Stats(user_queue, log_data=True)
 
     for i in range(0, number_of_threads):
         scanner = ExchangeServerScan(credentials, user_queue, done_queue,

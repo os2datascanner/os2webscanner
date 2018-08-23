@@ -11,6 +11,13 @@ try:
 except ImportError:
     from .settings import export_path
 
+try:
+    from PyExpLabSys.common.database_saver import DataSetSaver, CustomColumn
+    from PyExpLabSys.common.supported_versions import python3_only
+    import credentials
+except ImportError:
+    pass
+
 logger = logging.getLogger('Mailscan_exchange')
 fh = logging.FileHandler('logfile.log')
 fh.setLevel(logging.INFO)
@@ -19,10 +26,9 @@ logger.error('Stat start')
 
 
 class Stats(multiprocessing.Process):
-    def __init__(self, user_queue):
+    def __init__(self, user_queue, log_data=False):
         psutil.cpu_percent(percpu=True)  # Initial dummy readout
         multiprocessing.Process.__init__(self)
-
         conn_params = pika.ConnectionParameters('localhost')
         connection = pika.BlockingConnection(conn_params)
         self.channel = connection.channel()
@@ -43,6 +49,7 @@ class Stats(multiprocessing.Process):
         self.start_time = time.time()
         self.total_users = self.user_queue.qsize()
         self.init_du = self.disk_usage()
+        self.log_data = log_data
 
     def _amqp_single_update(self, queue_name):
         method, header, body = self.channel.basic_get(queue_name)
@@ -116,6 +123,10 @@ class Stats(multiprocessing.Process):
                 process = psutil.Process(pid)
                 mem_info = process.memory_full_info()
                 used_memory = mem_info.uss/1024**2
+                if self.log_data:
+                    label = '{} memory'.format(pid)
+                    dt = (time.time() - self.start_time)
+                    self.data_set_saver.save_point(label, (dt, used_memory))
             except psutil._exceptions.NoSuchProcess:
                 used_memory = -1
             mem_list[str(pid)] = used_memory
@@ -142,8 +153,43 @@ class Stats(multiprocessing.Process):
                                   users[0], users[1])
         return ret_str
 
+    def init_logging(self):
+        if self.log_data:
+            self.comment = 'Run'
+            self.data_set_saver = DataSetSaver('measurements_mailscan',
+                                               'xy_values_mailscan',
+                                               credentials.user, credentials.passwd)
+            self.data_set_saver.start()
+            # PyExpLabSys does does not excell in db-normalization - add
+            # metadata to all channels
+            metadata = {"Time": CustomColumn(self.start_time, "FROM_UNIXTIME(%s)"),
+                        "comment": self.comment, "type": 1, "label": None,
+                        "processes": self.number_of_threads()[1]}
+
+            metadata['label'] = 'Avg export speed'
+            self.data_set_saver.add_measurement(metadata['label'], metadata)
+            metadata['label'] = 'Total export size'
+            self.data_set_saver.add_measurement(metadata['label'], metadata)
+            metadata['label'] = 'Total users'
+            self.data_set_saver.add_measurement(metadata['label'], metadata)
+            metadata['label'] = 'Total memory'
+            self.data_set_saver.add_measurement(metadata['label'], metadata)
+            metadata['label'] = 'Total CPU'
+            self.data_set_saver.add_measurement(metadata['label'], metadata)
+            metadata['label'] = 'Total Mails'
+            self.data_set_saver.add_measurement(metadata['label'], metadata)
+            for scanner in self.amqp_messages.keys():
+                if scanner == 'global':
+                    continue
+                metadata['processes'] = 1
+                metadata['label'] = '{} memory'.format(scanner)
+                self.data_set_saver.add_measurement(metadata['label'], metadata)
+                metadata['label'] = '{} exported users'.format(scanner)
+                self.data_set_saver.add_measurement(metadata['label'], metadata)
+
     def run(self):
         self.amqp_update()
+        self.init_logging()
         processes = self.number_of_threads()[1]
         while processes is not 0:
             self.amqp_update()
@@ -162,6 +208,7 @@ class Stats(multiprocessing.Process):
             msg = 'Exported users: {}/{}  '.format(users[0], users[1])
             self.screen.addstr(3, 3, msg)
 
+           
             total_export_size = self.amount_of_exported_data()
             msg = 'Total export: {:.3f}MB   '.format(total_export_size)
             self.screen.addstr(4, 3, msg)
@@ -183,6 +230,21 @@ class Stats(multiprocessing.Process):
             for i in range(0, len(cpu_usage)):
                 self.screen.addstr(9 + i, 3, msg.format(i, cpu_usage[i]))
 
+            if self.log_data:
+                dt = (time.time() - self.start_time)
+                label = 'Total users'
+                self.data_set_saver.save_point(label, (dt, users[0]))
+                label = 'Total export size'
+                self.data_set_saver.save_point(label, (dt, total_export_size))
+                label = 'Avg export speed'
+                self.data_set_saver.save_point(label, (dt, speed))
+                label = 'Total CPU'
+                self.data_set_saver.save_point(label, (dt, sum(cpu_usage)))
+                label = 'Total memory'
+                self.data_set_saver.save_point(label,
+                                               (dt, sum(mem_info.values())))
+
+
             i = i + 2
             msg = 'Total threads: {}.  '
             self.screen.addstr(9 + i, 3, msg.format(thread_info[0]))
@@ -192,6 +254,7 @@ class Stats(multiprocessing.Process):
             self.screen.addstr(9 + i, 3, msg.format(thread_info[1]))
 
             i = 0
+            exported_grand_total = 0
             self.screen.addstr(2 + i, 50, 'Scan status:')
             i = i + 1
             for key, data in self.amqp_messages.items():
@@ -219,8 +282,18 @@ class Stats(multiprocessing.Process):
                                                              run_time))
                     self.screen.clrtoeol()
                     i = i + 1
-                    msg = 'Exported users: {}. Memory consumption: {:.1f}MB   '
-                    msg = msg.format(data['exported_users'], mem_info[key])
+                    msg = 'Exported users: {}. Exported mails: {} Total mails: {}. Memory consumption: {:.1f}MB   '
+                    if self.log_data:
+                        label = '{} exported users'.format(key)
+                        dt = (time.time() - self.start_time)
+                        eu = data['exported_users']
+                        self.data_set_saver.save_point(label, (dt, eu))
+                    msg = msg.format(data['exported_users'],
+                                     data['exported_mails'],
+                                     data['total_mails'],
+                                     mem_info[key])
+                    exported_grand_total += data['exported_mails']
+                    exported_grand_total += data['total_mails']
                     self.screen.addstr(2 + i, 50, msg)
                     i = i + 1
                     msg = 'Last amqp update: {}'.format(data['latest_update'])
@@ -232,11 +305,19 @@ class Stats(multiprocessing.Process):
                     self.screen.addstr(2 + i, 50, str(mem_info))
                 i = i + 2
             self.screen.refresh()
+
+            if self.log_data:
+                dt = (time.time() - self.start_time)
+                label = 'Total Mails'
+                self.data_set_saver.save_point(label,
+                                               (dt, exported_grand_total))
+
+            
             key = self.screen.getch()
             if key == ord('q'):
                 # Quit program
                 pass
-            time.sleep(2)
+            time.sleep(1)
 
         curses.nocbreak()
         self.screen.keypad(0)
