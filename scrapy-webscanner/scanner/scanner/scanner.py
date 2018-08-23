@@ -67,7 +67,10 @@ class Scanner:
                 RegexRule(
                     name=rule.name,
                     pattern_strings=rule.patterns.all(),
-                    sensitivity=rule.sensitivity
+                    sensitivity=rule.sensitivity,
+                    cpr_enabled=rule.cpr_enabled,
+                    ignore_irrelevant=rule.ignore_irrelevant,
+                    do_modulus11=rule.do_modulus11
                 )
             )
         return rules
@@ -137,7 +140,7 @@ class Scanner:
         for rule in self.rules:
             print('-------Rule to be executed {0}-------'.format(rule))
             rule_matches = rule.execute(text)
-            # TODO: Temporary fix. CPRRule needs to be a regexrule
+
             if isinstance(rule, CPRRule):
                 for match in rule_matches:
                     match['matched_rule'] = rule.name

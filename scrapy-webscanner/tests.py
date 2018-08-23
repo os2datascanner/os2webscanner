@@ -35,13 +35,15 @@ import re
 import linkchecker
 
 import unittest
-from scanner.rules import cpr, name
+from scanner.rules import cpr, name, regexrule
 from scanner.spiders import scanner_spider
 from scanner.processors import pdf, libreoffice, html
 
 from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
 from os2webscanner.models.url_model import Url
 from os2webscanner.models.scan_model import Scan
+from os2webscanner.models.regexrule_model import RegexRule
+from os2webscanner.models.organization_model import Organization
 
 
 class FileExtractorTest(unittest.TestCase):
@@ -260,6 +262,157 @@ class HTMLTest(unittest.TestCase):
         html_processor = html.HTMLProcessor()
         result = html_processor.handle_queue_item(item)
         self.assertEqual(result, False)
+
+
+class RegexRuleIsAllMatchTest(unittest.TestCase):
+
+    organization = None
+
+    def setUp(self):
+        self.create_organization()
+
+    def create_regexrule(self, name, description, cpr_enabled, ignore_irrelevant):
+        if self.organization is None:
+            self.create_organization()
+
+        rule = RegexRule(name=name,
+                         organization=self.organization,
+                         description=description,
+                         cpr_enabled=cpr_enabled,
+                         ignore_irrelevant=ignore_irrelevant
+                         )
+        return rule
+
+    def create_organization(self):
+        if self.organization is None:
+            self.organization = Organization(name='Magenta',
+                                             contact_email='info@magenta.dk',
+                                             contact_phone='39393939'
+                                             )
+
+    def create_scanner_regexrule(self, pattern_objects, rule):
+        regex_rule = regexrule.RegexRule(
+            name=rule.name,
+            pattern_strings=pattern_objects,
+            sensitivity=rule.sensitivity,
+            cpr_enabled=rule.cpr_enabled,
+            ignore_irrelevant=rule.ignore_irrelevant,
+            do_modulus11=rule.do_modulus11
+        )
+        return regex_rule
+
+    def test_cpr_and_name_rule(self):
+        text = """
+        2110625629 Bacon ipsum dolor amet turducken 
+        kevin brisket ribeye jowl short l
+        tail Danni Als alcatra boudin filet mignon shankle 
+        """
+        rule = self.create_regexrule('cpr_and_name_rule',
+                                     'Finds cpr and name',
+                                     True, False)
+
+        regex_pattern = PatternMockObject()
+        regex_rule = self.create_scanner_regexrule(regex_pattern, rule)
+        matches = regex_rule.execute(text)
+        result = regex_rule.is_all_match(matches)
+        self.assertEqual(result, True)
+
+    def test_cpr_name_something_rule_match(self):
+        text = """
+        Something bacon ipsum dolor amet turducken 
+        kevin brisket ribeye 2110625629 jowl short l
+        tail Danni Als alcatra boudin filet mignon shankle 
+        """
+        rule = self.create_regexrule('cpr_name_something_rule',
+                                     'Finds cpr, name and the word Something.',
+                                     True, False)
+
+        pattern_objects = PatternMockObjects()
+        regex_pattern1 = PatternMockObject()
+        regex_pattern2 = PatternMockObject()
+
+        regex_pattern2.pattern_string = 'Something'
+
+        pattern_objects.add_pattern_string(regex_pattern1)
+        pattern_objects.add_pattern_string(regex_pattern2)
+
+        regex_rule = self.create_scanner_regexrule(pattern_objects, rule)
+        matches = regex_rule.execute(text)
+        result = regex_rule.is_all_match(matches)
+        self.assertEqual(result, True)
+
+    def test_cpr_name_something_rule_no_match(self):
+        text = """
+        Something bacon ipsum dolor amet turducken 
+        kevin brisket ribeye 2110625629 jowl short l
+        tail Danni Als alcatra boudin filet mignon shankle 
+        """
+        rule = self.create_regexrule('cpr_name_something_rule',
+                                     'Finds cpr, name and the word something.',
+                                     True, False)
+
+        pattern_objects = PatternMockObjects()
+        regex_pattern1 = PatternMockObject()
+        regex_pattern2 = PatternMockObject()
+
+        regex_pattern2.pattern_string = 'something'
+
+        pattern_objects.add_pattern_string(regex_pattern1)
+        pattern_objects.add_pattern_string(regex_pattern2)
+
+        regex_rule = self.create_scanner_regexrule(pattern_objects, rule)
+        matches = regex_rule.execute(text)
+        result = regex_rule.is_all_match(matches)
+        self.assertEqual(result, False)
+
+    def test_name_something_rule_match(self):
+        text = """
+        Something bacon ipsum dolor amet turducken 
+        kevin brisket ribeye 2110625629 jowl short l
+        tail Danni Als alcatra boudin filet mignon shankle 
+        """
+        rule = self.create_regexrule('name_something_rule',
+                                     'Finds name and the word Something.',
+                                     False, False)
+
+        pattern_objects = PatternMockObjects()
+        regex_pattern1 = PatternMockObject()
+        regex_pattern2 = PatternMockObject()
+
+        regex_pattern2.pattern_string = 'Something'
+
+        pattern_objects.add_pattern_string(regex_pattern1)
+        pattern_objects.add_pattern_string(regex_pattern2)
+
+        regex_rule = self.create_scanner_regexrule(pattern_objects, rule)
+        matches = regex_rule.execute(text)
+        result = regex_rule.is_all_match(matches)
+        self.assertEqual(result, True)
+
+
+class PatternMockObjects(object):
+    """
+    This is not pretty but it works :)
+    The fastest way for me, to go around django queryset method call in scanner/regexrule.py line 38.
+    """
+
+    def __init__(self):
+        self.pattern_string_objects = []
+
+    def add_pattern_string(self, pattern_string_obj):
+        self.pattern_string_objects.append(pattern_string_obj)
+
+    def all(self):
+        return self.pattern_string_objects
+
+
+class PatternMockObject(object):
+
+    pattern_string = '[A-Z]([a-z]+|\.)(?:\s+[A-Z]([a-z]+|\.))' \
+                     '*(?:\s+[a-z][a-z\-]+){0,2}\s+[A-Z]([a-z]+|\.)'
+
+    def all(self):
+        return [self]
 
 
 def main():
