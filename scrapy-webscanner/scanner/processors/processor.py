@@ -496,9 +496,9 @@ class Processor(object):
         'image': 'ocr',
 
         'text/html': 'html',
-        'text/xml': 'html',
+        'text/xml': 'xml',
         'application/xhtml+xml': 'html',
-        'application/xml': 'html',
+        'application/xml': 'xml',
         'application/vnd.google-earth.kml+xml': 'html',
 
         'application/javascript': 'text',
