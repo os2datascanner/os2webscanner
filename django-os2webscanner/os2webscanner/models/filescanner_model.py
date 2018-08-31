@@ -39,7 +39,7 @@ class FileScanner(Scanner):
         for domain in self.domains.all():
             if domain.url == "//sparketilhjørne":
                 pass
-            elif not domain.smbmount():
+            elif not domain.smb_mount():
                 return FileDomain.MOUNT_FAILED
 
         from .filescan_model import FileScan
