@@ -22,6 +22,7 @@ import shutil
 import requests
 import time
 import datetime
+import chardet
 
 
 from django.conf import settings
@@ -239,3 +240,26 @@ def get_failing_urls(scan_id, target_directory):
                 )
         with open(target, 'wb') as local_file:
             shutil.copyfileobj(f.raw, local_file)
+
+def get_codec_and_string(bytestring, encoding="utf-8"):
+    """ Get actual encoding and stringdata from bytestring
+        use UnicodeDammit if this  doesn't work
+        https://www.crummy.com/software/BeautifulSoup/bs4/doc/#unicode-dammit
+    """ 
+    try:
+        stringdata = bytestring.decode(encoding)
+    except UnicodeDecodeError:
+        old_encoding = encoding
+        encoding = chardet.detect(bytestring).get('encoding')
+        if encoding is not None:
+            stringdata = bytestring.decode(encoding)
+            #logging.warning(
+            #    "Error decoding bytestring as {} using {}".format(
+            #        old_encoding, encoding)
+            #)
+        else:
+            raise
+
+    return encoding, stringdata
+
+

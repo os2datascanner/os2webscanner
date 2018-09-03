@@ -37,6 +37,7 @@ from .base_spider import BaseScannerSpider
 from ..processors.processor import Processor
 
 from os2webscanner.utils import capitalize_first
+from os2webscanner.utils import guess_encoding
 from os2webscanner.models.url_model import Url
 from os2webscanner.models.referrerurl_model import ReferrerUrl
 
@@ -266,6 +267,9 @@ class ScannerSpider(BaseScannerSpider):
                 requests.append(Request(file, callback=self.scan,
                                         errback=self.handle_error))
             except UnicodeEncodeError as uee:
+                codecs, stringdata = get_codec_and_string(file)
+                requests.append(Request(stringdata, callback=self.scan,
+                                        errback=self.handle_error))
                 logging.error('UnicodeEncodeError in handle error method: {0}'.format(uee))
                 logging.error('Error happened for file: {0}'.format(file))
         return requests
