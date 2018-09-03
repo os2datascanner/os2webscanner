@@ -248,6 +248,9 @@ def get_codec_and_string(bytestring, encoding="utf-8"):
     """ 
     try:
         stringdata = bytestring.decode(encoding)
+    except AttributeError:
+        # no decode - is a string
+        return None, bytestring
     except UnicodeDecodeError:
         old_encoding = encoding
         encoding = chardet.detect(bytestring).get('encoding')

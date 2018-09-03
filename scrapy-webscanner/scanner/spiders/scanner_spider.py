@@ -37,7 +37,7 @@ from .base_spider import BaseScannerSpider
 from ..processors.processor import Processor
 
 from os2webscanner.utils import capitalize_first
-from os2webscanner.utils import guess_encoding
+from os2webscanner.utils import get_codec_and_string
 from os2webscanner.models.url_model import Url
 from os2webscanner.models.referrerurl_model import ReferrerUrl
 
