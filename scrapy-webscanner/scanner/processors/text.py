@@ -41,7 +41,7 @@ class TextProcessor(Processor):
         """Process the text, by executing rules and saving matches."""
         scanner = Scanner(url_object.scan.pk)
         matches = scanner.execute_rules(data)
-        for match in matches:
+        for match in matches[:10]:
             match['url'] = url_object
             match['scan'] = url_object.scan
             if page_no:
