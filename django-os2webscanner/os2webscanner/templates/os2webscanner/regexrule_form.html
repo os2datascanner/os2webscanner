@@ -226,10 +226,10 @@
             {{ form.cpr_enabled.label }}
             {% if form.cpr_enabled.help_text %}<small>{{ form.cpr_enabled.help_text }}</small>{% endif %}
           </label>
-          <input type="checkbox" id="id_{{ form.mod11_enabled.name }}" name="{{ form.mod11_enabled.name }}" value="{{ form.mod11_enabled.name }}" {% if form.mod11_enabled.value %} checked="checked" {% endif %}>
-          <label class="cpr_option" for="id_{{ form.mod11_enabled.name }}">
-            {{ form.mod11_enabled.label }}
-            {% if form.mod11_enabled.help_text %}<small>{{ form.mod11_enabled.help_text }}</small>{% endif %}
+          <input type="checkbox" id="id_{{ form.do_modulus11.name }}" name="{{ form.do_modulus11.name }}" value="{{ form.do_modulus11.name }}" {% if form.do_modulus11.value %} checked="checked" {% endif %}>
+          <label class="cpr_option" for="id_{{ form.do_modulus11.name }}">
+            {{ form.do_modulus11.label }}
+            {% if form.do_modulus11.help_text %}<small>{{ form.do_modulus11.help_text }}</small>{% endif %}
           </label>
           <input type="checkbox" id="id_{{ form.ignore_irrelevant.name }}" name="{{ form.ignore_irrelevant.name }}" value="{{ form.ignore_irrelevant.name }}" {% if form.ignore_irrelevant.value %} checked="checked" {% endif %}>
           <label class="cpr_option" for="id_{{ form.ignore_irrelevant.name }}">
