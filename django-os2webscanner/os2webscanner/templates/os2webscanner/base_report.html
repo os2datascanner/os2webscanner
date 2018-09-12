@@ -9,7 +9,7 @@
 <meta name="author" content="">
 
 <title>
-    {% block title %}{% endblock %} | OS2Webscanner
+    {% block title %}{% endblock %} | OS2datascanner
 </title>
 
 <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -32,21 +32,30 @@
  Break super-long URLs
  http://css-tricks.com/snippets/css/prevent-long-urls-from-breaking-out-of-container/
  */
-.match-url,
+/*.match-url,
 .broken-url-url,
 .broken-url-referrers
 {
     -ms-word-break: break-all;
 
-    /* Be VERY careful with this, breaks normal words wh_erever */
+    Be VERY careful with this, breaks normal words wh_erever
     word-break: break-all;
 
-    /* Non standard for webkit */
+    Non standard for webkit
     word-break: break-word;
 
     -webkit-hyphens: auto;
     -moz-hyphens: auto;
     hyphens: auto;
+}*/
+.match-url,
+.broken-url-url,
+.broken-url-referrers {
+    -webkit-hyphens: auto;
+    -moz-hyphens: auto;
+    hyphens: auto;
+    max-width:200px;
+    word-wrap:break-word;
 }
 </style>
 
