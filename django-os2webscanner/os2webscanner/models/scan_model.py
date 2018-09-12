@@ -153,6 +153,13 @@ class Scan(models.Model):
         ).count()
 
     @property
+    def get_valid_domains(self):
+        return self.scan_object.domains.filter(
+            validation_status=Domain.VALID
+        )
+
+
+    @property
     def status_text(self):
         """A display text for the scan's status.
 
