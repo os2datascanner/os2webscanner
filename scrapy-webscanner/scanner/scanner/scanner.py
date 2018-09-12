@@ -33,13 +33,10 @@ class Scanner:
     def __init__(self, scan_id):
         """Load the scanner settings from the given scan ID."""
         # Get scan object from DB
-        # TODO: Parse object around instead of making db query. However impact should be tested.
         self.scan_object = Scan.objects.get(pk=scan_id)
 
         self.rules = self._load_rules()
-        self.valid_domains = self.scan_object.domains.filter(
-            validation_status=Domain.VALID
-        )
+        self.valid_domains = self.scan_object.get_valid_domains
 
     def _load_rules(self):
         """Load rules based on WebScanner settings."""
