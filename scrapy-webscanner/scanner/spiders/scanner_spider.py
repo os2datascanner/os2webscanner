@@ -308,7 +308,14 @@ class ScannerSpider(BaseScannerSpider):
             # Ignore this URL
             return
 
-        url_object = Url(url=response.request.url, mime_type=mime_type,
+        url = response.request.url
+        if hasattr(self.scanner.scan_object, 'filescan'):
+            domain = self.scanner.valid_domains.first()
+            url = response.request.url.replace(
+                domain.filedomain.mountpath,
+                domain.filedomain.url)
+
+        url_object = Url(url=url, mime_type=mime_type,
                          scan=self.scanner.scan_object)
         url_object.save()
 
