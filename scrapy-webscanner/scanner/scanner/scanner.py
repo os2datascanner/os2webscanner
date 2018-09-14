@@ -33,7 +33,6 @@ class Scanner:
     def __init__(self, scan_id):
         """Load the scanner settings from the given scan ID."""
         # Get scan object from DB
-        # TODO: Parse object around instead of making db query. However impact should be tested.
         self.scan_object = Scan.objects.get(pk=scan_id)
 
         self.rules = self._load_rules()
