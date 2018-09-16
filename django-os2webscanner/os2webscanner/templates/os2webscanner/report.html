@@ -122,7 +122,7 @@ Rapport &dash; {{scan.scanner.name}}
               <td {% if not scan.regex_rules.all %} class="text-muted" {% endif %} colspan="3">
                   <b>Ad hoc-regler: </b>
                   {% for rule in scan.regex_rules.all %}
-                    {{rule.name}} 
+                    {{rule.name}}{% if not forloop.last %},{% endif %}
                   {% endfor %}
               </td>
           </tr>
