@@ -98,9 +98,40 @@ class ScannerApp:
         self.scan_object.set_scan_status_done()
 
     def start_filescan_crawlers(self):
+        """Starting a file scan by first analysing the folder to scan,
+        and afterwards setting up the scrapy spider."""
+
+        self.filescan_analysis()
+
         self.sitemap_spider = None
         self.scanner_spider = self.setup_scanner_spider()
         self.start_crawlers()
+
+    def filescan_analysis(self):
+        """Analysing the folder domain by logging folder,
+        file count and folder size. Subfolders and files included."""
+
+        logging.info('Starting folder analysis...')
+        from scanner.scanner.analysis_scan import get_dir_and_files_count, \
+            get_tree_size
+
+        domains = self.scanner.get_domains()
+        if len(domains) > 0:
+            domain = self.scanner.get_domains()[0]
+            dir_count, files_count = get_dir_and_files_count(domain)
+
+            logging.info('The number of files file scan is '
+                         'going to scan is: {}'.format(files_count))
+
+            logging.info('The number of folders file scan is '
+                         'going to scan is: {}'.format(dir_count))
+
+            domain_size = get_tree_size(domain)
+
+            logging.info('The size of the domain file scan is '
+                         'going to scan: {}'.format(domain_size))
+
+        logging.info('Folder analysis completed...')
 
     def start_webscan_crawlers(self):
         # Don't sitemap scan when running over RPC or if no sitemap is set on scan
@@ -133,7 +164,6 @@ class ScannerApp:
         self.scan_object.set_scan_status_failed()
         self.scan.logging_occurrence("SCANNER FAILED: Killed")
         logging.error("Killed")
-
 
     def setup_sitemap_spider(self):
         """Setup the sitemap spider."""
