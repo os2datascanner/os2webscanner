@@ -58,7 +58,7 @@ if not os.path.exists(log_dir):
 processes_per_type = 2
 processing_timeout = timedelta(minutes=10)
 
-process_types = ('html', 'libreoffice', 'ocr', 'pdf', 'zip', 'text', 'csv')
+process_types = ('html', 'libreoffice', 'ocr', 'pdf', 'zip', 'text', 'csv', 'xml')
 
 process_map = {}
 process_list = []

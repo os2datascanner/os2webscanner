@@ -4,11 +4,12 @@ HOWTO get the system up and running for development
 This document explains how to get the source code, set up the database, run the
 tests and boot the development server.  Get the code
 
-git clone platon.magenta-aps.dk:/home/git/os2webscanner
+git clone https://github.com/os2webscanner/os2webscanner.git
 
 Install Django and Scrapy, including system dependencies
 
-cd os2webscanner/django-webscanner/
+cd os2webscanner
+
 ./install.sh
 
 Note: The installation will try to install all needed system packages not
@@ -46,6 +47,13 @@ cloned the os2webscanner source dir.
 Test and initialize
 ===================
 
+cd scrapy_webscanner
+python -m unittest discover tests
+cd ..
+
+These tests should pass
+
+cd  webscanner_site
 source ../python-env/bin/activate
 python manage.py test
 
@@ -54,6 +62,8 @@ The test should pass. Now do
 python manage.py migrate
 
 and create a user with a password you can remember.
+
+
 
 Start the system with
 

@@ -22,6 +22,7 @@ from .ocr import OCRProcessor
 from .pdf import PDFProcessor
 from .csv_processor import CSVProcessor
 from .libreoffice import LibreOfficeProcessor
+from .xml import XmlProcessor
 
 Processor.register_processor(TextProcessor.item_type, TextProcessor)
 Processor.register_processor(HTMLProcessor.item_type, HTMLProcessor)
@@ -30,5 +31,6 @@ Processor.register_processor(OCRProcessor.item_type, OCRProcessor)
 Processor.register_processor(PDFProcessor.item_type, PDFProcessor)
 Processor.register_processor(CSVProcessor.item_type, CSVProcessor)
 Processor.register_processor(LibreOfficeProcessor.item_type, LibreOfficeProcessor)
+Processor.register_processor(XmlProcessor.item_type, XmlProcessor)
 
-__all__ = ["html", "libreoffice", "pdf", "ocr", "zip", "text", "csv_processor"]
+__all__ = ["html", "libreoffice", "pdf", "ocr", "zip", "text", "csv_processor", "xml"]

@@ -205,7 +205,7 @@ class ScannerSpider(BaseScannerSpider):
         If link checking is enabled, saves the broken URL and referrers.
         """
         # If scanner is type filescan
-        if  hasattr(self.scanner.scan_object, 'filescan'):
+        if hasattr(self.scanner.scan_object, 'filescan'):
             # If file is a directory loop through files within
             if isinstance(failure.value, IOError) \
                     and failure.value.errno == errno.EISDIR:
@@ -216,7 +216,7 @@ class ScannerSpider(BaseScannerSpider):
             elif isinstance(failure.value, IgnoreRequest):
                 return
         # Else if scanner is type webscan
-        elif  hasattr(self.scanner.scan_object, 'webscan'):
+        elif hasattr(self.scanner.scan_object, 'webscan'):
             # If we should not do link check or failure is ignore request
             # and it is not a http error we know it is a last-modified check.
             if (not self.scanner.scan_object.webscan.do_link_check or
