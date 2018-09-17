@@ -23,7 +23,10 @@ import requests
 import time
 import datetime
 
+import chardet
+import logging
 
+from django.db import IntegrityError
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.template import loader
@@ -242,3 +245,30 @@ def get_failing_urls(scan_id, target_directory):
                 )
         with open(target, 'wb') as local_file:
             shutil.copyfileobj(f.raw, local_file)
+
+
+def get_codec_and_string(bytestring, encoding="utf-8"):
+    """ Get actual encoding and stringdata from bytestring
+        use UnicodeDammit if this  doesn't work
+        https://www.crummy.com/software/BeautifulSoup/bs4/doc/#unicode-dammit
+    """ 
+    try:
+        stringdata = bytestring.decode(encoding)
+    except AttributeError:
+        # no decode - is a string
+        return None, bytestring
+    except UnicodeDecodeError:
+        encoding = chardet.detect(bytestring).get('encoding')
+        if encoding is not None:
+            stringdata = bytestring.decode(encoding)
+        else:
+            raise
+
+    return encoding, stringdata
+
+
+def secure_save(object):
+    try:
+       object.save()
+    except IntegrityError as ie:
+       logging.error('Error Happened: {}'.format(ie))

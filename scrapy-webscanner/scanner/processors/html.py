@@ -14,6 +14,7 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 """HTML Processors."""
+from os2webscanner.utils import get_codec_and_string
 
 from .processor import Processor
 from w3lib.html import replace_entities, remove_tags_with_content
@@ -59,7 +60,12 @@ class HTMLProcessor(Processor):
         processing with TextProcessor.
         """
         logging.info("Process HTML %s" % url_object.url)
-
+        try:
+            encoding, data = get_codec_and_string(data)
+        except UnicodeDecodeError as ude:
+            logging.error('UnicodeDecodeError in handle_error_method: {}'.format(ude))
+            logging.error('Error happened for file: {}'.format(url_object.url))
+            return False
         # Remove style tags to avoid false positives from inline styles
         data = remove_tags_with_content(data, which_ones=('style',))
         # Convert HTML entities to their unicode representation
