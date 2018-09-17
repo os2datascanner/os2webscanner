@@ -23,8 +23,9 @@ import requests
 import time
 import datetime
 import chardet
+import logging
 
-
+from django.db import IntegrityError
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.template import loader
@@ -265,4 +266,8 @@ def get_codec_and_string(bytestring, encoding="utf-8"):
 
     return encoding, stringdata
 
-
+def secure_save(object):
+    try:
+       object.save()
+    except IntegrityError as ie:
+       logging.error('Error Happened: {}'.format(ie))

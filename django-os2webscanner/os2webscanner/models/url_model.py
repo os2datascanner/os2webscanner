@@ -31,7 +31,7 @@ class Url(models.Model):
     url = models.CharField(max_length=2048, verbose_name='Url')
     scan = models.ForeignKey(Scan, null=False, verbose_name='Scan',
                              related_name='urls')
-    mime_type = models.CharField(max_length=256, verbose_name='Mime-type')
+    mime_type = models.CharField(max_length=256, verbose_name='Mime-type', null=True)
 
     status_code = models.IntegerField(blank=True, null=True,
                                       verbose_name='Status code')
