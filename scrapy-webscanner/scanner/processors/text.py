@@ -15,10 +15,12 @@
 # source municipalities ( http://www.os2web.dk/ )
 """Text Processors."""
 
+from os2webscanner.utils import get_codec_and_string
+
 from ..scanner.scanner import Scanner
 from .processor import Processor
 import os
-
+import logging
 
 class TextProcessor(Processor):
 
@@ -39,9 +41,17 @@ class TextProcessor(Processor):
 
     def process(self, data, url_object, page_no=None):
         """Process the text, by executing rules and saving matches."""
+        try:
+            encoding, data = get_codec_and_string(data)
+        except UnicodeDecodeError as ude:
+            logging.error('UnicodeDecodeError in handle_error_method: {}'.format(ude))
+            logging.error('Error happened for file: {}'.format(url_object.url))
+            return False
+
         scanner = Scanner(url_object.scan.pk)
+
         matches = scanner.execute_rules(data)
-        for match in matches:
+        for match in matches[:10]:
             match['url'] = url_object
             match['scan'] = url_object.scan
             if page_no:
