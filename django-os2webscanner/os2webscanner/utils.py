@@ -242,6 +242,7 @@ def get_failing_urls(scan_id, target_directory):
         with open(target, 'wb') as local_file:
             shutil.copyfileobj(f.raw, local_file)
 
+
 def get_codec_and_string(bytestring, encoding="utf-8"):
     """ Get actual encoding and stringdata from bytestring
         use UnicodeDammit if this  doesn't work
@@ -266,8 +267,25 @@ def get_codec_and_string(bytestring, encoding="utf-8"):
 
     return encoding, stringdata
 
+
 def secure_save(object):
     try:
        object.save()
     except IntegrityError as ie:
        logging.error('Error Happened: {}'.format(ie))
+
+
+def domain_form_manipulate(form):
+    """ Manipulates domain form fields.
+    All form widgets will have added the css class 'form-control'.
+    All domain names must be without spaces.
+    """
+    for fname in form.fields:
+        f = form.fields[fname]
+        f.widget.attrs['class'] = 'form-control'
+
+    if form['url'].value():
+        if ' ' in form['url'].value():
+            form.add_error('url', u'Mellemrum er ikke tilladt i domænenavnet.')
+
+    return form

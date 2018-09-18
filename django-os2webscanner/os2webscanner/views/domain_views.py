@@ -10,6 +10,7 @@ from ..models.webdomain_model import WebDomain
 from ..models.filedomain_model import FileDomain
 from ..models.authentication_model import Authentication
 from ..aescipher import encrypt, decrypt
+from ..utils import domain_form_manipulate
 
 
 class DomainList(RestrictedListView):
@@ -79,7 +80,7 @@ class DomainCreate(RestrictedCreateView):
             f = form.fields[fname]
             f.widget.attrs['class'] = 'form-control'
 
-        return form
+        return domain_form_manipulate(form)
 
 
 class WebDomainCreate(DomainCreate):
@@ -177,7 +178,7 @@ class DomainUpdate(RestrictedUpdateView):
                 )
                 vm_field.widget.attrs['class'] = 'validateradio'
 
-        return form
+        return domain_form_manipulate(form)
 
     def form_valid(self, form):
         """Validate the submitted form."""
