@@ -68,7 +68,33 @@ def scan_documents(username, password, data, params={}):
     if not user:
         raise RuntimeError("Wrong username or password!")
 
-    return do_scan_documents(user, data, params)
+    # Create RPC dir for temp files
+    rpcdir = settings.RPC_TMP_PREFIX
+    try:
+        os.makedirs(rpcdir)
+    except OSError:
+        if os.path.isdir(rpcdir):
+            pass
+        else:
+            # There was an error, so make sure we know about it
+            raise
+    # Now create temporary dir, fill with files
+    dirname = tempfile.mkdtemp(dir=settings.RPC_TMP_PREFIX)
+
+    # Save files on disk
+    def writefile(data_item):
+        binary, filename = data_item
+        full_path = os.path.join(dirname, filename)
+        with open(full_path, "wb") as f:
+            f.write(binary.data)
+        return full_path
+    documents = map(writefile, data)
+    file_url = lambda f: 'file://{0}'.format(f)
+    scan = do_scan(user, map(file_url, documents), params, add_domains=False)
+    # map(os.remove, documents)
+
+    url = scan.get_absolute_url()
+    return "{0}{1}".format(settings.SITE_URL, url)
 
 
 @xmlrpc_func(returns='list', args=['string', 'string', 'string'])
