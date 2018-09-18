@@ -1,0 +1,21 @@
+{% extends 'os2webscanner/base.html' %}
+{% block title %}Scan regneark{% endblock %} 
+{% block body %}
+
+<div class="container">
+
+<h1>Upload regneark</h1>
+
+<form class="form-horizontal" role="form" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+{{ form.as_p }}
+
+<button type="submit" class="btn btn-primary" name="Send">
+    Scan
+</button>
+
+</form>
+</div>
+
+{% endblock %}

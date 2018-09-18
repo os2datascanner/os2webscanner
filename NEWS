@@ -1,4 +1,262 @@
-* Version 1.2.0; November 14, 2014
+* Version 1.8.0.5, August 20. 2018
+
+Hotfix:
+    - Fixed change password page so it does not return error code 500.
+    - Fixed orgs and domains page so it does not return error code 500.
+    - Removed unneccesary logging from scanner log showed in the final report.
+
+* Version 1.8.0.4, August 14. 2018
+
+Hotfix:
+ - Fixed cron job error. Due to inheritance scanner.domains is on subclass level. Cron job now collects scanners with subclass type.
+
+* Version 1.8.0.3, August 10. 2018
+
+Hotfix:
+ - Corrected indexerror during processor logging.
+
+* Version 1.8.0.2, August 8. 2018
+
+Hotfix:
+ - cron.py was failing due to wrong import path.
+ - Migration was failing. Corrected error.
+ - In production the number of processors should be 8.
+
+* Version 1.8.0.1, July 30. 2018
+
+Hotfix:
+ - Webscanner threw an error when extracting response objects that are files. Is now checking if response object is a HTMLResponse object.
+ - Default email address is changed from info@magenta-aps.dk to os2webscanner@magenta-aps.dk which is the mail group related to webscanner.
+
+* Version 1.8.0, June 20. 2018
+
+New in this version:
+ - Network share scan feature is added.
+ - Ad hoc rules can now be combined into a set of rules.
+ - Models.py file has been refactored from one very large file to many small.
+ - Simple scan statistics have been added to reports.
+ - Upgraded to django 1.11.9
+
+* Version 1.7.1, May 28. 2018
+
+Hotfix:
+ - Now ignores if digital rights management bit is set for pdf files.
+ - Enhanced logging for pdftohtml conversion subprocess call.
+ - UnicodeEncodeError fixed when doing md5 calculation.
+
+* Version 1.7.0, May 25, 2018
+
+Hotfix:
+ - Webscanner now uses latest version of Scrapy 1.5.0. This solves https scanning problems.
+
+* Version 1.6.1, December 6, 2017
+
+New in this:
+
+ - Rules and Organization are now on the same page divided by tabs.
+ - Reports and Summaries  are now on the same page divided by tabs.
+ - Front page now contains tiles.
+ - 'Scannere' is changed to 'Scannerjobs'.
+ - English words in the interface are changed to danish.
+
+* Version 1.6.0.1, May 8, 2017
+
+Hotfix:
+
+ - Limit broken links to 100 for consistency with critical matches (and
+   performance).
+ - Don't allow customer's user admin to set the "is_staff" flag (for
+   now).
+
+
+* Version 1.6.0, May 2, 2017
+
+New in this version:
+
+ - User administration for site superusers and reset password function
+   for all users.
+ - Reports page is paginated to reduce load time.
+ - Visual cue if report has broken links or critical matches.
+ - Better indication of how to find broken links on the scanned pages.
+ - Bug fix: Scan no longer fails if broken link scan is on and an
+   invalid URL is encountered.
+
+
+* Version 1.5.2, March 16, 2017
+
+New in this version:
+
+ - Change subject of scan mail to include clear warning if critical
+   matches.
+ - It's now possible for organizations to only receive mail if scans
+   have critical matches.
+
+
+* Version 1.5.1.1, April 1, 2016
+
+Hotfix:
+
+ - Committed migration for the CPR whitelist fields.
+ - Added new system dependency on mailutils.
+
+* Version 1.5.1, April 1, 2016
+
+
+New in this version:
+
+ - Simple, cron-based monitoring of the process_manager program.
+
+
+* Version 1.5.0, March 30, 2016
+
+New in this version:
+
+ - New, more inclusive CPR number rule.
+ - Local whitelists for CPR numbers.
+ - Upgraded to Django 1.8
+
+
+* Version 1.4.1.3, March 23, 2016
+
+Hotfix:
+
+ - Handle multiline regular expressions, cutoff if the match exceeds
+   1024 characters.
+
+
+* Version 1.4.1.2, February 23, 2016
+
+Hotfix:
+
+ - Don't crash if sitemap URLs have errors, just log it and keep going.
+
+
+* Version 1.4.1.1, October 23, 2015
+
+New in this version:
+
+ - Better handling of PDF files in latin-1.
+
+
+* Version 1.4.1, October 13, 2015
+
+New in this version:
+
+ - Fix bug in LibreOffice conversion
+
+
+* Version 1.4.0, June 12, 2015
+
+New in this version:
+
+ - Hide ad hoc scanners created for spreadsheet scans.
+ - Introduce job to clean up non-terminating LibreOffice processes.
+ - Consistent branding throughout (the product's name is 'OS2Webscanner'
+   and nothing else).
+ - Include context and page number for CPR matches to make them easier
+   to find.
+ - Check Last-Modified in meta http-equiv HTML headers.
+ - Visibly mark links in reports as visited.
+ - Performance: Save MD5 sums of binary files to avoid scanning the same
+   file several times.
+ - Better diagnostic information when conversion fails.
+ - Collect cookies (so far only server-side cookies are supported).
+ - Fix bugs in and improve installation guide.
+ - Proper OCR of documents that are scanned upside down.
+ - Improve layout of report.
+ - More consistent terminology.
+ - Include information about cookies in summary report.
+
+
+* Version 1.3.3, March 13, 2015
+
+New in this version:
+
+ - Make it possible to limit scanning of spreadsheets to certain columns.
+
+
+* Version 1.3.2, March 5, 2015
+
+New in this version:
+
+ - Delivery to Slagelse approved and stabilized.
+ - Fixed encoding issue by adding a UTF-8 BOM to the CSV output file.
+
+
+* Version 1.3.1.3, February 23, 2015
+
+Hotfix:
+
+ - Allow domains to be excluded, i.e. allow subdomain to be excluded from a
+   *-domain.
+
+
+* Version 1.3.1.2, February 18, 2015
+
+Hotfix:
+
+ - Add init script for automatic start of process manager.
+
+
+* Version 1.3.1.1, February 18, 2015
+
+Hotfix:
+
+ - Fix UnicodeEncodeError when users uploaded a spreadsheet with Danish
+   characters in file name.
+
+
+* Version 1.3.1, February 5, 2015
+
+New in this version:
+
+ - Address scanning adjusted to give a match whenever a valid street name is
+   found and a critical match if a street name is found with a house number.
+ - Name scanning will eliminate leading and tailing capitalized words to
+   avoid false negatives.
+
+
+* Version 1.3.0.1, January 28, 2015
+
+Hotfix:
+
+ - Format of returned CSV fixed.
+
+
+* Version 1.3.0, January 28, 2014
+
+New in this version:
+
+ - Support for spreadsheets with the option to modify (hide) data found by
+   the address, name or CPR rule.
+ - Name scanning enhanced to support more liberal formatting of names,
+   including hyphen-concatenation and abbreviations.
+ - Address scanning is implemented. In order to yield a match, at least an
+   existing Danish streetname must be found. 
+ - A special web client - basically, an upload form - allows users to upload
+   spreadsheets for scanning. A new "upload only" user profile of users who can
+   *only* access that upload form and nothing else.
+ - For each organisation, a global whitelist and blacklist has been added for
+   name and address scanning.
+ - Whitelists and blacklists are available under the menu item "Oplæring".
+ - Reports from scanning of spreadsheets are visible in the reports list - as
+   opposed to the reports from API calls in previous versions.
+ - CSV output files always use semicolon as separator (not comma, and not
+   defaults).
+ - Default values for replacement text is fixed as "NAVN" for name rule,
+   "ADRESSE" for address rule and "xxxxxx-xxxx" for CPR rule.
+ - Bug fix: Name scanning will now match names with more than two middle names.
+ - Bug fix: Don't attempt to link to file URLs.
+ - Bug fix: Domains are not listed on report when scanning files or scanning
+   URL list through API.
+ - Bug fix: Blacklisting of street names and not just individual addresses now
+   works.
+
+NOTE: All of the functionality in this release has been requested and funded by
+Slagelse Kommune.
+
+
+* Version 1.2.0, November 14, 2014
 
 New in this version:
  - Summary report - summaries of certain scanners' results which may be
@@ -40,7 +298,7 @@ New in this version:
  - Documents sent and scanned via XML-RPC now retain file names in the URL.
 
 
-* Version 1.1.0.5; November 4, 2014
+* Version 1.1.0.5, November 4, 2014
 
  - Bug fix: Failed conversion items did not get their temporary directories
    removed.
@@ -48,7 +306,7 @@ New in this version:
    image's dimensions cannot be determined.
 
 
-* Version 1.1.0.4; October 29, 2014
+* Version 1.1.0.4, October 29, 2014
 
  - Performance improvement: When the number of OCR items per scan reaches a
    certain limit, non-OCR conversions are paused to allow the number of OCR

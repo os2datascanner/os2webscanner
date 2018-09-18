@@ -1,11 +1,11 @@
 apache2
-libapache2-mod-wsgi
+libapache2-mod-wsgi-py3
 python-virtualenv
 postgresql
 libpq-dev
 build-essential
 libffi-dev
-python-dev
+python3-dev
 libxml2-dev
 libxslt1-dev
 tesseract-ocr
@@ -14,3 +14,6 @@ pdftohtml
 unzip
 libreoffice
 imagemagick
+unoconv
+mailutils
+libssl-dev

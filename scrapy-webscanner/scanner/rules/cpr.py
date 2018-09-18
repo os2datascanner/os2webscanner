@@ -18,9 +18,21 @@
 import regex
 from datetime import datetime
 
-from rule import Rule
-from os2webscanner.models import Sensitivity
+from .rule import Rule
+from os2webscanner.models.sensitivity_level import Sensitivity
 from ..items import MatchItem
+
+
+def load_whitelist(whitelist):
+    """Load a list of names from a multi-line string, one name per line.
+
+    Returns a set of the names in all upper-case characters
+    """
+    return set(
+        [
+            line.upper().strip() for line in whitelist.splitlines()
+        ] if whitelist else []
+    )
 
 
 class CPRRule(Rule):
@@ -29,19 +41,25 @@ class CPRRule(Rule):
 
     name = 'cpr'
 
-    def __init__(self, do_modulus11, ignore_irrelevant):
+    def __init__(self, do_modulus11, ignore_irrelevant, whitelist=None):
         """Initialize the CPR Rule."""
         self.ignore_irrelevant = ignore_irrelevant
         self.do_modulus11 = do_modulus11
+        self.whitelist = load_whitelist(whitelist)
 
     def execute(self, text):
         """Execute the CPR rule."""
         matches = match_cprs(text, do_modulus11=self.do_modulus11,
-                             ignore_irrelevant=self.ignore_irrelevant)
+                             ignore_irrelevant=self.ignore_irrelevant,
+                             whitelist=self.whitelist)
         return matches
 
 # TODO: Improve
-cpr_regex = regex.compile("\\b(\\d{6})[\\s\-/\\.]?(\\d{4})\\b")
+
+
+cpr_regex = regex.compile(
+    r"\b(\d{2}[\s]?\d{2}[\s]?\d{2})(?:[\s\-/\.]|\s\-\s)?(\d{4})\b"
+)
 
 # As of 11. January 2011, a total of 18 CPR numbers have been assigned
 # without a valid modulus 11 check digit - all men born 1. January 1965
@@ -154,7 +172,7 @@ def modulus11_check(cpr):
 
 
 def match_cprs(text, do_modulus11=True, ignore_irrelevant=True,
-               mask_digits=True):
+               mask_digits=True, whitelist=[]):
     """Return MatchItem objects for each CPR matched in the given text.
 
     If mask_digits is False, then the matches will contain full CPR numbers.
@@ -162,16 +180,34 @@ def match_cprs(text, do_modulus11=True, ignore_irrelevant=True,
     it = cpr_regex.finditer(text)
     matches = set()
     for m in it:
-        cpr = m.group(1) + m.group(2)
+        cpr = m.group(1).replace(' ', '') + m.group(2)
+        if cpr in whitelist:
+            continue
         valid_date = date_check(cpr, ignore_irrelevant)
         if do_modulus11:
-            valid_modulus11 = modulus11_check(cpr)
+            try:
+                valid_modulus11 = modulus11_check(cpr)
+            except ValueError:
+                valid_modulus11 = True
         else:
             valid_modulus11 = True
+        original_cpr = m.group(0)
         if mask_digits:
             # Mask last 6 digits
             cpr = cpr[0:4] + "XXXXXX"
+        # Calculate context.
+        low, high = m.span()
+        if low < 50:
+            # Sanity
+            low = 50
+        match_context = text[low - 50:high + 50]
+        match_context = regex.sub(cpr_regex, "XXXXXX-XXXX", match_context)
+
         if valid_date and valid_modulus11:
-            matches.add(
-                MatchItem(matched_data=cpr, sensitivity=Sensitivity.HIGH))
+            matches.add(MatchItem(
+                matched_data=cpr,
+                sensitivity=Sensitivity.HIGH,
+                match_context=match_context,
+                original_matched_data=original_cpr,
+            ))
     return matches

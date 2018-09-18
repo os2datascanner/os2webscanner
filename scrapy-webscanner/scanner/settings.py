@@ -31,7 +31,7 @@ NEWSPIDER_MODULE = 'scanner.spiders'
 
 SPIDER_MIDDLEWARES = {
     # Disable default OffsiteMiddleware
-    'scrapy.contrib.spidermiddleware.offsite.OffsiteMiddleware': None,
+    'scrapy.spidermiddlewares.offsite.OffsiteMiddleware': None,
 
     # Use our own custom OffsiteMiddleware which doesn't allow subdomains
     'scanner.middlewares.NoSubdomainOffsiteMiddleware': 500,
@@ -40,15 +40,19 @@ SPIDER_MIDDLEWARES = {
     'scanner.middlewares.LastModifiedLinkStorageMiddleware': 1100
 }
 
+COOKIES_ENABLED = True
+COOKIES_DEBUG = True
+
 DOWNLOADER_MIDDLEWARES = {
-    'scrapy.contrib.downloadermiddleware.redirect.RedirectMiddleware': None,
+    'scrapy.downloadermiddlewares.redirect.RedirectMiddleware': None,
     'scanner.middlewares.OffsiteRedirectMiddleware': 600,
+    'scanner.middlewares.CookieCollectorMiddleware': 700,
     'scanner.middlewares.OffsiteDownloaderMiddleware': 1000,
     'scanner.middlewares.ExclusionRuleDownloaderMiddleware': 1100,
     'scanner.middlewares.LastModifiedCheckMiddleware': 1200,
 }
 
-LOG_LEVEL = 'ERROR'
+LOG_LEVEL = 'DEBUG'
 
 # Crawl responsibly by identifying yourself (and your website) on the
 # user-agent
@@ -61,11 +65,11 @@ ROBOTSTXT_OBEY = False
 
 WEBSERVICE_ENABLED = False
 
-TELNETCONSOLE_ENABLED = False
+TELNETCONSOLE_ENABLED = True
 
 local_settings_file = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
     'local_settings.py'
 )
 if os.path.exists(local_settings_file):
-    from local_settings import *
+    from local_settings import *  # noqa

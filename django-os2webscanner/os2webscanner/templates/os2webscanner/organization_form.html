@@ -1,0 +1,123 @@
+{% extends 'os2webscanner/base.html' %}
+{% block rendertype %}regular{% endblock %}
+{% block title %}
+Regler
+{% endblock %}
+
+{% block body %}
+<div class="container">
+  {% include 'os2webscanner/rules_above_content.html' with active='organization' %}
+  <div class="tab-content">
+    <div class="tab-pane active" role="tabpanel" id="organization">
+      <p class="h2" style="display:inline-block;">Faste regler</p>
+      {% if form.non_field_errors %}
+      <ul>
+        {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      {% if form.errors %}
+      <div class="alert alert-danger" role="alert">
+        <p>Følgende felter er ikke udfyldt korrekt:</p>
+        <ul>
+          {% for error in form.errors %}
+          <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+      <form class="form-horizontal" role="form" method="post">
+        {% csrf_token %}    
+        <!-- Whitelists & blacklists -->
+        <div id="{{ form.name_whitelist.auto_id }}_container" class="col-sm-12{% if form.name_whitelist.errors %} has-error{% endif %}">
+          <div class="form-group">
+            <label class="control-label col-sm-2" for="id_{{ form.name_whitelist.name }}">{{ form.name_whitelist.label }}</label>
+            <div class="col-sm-10">
+              <textarea class="form-control" name="{{ form.name_whitelist.name }}" id="id_{{ form.name_whitelist.name }}" rows="3">{% if form.name_whitelist.value %}{{ form.name_whitelist.value }}{% endif %}</textarea>
+              {% if form.name_whitelist.help_text %}
+              <p>
+                <small>{{ form.name_whitelist.help_text }}</small>
+              </p>
+              {% endif %}
+              {% if form.name_whitelist.errors %}{{ form.name_whitelist.errors }}{% endif %}
+            </div>
+          </div>
+        </div>
+        <div id="{{ form.name_blacklist.auto_id }}_container" class="col-sm-12{% if form.name_blacklist.errors %} has-error{% endif %}">
+          <div class="form-group">
+            <label class="control-label col-sm-2" for="id_{{ form.name_blacklist.name }}">{{ form.name_blacklist.label }}</label>
+            <div class="col-sm-10">
+              <textarea class="form-control" name="{{ form.name_blacklist.name }}" id="id_{{ form.name_blacklist.name }}" rows="3">{% if form.name_blacklist.value %}{{ form.name_blacklist.value }}{% endif %}</textarea>
+              {% if form.name_blacklist.help_text %}
+              <p>
+                <small>{{ form.name_blacklist.help_text }}</small>
+              </p>
+              {% endif %}
+              {% if form.name_blacklist.errors %}{{ form.name_blacklist.errors }}{% endif %}
+            </div>
+          </div>
+        </div>
+        <div id="{{ form.address_whitelist.auto_id }}_container" class="col-sm-12{% if form.address_whitelist.errors %} has-error{% endif %}">
+          <div class="form-group">
+            <label class="control-label col-sm-2" for="id_{{ form.address_whitelist.name }}">{{ form.address_whitelist.label }}</label>
+            <div class="col-sm-10">
+              <textarea class="form-control" name="{{ form.address_whitelist.name }}" id="id_{{ form.address_whitelist.name }}" rows="3">{% if form.address_whitelist.value %}{{ form.address_whitelist.value }}{% endif %}</textarea>
+              {% if form.address_whitelist.help_text %}
+              <p>
+                <small>{{ form.address_whitelist.help_text }}</small>
+              </p>
+              {% endif %}
+              {% if form.address_whitelist.errors %}{{ form.address_whitelist.errors }}{% endif %}
+            </div>
+          </div>
+        </div>
+        <div id="{{ form.address_blacklist.auto_id }}_container" class="col-sm-12{% if form.address_blacklist.errors %} has-error{% endif %}">
+          <div class="form-group">
+            <label class="control-label col-sm-2" for="id_{{ form.address_blacklist.name }}">{{ form.address_blacklist.label }}</label>
+            <div class="col-sm-10">
+              <textarea class="form-control" name="{{ form.address_blacklist.name }}" id="id_{{ form.address_blacklist.name }}" rows="3">{% if form.address_blacklist.value %}{{ form.address_blacklist.value }}{% endif %}</textarea>
+              {% if form.address_blacklist.help_text %}
+              <p>
+                <small>{{ form.address_blacklist.help_text }}</small>
+              </p>
+              {% endif %}
+              {% if form.address_blacklist.errors %}{{ form.address_blacklist.errors }}{% endif %}
+            </div>
+          </div>
+        </div>
+        <div id="{{ form.cpr_whitelist.auto_id }}_container" class="col-sm-12{% if form.cpr_whitelist.errors %} has-error{% endif %}">
+          <div class="form-group">
+            <label class="control-label col-sm-2" for="id_{{ form.cpr_whitelist.name }}">{{ form.cpr_whitelist.label }}</label>
+            <div class="col-sm-10">
+              <textarea class="form-control" name="{{ form.cpr_whitelist.name }}" id="id_{{ form.cpr_whitelist.name }}" rows="3">{% if form.cpr_whitelist.value %}{{ form.cpr_whitelist.value }}{% endif %}</textarea>
+              {% if form.cpr_whitelist.help_text %}
+              <p>
+                <small>{{ form.cpr_whitelist.help_text }}</small>
+              </p>
+              {% endif %}
+              {% if form.cpr_whitelist.errors %}{{ form.cpr_whitelist.errors }}{% endif %}
+            </div>
+          </div>
+        </div>
+        <!-- Ye olde, famous Save button -->
+        <div class="col-sm-offset-2">
+          <div class="col-sm-12">
+            <button type="submit" class="btn btn-primary" name="save">
+            Gem ændringer
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+
+{% block rules_active %}class="active"{% endblock %}
+{% block heading %}
+Regler
+{% endblock %}
+
+

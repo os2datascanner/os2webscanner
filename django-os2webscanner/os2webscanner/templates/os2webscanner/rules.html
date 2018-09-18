@@ -6,115 +6,128 @@ Regler
 
 {% block body %}
 <div class="container">
-    <div class="table-responsive">
-		<table class="table table-striped">
+  {% include 'os2webscanner/rules_above_content.html' with active='adhoc' %}
+  <div class="tab-content">
+    <div role="tabpanel" class="tab-pane active" id="adhoc">
+      <p class="h2" style="display:inline-block;">Ad hoc-regler</p>
+      <span class="page-action">
+        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#create-rule-modal">
+          Tilføj ny 
+          <span style="position:relative;top:.15em;" class="glyphicon glyphicon-plus-sign"></span>
+        </button>
+      </span>
+      <div class="table-responsive">
+        <table class="table table-striped">
           <thead>
             <tr>
               <td>
                 <strong>
-                  <small>
-                    Navn
-                  </small>
+                <small>
+                Navn
+                </small>
                 </strong>
               </td>
               {% if user.is_superuser %}
               <td>
                 <strong>
-                  <small>
-                    Organisation
-                  </small>
+                <small>
+                Organisation
+                </small>
                 </strong>
               </td>
               {% endif %}
               <td>
                 <strong>
-                  <small>
-                    Beskrivelse
-                  </small>
+                <small>
+                Beskrivelse
+                </small>
                 </strong>
               </td>
               <td>
                 <strong>
-                  <small>
-                    Regulært udtryk
-                  </small>
+                <small>
+                Udtryk
+                </small>
                 </strong>
               </td>
               <td>
                 <strong>
-                  <small>
-                    Følsomhed
-                  </small>
+                <small>
+                Følsomhed
+                </small>
                 </strong>
               </td>
               <td>
                 <strong>
-                  <small>
-                    Handling
-                  </small>
+                <small>
+                Handling
+                </small>
                 </strong>
               </td>
             </tr>
           </thead>
           <tbody>
-          {% for rule in regexrule_list %}
+            {% for rule in regexrule_list %}
             <tr>
               <td class="rule-name">
                 <span>
-                    {{ rule.name }}
+                {{ rule.name }}
                 </span>
               </td>
               {% if user.is_superuser %}
               <td class="rule-organization">
                 <span>
-                    {{ rule.organization }}
+                {{ rule.organization }}
                 </span>
               </td>
               {% endif %}
               <td class="rule-description">
                 <span>
-                    {{ rule.description }}
+                {{ rule.description }}
                 </span>
               </td>
               <td class="rule-expression">
-                  <code>{{ rule.match_string }}</code>
+                <input type="checkbox" class="show-patterns" id="show-patterns-{{ forloop.counter }}" name="show-patterns-{{ forloop.counter }}">
+                <label for="show-patterns-{{ forloop.counter }}">
+                  Vis udtryk?
+                </label>
+                <div class="pattern-container clearfix">
+                  {% for pattern in rule.patterns.all %}
+                  <code>{{ pattern.pattern_string }}</code>
+                  {% endfor %}
+                </div>
               </td>
               <td class="rule-sensitivity">
                 <span>
-                    {{ rule.get_sensitivity_display }}
+                {{ rule.get_sensitivity_display }}
                 </span>
               </td>
               <td class="rule-actions">
                 <button type="button" class="btn btn-default btn-xs btn-rule-settings"
-		onclick="os2web.iframeDialog(
-		      &quot;#edit-rule-modal&quot;,
-		      &quot;/rules/{{rule.pk}}&quot;,
-		      &quot;Redigér regel '{{rule.name}}'&quot;
-		  )">
-              	  <span class="glyphicon glyphicon-cog"></span> <span>Redigér</span>
-				</button>
-          	<a href="/rules/{{rule.pk}}/delete/" class="btn btn-default btn-xs">
-              	    <span class="glyphicon glyphicon-remove"></span>
-              	    <span>Slet</span>
-          	</a>
+                  onclick="os2web.iframeDialog(
+                  &quot;#edit-rule-modal&quot;,
+                  &quot;/rules/{{rule.pk}}&quot;,
+                  &quot;Redigér ad hoc-regel '{{rule.name}}'&quot;
+                  )">
+                <span class="glyphicon glyphicon-cog"></span> <span>Redigér</span>
+                </button>
+                <a href="/rules/{{rule.pk}}/delete/" class="btn btn-default btn-xs">
+                <span class="glyphicon glyphicon-remove"></span>
+                <span>Slet</span>
+                </a>
               </td>
             </tr>
             {% endfor %}
           </tbody>
         </table>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
-{% block heading %} 
-Regler 
-<span class="page-action" style="float:right;">
-    <button type="button" class="btn btn-default" data-toggle="modal" data-target="#create-rule-modal">
-        Tilføj ny 
-        <span style="position:relative;top:.15em;" class="glyphicon glyphicon-plus-sign">
-        </span>
-    </button>
-</span>
-
+{% block heading %}
+Regler
 {% endblock %}
 
 {% block modal %}
@@ -128,7 +141,7 @@ Regler
 	  &times;
 	</button>
 	<h4 class="modal-title" id="create-rule-modal-title">
-	  Opret ny regel
+	  Opret ny ad hoc-regel
 	</h4>
       </div>
       <div class="modal-body">
@@ -147,7 +160,7 @@ Regler
 	  &times;
 	</button>
 	<h4 class="modal-title" id="edit-rule-modal-title">
-	  Opret ny regel
+	  Redigér ad hoc-regel
 	</h4>
       </div>
       <div class="modal-body">

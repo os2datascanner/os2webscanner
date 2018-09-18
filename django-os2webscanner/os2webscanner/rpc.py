@@ -16,19 +16,21 @@
 
 import os
 import re
-import StringIO
 import csv
 import tempfile
 
 from django.contrib.auth import authenticate
 from django.conf import settings
+from django.utils import six
 
 from .utils import do_scan
-from .models import Match, Scan
+from .models.match_model import Match
+from .models.scan_model import Scan
 
 from django_xmlrpc.decorators import xmlrpc_func
 
 
+@xmlrpc_func(returns='string', args=['string', 'string', 'string', 'dict'])
 def scan_urls(username, password, urls, params={}):
     """Web service for scanning URLs specified by the caller.
 
@@ -40,20 +42,16 @@ def scan_urls(username, password, urls, params={}):
     Return value:
         The URL for retrieving the report.
     """
-    # First check the user sent us a list
-    if not isinstance(urls, list):
-        raise RuntimeError("Malformed parameters.")
-    if not isinstance(params, dict):
-        raise RuntimeError("Malformed params parameter.")
+    # Authenticate
     user = authenticate(username=username, password=password)
     if not user:
         raise RuntimeError("Wrong username or password!")
-    scan = do_scan(user, urls)
+    do_scan(user, urls, params)
 
-    url = scan.get_absolute_url()
-    return "{0}{1}".format(settings.SITE_URL, url)
+    return do_scan_urls(user, urls, params)
 
 
+@xmlrpc_func(returns='string', args=['string', 'string', 'string', 'dict'])
 def scan_documents(username, password, data, params={}):
     """Web service for scanning the documents sent by the caller.
 
@@ -65,15 +63,10 @@ def scan_documents(username, password, data, params={}):
     Return value:
         The URL for retrieving the report.
     """
-    # First check the user sent us a list
-    if not isinstance(data, list):
-        raise RuntimeError("Malformed parameters.")
     # Authenticate
     user = authenticate(username=username, password=password)
     if not user:
         raise RuntimeError("Wrong username or password!")
-    if not isinstance(params, dict):
-        raise RuntimeError("Malformed params parameter.")
 
     # Create RPC dir for temp files
     rpcdir = settings.RPC_TMP_PREFIX
@@ -164,7 +157,7 @@ def get_report(username, password, report_url):
     except Exception:
         raise RuntimeError("Report not found")
     # We now have the scan object
-    output = StringIO.StringIO()
+    output = six.moves.StringIO()
     writer = csv.writer(output)
 
     all_matches = Match.objects.filter(scan=scan).order_by(
@@ -173,14 +166,16 @@ def get_report(username, password, report_url):
     # CSV utilities
     e = lambda fields: ([f.encode('utf-8') for f in fields])
     # Print summary header
-    writer.writerow(e([u'Starttidspunkt', u'Sluttidspunkt', u'Status',
-                    u'Totalt antal matches']))
+    writer.writerow(e(['Starttidspunkt', 'Sluttidspunkt', 'Status',
+                    'Totalt antal matches']))
     # Print summary
-    writer.writerow(e([str(scan.start_time),
-        str(scan.end_time), scan.get_status_display(),
-        str(len(all_matches))]))
+    writer.writerow(
+        e([str(scan.start_time),
+           str(scan.end_time), scan.get_status_display(),
+           str(len(all_matches))])
+    )
     # Print match header
-    writer.writerow(e([u'URL', u'Regel', u'Match', u'Følsomhed']))
+    writer.writerow(e(['URL', 'Regel', 'Match', 'Følsomhed']))
     for match in all_matches:
         writer.writerow(
             e([match.url.url,
@@ -188,3 +183,57 @@ def get_report(username, password, report_url):
                match.matched_data.replace('\n', '').replace('\r', ' '),
                match.get_sensitivity_display()]))
     return output.getvalue()
+
+
+def do_scan_urls(user, urls, params={}):
+    """Implementation of scan_urls for direct calling."""
+    # Check parameters
+    if not isinstance(urls, list):
+        raise RuntimeError("Malformed parameters.")
+    if not isinstance(params, dict):
+        raise RuntimeError("Malformed params parameter.")
+    scan = do_scan(user, urls, params)
+
+    url = scan.get_absolute_url()
+    return "{0}{1}".format(settings.SITE_URL, url)
+
+
+def do_scan_documents(user, data, params={}):
+    """Implementation of scan_documents for direct calling."""
+    # Check parameters
+    if not isinstance(data, list):
+        raise RuntimeError("Malformed parameters.")
+    if not isinstance(params, dict):
+        raise RuntimeError("Malformed params parameter.")
+
+    # Create RPC dir for temp files
+    rpcdir = settings.RPC_TMP_PREFIX
+    try:
+        os.makedirs(rpcdir)
+    except OSError:
+        if os.path.isdir(rpcdir):
+            pass
+        else:
+            # There was an error, so make sure we know about it
+            raise
+    # Now create temporary dir, fill with files
+    dirname = tempfile.mkdtemp(dir=rpcdir)
+
+    # Save files on disk
+    def writefile(data_item):
+        binary_decoder = xmlrpclib.Binary()
+        binary, filename = data_item
+        binary_decoder.decode(binary)
+        full_path = os.path.join(dirname, filename)
+        with open(full_path, "wb") as f:
+            f.write(binary_decoder.data)
+        return full_path
+    documents = list(map(writefile, data))
+    file_url = lambda f: 'file://{0}'.format(f)
+    scan = do_scan(user, list(map(file_url, documents)), params, blocking=True)
+    # map(os.remove, documents)
+    if not isinstance(scan, Scan):
+        raise RuntimeError("Unable to perform scan - check user has" +
+                           "organization and valid domain")
+    url = scan.get_absolute_url()
+    return "{0}{1}".format(settings.SITE_URL, url)

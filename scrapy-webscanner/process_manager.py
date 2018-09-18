@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # The contents of this file are subject to the Mozilla Public License
 # Version 2.0 (the "License"); you may not use this file except in
 # compliance with the License. You may obtain a copy of the License at
@@ -21,7 +21,6 @@ Starts up multiple instances of each processor.
 Restarts processors if they die or if they get stuck processing a single
 item for too long.
 """
-import django
 
 import os
 import shutil
@@ -29,20 +28,25 @@ import sys
 import subprocess
 import time
 import signal
+
+import django
 from datetime import timedelta
-
-base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-sys.path.append(base_dir + "/webscanner_site")
-os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
-
-os.umask(0007)
-
 from django.utils import timezone
 from django.db import transaction, IntegrityError, DatabaseError
 from django import db
 from django.conf import settings
 
-from os2webscanner.models import ConversionQueueItem, Scan
+
+base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+sys.path.append(base_dir + "/webscanner_site")
+os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
+django.setup()
+
+os.umask(0o007)
+
+from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
+from os2webscanner.models.scan_model import Scan
+
 
 var_dir = settings.VAR_DIR
 
@@ -51,10 +55,10 @@ log_dir = os.path.join(var_dir, "logs")
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
-processes_per_type = 2
-processing_timeout = timedelta(minutes=3)
+processes_per_type = 8
+processing_timeout = timedelta(minutes=10)
 
-process_types = ('html', 'libreoffice', 'ocr', 'pdf', 'zip', 'text')
+process_types = ('html', 'libreoffice', 'ocr', 'pdf', 'zip', 'text', 'csv')
 
 process_map = {}
 process_list = []
@@ -62,8 +66,8 @@ process_list = []
 
 def stop_process(p):
     """Stop the process."""
-    if not 'process_handle' in p:
-        print "Process %s already stopped" % p['name']
+    if 'process_handle' not in p:
+        print("Process %s already stopped" % p['name'])
         return
 
     phandle = p['process_handle']
@@ -71,7 +75,7 @@ def stop_process(p):
     pid = phandle.pid
     # If running, stop it
     if phandle.poll() is None:
-        print "Terminating process %s" % p['name']
+        print("Terminating process %s" % p['name'])
         phandle.terminate()
         phandle.wait()
     # Remove pid from process map
@@ -84,8 +88,24 @@ def stop_process(p):
     )
     # Remove the temp directories for the failed queue items
     for item in ongoing_items:
-        # TODO: Log to occurrence log
+        # Log to occurrence log
+        try:
+            item.url.scan.log_occurrence(
+                "QUEUE STOPPING: type <{0}>, URL: {1}".format(
+                    item.type,
+                    item.url.url
+                )
+            )
+        except:
+            item.url.scan.log_occurrence(
+                "QUEUE STOPPING: url <{0}>".format(
+                    item.url.url,
+                )
+            )
+
+        # Clean up.
         item.delete_tmp_dir()
+
     ongoing_items.update(
         status=ConversionQueueItem.FAILED
     )
@@ -104,9 +124,9 @@ def start_process(p):
             "Program %s is already running" % p['name']
         )
 
-    print "Starting process %s, (%s)" % (
+    print(("Starting process %s, (%s)" % (
         p['name'], " ".join(p['program_args'])
-    )
+    )))
 
     log_file = os.path.join(log_dir, p['name'] + '.log')
     log_fh = open(log_file, 'a')
@@ -120,11 +140,11 @@ def start_process(p):
     pid = process_handle.pid
 
     if process_handle.poll() is None:
-        print "Process %s started successfully, pid = %s" % (
+        print(("Process %s started successfully, pid = %s" % (
             p['name'], pid
-        )
+        )))
     else:
-        print "Failed to start process %s, exiting" % p['name']
+        print("Failed to start process %s, exiting" % p['name'])
         exit_handler()
 
     p['log_fh'] = log_fh
@@ -160,7 +180,7 @@ def main():
             program = [
                 'python',
                 os.path.join(base_dir, 'scrapy-webscanner',
-                    'process_queue.py'),
+                             'process_queue.py'),
                 ptype
             ]
             # Libreoffice takes the homedir name as second arg
@@ -178,11 +198,10 @@ def main():
         sys.stderr.flush()
         db.reset_queries()
         for pdata in process_list:
-            result = pdata['process_handle'].poll()
             if pdata['process_handle'].poll() is not None:
-                print "Process %s has terminated, restarting it" % (
+                print(("Process %s has terminated, restarting it" % (
                     pdata['name']
-                )
+                )))
                 restart_process(pdata)
 
         stuck_processes = ConversionQueueItem.objects.filter(
@@ -195,21 +214,21 @@ def main():
         for p in stuck_processes:
             pid = p.process_id
             if pid in process_map:
-                print "Process with pid %s is stuck, restarting" % pid
+                print("Process with pid %s is stuck, restarting" % pid)
                 stuck_process = process_map[pid]
                 restart_process(stuck_process)
             else:
                 p.status = ConversionQueueItem.FAILED
                 try:
                     p.url.scan.log_occurrence(
-                        "CONVERSION ERROR: type <{0}>, URL: {1}".format(
+                        "PROCESS STUCK: type <{0}>, URL: {1}".format(
                             p.type,
                             p.url.url
                         )
                     )
                 except:
                     p.url.scan.log_occurrence(
-                        "CONVERSION ERROR: url <{0}>".format(
+                        "PROCESS STUCK: url <{0}>".format(
                             p.url.url,
                         )
                     )
@@ -236,8 +255,13 @@ def main():
                         scan.log_occurrence(
                             "SCAN FAILED: Process died"
                         )
+                        scanner = scan.scanner
+                        scanner.is_running = False
+                        scanner.save()
                         scan.save()
-        except (DatabaseError, IntegrityError) as e:
+        except (DatabaseError, IntegrityError) as ex:
+            print('Error occured while trying to kill process %s' % scan.pid)
+            print('Error message %s' % ex)
             pass
 
         # Cleanup finished scans from the last minute
@@ -247,9 +271,10 @@ def main():
 
         time.sleep(10)
 
+
 try:
     main()
 except KeyboardInterrupt:
     pass
 except django.db.utils.InternalError as e:
-    print e
+    print('django internal errror %s' % e)

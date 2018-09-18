@@ -51,7 +51,7 @@ python manage.py test
 
 The test should pass. Now do
 
-python manage.py syncdb
+python manage.py migrate
 
 and create a user with a password you can remember.
 

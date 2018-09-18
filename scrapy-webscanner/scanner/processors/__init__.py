@@ -14,4 +14,21 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 """Processors for processing and converting spider and queue items."""
-__all__ = ("html", "libreoffice", "pdf", "ocr", "zip", "text")
+from .processor import Processor
+from .text import TextProcessor
+from .html import HTMLProcessor
+from .zip import ZipProcessor
+from .ocr import OCRProcessor
+from .pdf import PDFProcessor
+from .csv_processor import CSVProcessor
+from .libreoffice import LibreOfficeProcessor
+
+Processor.register_processor(TextProcessor.item_type, TextProcessor)
+Processor.register_processor(HTMLProcessor.item_type, HTMLProcessor)
+Processor.register_processor(ZipProcessor.item_type, ZipProcessor)
+Processor.register_processor(OCRProcessor.item_type, OCRProcessor)
+Processor.register_processor(PDFProcessor.item_type, PDFProcessor)
+Processor.register_processor(CSVProcessor.item_type, CSVProcessor)
+Processor.register_processor(LibreOfficeProcessor.item_type, LibreOfficeProcessor)
+
+__all__ = ["html", "libreoffice", "pdf", "ocr", "zip", "text", "csv_processor"]

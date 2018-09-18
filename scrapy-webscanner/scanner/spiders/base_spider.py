@@ -16,26 +16,20 @@
 """Contains the base scanner spider."""
 import re
 
-from scrapy import log, Spider
-from scrapy.http import Request, HtmlResponse
-from scrapy.contrib.linkextractors.lxmlhtml import LxmlLinkExtractor
+from scrapy import Spider
 from scrapy.utils.httpobj import urlparse_cached
-
-from ..processors.processor import Processor
-
-from scrapy.utils.response import response_status_message
 
 
 class BaseScannerSpider(Spider):
 
     """A base spider which is setup to filter offsite domains/excluded URLs."""
 
-    name = 'scanner'
+    name = 'base_scanner'
 
     def __init__(self, scanner, *a, **kw):
-        """Initialize the ScannerSpider with a Scanner object.
+        """Initialize the ScannerSpider with a WebScanner object.
 
-        The configuration will be loaded from the Scanner.
+        The configuration will be loaded from the WebScanner.
         """
         super(BaseScannerSpider, self).__init__(*a, **kw)
 
@@ -55,14 +49,14 @@ class BaseScannerSpider(Spider):
         # Build a string to match against, containing the path, and if
         # present, the query and fragment as well.
         url = urlparse_cached(request)
-        match_against = url.path
+        match_against = url.netloc + url.path
         if url.query != '':
             match_against += "?" + url.query
         if url.fragment != '':
             match_against += "#" + url.fragment
 
         for rule in self.exclusion_rules:
-            if isinstance(rule, basestring):
+            if isinstance(rule, str):
                 # Do case-insensitive substring search
                 if match_against.lower().find(rule.lower()) != -1:
                     return True

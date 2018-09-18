@@ -15,11 +15,11 @@
 # source municipalities ( http://www.os2web.dk/ )
 """HTML Processors."""
 
-from processor import Processor
+from .processor import Processor
 from w3lib.html import replace_entities, remove_tags_with_content
 
-from text import TextProcessor
-from scrapy import log
+from .text import TextProcessor
+import logging
 import os
 
 import regex
@@ -58,7 +58,7 @@ class HTMLProcessor(Processor):
         Replaces entities and removes tags (except comments) before
         processing with TextProcessor.
         """
-        log.msg("Process HTML %s" % url_object.url)
+        logging.info("Process HTML %s" % url_object.url)
 
         # Remove style tags to avoid false positives from inline styles
         data = remove_tags_with_content(data, which_ones=('style',))
@@ -74,5 +74,6 @@ class HTMLProcessor(Processor):
         replace_tags_text = _html_tag_re.sub('<>', collapsed_html)
 
         return self.text_processor.process(replace_tags_text, url_object)
+
 
 Processor.register_processor(HTMLProcessor.item_type, HTMLProcessor)

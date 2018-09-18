@@ -23,16 +23,19 @@ Starts spiders scheduled to run during the current minute.
 import os
 import sys
 
+import datetime
+from dateutil.rrule import *  # noqa
+
+import django
+
 # Include the Django app
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(base_dir + "/webscanner_site")
 os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
+django.setup()
 
-from os2webscanner.models import Scanner, Scan
 
-import datetime
-from dateutil.rrule import *
-from dateutil.relativedelta import relativedelta
+from os2webscanner.models.scanner_model import Scanner
 
 
 def strip_seconds(d):
@@ -50,7 +53,7 @@ next_qhr = current_qhr + datetime.timedelta(
 )
 
 # Loop through all scanners
-for scanner in Scanner.objects.exclude(schedule=""):
+for scanner in Scanner.objects.exclude(schedule="").select_subclasses():
     # Skip scanners that should not start now
     start_time = scanner.get_start_time()
     if start_time < current_qhr.time() or start_time > next_qhr.time():
@@ -62,7 +65,7 @@ for scanner in Scanner.objects.exclude(schedule=""):
     except ValueError as e:
         # This shouldn't happen because we should validate in the UI
         reason = "Invalid schedule expression: %s" % e
-        print reason
+        print(reason)
         continue
 
     # We have to set the times of the specific dates to the start time in
@@ -77,10 +80,9 @@ for scanner in Scanner.objects.exclude(schedule=""):
         current_qhr, next_qhr,
         # Generate recurrences starting from current quarter 2014/01/01
         dtstart=datetime.datetime(
-            2014, 1, 1, current_qhr.hour, current_qhr.minute
-        ),
-        inc=True):
+            2014, 1, 1, current_qhr.hour, current_qhr.minute), inc=True
+    ):
         continue
 
-    print "Running scanner %s" % scanner
+    print("Running scanner %s" % scanner)
     scanner.run()

@@ -1,3 +1,4 @@
+# encoding: utf-8
 # The contents of this file are subject to the Mozilla Public License
 # Version 2.0 (the "License"); you may not use this file except in
 # compliance with the License. You may obtain a copy of the License at
@@ -16,15 +17,22 @@
 
 """Utility methods for the OS2Webscanner project."""
 
+import os
+import shutil
+import requests
 import time
 import datetime
 
 
 from django.conf import settings
 from django.core.mail import EmailMessage
-from django.template import loader, Context
+from django.template import loader
 
-import models
+from os2webscanner.models.match_model import Match
+from os2webscanner.models.url_model import Url
+from os2webscanner.models.scanner_model import Scanner
+from os2webscanner.models.scan_model import Scan
+from os2webscanner.models.summary_model import Summary
 
 
 def notify_user(scan):
@@ -33,48 +41,61 @@ def notify_user(scan):
 
     t = loader.get_template(template)
 
-    subject = "Scanning afsluttet: {0}".format(scan.status_text)
     to_addresses = [p.user.email for p in scan.scanner.recipients.all() if
                     p.user.email]
     if not to_addresses:
         to_addresses = [settings.ADMIN_EMAIL, ]
-    matches = models.Match.objects.filter(scan=scan).count()
-    matches += models.Url.objects.filter(
+    matches = Match.objects.filter(scan=scan).count()
+    matches += Url.objects.filter(
         scan=scan
     ).exclude(status_code__isnull=True).count()
-    critical = models.Match.objects.filter(
-        scan=scan,
-        sensitivity=models.Sensitivity.HIGH
-    ).count()
+    critical = scan.no_of_critical_matches
 
-    c = Context({'scan': scan, 'domain': settings.SITE_URL, 'matches': matches,
-                 'critical': critical})
+    scan_status = ''
+    if scan.no_of_critical_matches > 0:
+        scan_status = "Kritiske matches!"
+    elif hasattr(scan, 'webscan'):
+        if scan.webscan.no_of_broken_links > 0:
+            scan_status = "Døde links"
+    else:
+        if scan.status_text:
+            scan_status = scan.status_text
+        else:
+            scan_status = 'Ingen status tekst.'
 
-    try:
-        body = t.render(c)
-        message = EmailMessage(subject, body, settings.ADMIN_EMAIL,
-                               to_addresses)
-        message.send()
-        print "Mail sendt til", ",".join(to_addresses)
-    except Exception as e:
-        # TODO: Handle this properly
-        raise
+    subject = "Scanning afsluttet: {0}".format(scan_status)
+
+    c = {'scan': scan, 'domain': settings.SITE_URL,
+         'matches': matches, 'critical': critical}
+
+    if scan.scanner.organization.do_notify_all_scans or critical > 0:
+        try:
+            body = t.render(c)
+            message = EmailMessage(subject, body, settings.ADMIN_EMAIL,
+                                   to_addresses)
+            message.send()
+        except Exception:
+            # TODO: Handle this properly
+            raise
 
 
 def capitalize_first(s):
     """Capitalize the first letter of a string, leaving the others alone."""
     if s is None or len(s) < 1:
-        return u""
+        return ""
     return s.replace(s[0], s[0].upper(), 1)
 
 
 def get_supported_rpc_params():
     """Return a list of supported Scanner parameters for the RPC interface."""
     return ["do_cpr_scan", "do_cpr_modulus11",
-           "do_cpr_ignore_irrelevant", "do_ocr", "do_name_scan"]
+            "do_cpr_ignore_irrelevant", "do_ocr", "do_name_scan",
+            "output_spreadsheet_file", "do_cpr_replace", "cpr_replace_text",
+            "do_name_replace", "name_replace_text", "do_address_scan",
+            "do_address_replace", "address_replace_text", "columns"]
 
 
-def do_scan(user, urls, params={}, add_domains=True):
+def do_scan(user, urls, params={}, blocking=False, visible=False, add_domains=True):
     """Create a scanner to scan a list of URLs.
 
     The 'urls' parameter may be either http:// or file:// URLS - we expect the
@@ -85,28 +106,35 @@ def do_scan(user, urls, params={}, add_domains=True):
     The 'params' parameter should be a dict of supported Scanner
     parameters and values. Defaults are used for unspecified parameters.
     """
-    # Scan the listed URLs and return result to user
-    scanner = models.Scanner()
-    scanner.organization = user.get_profile().organization
+    scanner = Scanner()
+    scanner.organization = user.profile.organization
+
     scanner.name = user.username + '-' + str(time.time())
     scanner.do_run_synchronously = True
+    # TODO: filescan does not contain these properties.
     scanner.do_last_modified_check = False
     scanner.do_last_modified_check_head_request = False
     scanner.process_urls = urls
-    scanner.is_visible = False
+    scanner.is_visible = visible
 
-    for param in get_supported_rpc_params():
-        if param in params:
+    supported_params = get_supported_rpc_params()
+    for param in params:
+        if param in supported_params:
             setattr(scanner, param, params[param])
+        else:
+            raise ValueError("Unsupported parameter passed: " + param +
+                             ". Supported parameters: " +
+                             str(supported_params))
 
     scanner.save()
-    # Add domains if necessary
+
     if add_domains:
         for domain in scanner.organization.domains.all():
             scanner.domains.add(domain)
-    scanner.run(user=user)
+    scan = scanner.run(user=user, blocking=blocking)
+    # NOTE: Running scan may have failed.
+    # Pass the error message or empty scan in that case.
 
-    scan = scanner.scans.all()[0]
     return scan
 
 
@@ -124,7 +152,7 @@ def scans_for_summary_report(summary, from_date=None, to_date=None):
     if not to_date:
         to_date = datetime.datetime.today()
 
-    relevant_scans = models.Scan.objects.filter(
+    relevant_scans = Scan.objects.filter(
         scanner__in=summary.scanners.all(),
         scanner__organization=summary.organization,
         start_time__gte=from_date,
@@ -160,7 +188,7 @@ def send_summary_report(summary, from_date=None, to_date=None,
     if not to_addresses:
         # TODO: In the end, of course, when no email addresses are found no
         # mail should be sent. This is just for debugging.
-        to_addresses = ['carstena@magenta.dk', ]
+        to_addresses = ['ann@magenta.dk', ]
 
     if extra_email:
         to_addresses.append(extra_email)
@@ -170,17 +198,16 @@ def send_summary_report(summary, from_date=None, to_date=None,
                                to_addresses)
         message.content_subtype = "html"
         message.send()
-        print "Mail sendt til", ",".join(to_addresses)
         summary.last_run = datetime.datetime.now()
         summary.save()
-    except Exception as e:
+    except Exception:
         # TODO: Handle this properly
         raise
 
 
 def dispatch_pending_summaries():
     """Find out if any summaries need to be sent out, do it if so."""
-    summaries = models.Summary.objects.filter(do_email_recipients=True)
+    summaries = Summary.objects.filter(do_email_recipients=True)
 
     for summary in summaries:
         # TODO: Check if this summary must be sent today, according to its
@@ -194,3 +221,24 @@ def dispatch_pending_summaries():
 
         if today.date() == maybe_today.date():
             send_summary_report(summary)
+
+
+def get_failing_urls(scan_id, target_directory):
+    """Retrieve the physical document that caused conversion errors."""
+    source_file = os.path.join(
+            settings.VAR_DIR,
+            "logs/scans/occurrence_{0}.log".format(scan_id)
+            )
+    with open(source_file, "r") as f:
+        lines = f.readlines()
+
+    urls = [l.split("URL: ")[1].strip() for l in lines if l.find("URL") >= 0]
+
+    for u in set(urls):
+        f = requests.get(u, stream=True)
+        target = os.path.join(
+                target_directory,
+                u.split('/')[-1].split('#')[0].split('?')[0]
+                )
+        with open(target, 'wb') as local_file:
+            shutil.copyfileobj(f.raw, local_file)

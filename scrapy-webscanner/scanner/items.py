@@ -20,9 +20,9 @@
 # See documentation in:
 # http://doc.scrapy.org/en/latest/topics/items.html
 
-from scrapy.item import Item, Field
-from scrapy.contrib.djangoitem import DjangoItem
-from os2webscanner.models import *
+from scrapy.item import Field
+from scrapy_djangoitem import DjangoItem
+from os2webscanner.models.match_model import Match
 
 
 class MatchItem(DjangoItem):
@@ -30,3 +30,9 @@ class MatchItem(DjangoItem):
     """Scrapy Item using the Match object from the Django model as storage."""
 
     django_model = Match
+
+    """Original text matched. Stored temporarily for the purposes of
+    replacing the original matched text.
+
+    Note that this is not stored in the DB."""
+    original_matched_data = Field()

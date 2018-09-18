@@ -14,20 +14,28 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 """Processors."""
-import codecs
-import random
-import subprocess
 
-from os2webscanner.models import ConversionQueueItem
-from django.db import transaction, IntegrityError, DatabaseError
-from django import db
-from django.utils import timezone
+
 import time
+import datetime
 import os
 import mimetypes
 import sys
 import magic
+import codecs
+import random
+import subprocess
+import hashlib
+import logging
+import traceback
+
+from django.db import transaction, IntegrityError, DatabaseError
+from django import db
+from django.utils import timezone
 from django.conf import settings
+
+from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
+from os2webscanner.models.md5sum_model import Md5Sum
 
 
 # Minimum width and height an image must have to be scanned
@@ -36,6 +44,27 @@ MIN_OCR_DIMENSION_BOTH = 7
 # Minimum width or height (at least one dimension) an image must have to be
 # scanned
 MIN_OCR_DIMENSION_EITHER = 64
+
+
+def get_md5_sum(data):
+    """Helper function to calculate md5 sum."""
+
+    md5 = hashlib.md5(data).hexdigest()
+
+    return md5
+
+
+def get_ocr_page_no(ocr_file_name):
+    "Get page number from image file to be OCR'ed."
+
+    # xyz*-d+_d+.png
+    # HACK ALERT: This depends on the output from pdftohtml.
+    try:
+        page_no = int(ocr_file_name.split('_')[-2].split('-')[-1])
+    except IndexError:
+        # Non-PDF-extracted file
+        page_no = None
+    return page_no
 
 
 def get_image_dimensions(file_path):
@@ -48,9 +77,15 @@ def get_image_dimensions(file_path):
         dimensions = subprocess.check_output(["identify", "-format", "%wx%h",
                                               file_path])
     except subprocess.CalledProcessError as e:
-        print e
+        datetime_print(e)
         return None
-    return tuple(int(dim.strip()) for dim in dimensions.split("x"))
+    return tuple(int(dim.strip()) for dim in
+                 dimensions.decode('utf-8').split("x")
+                 )
+
+
+def datetime_print(line_to_print):
+    print('{0} : {1}'.format(datetime.datetime.now(), line_to_print))
 
 
 class Processor(object):
@@ -95,6 +130,44 @@ class Processor(object):
         """
         return settings.VAR_DIR
 
+    def is_md5_known(self, data, scan):
+        """Decide if we know a given file by calculating its MD5."""
+
+        if settings.DO_USE_MD5:
+            md5 = get_md5_sum(data)
+            exists = Md5Sum.objects.filter(
+                organization=scan.scanner.organization,
+                md5=md5,
+                is_cpr_scan=scan.do_cpr_scan,
+                is_check_mod11=scan.do_cpr_modulus11,
+                is_ignore_irrelevant=scan.do_cpr_ignore_irrelevant,
+            ).count() > 0
+        else:
+            exists = False
+
+        return exists
+
+    def store_md5(self, data, scan):
+
+        """
+        Store MD5 sum for these scan parameters & data.
+        """
+        if settings.DO_USE_MD5:
+            md5str = get_md5_sum(data)
+
+            md5 = Md5Sum(
+                organization=scan.scanner.organization,
+                md5=md5str,
+                is_cpr_scan=scan.do_cpr_scan,
+                is_check_mod11=scan.do_cpr_modulus11,
+                is_ignore_irrelevant=scan.do_cpr_ignore_irrelevant,
+            )
+            try:
+                md5.save()
+            except IntegrityError:
+                # This happens, we now know - but is not actually an error.
+                pass
+
     def handle_spider_item(self, data, url_object):
         """Process an item from a spider. Must be overridden.
 
@@ -120,6 +193,12 @@ class Processor(object):
         """
         # Write data to a temporary file
         # Get temporary directory
+        if not isinstance(data, bytes):
+            data = data.encode('utf-8')
+
+        if self.is_md5_known(data, url_object.scan):
+            return True
+
         tmp_dir = url_object.tmp_dir
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
@@ -127,9 +206,13 @@ class Processor(object):
         if file_name == '':
             file_name = url_object.pk + ".data"
         tmp_file_path = os.path.join(tmp_dir, file_name)
-        f = open(tmp_file_path, 'w')
+        f = open(tmp_file_path, 'wb')
         f.write(data)
         f.close()
+        datetime_print("Wrote {0} to file {1}".format(
+            url_object.url,
+            tmp_file_path)
+        )
 
         # Create a conversion queue item
         new_item = ConversionQueueItem(
@@ -141,19 +224,51 @@ class Processor(object):
         new_item.save()
         return True
 
-    def process_file(self, file_path, url):
+    def process_file(self, file_path, url, page_no=None):
         """Open the file associated with the item and process the file data.
 
         Calls self.process.
         """
         try:
             encoding = self.encoding_magic.from_file(file_path)
-            f = codecs.open(file_path, "r", encoding=encoding)
-            self.process(f.read(), url)
-            f.close()
-        except IOError, e:
-            print repr(e)
+            if encoding != 'binary':
+                if encoding == 'unknown-8bit':
+                    encoding = 'iso-8859-1'
+
+                f = codecs.open(file_path, "r", encoding=encoding)
+            else:
+                f = open(file_path, "rb")
+
+            try:
+                data = f.read()
+            except UnicodeDecodeError:
+                url.scan.log_occurrence(
+                        "UTF-8 decoding failed for {0}. Will try and open "
+                        "it with encoding iso-8859-1.".format(file_path)
+                        )
+                f = codecs.open(file_path, "rb", encoding='iso-8859-1',
+                        errors='replace')
+                data = f.read()
+                url.scan.log_occurrence(
+                    "Successfully red the file {0} using encoding iso-8859-1.".format(file_path)
+                )
+            finally:
+                f.close()
+
+            if type(data) is not str:
+                data = data.decode('utf-8')
+            self.process(data, url)
+        except Exception as e:
+            url.scan.log_occurrence(
+                "process_file failed for url {0}: {1}".format(url.url, str(e))
+            )
+
+            if settings.DEBUG:
+                url.scan.log_occurrence(repr(e))
+                url.scan.log_occurrence(traceback.format_exc())
+
             return False
+        # TODO: Increment process file count.
         return True
 
     def setup_queue_processing(self, pid, *args):
@@ -166,36 +281,53 @@ class Processor(object):
         If there are no items to process, waits 1 second before trying
         to get the next queue item.
         """
-        print "Starting processing queue items of type %s, pid %s" % (
+        datetime_print("Starting processing queue items of type %s, pid %s" % (
             self.item_type, self.pid
-        )
+        ))
         sys.stdout.flush()
         executions = 0
 
         while executions < self.documents_to_process:
             # Prevent memory leak in standalone scripts
-            db.reset_queries()
+            if settings.DEBUG:
+                db.reset_queries()
             item = self.get_next_queue_item()
             if item is None:
-                time.sleep(1)
+                time.sleep(2)
             else:
                 result = self.handle_queue_item(item)
                 executions = executions + 1
                 if not result:
                     item.status = ConversionQueueItem.FAILED
                     lm = "CONVERSION ERROR: file <{0}>, type <{1}>, URL: {2}"
-                    item.url.scan.log_occurrence(
-                        lm.format(item.file, item.type, item.url.url)
-                    )
+                    lm2 = "CONVERSION ERROR: type <{0}>, URL: {1}"
+                    tb = traceback.format_exc()
+                    try:
+                        item.url.scan.log_occurrence(
+                                lm.format(item.file, item.type, item.url.url)
+                                )
+                    except:
+                        item.url.scan.log_occurrence(
+                                lm2.format(item.type, item.url.url)
+                                )
+
+                    # Try to find out if something went wrong
+                    if settings.DEBUG:
+                        item.url.scan.log_occurrence(tb)
+
                     item.save()
                     item.delete_tmp_dir()
                 else:
                     item.delete()
-                print "%s (%s): %s" % (
-                    item.file_path,
-                    item.url.url,
-                    "success" if result else "fail"
-                )
+
+                try:
+                    datetime_print("(%s): %s" % (
+                            item.url.url,
+                            "success" if result else "fail"
+                            ))
+                except:
+                    datetime_print("success" if result else "fail")
+
                 sys.stdout.flush()
 
     @transaction.atomic
@@ -241,10 +373,10 @@ class Processor(object):
                     result.save()
             except (DatabaseError, IntegrityError) as e:
                 # Database transaction failed, we just try again
-                print "".join([
-                    "Transaction failed while getting queue item of type ",
-                    "'" + self.item_type + "'"
-                ])
+                datetime_print('Error message {0}'.format(e))
+                datetime_print('Transaction failed while getting queue item of type {0}'.format(
+                    self.item_type)
+                )
                 result = None
             except IndexError:
                 # Nothing in the queue, return None
@@ -259,15 +391,26 @@ class Processor(object):
         self.convert to run the actual conversion. After converting,
         adds all files produced in the conversion directory to the queue.
         """
+        with open(item.file_path, "rb") as f:
+            data = f.read()
+            if self.is_md5_known(data, item.url.scan):
+                # Already processed this file, nothing more to do
+                return True
+
         tmp_dir = item.tmp_dir
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
 
         result = self.convert(item, tmp_dir)
-        if os.path.exists(item.file_path):
-            os.remove(item.file_path)
+        if result:
+            # Conversion successful, store MD5 sum.
+            self.store_md5(data, item.url.scan)
 
-        self.add_processed_files(item, tmp_dir)
+            if os.path.exists(item.file_path):
+                os.remove(item.file_path)
+
+            self.add_processed_files(item, tmp_dir)
+
         return result
 
     def convert(self, item, tmp_dir):
@@ -296,8 +439,10 @@ class Processor(object):
                         mime_type)
 
                     # Disable OCR if requested
-                    if (processor_type == 'ocr' and
-                        not item.url.scan.do_ocr):
+                    if (
+                        processor_type == 'ocr' and
+                        not item.url.scan.do_ocr
+                    ):
                         processor_type = None
 
                     # Ignore and delete images which are smaller than
@@ -306,10 +451,12 @@ class Processor(object):
                         dimensions = get_image_dimensions(file_path)
                         if dimensions is not None:
                             (w, h) = dimensions
-                            if not ((w >= MIN_OCR_DIMENSION_BOTH and
-                                     h >= MIN_OCR_DIMENSION_BOTH)
-                                    and (w >= MIN_OCR_DIMENSION_EITHER or
-                                         h >= MIN_OCR_DIMENSION_EITHER)):
+                            if not (
+                                (w >= MIN_OCR_DIMENSION_BOTH and
+                                 h >= MIN_OCR_DIMENSION_BOTH) and
+                                (w >= MIN_OCR_DIMENSION_EITHER or
+                                 h >= MIN_OCR_DIMENSION_EITHER)
+                            ):
                                 ignored_ocr_count += 1
                                 processor_type = None
 
@@ -320,6 +467,9 @@ class Processor(object):
                             url=item.url,
                             status=ConversionQueueItem.NEW,
                         )
+                        if processor_type == 'ocr':
+                            new_item.page_no = get_ocr_page_no(fname)
+
                         new_item.save()
                     else:
                         os.remove(file_path)
@@ -327,11 +477,11 @@ class Processor(object):
                 except ValueError:
                     continue
         if ignored_ocr_count > 0:
-            print "Ignored %d extracted images because the dimensions were" \
-                  "small (width AND height must be >= %d) AND (width OR " \
+            datetime_print("Ignored %d extracted images because the dimensions were"
+                  "small (width AND height must be >= %d) AND (width OR "
                   "height must be >= %d))" % (ignored_ocr_count,
-                                               MIN_OCR_DIMENSION_BOTH,
-                                               MIN_OCR_DIMENSION_EITHER)
+                                              MIN_OCR_DIMENSION_BOTH,
+                                              MIN_OCR_DIMENSION_EITHER))
 
     @classmethod
     def register_processor(cls, processor_type, processor):
@@ -353,7 +503,8 @@ class Processor(object):
 
         'application/javascript': 'text',
         'application/json': 'text',
-        'application/csv': 'text',
+        'application/csv': 'csv',
+        'text/csv': 'csv',
 
         'application/zip': 'zip',
 

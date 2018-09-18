@@ -13,57 +13,67 @@
 #
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
-"""Contains a Scanner."""
-from urlparse import urljoin, urlparse
+
+"""Contains a WebScanner."""
+from urllib.parse import urlparse
 
 from ..rules.name import NameRule
-from ..rules.cpr import CPRRule
+from ..rules.address import AddressRule
 from ..rules.regexrule import RegexRule
+from ..rules.cpr import CPRRule
 
 from ..processors.processor import Processor
-from os2webscanner.models import Scan, Domain
+from os2webscanner.models.domain_model import Domain
+from os2webscanner.models.scan_model import Scan
 
 
 class Scanner:
-
     """Represents a scanner which can scan data using configured rules."""
 
     def __init__(self, scan_id):
         """Load the scanner settings from the given scan ID."""
         # Get scan object from DB
+        # TODO: Parse object around instead of making db query. However impact should be tested.
         self.scan_object = Scan.objects.get(pk=scan_id)
+
         self.rules = self._load_rules()
         self.valid_domains = self.scan_object.domains.filter(
             validation_status=Domain.VALID
         )
 
     def _load_rules(self):
-        """Load rules based on Scanner settings."""
+        """Load rules based on WebScanner settings."""
         rules = []
         if self.scan_object.do_cpr_scan:
-            rules.append(
-                CPRRule(
-                    do_modulus11=self.scan_object.do_cpr_modulus11,
-                    ignore_irrelevant=self.scan_object.do_cpr_ignore_irrelevant
+            rules.append(CPRRule(
+                do_modulus11=self.scan_object.do_cpr_modulus11,
+                ignore_irrelevant=self.scan_object.do_cpr_ignore_irrelevant,
+                whitelist=self.scan_object.whitelisted_cprs
                 )
             )
         if self.scan_object.do_name_scan:
             rules.append(
-                NameRule(whitelist=self.scan_object.whitelisted_names)
+                NameRule(whitelist=self.scan_object.whitelisted_names,
+                         blacklist=self.scan_object.blacklisted_names)
+            )
+        if self.scan_object.do_address_scan:
+            rules.append(
+                AddressRule(whitelist=self.scan_object.whitelisted_addresses,
+                            blacklist=self.scan_object.blacklisted_addresses)
             )
         # Add Regex Rules
         for rule in self.scan_object.regex_rules.all():
             rules.append(
                 RegexRule(
                     name=rule.name,
-                    match_string=rule.match_string,
+                    pattern_strings=rule.patterns.all(),
                     sensitivity=rule.sensitivity
                 )
             )
         return rules
 
     def get_exclusion_rules(self):
-        """Return a list of exclusion rules associated with the Scanner."""
+        """Return a list of exclusion rules associated with the WebScanner."""
         exclusion_rules = []
         for domain in self.valid_domains:
             exclusion_rules.extend(domain.exclusion_rule_list())
@@ -75,7 +85,7 @@ class Scanner:
         urls = []
         for domain in self.valid_domains:
             # Do some normalization of the URL to get the sitemap.xml file
-            sitemap_url = domain.get_sitemap_url()
+            sitemap_url = domain.webdomain.get_sitemap_url()
             if sitemap_url:
                 urls.append(sitemap_url)
         return urls
@@ -85,18 +95,21 @@ class Scanner:
         """
         urls = []
         for domain in self.valid_domains:
-            if domain.sitemap != '':
-                urls.append('file://' + domain.sitemap_full_path)
+            if domain.webdomain.sitemap != '':
+                urls.append('file://' + domain.webdomain.sitemap_full_path)
         return urls
 
     def get_domains(self):
         """Return a list of domains."""
         domains = []
         for d in self.valid_domains:
-            if d.url.startswith('http://') or d.url.startswith('https://'):
-                domains.append(urlparse(d.url).hostname)
+            if hasattr(d, 'webdomain'):
+                if d.url.startswith('http://') or d.url.startswith('https://'):
+                    domains.append(urlparse(d.url).hostname)
+                else:
+                    domains.append(d.url)
             else:
-                domains.append(d.url)
+                domains.append(d.filedomain.mountpath)
         return domains
 
     def scan(self, data, url_object):
@@ -122,9 +135,27 @@ class Scanner:
         """
         matches = []
         for rule in self.rules:
+            print('-------Rule to be executed {0}-------'.format(rule))
             rule_matches = rule.execute(text)
-            # Associate the rule with the match
-            for match in rule_matches:
+            # TODO: Temporary fix. CPRRule needs to be a regexrule
+            if isinstance(rule, CPRRule):
+                for match in rule_matches:
+                    match['matched_rule'] = rule.name
+                    matches.extend(rule_matches)
+            else:
+                #skip a ruleset where not all the rules match
+                if not rule.is_all_match(rule_matches):
+                    continue
+
+                # Associate the rule with the match
+                print('-------Rule matches length {0}-------'.format(str(len(rule_matches))))
+
+                match = rule_matches.pop()
                 match['matched_rule'] = rule.name
-            matches.extend(rule_matches)
+                for item in rule_matches:
+                    match['matched_data'] += ', ' + item['matched_data']
+
+                print('-------Match: {0}-------'.format(match))
+
+                matches.append(match)
         return matches

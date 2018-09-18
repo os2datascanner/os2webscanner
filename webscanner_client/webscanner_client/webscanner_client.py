@@ -1,19 +1,19 @@
 """Webscanner client API class."""
 
 import os
-import xmlrpclib
+import xmlrpc.client
 
 
 class WebscannerClient(object):
 
-    """Client for the OS2 web scanner."""
+    """Client for OS2Webscanner."""
 
     def __init__(self, url, verbose=False):
         """Set up server proxy."""
         self._url = url
         rpc_args = {'verbose': verbose, 'allow_none': True}
 
-        self._rpc_srv = xmlrpclib.ServerProxy(self._url, **rpc_args)
+        self._rpc_srv = xmlrpc.client.ServerProxy(self._url, **rpc_args)
 
     def scan_urls(self, user, password, urls, params={}):
         """Scan given URLs with the user credentials provided."""
@@ -23,10 +23,10 @@ class WebscannerClient(object):
         """Scan documents in list, upload to server for scan."""
         def get_binary(path):
             with open(path, "rb") as f:
-                return xmlrpclib.Binary(f.read())
-        docs = map(get_binary, documents)
-        filenames = map(os.path.basename, documents)
-        data = zip(docs, filenames)
+                return xmlrpc.client.Binary(f.read())
+        docs = list(map(get_binary, documents))
+        filenames = list(map(os.path.basename, documents))
+        data = list(zip(docs, filenames))
 
         return self._rpc_srv.scan_documents(user, password, data, params)
 

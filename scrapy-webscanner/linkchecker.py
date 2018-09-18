@@ -1,10 +1,14 @@
 """A link checker using urllib2."""
 
+import ssl
 import socket
-import urllib2
+import urllib.request
+import urllib.error
+import urllib.parse
+import http.client
 from os2webscanner.utils import capitalize_first
 import regex
-from scrapy import log
+import logging
 
 LINK_CHECK_TIMEOUT = 5
 
@@ -21,16 +25,18 @@ def check_url(url, method="HEAD"):
     :return:
     """
     try:
-        log.msg("Checking %s" % url)
-        request = urllib2.Request(url, headers={"User-Agent":
-                                                    "OS2Webscanner"})
+        logging.info("Checking %s" % url)
+        request = urllib.request.Request(url, headers={"User-Agent":
+                                                       "OS2Webscanner"})
         request.get_method = lambda: method
-        r = urllib2.urlopen(request,
-                            timeout=LINK_CHECK_TIMEOUT)
+        urllib.request.urlopen(request, timeout=LINK_CHECK_TIMEOUT)
         return None
-    except (urllib2.HTTPError, urllib2.URLError, socket.timeout, IOError) \
-            as e:
-        log.msg("Error %s" % e, level=log.DEBUG)
+    except (urllib.error.HTTPError,
+            urllib.error.URLError,
+            http.client.InvalidURL,
+            socket.timeout,
+            IOError, ssl.CertificateError) as e:
+        logging.debug("Error %s" % e)
         code = getattr(e, "code", 0)
         if code == 405:
             # Method not allowed, try with GET instead

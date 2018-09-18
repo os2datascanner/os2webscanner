@@ -16,7 +16,7 @@
 """Text Processors."""
 
 from ..scanner.scanner import Scanner
-from processor import Processor
+from .processor import Processor
 import os
 
 
@@ -37,14 +37,17 @@ class TextProcessor(Processor):
             os.remove(item.file_path)
         return result
 
-    def process(self, data, url_object):
+    def process(self, data, url_object, page_no=None):
         """Process the text, by executing rules and saving matches."""
         scanner = Scanner(url_object.scan.pk)
         matches = scanner.execute_rules(data)
         for match in matches:
             match['url'] = url_object
             match['scan'] = url_object.scan
+            if page_no:
+                match['page_no'] = page_no
             match.save()
         return True
+
 
 Processor.register_processor(TextProcessor.item_type, TextProcessor)

@@ -19,16 +19,33 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
 
-# Register your models here.
+from django.utils.translation import ugettext, ugettext_lazy as _
 
-from .models import Organization, UserProfile, Domain, RegexRule, Scanner
-from .models import Scan, Match, Url, ConversionQueueItem
-from .models import ReferrerUrl, UrlLastModified, Group
+from django.conf import settings
+
+from .models.authentication_model import Authentication
+from .models.organization_model import Organization
+from .models.userprofile_model import UserProfile
+from .models.webdomain_model import WebDomain
+from .models.filedomain_model import FileDomain
+from .models.regexrule_model import RegexRule
+from .models.scanner_model import Scanner
+from .models.match_model import Match
+from .models.url_model import Url
+from .models.scan_model import Scan
+from .models.conversionqueueitem_model import ConversionQueueItem
+from .models.referrerurl_model import ReferrerUrl
+from .models.urllastmodified_model import UrlLastModified
+from .models.group_model import Group
+from .models.md5sum_model import Md5Sum
+from .models.statistic_model import Statistic
+from .models.regexpattern_model import RegexPattern
 
 ar = admin.site.register
-classes = [Organization, Domain, RegexRule, Scanner, Scan, Match, Url,
-           ConversionQueueItem, ReferrerUrl, UrlLastModified, Group]
-map(ar, classes)
+classes = [Authentication, Organization, WebDomain, FileDomain, RegexRule,
+           Scanner, Scan, Match, Url, ConversionQueueItem, ReferrerUrl,
+           UrlLastModified, Group, Md5Sum, Statistic, RegexPattern]
+list(map(ar, classes))
 
 
 class ProfileInline(admin.TabularInline):
@@ -37,6 +54,21 @@ class ProfileInline(admin.TabularInline):
 
     model = UserProfile
     extra = 1
+    if not settings.DO_USE_GROUPS:
+        exclude = ['is_group_admin']
+    can_delete = False
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        field = super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+        if db_field.name == 'organization':
+            if not request.user.is_superuser:
+                field.queryset = Organization.objects.filter(
+                    name=request.user.profile.organization.name
+                )
+                field.empty_label = None
+
+        return field
 
 
 class MyUserAdmin(UserAdmin):
@@ -45,6 +77,32 @@ class MyUserAdmin(UserAdmin):
 
     inlines = [ProfileInline]
     can_delete = False
+
+    def get_form(self, request, obj=None, **kwargs):
+        if not request.user.is_superuser:
+            self.fieldsets = (
+                (None,
+                 {'fields': ('username', 'password', 'is_active')}),
+                (_('Personal info'),
+                 {'fields': ('first_name', 'last_name', 'email')}),
+                (_('Important dates'), {'fields': ('last_login',
+                                                   'date_joined')}),
+            )
+
+            self.exclude = ['is_superuser', 'permissions', 'groups']
+        return super().get_form(request, obj, **kwargs)
+
+    def get_queryset(self, request):
+        """Only allow users belonging to same organization to be edited."""
+
+        qs = super().get_queryset(request)
+
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(
+            profile__organization=request.user.profile.organization
+        )
+
 
 admin.site.unregister(User)
 admin.site.register(User, MyUserAdmin)

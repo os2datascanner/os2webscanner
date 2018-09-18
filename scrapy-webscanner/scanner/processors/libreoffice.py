@@ -16,7 +16,7 @@
 """LibreOffice related processors."""
 import mimetypes
 
-from processor import Processor
+from .processor import Processor
 import os
 import os.path
 import subprocess
@@ -26,6 +26,7 @@ from django.conf import settings
 
 base_dir = settings.BASE_DIR
 var_dir = settings.VAR_DIR
+project_dir = settings.PROJECT_DIR
 lo_dir = os.path.join(var_dir, "libreoffice")
 home_root_dir = os.path.join(lo_dir, "homedirs")
 
@@ -96,12 +97,25 @@ class LibreOfficeProcessor(Processor):
             # Default to converting to HTML
             output_filter = "htm:HTML"
 
-        # TODO: Input type to filter mapping?
-        return_code = subprocess.call([
-                                          "libreoffice", "--headless",
-                                          "--convert-to", output_filter,
-                                          item.file_path, "--outdir", tmp_dir
-                                      ], env=self.env)
+        if output_filter == "csv":
+            # TODO: Input type to filter mapping?
+            output_file = os.path.join(
+                tmp_dir,
+                os.path.basename(item.file_path).split(".")[0] + ".csv"
+            )
+
+            return_code = subprocess.call([
+                project_dir + "/scrapy-webscanner/unoconv", "-f", output_filter, "-e",
+                'FilterOptions="59,34,0,1"', "-o", output_file,
+                item.file_path
+            ], env=self.env)
+        else:
+            # HTML
+            return_code = subprocess.call([
+                "libreoffice", "--headless",
+                "--convert-to", output_filter,
+                item.file_path, "--outdir", tmp_dir
+            ], env=self.env)
 
         return return_code == 0
 

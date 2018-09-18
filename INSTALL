@@ -1,4 +1,4 @@
-# HOWTO install the OS2 Webscanner on your own server
+# HOWTO install OS2Webscanner on your own server
 
 ## System requirements
 
@@ -16,7 +16,7 @@ FreeBSD or OSX, you will have to modify `install.sh` yourself to handle the
 package managers, package names and dependencies in these systems. Also note
 that the setup of Apache is different on such systems.
 
-*Note:* The Apache configuration file delivered with version 1.1.0 of the
+*Note:* The Apache configuration file delivered with version 1.1.0 of
 OS2Webscanner is for Apache <= 2.2  and will *not* work on Apache 2.4.
 A configuration file for Apache 2.4 will be supplied in future versions.
 
@@ -157,7 +157,7 @@ python manage.py test os2webscanner
 The test should pass. Now do:
 
 ```
-python manage.py syncdb
+python manage.py migrate
 ```
 
 and create a user with a password you can remember.
@@ -254,11 +254,11 @@ then save the file:
 The system may send out summary reports describing the performance, results,
 etc., of different scanners. 
 
-To have summaries emaild to recipients, edit `crontab` as described in the
+To have summaries emailed to recipients, edit `crontab` as described in the
 previous section, adding the line
 
 ```
-0    7 * * * /home/os2test/os2webscanner/cron/dispatch_summaries.sh
+0    7 * * * /home/os2/os2webscanner/cron/dispatch_summaries.sh
 ```
 
 to have summaries emailed every day at 7AM. You can of course change this as
@@ -271,8 +271,11 @@ cause reports to be sent twice.
 Visit your webscanner site URL + `/admin/` to enter the Django admin interface.
 
 Login with the Django superuser you created (when running `python manage.py
-syncdb`). Add an "Organization", giving it a name, email, and phone number
-and save it.
+syncdb`). Click on "Organization" and hit the button labeled "Tilføj
+Organisation" or "Add Organization" to add an "Organization". This is
+necessary - the system will not work without at least one organization. Give
+your new organization a name, email address and phone number and save it by
+clicking "Gem" or "Save" at the bottom of the page.
 
 Return to the main admin page and click "Brugere".
 Click the username that you would like to add to the organization.
@@ -280,4 +283,4 @@ Click the username that you would like to add to the organization.
 At the bottom of the page, under "User profiles", change the "Organisation"
 to the organization you created and save.
 
-The web scanner is now ready to be used.
+OS2Webscanner is now ready to be used.
