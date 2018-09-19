@@ -21,8 +21,10 @@ amqp_connection_manager.start_amqp(queue_name)
 def callback(ch, method, properties, body):
     print(" [x] Received %r" % body)
     ch.basic_ack(delivery_tag=method.delivery_tag)
+    # Collect scan object and map properties
+
     scanner_app = ScannerApp(body.decode('utf-8'))
-    scanner_app.run()
+    scanner_app.start()
 
 
 amqp_connection_manager.set_callback(callback, queue_name)
