@@ -71,13 +71,13 @@ signal.signal(signal.SIGINT | signal.SIGTERM, signal_handler)
 class ScannerApp:
     """A scanner application which can be run."""
 
-    def __init__(self):
+    def __init__(self, scan_id):
         """
         Initialize the scanner application.
         Takes input, argv[1], which is directly related to the scan job id in the database.
         Updates the scan status and sets the pid.
         """
-        self.scan_id = sys.argv[1]
+        self.scan_id = scan_id
         self.scanner = Scanner(self.scan_id)
 
     def run(self):
@@ -283,6 +283,3 @@ class ScannerApp:
         else:
             logging.info("No more active processors, closing spider...")
 
-
-scanner_app = ScannerApp()
-scanner_app.run()
