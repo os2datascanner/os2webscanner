@@ -33,9 +33,6 @@ class Scanner:
     def __init__(self, scan_id):
         """Load the scanner settings from the given scan ID."""
         self.scan_object = Scan.objects.get(pk=scan_id)
-        # TODO: This needs to be initialized somewhere else.
-        if self.scan_object.status is not Scan.STARTED:
-            self.scan_object.set_scan_status_start()
 
         self.rules = self._load_rules()
         self.valid_domains = self.scan_object.domains.filter(
