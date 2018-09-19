@@ -10,9 +10,35 @@ Rapport &dash; {{scan.scanner.name}}
 	<a href="/reports">&larr; Klik her for at vise listen over rapporter</a>
       </p>
 
+    {% if scan.domains.all %}
+        <div class="table-responsive">
+            <table class="table table-bordered report">
+                <tbody>
+                <tr>
+                    {% if scan.domains.all and not scan.scanner.process_urls %}<td class="head">
+                        <h3>Domæner</h3>
+                    </td>{% endif %}
+                </tr>
+                <tr>
+                    {% if scan.domains.all and not scan.scanner.process_urls %}<td>
+                        {% for domain in scan.domains.all %}
+                            {{domain.url}}<br>
+                        {% endfor %}
+                    </td>{% endif %}
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
       <div class="table-responsive">
         <table class="table table-bordered report">
             <tbody>
+            <tr>
+                <td class="head">
+                    <h3>Resumé</h3>
+                </td>
+            </tr>
             <tr>
                 <td>Starttidspunkt:</td>
                 <td>{{ scan.start_time }}</td>
@@ -53,6 +79,11 @@ Rapport &dash; {{scan.scanner.name}}
                 <td>{{ failed_conversions }}</td>
             </tr>
 	    {% endif %}
+            <tr>
+                <td colspan="3"><b>Modtagere:</b> {% for profile in scan.recipients.all %}
+                    {% if profile.user.email %}{{profile.user.email}}{% else %}{{profile.user.username}}{% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}
+                </td>
+            </tr>
             </tbody>
         </table>
       </div>
@@ -81,43 +112,19 @@ Rapport &dash; {{scan.scanner.name}}
             <td {% if not scan.do_collect_cookies %} class="text-muted" {% endif %}>Saml cookies{% if scan.do_collect_cookies %} <span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
             <td></td>
             <td></td>
-
-        <tr>
-            <td colspan="3"><b>Modtagere:</b> {% for profile in scan.recipients.all %}
-                                      {% if profile.user.email %}{{profile.user.email}}{% else %}{{profile.user.username}}{% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}
-            </td>
         </tr>
+          <tr>
+              <td {% if not scan.regex_rules.all %} class="text-muted" {% endif %} colspan="3">
+                  <b>Ad hoc-regler: </b>
+                  {% for rule in scan.regex_rules.all %}
+                    {{rule.name}}{% if not forloop.last %},{% endif %}
+                  {% endfor %}
+              </td>
+          </tr>
       </tbody>
     </table>
   </div>
-{% if scan.domains.all or scan.regex_rules.all %}
-    <div class="table-responsive domains-regex">
-      <table class="table table-bordered report">
-        <tbody>
-        <tr>
-                {% if scan.domains.all and not scan.scanner.process_urls %}<td class="head"> 
-                    <h3>Domæner</h3>
-		</td>{% endif %}
-                {% if scan.regex_rules.all %}<td class="head">
-                    <h3>Ad hoc-regler</h3>
-                </td>{% endif %}
-        </tr>
-        <tr>
-                {% if scan.domains.all and not scan.scanner.process_urls %}<td>
-                    {% for domain in scan.domains.all %}
-                    {{domain.url}}<br>
-                    {% endfor %}
-                </td>{% endif %}
-                {% if scan.regex_rules.all %}<td>
-                    {% for rule in scan.regex_rules.all %}
-                    {{rule.name}}<br>
-                    {% endfor %}
-                </td>{% endif %}
-            </tr>
-            </tbody>
-        </table>
-      </div>
-{% endif %}
+
   {% if matches %}
   <h2>Resultater</h2>
   <p>{% if no_of_matches > 100 %}Kun de f&oslash;rste 100 resultater vises.{% endif %} <a href="./csv/" class="download-csv">Klik her for at downloade hele rapporten</a></p>

@@ -35,7 +35,7 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 django.setup()
 
 
-from os2webscanner.models import Scanner
+from os2webscanner.models.scanner_model import Scanner
 
 
 def strip_seconds(d):
@@ -53,7 +53,7 @@ next_qhr = current_qhr + datetime.timedelta(
 )
 
 # Loop through all scanners
-for scanner in Scanner.objects.exclude(schedule=""):
+for scanner in Scanner.objects.exclude(schedule="").select_subclasses():
     # Skip scanners that should not start now
     start_time = scanner.get_start_time()
     if start_time < current_qhr.time() or start_time > next_qhr.time():

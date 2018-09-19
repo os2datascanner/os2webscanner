@@ -100,6 +100,11 @@ class ScannerApp(multiprocessing.Process):
         self.scanner.scan_object.set_scan_status_done()
 
     def start_filescan_crawlers(self):
+        """Starting a file scan by first analysing the folder to scan,
+        and afterwards setting up the scrapy spider."""
+
+        self.filescan_analysis()
+
         self.sitemap_spider = None
         self.scanner_spider = self.setup_scanner_spider()
         self.start_crawlers()

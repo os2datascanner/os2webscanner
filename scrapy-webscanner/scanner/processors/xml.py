@@ -13,52 +13,56 @@
 #
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
-"""Text Processors."""
-from os2webscanner.utils import get_codec_and_string
+"""HTML Processors."""
 
 from .processor import Processor
-import os
+
+from .text import TextProcessor
 import logging
+import os
 
+import xmltodict
+import json
 
-class TextProcessor(Processor):
+from xml.parsers.expat import ExpatError
+from .html import HTMLProcessor
 
-    """Processes plain text."""
+class XmlProcessor(HTMLProcessor):
 
-    item_type = "text"
+    """Processor for XMLdocuments.
+
+    When processing, converts document to json one line including all attributes
+    Immediately processes with TextProcessor after processing.
+    """
+
+    item_type = "xml"
+    text_processor = TextProcessor()
 
     def handle_spider_item(self, data, url_object):
         """Immediately process the spider item."""
         return self.process(data, url_object)
 
     def handle_queue_item(self, item):
-        """Process the queue item."""
+        """Immediately process the queue item."""
         result = self.process_file(item.file_path, item.url)
         if os.path.exists(item.file_path):
             os.remove(item.file_path)
         return result
 
-    def process(self, data, url_object, page_no=None):
-        """Process the text, by executing rules and saving matches."""
+
+    def process(self, data, url_object):
+        """Process XML data.
+
+        Converts document to json before processing with TextProcessor.
+        if XML is not well formed, treat it as HTML
+        """
+        logging.info("Process XML %s" % url_object.url)
+
         try:
-            encoding, data = get_codec_and_string(data)
-        except UnicodeDecodeError as ude:
-            logging.error('UnicodeDecodeError in handle_error_method: {}'.format(ude))
-            logging.error('Error happened for file: {}'.format(url_object.url))
-            return False
-
-        from ..scanner.scanner import Scanner
-
-        scanner = Scanner(url_object.scan.pk)
-
-        matches = scanner.execute_rules(data)
-        for match in matches[:10]:
-            match['url'] = url_object
-            match['scan'] = url_object.scan
-            if page_no:
-                match['page_no'] = page_no
-            match.save()
-        return True
+            data = json.dumps(xmltodict.parse(data))
+            return self.text_processor.process(data, url_object)
+        except ExpatError:
+            return super(XmlProcessor,self).process(data,url_object)
 
 
-Processor.register_processor(TextProcessor.item_type, TextProcessor)
+Processor.register_processor(XmlProcessor.item_type, XmlProcessor)

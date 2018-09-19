@@ -18,14 +18,6 @@
 {% endblock %} {%block jquery_script %}
 <script type="text/javascript">
   (function($) {
-    function handleSubChoices(choice) {
-      var state = choice.prop("checked");
-      var siblings = choice.siblings("input[type='checkbox']");
-      siblings.prop("disabled", !state);
-      if(!state) {
-        siblings.prop("checked", false);
-      }
-    }
     $(document).ready(function() {
       // Toggle the CPR Options when Do CPR scan is checked
       $("#id_{{ form.do_cpr_scan.name }}").change(function() {
@@ -179,7 +171,7 @@
       <div id="select_scan_rules_container" class="col-sm-12">
         <div class="form-group">
           <h5>Indstillinger</h5>
-          <div class="checkbox-group">
+            <!--<div class="checkbox-group">
             <input type="checkbox" id="id_do_cpr_scan" name="{{ form.do_cpr_scan.name }}" value="{{ form.do_cpr_scan.name }}" {% if form.do_cpr_scan.value %} checked="checked" {% endif %}>
             <label for="id_{{ form.do_cpr_scan.name }}">
               {{ form.do_cpr_scan.label }}
@@ -195,7 +187,7 @@
               {{ form.do_cpr_ignore_irrelevant.label }}
               {% if form.do_cpr_ignore_irrelevant.help_text %}<small>{{ form.do_cpr_ignore_irrelevant.help_text }}</small>{% endif %}
             </label>
-          </div>
+          </div>-->
           <div class="checkbox-group">
             <input type="checkbox" id="id_{{ form.do_ocr.name }}" name="{{ form.do_ocr.name }}" value="{{ form.do_ocr.name }}" {% if form.do_ocr.value %} checked="checked" {% endif %}> <label for="id_{{ form.do_ocr.name }}">
 

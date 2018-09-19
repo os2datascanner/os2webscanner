@@ -28,6 +28,7 @@ from scrapy.spidermiddlewares.httperror import HttpError
 from scrapy.exceptions import IgnoreRequest
 from scrapy.http import Request, HtmlResponse, TextResponse
 from scrapy.utils.response import response_status_message
+from magic import MagicException
 
 # Use our monkey-patched link extractor
 from ..linkextractor import LxmlLinkExtractor
@@ -37,6 +38,7 @@ from .base_spider import BaseScannerSpider
 from ..processors.processor import Processor
 
 from os2webscanner.utils import capitalize_first
+from os2webscanner.utils import get_codec_and_string, secure_save
 from os2webscanner.models.url_model import Url
 from os2webscanner.models.referrerurl_model import ReferrerUrl
 
@@ -189,9 +191,10 @@ class ScannerSpider(BaseScannerSpider):
     def _extract_requests(self, response):
         """Extract requests from the response."""
         r = []
-        links = self.link_extractor.extract_links(response)
-        r.extend(Request(x.url, callback=self.parse,
-                         errback=self.handle_error) for x in links)
+        if isinstance(response, HtmlResponse):
+            links = self.link_extractor.extract_links(response)
+            r.extend(Request(x.url, callback=self.parse,
+                             errback=self.handle_error) for x in links)
         return r
 
     def file_extractor(self, filepath):
@@ -221,6 +224,9 @@ class ScannerSpider(BaseScannerSpider):
         If link checking is enabled, saves the broken URL and referrers.
         """
         # If scanner is type filescan
+        url = getattr(failure.value, "filename", "Not Filled")
+        status_message = "Not filled"
+        status_code = -1
         if hasattr(self.scanner.scan_object, 'filescan') \
                 or hasattr(self.scanner.scan_object, 'exchangescan'):
             # If file is a directory loop through files within
@@ -232,6 +238,8 @@ class ScannerSpider(BaseScannerSpider):
             # If file has not been changes since last, an ignorerequest is returned.
             elif isinstance(failure.value, IgnoreRequest):
                 return
+            elif isinstance(failure.value, IOError):
+                status_message = str(failure.value.errno)
         # Else if scanner is type webscan
         elif hasattr(self.scanner.scan_object, 'webscan'):
             # If we should not do link check or failure is ignore request
@@ -266,25 +274,30 @@ class ScannerSpider(BaseScannerSpider):
         broken_url = Url(url=url, scan=self.scanner.scan_object,
                          status_code=status_code,
                          status_message=status_message)
-        broken_url.save()
-        self.broken_url_objects[url] = broken_url
 
-        # Associate referer using referer header
-        if referer_header is not None:
-            self.associate_url_referrer(referer_header, broken_url)
+        secure_save(broken_url)
 
-        self.associate_url_referrers(broken_url)
+        if hasattr(self.scanner.scan_object, 'webscan'):
+            self.broken_url_objects[url] = broken_url
+
+            # Associate referer using referer heade
+            if referer_header is not None:
+                self.associate_url_referrer(referer_header, broken_url)
+
+            self.associate_url_referrers(broken_url)
 
     def append_file_request(self, url):
         files = self.file_extractor(url)
         requests = []
         for file in files:
+            codecs, stringdata = get_codec_and_string(file)
+            stringdata = stringdata.replace('#', '%23')
             try:
-                requests.append(Request(file, callback=self.scan,
-                                        errback=self.handle_error))
+                requests.append(Request(stringdata, callback=self.scan,
+                                errback=self.handle_error))
             except UnicodeEncodeError as uee:
-                logging.error('UnicodeEncodeError in handle error method: {0}'.format(uee))
-                logging.error('Error happened for file: {0}'.format(file))
+                logging.error('UnicodeEncodeError in handle_error_method: {}'.format(uee))
+                logging.error('Error happened for file: {}'.format(stringdata))
         return requests
 
     def associate_url_referrers(self, url_object):
@@ -307,7 +320,7 @@ class ScannerSpider(BaseScannerSpider):
 
     def scan(self, response):
         """Scan a response, returning any matches."""
-        logging.info('Stats: {0}'.format(self.crawler.stats.get_stats()))
+        # logging.info('Stats: {0}'.format(self.crawler.stats.get_stats()))
 
         content_type = response.headers.get('content-type')
         if content_type:
@@ -315,9 +328,13 @@ class ScannerSpider(BaseScannerSpider):
         else:
             mime_type, encoding = mimetypes.guess_type(response.url)
             if not mime_type:
-                mime_type = self.magic.from_buffer(response.body)
+                try:
+                    mime_type = self.magic.from_buffer(response.body)
+                except MagicException as me:
+                    logging.error(me)
 
-        data, mime_type = self.check_encoding(mime_type, response)
+        # data, mime_type = self.check_encoding(mime_type, response)
+        data = response.body
 
         # Save the URL item to the database
         if (Processor.mimetype_to_processor_type(mime_type) == 'ocr'
@@ -325,7 +342,14 @@ class ScannerSpider(BaseScannerSpider):
             # Ignore this URL
             return
 
-        url_object = Url(url=response.request.url, mime_type=mime_type,
+        url = response.request.url
+        if hasattr(self.scanner.scan_object, 'filescan'):
+            domain = self.scanner.valid_domains.first()
+            url = response.request.url.replace(
+                domain.filedomain.mountpath,
+                domain.filedomain.url)
+
+        url_object = Url(url=url, mime_type=mime_type,
                          scan=self.scanner.scan_object)
         url_object.save()
 

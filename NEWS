@@ -1,3 +1,33 @@
+* Version 1.8.0.5, August 20. 2018
+
+Hotfix:
+    - Fixed change password page so it does not return error code 500.
+    - Fixed orgs and domains page so it does not return error code 500.
+    - Removed unneccesary logging from scanner log showed in the final report.
+
+* Version 1.8.0.4, August 14. 2018
+
+Hotfix:
+ - Fixed cron job error. Due to inheritance scanner.domains is on subclass level. Cron job now collects scanners with subclass type.
+
+* Version 1.8.0.3, August 10. 2018
+
+Hotfix:
+ - Corrected indexerror during processor logging.
+
+* Version 1.8.0.2, August 8. 2018
+
+Hotfix:
+ - cron.py was failing due to wrong import path.
+ - Migration was failing. Corrected error.
+ - In production the number of processors should be 8.
+
+* Version 1.8.0.1, July 30. 2018
+
+Hotfix:
+ - Webscanner threw an error when extracting response objects that are files. Is now checking if response object is a HTMLResponse object.
+ - Default email address is changed from info@magenta-aps.dk to os2webscanner@magenta-aps.dk which is the mail group related to webscanner.
+
 * Version 1.8.0, June 20. 2018
 
 New in this version:

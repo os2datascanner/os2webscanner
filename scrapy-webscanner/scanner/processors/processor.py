@@ -197,9 +197,8 @@ class Processor(object):
             data = data.encode('utf-8')
 
         if self.is_md5_known(data, url_object.scan):
-            url_object.scan.log_occurrence('Add_to_queue: MD5 is already stored for file {0} '
-                                    'so it is not scanned.'.format(url_object.url))
             return True
+
         tmp_dir = url_object.tmp_dir
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
@@ -374,8 +373,8 @@ class Processor(object):
                     result.save()
             except (DatabaseError, IntegrityError) as e:
                 # Database transaction failed, we just try again
-                datetime_print('Error message {1}'.format(e))
-                datetime_print('Transaction failed while getting queue item of type {1}'.format(
+                datetime_print('Error message {0}'.format(e))
+                datetime_print('Transaction failed while getting queue item of type {0}'.format(
                     self.item_type)
                 )
                 result = None
@@ -396,10 +395,6 @@ class Processor(object):
             data = f.read()
             if self.is_md5_known(data, item.url.scan):
                 # Already processed this file, nothing more to do
-                item.url.scan.log_occurrence(
-                    'Convert_queue_item: MD5 is already stored for file {0} '
-                    'so it is not scanned.'.format(item.url.url)
-                )
                 return True
 
         tmp_dir = item.tmp_dir
@@ -501,9 +496,9 @@ class Processor(object):
         'image': 'ocr',
 
         'text/html': 'html',
-        'text/xml': 'html',
+        'text/xml': 'xml',
         'application/xhtml+xml': 'html',
-        'application/xml': 'html',
+        'application/xml': 'xml',
         'application/vnd.google-earth.kml+xml': 'html',
 
         'application/javascript': 'text',

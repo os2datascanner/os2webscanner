@@ -32,12 +32,11 @@ class Scanner:
 
     def __init__(self, scan_id):
         """Load the scanner settings from the given scan ID."""
+        # Get scan object from DB
         self.scan_object = Scan.objects.get(pk=scan_id)
 
         self.rules = self._load_rules()
-        self.valid_domains = self.scan_object.domains.filter(
-            validation_status=Domain.VALID
-        )
+        self.valid_domains = self.scan_object.get_valid_domains
 
     def _load_rules(self):
         """Load rules based on WebScanner settings."""
@@ -65,7 +64,10 @@ class Scanner:
                 RegexRule(
                     name=rule.name,
                     pattern_strings=rule.patterns.all(),
-                    sensitivity=rule.sensitivity
+                    sensitivity=rule.sensitivity,
+                    cpr_enabled=rule.cpr_enabled,
+                    ignore_irrelevant=rule.ignore_irrelevant,
+                    do_modulus11=rule.do_modulus11
                 )
             )
         return rules
@@ -152,7 +154,7 @@ class Scanner:
         for rule in self.rules:
             print('-------Rule to be executed {0}-------'.format(rule))
             rule_matches = rule.execute(text)
-            # TODO: Temporary fix. CPRRule needs to be a regexrule
+
             if isinstance(rule, CPRRule):
                 for match in rule_matches:
                     match['matched_rule'] = rule.name

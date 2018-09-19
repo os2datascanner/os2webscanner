@@ -162,7 +162,6 @@ class Scan(models.Model):
             validation_status=Domain.VALID
         )
 
-
     @property
     def status_text(self):
         """A display text for the scan's status.
@@ -254,16 +253,16 @@ class Scan(models.Model):
         used by the scan.
         """
         # Pre-save stuff
-        if (self.status in [Scan.DONE, Scan.FAILED] and
-                    (self._old_status != self.status)):
+        if self.status in [Scan.DONE, Scan.FAILED] and \
+                (self._old_status != self.status):
             self.end_time = datetime.datetime.now(tz=timezone.utc)
 
         # Actual save
         super().save(*args, **kwargs)
         # Post-save stuff
 
-        if (self.status in [Scan.DONE, Scan.FAILED] and
-                    (self._old_status != self.status)):
+        if self.status in [Scan.DONE, Scan.FAILED] and \
+                (self._old_status != self.status):
             # Send email
             from os2webscanner.utils import notify_user
             try:
