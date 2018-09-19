@@ -17,19 +17,21 @@
 """Run a scan by Scan ID."""
 from urllib.parse import urlparse
 
-import os
-import sys
-import django
+# import os
+# import sys
+# import django
+
+import multiprocessing
 
 # Include the Django app
-base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-sys.path.append(base_dir + "/webscanner_site")
-os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
-django.setup()
-
-os.umask(0o007)
-
-os.environ["SCRAPY_SETTINGS_MODULE"] = "scanner.settings"
+# base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+# sys.path.append(base_dir + "/webscanner_site")
+# os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
+# django.setup()
+#
+# os.umask(0o007)
+#
+# os.environ["SCRAPY_SETTINGS_MODULE"] = "scanner.settings"
 
 from twisted.internet import reactor
 from scrapy.crawler import CrawlerProcess
@@ -51,7 +53,7 @@ from os2webscanner.models.url_model import Url
 
 import linkchecker
 
-import signal
+# import signal
 
 import logging
 
@@ -59,29 +61,32 @@ import logging
 timezone.activate(timezone.get_default_timezone())
 
 
-def signal_handler(signal, frame):
-    """Handle being killed."""
-    scanner_app.handle_killed()
-    reactor.stop()
+# def signal_handler(signal, frame):
+#     """Handle being killed."""
+#     scanner_app.handle_killed()
+#     reactor.stop()
 
 
-signal.signal(signal.SIGINT | signal.SIGTERM, signal_handler)
+# signal.signal(signal.SIGINT | signal.SIGTERM, signal_handler)
 
 
-class ScannerApp:
+class ScannerApp(multiprocessing.Process):
     """A scanner application which can be run."""
 
     def __init__(self, scan_id):
         """
         Initialize the scanner application.
-        Takes input, argv[1], which is directly related to the scan job id in the database.
-        Updates the scan status and sets the pid.
+        Takes scan id as input, which is directly related to the scan job id in the database.
         """
         self.scan_id = scan_id
         self.scanner = Scanner(self.scan_id)
 
     def run(self):
-        """Run the scanner, blocking until finished."""
+        """Updates the scan status and sets the pid.
+        Run the scanner, blocking until finished."""
+        if self.scanner.scan_object.status is not Scan.STARTED:
+            self.scanner.scan_object.set_scan_status_start()
+
         settings = get_project_settings()
 
         self.crawler_process = CrawlerProcess(settings)
