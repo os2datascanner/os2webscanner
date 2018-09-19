@@ -217,38 +217,12 @@ class Scanner(models.Model):
         if user:
             scan.recipients.add(user.profile)
 
-        if hasattr(scan, 'exchangescan'):
-            from django.db import connections
-            connections.close_all()
-            exchange_file_scanner = ExchangeFilescanner(scan.pk)
-            exchange_file_scanner.start()
-            return scan
+        from os2webscanner.amqp_communication import amqp_connection_manager
+        queue_name = 'datascanner'
+        amqp_connection_manager.start_amqp(queue_name)
+        amqp_connection_manager.send_message(queue_name, str(scan.pk))
+        amqp_connection_manager.close_connection()
 
-        # Get path to run script
-        SCANNER_DIR = os.path.join(settings.PROJECT_DIR, "scrapy-webscanner")
-
-        FILE_NAME = 'run.sh'
-
-        if test_only:
-            return scan
-
-        if not os.path.exists(scan.scan_log_dir):
-            os.makedirs(scan.scan_log_dir)
-        log_file = open(scan.scan_log_file, "a")
-
-        if not os.path.exists(scan.scan_output_files_dir):
-            os.makedirs(scan.scan_output_files_dir)
-
-        try:
-            process = Popen([os.path.join(SCANNER_DIR, FILE_NAME),
-                             str(scan.pk)], cwd=SCANNER_DIR,
-                            stderr=log_file,
-                            stdout=log_file)
-            if blocking:
-                process.communicate()
-        except Exception as e:
-            print(e)
-            return None
         return scan
 
     class Meta:
