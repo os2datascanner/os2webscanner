@@ -157,6 +157,13 @@ class Scan(models.Model):
         ).count()
 
     @property
+    def get_valid_domains(self):
+        return self.domains.filter(
+            validation_status=Domain.VALID
+        )
+
+
+    @property
     def status_text(self):
         """A display text for the scan's status.
 
@@ -368,19 +375,17 @@ class Scan(models.Model):
 
     def set_scan_status_start(self):
         # Update start_time to now and status to STARTED
-        scanner = self.scanner
-        scanner.is_running = True
-        scanner.save()
+        self.set_scanner_status(True)
         self.start_time = datetime.datetime.now(tz=timezone.utc)
         self.status = Scan.STARTED
         self.reason = ""
-        self.pid = os.getpid()
+        pid = os.getpid()
+        print('Starting scan job with pid {}'.format(pid))
+        self.pid = pid
         self.save()
 
     def set_scan_status_done(self):
-        scanner = self.scanner
-        scanner.is_running = False
-        scanner.save()
+        self.set_scanner_status()
         self.status = Scan.DONE
         self.pid = None
         self.reason = ""
@@ -389,9 +394,7 @@ class Scan(models.Model):
     def set_scan_status_failed(self, reason):
         self.pid = None
         self.status = Scan.FAILED
-        scanner = self.scanner
-        scanner.is_running = False
-        scanner.save()
+        self.set_scanner_status()
         if reason is None:
             self.reason = "Killed"
         else:
@@ -402,6 +405,11 @@ class Scan(models.Model):
         )
         # TODO: Remove all non-processed conversion queue items.
         self.save()
+
+    def set_scanner_status(self, status=False):
+        scanner = self.scanner
+        scanner.is_running = status
+        scanner.save()
 
     class Meta:
         abstract = False

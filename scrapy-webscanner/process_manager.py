@@ -57,7 +57,7 @@ if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
 processes_per_type = scanner_settings.NUMBER_OF_PROCESSES_PER_TYPE
-processing_timeout = timedelta(minutes=10)
+processing_timeout = timedelta(minutes=20)
 
 process_types = ('html', 'libreoffice', 'ocr', 'pdf', 'zip', 'text', 'csv')
 
@@ -246,6 +246,7 @@ def main():
                     status=Scan.STARTED
                 ).select_for_update(nowait=True)
                 for scan in running_scans:
+                    print('Scan has pid {}'.format(scan.pid))
                     if not scan.pid \
                             and not hasattr(scan, 'exchangescan'):
                         continue
@@ -254,7 +255,7 @@ def main():
                         os.kill(scan.pid, 0)
                     except OSError:
                         scan.set_scan_status_failed(
-                            "SCAN FAILED: Process died")
+                            "SCAN FAILED: Process died with pid {}".format(scan.pid))
         except (DatabaseError, IntegrityError) as ex:
             print('Error occured while trying to kill process %s' % scan.pid)
             print('Error message %s' % ex)

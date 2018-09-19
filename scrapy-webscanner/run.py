@@ -99,6 +99,32 @@ class ScannerApp:
         self.scanner_spider = self.setup_scanner_spider()
         self.start_crawlers()
 
+    def filescan_analysis(self):
+        """Analysing the folder domain by logging folder,
+        file count and folder size. Subfolders and files included."""
+
+        logging.info('Starting folder analysis...')
+        from scanner.scanner.analysis_scan import get_dir_and_files_count, \
+            get_tree_size
+
+        domains = self.scanner.get_domain_urls()
+        if len(domains) > 0:
+            domain = domains[0]
+            dir_count, files_count = get_dir_and_files_count(domain)
+
+            logging.info('The number of files file scan is '
+                         'going to scan is: {}'.format(files_count))
+
+            logging.info('The number of folders file scan is '
+                         'going to scan is: {}'.format(dir_count))
+
+            domain_size = get_tree_size(domain)
+
+            logging.info('The size of the domain file scan is '
+                         'going to scan: {}'.format(domain_size))
+
+        logging.info('Folder analysis completed...')
+
     def start_webscan_crawlers(self):
         # Don't sitemap scan when running over RPC or if no sitemap is set on scan
         if not self.scanner.scan_object.scanner.process_urls:
@@ -126,7 +152,7 @@ class ScannerApp:
 
     def handle_killed(self):
         """Handle being killed by updating the scan status."""
-        # self.scanner.scan_object = Scan.objects.get(pk=self.scan_id)
+        self.scanner.scan_object = Scan.objects.get(pk=self.scan_id)
         self.scanner.scan_object.set_scan_status_failed()
         self.scan.logging_occurrence("SCANNER FAILED: Killed")
         logging.error("Killed")
