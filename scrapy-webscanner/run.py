@@ -16,22 +16,20 @@
 # source municipalities ( http://www.os2web.dk/ )
 """Run a scan by Scan ID."""
 from urllib.parse import urlparse
-
-# import os
-# import sys
-# import django
-
 import multiprocessing
 
+import os
+import sys
+import django
 # Include the Django app
-# base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-# sys.path.append(base_dir + "/webscanner_site")
-# os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
-# django.setup()
-#
-# os.umask(0o007)
-#
-# os.environ["SCRAPY_SETTINGS_MODULE"] = "scanner.settings"
+base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+sys.path.append(base_dir + "/webscanner_site")
+os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
+
+os.umask(0o007)
+os.environ["SCRAPY_SETTINGS_MODULE"] = "scanner.settings"
+
+django.setup()
 
 from twisted.internet import reactor
 from scrapy.crawler import CrawlerProcess
@@ -78,12 +76,14 @@ class ScannerApp(multiprocessing.Process):
         Initialize the scanner application.
         Takes scan id as input, which is directly related to the scan job id in the database.
         """
+        multiprocessing.Process.__init__(self)
         self.scan_id = scan_id
-        self.scanner = Scanner(self.scan_id)
 
     def run(self):
         """Updates the scan status and sets the pid.
         Run the scanner, blocking until finished."""
+        django.setup()
+        self.scanner = Scanner(self.scan_id)
         if self.scanner.scan_object.status is not Scan.STARTED:
             self.scanner.scan_object.set_scan_status_start()
 
