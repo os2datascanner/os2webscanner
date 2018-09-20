@@ -1,33 +1,36 @@
 #!/usr/bin/env python
-import os
-import sys
-import django
+import pika
+import json
 
-# Include the Django app
-base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-sys.path.append(base_dir + "/webscanner_site")
-os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
-django.setup()
+from .run import ScannerApp
+from .exchangescan.exchange_filescan import ExchangeFilescanner
 
-os.umask(0o007)
-
-from run import ScannerApp
-from os2webscanner.amqp_communication import amqp_connection_manager
 queue_name = 'datascanner'
 
-amqp_connection_manager.start_amqp(queue_name)
+
+connection = pika.BlockingConnection(pika.ConnectionParameters('localhost', heartbeat_interval=6000))
+channel = connection.channel()
+
+channel.queue_declare(queue=queue_name)
 
 
 def callback(ch, method, properties, body):
+    body = body.decode('utf-8')
+    body = json.loads(body)
     print(" [x] Received %r" % body)
     ch.basic_ack(delivery_tag=method.delivery_tag)
     # Collect scan object and map properties
+    if body['type'] == 'ExchangeScanner':
+        print('Starting exchange scanner.')
+        exchange_scanner = ExchangeFilescanner(body['id'])
+        exchange_scanner.start()
+    else:
+        scanner_app = ScannerApp(body['id'])
+        scanner_app.start()
 
-    scanner_app = ScannerApp(body.decode('utf-8'))
-    scanner_app.start()
 
+channel.basic_consume(callback, queue=queue_name)
 
-amqp_connection_manager.set_callback(callback, queue_name)
 
 print(' [*] Waiting for messages. To exit press CTRL+C')
-amqp_connection_manager.start_consuming()
+channel.start_consuming()
