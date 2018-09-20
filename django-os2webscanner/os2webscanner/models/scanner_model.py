@@ -207,7 +207,7 @@ class Scanner(models.Model):
         """Return the name of the scanner."""
         return self.__unicode__()
 
-    def run(self, test_only=False, blocking=False, user=None):
+    def run(self, type, test_only=False, blocking=False, user=None):
         """Run a scan with the Scanner.
 
         Return the Scan object if we started the scanner.
@@ -230,10 +230,12 @@ class Scanner(models.Model):
         if user:
             scan.recipients.add(user.profile)
 
+        import json
         from os2webscanner.amqp_communication import amqp_connection_manager
         queue_name = 'datascanner'
+        message = {'type': type, 'id': scan.pk}
         amqp_connection_manager.start_amqp(queue_name)
-        amqp_connection_manager.send_message(queue_name, str(scan.pk))
+        amqp_connection_manager.send_message(queue_name, json.dumps(message))
         amqp_connection_manager.close_connection()
 
         return scan
