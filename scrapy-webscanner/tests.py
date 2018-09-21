@@ -41,7 +41,7 @@ from scanner.scanner.scanner import Scanner
 from scanner.rules import cpr, name, regexrule
 
 from scanner.spiders import scanner_spider
-from scanner.processors import pdf, libreoffice, html
+from scanner.processors import pdf, libreoffice, html, zip
 
 from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
 from os2webscanner.models.url_model import Url
@@ -292,6 +292,28 @@ class HTMLTest(unittest.TestCase):
         item = self.create_ressources(filename)
         html_processor = html.HTMLProcessor()
         result = html_processor.handle_queue_item(item)
+        self.assertEqual(result, False)
+
+
+class ZIPTest(unittest):
+
+    test_dir = base_dir + '/scrapy-webscanner/tests/data/'
+
+    def create_ressources(self, filename):
+        shutil.copy2(self.test_dir + 'zip/' + filename, self.test_dir + 'tmp/')
+        url = Url(scan=Scan(), url=self.test_dir + 'tmp/' + filename)
+        item = ConversionQueueItem(url=url,
+                                   file=self.test_dir + 'tmp/' + filename,
+                                   type=zip.ZipProcessor,
+                                   status=ConversionQueueItem.NEW)
+
+        return item
+
+    def test_unzip_on_password_zip(self):
+        filename = 'Ny_Ejere_6.zip'
+        item = self.create_ressources(filename)
+        zip_processor = zip.ZipProcessor()
+        result = zip_processor.handle_queue_item(item)
         self.assertEqual(result, False)
 
 
