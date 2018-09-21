@@ -9,6 +9,7 @@ import time
 import queue
 import multiprocessing
 import subprocess
+import django
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -26,7 +27,7 @@ class ExchangeFilescanner(multiprocessing.Process):
         multiprocessing.Process.__init__(self)
         print('Program started')
         self.scan_id = scan_id
-
+        django.setup()
         from os2webscanner.models.scan_model import Scan
         scan_object = Scan.objects.get(pk=self.scan_id)
         valid_domains = scan_object.domains.filter(
@@ -83,6 +84,7 @@ class ExchangeFilescanner(multiprocessing.Process):
         As long as mail scanners are running file scanners will be started 
         when there is something in the shared queue.
         """
+        django.setup()
         for key, value in self.scanners.items():
             self.start_folder_scan(self.done_queue)
 
@@ -114,18 +116,15 @@ class ExchangeFilescanner(multiprocessing.Process):
         Starts a file scan on downloaded exchange folder
         :param path: path to folder
         """
-        scan_object = self.update_scan_job_path(path)
+        self.update_scan_job_path(path)
         print('Starting file scan for path {}'.format(path))
-        scanner_dir = os.path.join(settings.PROJECT_DIR, "scrapy-webscanner")
-        log_file = open(scan_object.scan_log_file, "a")
-        try:
-            process = subprocess.Popen([os.path.join(scanner_dir, 'run.sh'),
-                                        str(self.scan_id)], cwd=scanner_dir,
-                                       stderr=log_file,
-                                       stdout=log_file)
-            process.communicate()
-        except Exception as e:
-            print(e)
+        import json
+        from os2webscanner.amqp_communication import amqp_connection_manager
+        queue_name = 'datascanner'
+        message = {'type': 'FileScanner', 'id': self.scan_id}
+        amqp_connection_manager.start_amqp(queue_name)
+        amqp_connection_manager.send_message(queue_name, json.dumps(message))
+        amqp_connection_manager.close_connection()
 
     def update_scan_job_path(self, path):
         """
