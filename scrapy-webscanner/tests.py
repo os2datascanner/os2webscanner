@@ -302,7 +302,8 @@ class ZIPTest(unittest):
     def create_ressources(self, filename):
         shutil.copy2(self.test_dir + 'zip/' + filename, self.test_dir + 'tmp/')
         url = Url(scan=Scan(), url=self.test_dir + 'tmp/' + filename)
-        item = ConversionQueueItem(url=url,
+        item = ConversionQueueItem(pk=0,
+                                   url=url,
                                    file=self.test_dir + 'tmp/' + filename,
                                    type=zip.ZipProcessor,
                                    status=ConversionQueueItem.NEW)
@@ -310,7 +311,9 @@ class ZIPTest(unittest):
         return item
 
     def test_unzip_on_password_zip(self):
-        filename = 'Ny_Ejere_6.zip'
+        filename = 'Nye_Ejere_6.zip'
+        from django.conf import settings
+        settings.DO_USE_MD5 = False
         item = self.create_ressources(filename)
         zip_processor = zip.ZipProcessor()
         result = zip_processor.handle_queue_item(item)
