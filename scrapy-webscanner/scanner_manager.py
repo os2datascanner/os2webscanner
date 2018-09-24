@@ -2,8 +2,8 @@
 import pika
 import json
 
-from .run import ScannerApp
-from .exchangescan.exchange_filescan import ExchangeFilescanner
+from run import ScannerApp
+from exchangescan.exchange_filescan import ExchangeFilescanner
 
 queue_name = 'datascanner'
 
