@@ -39,9 +39,9 @@ class ZipProcessor(Processor):
             zip_item = zipfile.ZipFile(item.file_path)
             zip_item.extract(tmp_dir)
             return True
-        except RuntimeError as re:
+        except (RuntimeError, KeyError) as re:
             print('Extracting zip file {} failed.'.format(item.file_path))
-            print('RuntimeError {}'.format(re))
+            print('Error message {}'.format(re))
             return False
 
 
