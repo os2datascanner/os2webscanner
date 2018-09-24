@@ -14,9 +14,9 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 """Zip file processors."""
+import zipfile
 
 from .processor import Processor
-import subprocess
 
 
 class ZipProcessor(Processor):
@@ -35,10 +35,14 @@ class ZipProcessor(Processor):
 
     def convert(self, item, tmp_dir):
         """Extract the item using unzip."""
-        return_code = subprocess.call(
-            ["unzip", "-o", "-q", "-d", tmp_dir, item.file_path]
-        )
-        return return_code == 0
+        try:
+            zip_item = zipfile.ZipFile(item.file_path)
+            zip_item.extract(tmp_dir)
+            return True
+        except RuntimeError as re:
+            print('Extracting zip file {} failed.'.format(item.file_path))
+            print('RuntimeError {}'.format(re))
+            return False
 
 
 Processor.register_processor(ZipProcessor.item_type, ZipProcessor)
