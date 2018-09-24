@@ -295,7 +295,7 @@ class HTMLTest(unittest.TestCase):
         self.assertEqual(result, False)
 
 
-class ZIPTest(unittest):
+class ZIPTest(unittest.TestCase):
 
     test_dir = base_dir + '/scrapy-webscanner/tests/data/'
 
@@ -308,15 +308,17 @@ class ZIPTest(unittest):
                                    type=zip.ZipProcessor,
                                    status=ConversionQueueItem.NEW)
 
-        return item
+        with tempfile.TemporaryDirectory(dir=self.test_dir + 'tmp/') as temp_dir:
+            zip_processor = zip.ZipProcessor()
+            result = zip_processor.convert(item, temp_dir)
+
+        return result
 
     def test_unzip_on_password_zip(self):
         filename = 'Nye_Ejere_6.zip'
         from django.conf import settings
         settings.DO_USE_MD5 = False
-        item = self.create_ressources(filename)
-        zip_processor = zip.ZipProcessor()
-        result = zip_processor.handle_queue_item(item)
+        result = self.create_ressources(filename)
         self.assertEqual(result, False)
 
 
