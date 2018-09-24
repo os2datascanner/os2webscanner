@@ -71,7 +71,8 @@ class FileDomain(Domain):
             return True
 
         # Make only one scanner able to scan mounted file directory.
-        # Scrapy locks the files while reading, so to scan jobs running at the same time is not possible.
+        # Scrapy locks the files while reading, so it is not possible to have two scan jobs
+        # running at the same time on the same mount point.
 
         command = 'sudo mount -t cifs ' + self.root_url + ' ' + self.mountpath + ' -o iocharset=utf8'
 
