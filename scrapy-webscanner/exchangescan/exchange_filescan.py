@@ -8,10 +8,8 @@ import os
 import time
 import queue
 import multiprocessing
-import subprocess
 import django
 
-from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 
 from exchangelib import EWSDate
