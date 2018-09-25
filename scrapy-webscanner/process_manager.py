@@ -56,6 +56,7 @@ if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
 processes_per_type = 8
+
 processing_timeout = timedelta(minutes=10)
 
 process_types = ('html', 'libreoffice', 'ocr', 'pdf', 'zip', 'text', 'csv')

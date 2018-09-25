@@ -1,3 +1,11 @@
+* Version 1.8.0.6, September 25. 2018
+
+Hotfix:
+    - Cherrypicked enhancements made during filescan dev.
+    - Now run.py store_stats method makes sure only one statistics object can be present. Before the fix the error corrupted the scanjob report and made it return http 500.
+    - Some html pages resulted in a unicodedecodeerror during scan. They are now in a try except block.
+    - Detecting encoding is now done by a method in utils.py using chardet.
+
 * Version 1.8.0.5, August 20. 2018
 
 Hotfix:
