@@ -26,7 +26,7 @@ import regex
 
 from scrapy.spidermiddlewares.httperror import HttpError
 from scrapy.exceptions import IgnoreRequest
-from scrapy.http import Request, HtmlResponse, TextResponse
+from scrapy.http import Request, HtmlResponse
 from scrapy.utils.response import response_status_message
 from magic import MagicException
 
@@ -37,8 +37,7 @@ from .base_spider import BaseScannerSpider
 
 from ..processors.processor import Processor
 
-from os2webscanner.utils import capitalize_first
-from os2webscanner.utils import get_codec_and_string, secure_save
+from os2webscanner.utils import capitalize_first, get_codec_and_string, secure_save
 from os2webscanner.models.url_model import Url
 from os2webscanner.models.referrerurl_model import ReferrerUrl
 
@@ -280,6 +279,7 @@ class ScannerSpider(BaseScannerSpider):
             except UnicodeEncodeError as uee:
                 logging.error('UnicodeEncodeError in handle_error_method: {}'.format(uee))
                 logging.error('Error happened for file: {}'.format(stringdata))
+
         return requests
 
     def associate_url_referrers(self, url_object):

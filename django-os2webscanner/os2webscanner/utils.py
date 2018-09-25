@@ -97,7 +97,7 @@ def get_supported_rpc_params():
             "do_address_replace", "address_replace_text", "columns"]
 
 
-def do_scan(user, urls, params={}, blocking=False, visible=False):
+def do_scan(user, urls, params={}, blocking=False, visible=False, add_domains=True):
     """Create a scanner to scan a list of URLs.
 
     The 'urls' parameter may be either http:// or file:// URLS - we expect the
@@ -110,6 +110,7 @@ def do_scan(user, urls, params={}, blocking=False, visible=False):
     """
     scanner = Scanner()
     scanner.organization = user.profile.organization
+
     scanner.name = user.username + '-' + str(time.time())
     scanner.do_run_synchronously = True
     # TODO: filescan does not contain these properties.
@@ -129,11 +130,13 @@ def do_scan(user, urls, params={}, blocking=False, visible=False):
 
     scanner.save()
 
-    for domain in scanner.organization.domains.all():
-        scanner.domains.add(domain)
+    if add_domains:
+        for domain in scanner.organization.domains.all():
+            scanner.domains.add(domain)
     scan = scanner.run(user=user, blocking=blocking)
     # NOTE: Running scan may have failed.
     # Pass the error message or empty scan in that case.
+
     return scan
 
 
@@ -158,7 +161,7 @@ def scans_for_summary_report(summary, from_date=None, to_date=None):
         start_time__lt=to_date
     ).order_by('id')
 
-    return (relevant_scans, from_date, to_date)
+    return relevant_scans, from_date, to_date
 
 
 def send_summary_report(summary, from_date=None, to_date=None,
@@ -254,14 +257,9 @@ def get_codec_and_string(bytestring, encoding="utf-8"):
         # no decode - is a string
         return None, bytestring
     except UnicodeDecodeError:
-        old_encoding = encoding
         encoding = chardet.detect(bytestring).get('encoding')
         if encoding is not None:
             stringdata = bytestring.decode(encoding)
-            #logging.warning(
-            #    "Error decoding bytestring as {} using {}".format(
-            #        old_encoding, encoding)
-            #)
         else:
             raise
 
