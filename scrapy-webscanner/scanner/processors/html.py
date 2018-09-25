@@ -62,12 +62,13 @@ class HTMLProcessor(Processor):
         logging.info("Process HTML %s" % url_object.url)
         try:
             encoding, data = get_codec_and_string(data)
+            # Remove style tags to avoid false positives from inline styles
+            data = remove_tags_with_content(data, which_ones=('style',))
         except UnicodeDecodeError as ude:
             logging.error('UnicodeDecodeError in handle_error_method: {}'.format(ude))
             logging.error('Error happened for file: {}'.format(url_object.url))
             return False
-        # Remove style tags to avoid false positives from inline styles
-        data = remove_tags_with_content(data, which_ones=('style',))
+
         # Convert HTML entities to their unicode representation
         entity_replaced_html = replace_entities(data)
 
