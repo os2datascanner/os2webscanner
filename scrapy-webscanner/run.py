@@ -71,18 +71,20 @@ timezone.activate(timezone.get_default_timezone())
 class ScannerApp(multiprocessing.Process):
     """A scanner application which can be run."""
 
-    def __init__(self, scan_id):
+    def __init__(self, scan_id, logfile=None):
         """
         Initialize the scanner application.
         Takes scan id as input, which is directly related to the scan job id in the database.
         """
         multiprocessing.Process.__init__(self)
         self.scan_id = scan_id
+        self.logfile = logfile
 
     def run(self):
         """Updates the scan status and sets the pid.
         Run the scanner, blocking until finished."""
         django.setup()
+        logging.basicConfig(filename=self.logfile, level=logging.DEBUG)
         self.scanner = Scanner(self.scan_id)
         if self.scanner.scan_object.status is not Scan.STARTED:
             self.scanner.scan_object.set_scan_status_start()

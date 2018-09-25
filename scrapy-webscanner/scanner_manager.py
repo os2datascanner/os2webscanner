@@ -25,7 +25,7 @@ def callback(ch, method, properties, body):
         exchange_scanner = ExchangeFilescanner(body['id'])
         exchange_scanner.start()
     else:
-        scanner_app = ScannerApp(body['id'])
+        scanner_app = ScannerApp(body['id'], body["logfile"])
         scanner_app.start()
 
 
