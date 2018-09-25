@@ -233,7 +233,7 @@ class Scanner(models.Model):
         import json
         from os2webscanner.amqp_communication import amqp_connection_manager
         queue_name = 'datascanner'
-        message = {'type': type, 'id': scan.pk}
+        message = {'type': type, 'id': scan.pk, 'logfile':scan.scan_log_file}
         amqp_connection_manager.start_amqp(queue_name)
         amqp_connection_manager.send_message(queue_name, json.dumps(message))
         amqp_connection_manager.close_connection()
