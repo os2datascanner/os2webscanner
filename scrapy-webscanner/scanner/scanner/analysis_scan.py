@@ -1,40 +1,23 @@
 import os
-import sys
 
 
-def get_dir_and_files_count(path):
-    """Return total number of files and directories for all subfolders included."""
+def get_dir_files_and_bytes_count(path):
+    """Return total count of files, directories and bytes for all subfolders included."""
     # In python 3.5 walk uses scandir
     if os.path.isdir(path):
-        all_files = []
-        all_dirs = []
-        for dirpath, dirs, files in os.walk(path):
-            all_files += files
-            all_dirs += dirs
+        result = {
+            "total_bytes": 0,
+            "total_dirs": 0,
+            "total_files": 0,
+        }
+
+        for root, dirs, files in os.walk("/usr/share"):
+            result["total_files"] += len(files)
+            result["total_dirs"] += len(dirs)
+            total_bytes = [os.lstat(os.path.join(root, f)).st_size for f in files]
+            result["total_bytes"] += sum(total_bytes)
     else:
         print('Path is not a directory')
-        return 0, 0
+        return None
 
-    return len(all_dirs), len(all_files)
-
-
-def get_tree_size(path):
-    """Return total size of files in path and subdirs. If
-    is_dir() or stat() fails, print an error message to stderr
-    and assume zero size (for example, file has been deleted).
-    """
-    total = 0
-    for entry in os.scandir(path):
-        try:
-            is_dir = entry.is_dir(follow_symlinks=False)
-        except OSError as error:
-            print('Error calling is_dir():', error, file=sys.stderr)
-            continue
-        if is_dir:
-            total += get_tree_size(entry.path)
-        else:
-            try:
-                total += entry.stat(follow_symlinks=False).st_size
-            except OSError as error:
-                print('Error calling stat():', error, file=sys.stderr)
-    return total
+    return result["total_files"], result["total_dirs"], result["total_bytes"]
