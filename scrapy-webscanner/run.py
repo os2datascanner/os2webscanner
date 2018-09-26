@@ -116,13 +116,12 @@ class ScannerApp(multiprocessing.Process):
         file count and folder size. Subfolders and files included."""
 
         logging.info('Starting folder analysis...')
-        from scanner.scanner.analysis_scan import get_dir_and_files_count, \
-            get_tree_size
+        from scanner.scanner.analysis_scan import get_dir_files_and_bytes_count
 
         domains = self.scanner.get_domain_urls()
         if len(domains) > 0:
             domain = domains[0]
-            dir_count, files_count = get_dir_and_files_count(domain)
+            files_count, dir_count, bytes_count = get_dir_files_and_bytes_count(domain)
 
             logging.info('The number of files file scan is '
                          'going to scan is: {}'.format(files_count))
@@ -130,10 +129,8 @@ class ScannerApp(multiprocessing.Process):
             logging.info('The number of folders file scan is '
                          'going to scan is: {}'.format(dir_count))
 
-            domain_size = get_tree_size(domain)
-
             logging.info('The size of the domain file scan is '
-                         'going to scan: {}'.format(domain_size))
+                         'going to scan: {}'.format(bytes_count))
 
         logging.info('Folder analysis completed...')
 
