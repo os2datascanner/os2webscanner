@@ -11,7 +11,7 @@ def get_dir_files_and_bytes_count(path):
             "total_files": 0,
         }
 
-        for root, dirs, files in os.walk("/usr/share"):
+        for root, dirs, files in os.walk(path):
             result["total_files"] += len(files)
             result["total_dirs"] += len(dirs)
             total_bytes = [os.lstat(os.path.join(root, f)).st_size for f in files]
