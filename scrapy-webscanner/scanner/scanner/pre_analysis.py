@@ -1,12 +1,12 @@
 import time
 import magic
+import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from pathlib import Path
 from anytree import Node, PreOrderIter
 
-stats = {}
 magic_parser = magic.Magic(mime=False, uncompress=False)
 
 
@@ -17,9 +17,9 @@ def file_type_group(filetype):
                      'Microsoft Word', 'Composite', 'Excel', 'OpenDocument',
                      'vCalendar']
     types['Sound & Video'] = ['SysEx', 'Audio', 'WebM', 'Matroska', 'MPEG']
-    types['Compressed file'] = ['Microsoft Cabinet', 'current ar archive',
-                                'Zip', 'zip', 'Par archive', 'tar', 'XZ',
-                                'zlib']
+    types['Compressed files'] = ['Microsoft Cabinet', 'current ar archive',
+                                 'Zip', 'zip', 'Par archive', 'tar', 'XZ',
+                                 'zlib']
     types['Data'] = ['Media descriptor 0xf4', 'TDB database', 'SQLite',
                      'very short file', 'FoxPro', 'GVariant',  'Debian',
                      'dBase III', 'PEM certificate', 'OpenType', 'RSA',
@@ -30,10 +30,10 @@ def file_type_group(filetype):
     types['ISO Image'] = ['ISO 9660',  'ISO Media']
     types['Executable'] = ['ELF', 'Executable', 'executable', 'PE32',
                            'amd 29K']
-    types['Virtual Machine'] = ['VirtualBox']
+    types['Virtual Machines'] = ['VirtualBox']
     types['Cache data'] = ['data', 'empty']
-    types['Image'] = ['YUV', 'Icon', 'icon', 'SVG', 'RIFF', 'PNG',
-                      'GIF', 'JPEG']
+    types['Images'] = ['YUV', 'Icon', 'icon', 'SVG', 'RIFF', 'PNG',
+                       'GIF', 'JPEG']
     types['Source Code'] = ['C source', 'byte-compiled', 'C#', 'C++',
                             'Java', 'Dyalog APL']
 
@@ -106,6 +106,8 @@ def determine_file_information(nodes, root):
             filetype = magic_parser.from_file(str(item))
             filetype = file_type_group(filetype)
             node.filetype = filetype
+        else:
+            node.filetype = 'Directory'
     return total_size
 
 
@@ -124,36 +126,47 @@ def summarize_file_types(nodes, root):
     return filetypes
 
 
+def read_file_system(path):
+    root = path.stat().st_ino
+    nodes = {}
+    stats = {}
+
+    nodes[root] = Node(p, size=0, filetype='Directory')
+    nodes = read_dirtree(path, nodes)
+    stats['number_of_dirs'] = len(nodes)
+    stats['number_of_files'] = read_files(nodes, root)
+    stats['total-size'] = determine_file_information(nodes, root)
+
+    file_system = {'nodes': nodes,
+                   'stats': stats,
+                   'root': p.stat().st_ino}
+    return file_system
+
+
 if __name__ == '__main__':
     t = time.time()
 
-    pp = PdfPages('multipage.pdf')
+    try:
+        with open('file_system.p', 'rb') as f:
+            file_system = pickle.load(f)
+    except FileNotFoundError:
+        p = Path('/home/robertj')
+        file_system = read_file_system(p)
+        with open('file_system.p', 'wb') as f:
+            pickle.dump(file_system, f, pickle.HIGHEST_PROTOCOL)
 
-    p = Path('/home/robertj')
-    nodes = {}
-
-    root_inode = p.stat().st_ino
-    nodes[root_inode] = Node(p)
-    nodes = read_dirtree(p, nodes)
-    stats['number_of_dirs'] = len(nodes)
-
-    print('Dir-count time: {:.2f}s'.format(time.time() - t))
-
-    stats['number_of_files'] = read_files(nodes, root_inode)
-    print('file-count time: {:.2f}s'.format(time.time() - t))
-
-    total_size = determine_file_information(nodes, root_inode)
-    stats['total-size'] = total_size
-    print('file-size time: {:.2f}s'.format(time.time() - t))
+    print('Load-time: {:1f}s'.format(time.time() - t))
+    nodes = file_system['nodes']
+    stats = file_system['stats']
+    root_inode = file_system['root']
 
     filetypes = summarize_file_types(nodes, root_inode)
-    print('file-summary time: {:.2f}s'.format(time.time() - t))
-
     print('--- Stats ---')
     print('Total directories: {}'.format(stats['number_of_dirs']))
     print('Total Files: {}'.format(stats['number_of_files']))
     print('Total Size: {}'.format(_to_filesize(stats['total-size'])))
 
+    pp = PdfPages('multipage.pdf')
     labels = []
     sizes = []
     counts = []
@@ -163,12 +176,12 @@ if __name__ == '__main__':
         print(status_string.format(filetype, stat['count'], size))
 
         size_list = np.array(stat['sizedist'])
-        size_list = size_list / 1024
+        size_list = size_list / 1024**2
 
         fig = plt.figure()
-        plt.hist(size_list, bins=50, log=True)
+        plt.hist(size_list, range=(0, max(size_list)), bins=50, log=True)
         plt.title(filetype)
-        plt.xlabel('Size / KB')
+        plt.xlabel('Size / MB')
         plt.savefig(pp, format='pdf')
         plt.close()
 
@@ -204,3 +217,5 @@ if __name__ == '__main__':
     plt.close()
 
     pp.close()
+
+    check_file_group(nodes, root_inode, 'Virtual Machine')
