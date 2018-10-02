@@ -1,6 +1,5 @@
 import time
 import magic
-import mimetypes
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
@@ -9,6 +8,7 @@ from anytree import Node, PreOrderIter
 
 stats = {}
 magic_parser = magic.Magic(mime=False, uncompress=False)
+
 
 def file_type_group(filetype):
     types = {}
@@ -34,14 +34,21 @@ def file_type_group(filetype):
     types['Cache data'] = ['data', 'empty']
     types['Image'] = ['YUV', 'Icon', 'icon', 'SVG', 'RIFF', 'PNG',
                       'GIF', 'JPEG']
-    types['Source Code'] = ['C source' 'byte-compiled', 'C#', 'C++',
+    types['Source Code'] = ['C source', 'byte-compiled', 'C#', 'C++',
                             'Java', 'Dyalog APL']
-    
+
     for group in types.keys():
         for current_type in types[group]:
             if filetype.find(current_type) > -1:
-                return group
+                filetype = group
     return filetype
+
+
+def check_file_group(nodes, root, filetype, size=0):
+    for node in PreOrderIter(nodes[root]):
+        if (node.filetype == filetype) and (node.size > size):
+            print(node)
+
 
 def _to_filesize(filesize):
     sizes = {0: 'Bytes', 1: 'KB', 2: 'MB', 3: 'GB', 4: 'TB'}
@@ -54,16 +61,17 @@ def _to_filesize(filesize):
     formatted_size = ('{:.1f}{}'.format(filesize, sizes[i]))
     return formatted_size
 
+
 def read_dirtree(dir, nodes):
     all = dir.glob('**')
-    i = 0
-    #nodes[dir] = Node(dir, parent=None)
-    next(all)
+    next(all)  # The root of the tree is already created
     for item in all:
         item_inode = item.stat().st_ino
         parent_inode = item.parent.stat().st_ino
-        nodes[item_inode] = Node(item, parent=nodes[parent_inode], size=0)
+        nodes[item_inode] = Node(item, parent=nodes[parent_inode], size=0,
+                                 filetype='Directory')
     return nodes
+
 
 def read_files(nodes, root):
     new_nodes = {}
@@ -80,21 +88,26 @@ def read_files(nodes, root):
     nodes.update(new_nodes)
     return(len(new_nodes))
 
+
 def determine_file_information(nodes, root):
-    type = {}
+    """ Read through all file-nodes. Attach size and
+    filetype to all of them.
+    :param nodes: A dict with all nodes
+    :param root: Pointer to root-node
+    :return: Total file size in bytes
+    """
     total_size = 0
     for node in PreOrderIter(nodes[root]):
         item = node.name
         if item.is_file():
             size = item.stat().st_size
-            node.size=size
+            node.size = size
             total_size += size
             filetype = magic_parser.from_file(str(item))
             filetype = file_type_group(filetype)
-
-
             node.filetype = filetype
     return total_size
+
 
 def summarize_file_types(nodes, root):
     filetypes = {}
@@ -107,8 +120,9 @@ def summarize_file_types(nodes, root):
             filetypes[ft]['sizedist'].append(node.size)
         else:
             filetypes[ft] = {'count': 1,
-                              'sizedist': [node.size]}
+                             'sizedist': [node.size]}
     return filetypes
+
 
 if __name__ == '__main__':
     t = time.time()
@@ -116,24 +130,24 @@ if __name__ == '__main__':
     pp = PdfPages('multipage.pdf')
 
     p = Path('/home/robertj')
-    nodes = {}   
+    nodes = {}
 
     root_inode = p.stat().st_ino
     nodes[root_inode] = Node(p)
     nodes = read_dirtree(p, nodes)
     stats['number_of_dirs'] = len(nodes)
 
-    print('Dir-count time: {:.2f}s'.format(time.time() -t))
-    
+    print('Dir-count time: {:.2f}s'.format(time.time() - t))
+
     stats['number_of_files'] = read_files(nodes, root_inode)
-    print('file-count time: {:.2f}s'.format(time.time() -t))
+    print('file-count time: {:.2f}s'.format(time.time() - t))
 
     total_size = determine_file_information(nodes, root_inode)
     stats['total-size'] = total_size
-    print('file-size time: {:.2f}s'.format(time.time() -t))
+    print('file-size time: {:.2f}s'.format(time.time() - t))
 
     filetypes = summarize_file_types(nodes, root_inode)
-    print('file-summary time: {:.2f}s'.format(time.time() -t))
+    print('file-summary time: {:.2f}s'.format(time.time() - t))
 
     print('--- Stats ---')
     print('Total directories: {}'.format(stats['number_of_dirs']))
@@ -161,13 +175,30 @@ if __name__ == '__main__':
         labels.append(filetype)
         sizes.append(sum(stat['sizedist']))
         counts.append(stat['count'])
-        
 
-        
+    other = 0
+    compact_sizes = []
+    compact_labels = []
+    for i in range(0, len(sizes)):
+        if (sizes[i] / stats['total-size']) < 0.025:
+            other += sizes[i]
+        else:
+            compact_sizes.append(sizes[i])
+            compact_labels.append(labels[i])
+    compact_labels.append('Other')
+    compact_sizes.append(other)
+
+    explode = [0.4 if (i / stats['total-size']) < 0.05 else 0
+               for i in compact_sizes]
+
     fig1, ax1 = plt.subplots()
-    ax1.pie(sizes, labels=labels, autopct='%1.1f%%',
-            shadow=False, startangle=90)
+    textprops = {'fontsize': 'x-small'}
+    wedges, texts, autotext = ax1.pie(compact_sizes, autopct='%1.0f%%',
+                                      shadow=False, startangle=90,
+                                      explode=explode,
+                                      textprops=textprops)
     ax1.axis('equal')
+    ax1.legend(wedges, compact_labels, fontsize='x-small')
 
     plt.savefig(pp, format='pdf')
     plt.close()
