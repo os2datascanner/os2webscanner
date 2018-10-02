@@ -1,13 +1,9 @@
-import time
 import magic
-import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from pathlib import Path
 from anytree import Node, PreOrderIter
-
-magic_parser = magic.Magic(mime=False, uncompress=False)
 
 
 def file_type_group(filetype):
@@ -44,12 +40,6 @@ def file_type_group(filetype):
     return filetype
 
 
-def check_file_group(nodes, root, filetype, size=0):
-    for node in PreOrderIter(nodes[root]):
-        if (node.filetype == filetype) and (node.size > size):
-            print(node)
-
-
 def _to_filesize(filesize):
     sizes = {0: 'Bytes', 1: 'KB', 2: 'MB', 3: 'GB', 4: 'TB'}
     filesize = float(filesize)
@@ -62,105 +52,108 @@ def _to_filesize(filesize):
     return formatted_size
 
 
-def read_dirtree(dir, nodes):
-    all = dir.glob('**')
-    next(all)  # The root of the tree is already created
-    for item in all:
-        item_inode = item.stat().st_ino
-        parent_inode = item.parent.stat().st_ino
-        nodes[item_inode] = Node(item, parent=nodes[parent_inode], size=0,
-                                 filetype='Directory')
-    return nodes
+class PreDataScanner(object):
+    def __init__(self, path):
+        self.magic_parser = magic.Magic(mime=False, uncompress=False)
+        self.root = path.stat().st_ino
+        self.nodes = {}
+        self.stats = {}
+        self.read_file_system(path)
 
+    def read_file_system(self, path):
+        self.nodes[self.root] = Node(p, size=0, filetype='Directory')
+        self.read_dirtree()
 
-def read_files(nodes, root):
-    new_nodes = {}
-    for node in PreOrderIter(nodes[root]):
-        dir = node.name
-        items = dir.glob('*')
-        for item in items:
-            if item.is_dir():
-                continue
-            if item.is_symlink():
-                continue
+        # We have not yet read the files, so at this point the
+        # node-dict contains only directories
+        self.stats['number_of_dirs'] = len(self.nodes)
+        self.stats['number_of_files'] = self.read_files()
+        self.stats['total-size'] = self.determine_file_information()
+
+    def read_dirtree(self):
+        dir = self.nodes[self.root].name
+        all = dir.glob('**')
+        next(all)  # The root of the tree is already created
+        for item in all:
             item_inode = item.stat().st_ino
-            new_nodes[item_inode] = Node(item, parent=node, size=0)
-    nodes.update(new_nodes)
-    return(len(new_nodes))
+            parent_inode = item.parent.stat().st_ino
+            self.nodes[item_inode] = Node(item, size=0, filetype='Directory',
+                                          parent=self.nodes[parent_inode])
 
+    def read_files(self):
+        new_nodes = {}
+        for node in PreOrderIter(self.nodes[self.root]):
+            dir = node.name
+            items = dir.glob('*')
+            for item in items:
+                if item.is_dir():
+                    continue
+                if item.is_symlink():
+                    continue
+                item_inode = item.stat().st_ino
+                new_nodes[item_inode] = Node(item, parent=node, size=0)
+        self.nodes.update(new_nodes)
+        return(len(new_nodes))
 
-def determine_file_information(nodes, root):
-    """ Read through all file-nodes. Attach size and
-    filetype to all of them.
-    :param nodes: A dict with all nodes
-    :param root: Pointer to root-node
-    :return: Total file size in bytes
-    """
-    total_size = 0
-    for node in PreOrderIter(nodes[root]):
-        item = node.name
-        if item.is_file():
-            size = item.stat().st_size
-            node.size = size
-            total_size += size
-            filetype = magic_parser.from_file(str(item))
-            filetype = file_type_group(filetype)
-            node.filetype = filetype
-        else:
-            node.filetype = 'Directory'
-    return total_size
+    def determine_file_information(self):
+        """ Read through all file-nodes. Attach size and
+        filetype to all of them.
+        :param nodes: A dict with all nodes
+        :param root: Pointer to root-node
+        :return: Total file size in bytes
+        """
+        total_size = 0
+        for node in PreOrderIter(self.nodes[self.root]):
+            item = node.name
+            if item.is_file():
+                size = item.stat().st_size
+                node.size = size
+                total_size += size
+                filetype = self.magic_parser.from_file(str(item))
+                filetype = file_type_group(filetype)
+                node.filetype = filetype
+            else:
+                node.filetype = 'Directory'
+        return total_size
 
+    def check_file_group(self, filetype, size=0):
+        for node in PreOrderIter(self.nodes[self.root]):
+            if (node.filetype == filetype) and (node.size > size):
+                print(node)
 
-def summarize_file_types(nodes, root):
-    filetypes = {}
-    for node in PreOrderIter(nodes[root]):
-        if not node.name.is_file():
-            continue
-        ft = node.filetype
-        if node.filetype in filetypes:
-            filetypes[ft]['count'] += 1
-            filetypes[ft]['sizedist'].append(node.size)
-        else:
-            filetypes[ft] = {'count': 1,
-                             'sizedist': [node.size]}
-    return filetypes
-
-
-def read_file_system(path):
-    root = path.stat().st_ino
-    nodes = {}
-    stats = {}
-
-    nodes[root] = Node(p, size=0, filetype='Directory')
-    nodes = read_dirtree(path, nodes)
-    stats['number_of_dirs'] = len(nodes)
-    stats['number_of_files'] = read_files(nodes, root)
-    stats['total-size'] = determine_file_information(nodes, root)
-
-    file_system = {'nodes': nodes,
-                   'stats': stats,
-                   'root': p.stat().st_ino}
-    return file_system
+    def summarize_file_types(self):
+        filetypes = {}
+        for node in PreOrderIter(self.nodes[self.root]):
+            if not node.name.is_file():
+                continue
+            ft = node.filetype
+            if node.filetype in filetypes:
+                filetypes[ft]['count'] += 1
+                filetypes[ft]['sizedist'].append(node.size)
+            else:
+                filetypes[ft] = {'count': 1,
+                                 'sizedist': [node.size]}
+        return filetypes
 
 
 if __name__ == '__main__':
-    t = time.time()
-
+    p = Path('/home/robertj')
+    pre_scanner = PreDataScanner(p)
+    """
     try:
         with open('file_system.p', 'rb') as f:
             file_system = pickle.load(f)
     except FileNotFoundError:
-        p = Path('/home/robertj')
         file_system = read_file_system(p)
         with open('file_system.p', 'wb') as f:
             pickle.dump(file_system, f, pickle.HIGHEST_PROTOCOL)
+    """
 
-    print('Load-time: {:1f}s'.format(time.time() - t))
-    nodes = file_system['nodes']
-    stats = file_system['stats']
-    root_inode = file_system['root']
+    nodes = pre_scanner.nodes
+    stats = pre_scanner.stats
+    root_inode = pre_scanner.root
 
-    filetypes = summarize_file_types(nodes, root_inode)
+    filetypes = pre_scanner.summarize_file_types()
     print('--- Stats ---')
     print('Total directories: {}'.format(stats['number_of_dirs']))
     print('Total Files: {}'.format(stats['number_of_files']))
@@ -218,4 +211,4 @@ if __name__ == '__main__':
 
     pp.close()
 
-    check_file_group(nodes, root_inode, 'Virtual Machine')
+    pre_scanner.check_file_group('Virtual Machine')
