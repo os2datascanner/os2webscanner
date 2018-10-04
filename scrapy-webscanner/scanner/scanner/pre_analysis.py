@@ -1,4 +1,6 @@
+import time
 import magic
+import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
@@ -54,7 +56,6 @@ def _to_filesize(filesize):
 
 class PreDataScanner(object):
     def __init__(self, path):
-        self.magic_parser = magic.Magic(mime=False, uncompress=False)
         self.root = path.stat().st_ino
         self.nodes = {}
         self.stats = {}
@@ -102,6 +103,7 @@ class PreDataScanner(object):
         :param root: Pointer to root-node
         :return: Total file size in bytes
         """
+        magic_parser = magic.Magic(mime=False, uncompress=False)
         total_size = 0
         for node in PreOrderIter(self.nodes[self.root]):
             item = node.name
@@ -109,7 +111,7 @@ class PreDataScanner(object):
                 size = item.stat().st_size
                 node.size = size
                 total_size += size
-                filetype = self.magic_parser.from_file(str(item))
+                filetype = magic_parser.from_file(str(item))
                 filetype = file_type_group(filetype)
                 node.filetype = filetype
             else:
@@ -137,23 +139,26 @@ class PreDataScanner(object):
 
 
 if __name__ == '__main__':
+    t = time.time()
     p = Path('/home/robertj')
-    pre_scanner = PreDataScanner(p)
-    """
-    try:
-        with open('file_system.p', 'rb') as f:
-            file_system = pickle.load(f)
-    except FileNotFoundError:
-        file_system = read_file_system(p)
-        with open('file_system.p', 'wb') as f:
-            pickle.dump(file_system, f, pickle.HIGHEST_PROTOCOL)
-    """
 
+    try:
+        with open('pre_scanner.p', 'rb') as f:
+            pre_scanner = pickle.load(f)
+    except FileNotFoundError:
+        pre_scanner = PreDataScanner(p)
+        with open('pre_scanner.p', 'wb') as f:
+            pickle.dump(pre_scanner, f, pickle.HIGHEST_PROTOCOL)
+    print('Load-time: {:.1f}s'.format(time.time() - t))
+
+    # TODO: Performance check, something is slower than before
+    # the code was turned into a class
     nodes = pre_scanner.nodes
     stats = pre_scanner.stats
     root_inode = pre_scanner.root
 
     filetypes = pre_scanner.summarize_file_types()
+
     print('--- Stats ---')
     print('Total directories: {}'.format(stats['number_of_dirs']))
     print('Total Files: {}'.format(stats['number_of_files']))
