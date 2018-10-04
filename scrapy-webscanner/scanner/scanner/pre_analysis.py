@@ -2,6 +2,8 @@ import time
 import magic
 import pickle
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from pathlib import Path
@@ -13,8 +15,9 @@ def file_type_group(filetype):
     types['Git'] = ['Git']
     types['Text'] = ['ASCII', 'ISO-8859', 'XML', 'HTML', 'UTF-',
                      'Microsoft Word', 'Composite', 'Excel', 'OpenDocument',
-                     'vCalendar']
-    types['Sound & Video'] = ['SysEx', 'Audio', 'WebM', 'Matroska', 'MPEG']
+                     'vCalendar', 'Event Log', 'vCard', 'PowerPoint']
+    types['Sound & Video'] = ['SysEx', 'Audio', 'WebM', 'Matroska', 'MPEG',
+                              'MED_Song']
     types['Compressed files'] = ['Microsoft Cabinet', 'current ar archive',
                                  'Zip', 'zip', 'Par archive', 'tar', 'XZ',
                                  'zlib']
@@ -23,15 +26,19 @@ def file_type_group(filetype):
                      'dBase III', 'PEM certificate', 'OpenType', 'RSA',
                      'OpenSSH', 'Applesoft', 'GStreamer', 'Snappy', 'snappy',
                      'GPG', 'PGP', 'Mini DuMP', 'Font', 'TrueType', 'PPD',
-                     'GNU mes', 'GNOME', 'ColorSync', 'Berkeley']
-    types['PDF'] = ['PDF']
-    types['ISO Image'] = ['ISO 9660',  'ISO Media']
+                     'GNU mes', 'GNOME', 'ColorSync', 'Berkeley',
+                     'ESRI Shapefile', 'Flash', 'Microsoft ASF',
+                     'DWG AutoDesk', 'CLIPPER', 'Transport Neutral',
+                     'shortcut', 'Windows Registry', 'init=',
+                     'Solitaire Image', 'GeoSwath RDF', 'CDFV2 Encrypted']
+    types['PDF'] = ['PDF', 'PostScript']
+    types['ISO Image'] = ['ISO 9660',  'ISO Media', 'MSX ROM']
     types['Executable'] = ['ELF', 'Executable', 'executable', 'PE32',
                            'amd 29K']
     types['Virtual Machines'] = ['VirtualBox']
     types['Cache data'] = ['data', 'empty']
     types['Images'] = ['YUV', 'Icon', 'icon', 'SVG', 'RIFF', 'PNG',
-                       'GIF', 'JPEG']
+                       'GIF', 'JPEG', 'bitmap']
     types['Source Code'] = ['C source', 'byte-compiled', 'C#', 'C++',
                             'Java', 'Dyalog APL']
 
@@ -68,7 +75,9 @@ class PreDataScanner(object):
         # We have not yet read the files, so at this point the
         # node-dict contains only directories
         self.stats['number_of_dirs'] = len(self.nodes)
+        print('Read dirs')
         self.stats['number_of_files'] = self.read_files()
+        print('Read files')
         self.stats['total-size'] = self.determine_file_information()
 
     def read_dirtree(self):
@@ -105,8 +114,12 @@ class PreDataScanner(object):
         """
         magic_parser = magic.Magic(mime=False, uncompress=False)
         total_size = 0
+        processed = 0
         for node in PreOrderIter(self.nodes[self.root]):
+            processed += 1
             item = node.name
+            print(item)
+            print('Progress: {}/{}'.format(processed, len(self.nodes)))
             if item.is_file():
                 size = item.stat().st_size
                 node.size = size
@@ -140,7 +153,7 @@ class PreDataScanner(object):
 
 if __name__ == '__main__':
     t = time.time()
-    p = Path('/home/robertj')
+    p = Path('/mnt/new_var/mailscan/users/')
 
     try:
         with open('pre_scanner.p', 'rb') as f:
