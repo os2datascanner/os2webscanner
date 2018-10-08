@@ -77,7 +77,7 @@ def file_type_group(filetype):
     types['FoxPro'] = data_dict
     types['GVariant'] = data_dict
     types['Debian'] = data_dict
-    types['dBaseIII'] = data_dict
+    types['dBase III'] = data_dict
     types['PEM certificate'] = data_dict
     types['OpenType'] = data_dict
     types['RSA'] = data_dict
@@ -171,7 +171,10 @@ def file_type_group(filetype):
     for current_type in types.keys():
         if filetype.lower().find(current_type.lower()) > -1:
             filetype = types[current_type]
-            break
+            return filetype
+    print(filetype)
+    filetype = {'super-group': 'Unknonwn', 'sub-group': filetype,
+                'relevant': True, 'supported': False}
     return filetype
 
 
@@ -271,6 +274,7 @@ class PreDataScanner(object):
         for node in PreOrderIter(self.nodes[self.root]):
             if not node.name.is_file():
                 continue
+            print(node)
             supergroup = node.filetype['super-group']
             subgroup = node.filetype['sub-group']
 
@@ -346,8 +350,8 @@ def plot(pp, types):
 
 if __name__ == '__main__':
     t = time.time()
-    p = Path('/mnt/new_var/mailscan/users/')
-
+    #p = Path('/mnt/new_var/mailscan/users/')
+    p = Path('/usr/share/')
 
     try:
         with open('pre_scanner.p', 'rb') as f:
