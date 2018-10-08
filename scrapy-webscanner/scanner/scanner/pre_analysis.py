@@ -25,6 +25,8 @@ def file_type_group(filetype):
                           'relevant': True, 'supported': False}
     types['vCard'] = {'super-group': 'Text', 'sub-group': 'Text',
                       'relevant': True, 'supported': False}
+    types['sendmail m4'] = {'super-group': 'Text', 'sub-group': 'Text',
+                            'relevant': False, 'supported': False}
 
     types['Microsoft Word'] = {'super-group': 'Text', 'sub-group': 'Office',
                                'relevant': True, 'supported': True}
@@ -74,6 +76,7 @@ def file_type_group(filetype):
     types['TDB database'] = data_dict
     types['SQLite'] = data_dict
     types['very short file'] = data_dict
+    types['Qt Traslation'] = data_dict
     types['FoxPro'] = data_dict
     types['GVariant'] = data_dict
     types['Debian'] = data_dict
@@ -93,9 +96,11 @@ def file_type_group(filetype):
     types['Compiled terminfo'] = data_dict
     types['GPG'] = data_dict
     types['PGP'] = data_dict
-    types['MiniDump'] = data_dict
+    types['Mini Dump'] = data_dict
     types['Font'] = data_dict
+    types['GUS patch'] = data_dict
     types['TrueType'] = data_dict
+    types['SoftQuad'] = data_dict
     types['PPD'] = data_dict
     types['GNU mes'] = data_dict
     types['GNOME'] = data_dict
@@ -114,7 +119,10 @@ def file_type_group(filetype):
     types['Solitaire Image'] = data_dict
     types['GeoSwath RDF'] = data_dict
     types['CDFV2 Encrypted'] = data_dict
+    types['Translation'] = data_dict
+    types['X11 cursor'] = data_dict
     types['MSX ROM'] = data_dict
+    types['Quake'] = data_dict
     types['empty'] = data_dict
 
     types['data'] = {'super-group': 'Data', 'sub-group': 'Cache Data',
@@ -244,12 +252,11 @@ class PreDataScanner(object):
         :param root: Pointer to root-node
         :return: Total file size in bytes
         """
-        magic_parser = magic.Magic(mime=False, uncompress=False)
         total_size = 0
         processed = 0
         t0 = time.time()
         t = t0
-        for node in PreOrderIter(self.nodes[self.root]):                
+        for node in PreOrderIter(self.nodes[self.root]):
             processed += 1
             item = node.name
             if processed % 500 == 0:
@@ -268,7 +275,7 @@ class PreDataScanner(object):
                 size = item.stat().st_size
                 node.size = size
                 total_size += size
-                filetype = magic_parser.from_file(str(item))
+                filetype = magic.from_buffer(open(item, 'rb').read(512))
                 filetype = file_type_group(filetype)
                 node.filetype = filetype
             else:
@@ -362,10 +369,11 @@ def plot(pp, types):
     plt.savefig(pp, format='pdf')
     plt.close()
 
+
 if __name__ == '__main__':
     t = time.time()
-    p = Path('/mnt/new_var/mailscan/users/')
-    # p = Path('/usr/share/')
+    # p = Path('/mnt/new_var/mailscan/users/')
+    p = Path('/usr/share/')
 
     try:
         with open('pre_scanner.p', 'rb') as f:
