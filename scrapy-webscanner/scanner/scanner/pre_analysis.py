@@ -87,6 +87,10 @@ def file_type_group(filetype):
     types['Snappy'] = data_dict
     types['snappy'] = data_dict
     types['GStreamer'] = data_dict
+    types['Minix filesystem'] = data_dict
+    types['SE Linux policy'] = data_dict
+    types['binary'] = data_dict
+    types['Compiled terminfo'] = data_dict
     types['GPG'] = data_dict
     types['PGP'] = data_dict
     types['MiniDump'] = data_dict
@@ -172,7 +176,6 @@ def file_type_group(filetype):
         if filetype.lower().find(current_type.lower()) > -1:
             filetype = types[current_type]
             return filetype
-    print(filetype)
     filetype = {'super-group': 'Unknonwn', 'sub-group': filetype,
                 'relevant': True, 'supported': False}
     return filetype
@@ -244,11 +247,23 @@ class PreDataScanner(object):
         magic_parser = magic.Magic(mime=False, uncompress=False)
         total_size = 0
         processed = 0
-        for node in PreOrderIter(self.nodes[self.root]):
+        t0 = time.time()
+        t = t0
+        for node in PreOrderIter(self.nodes[self.root]):                
             processed += 1
             item = node.name
-            print(item)
-            print('Progress: {}/{}'.format(processed, len(self.nodes)))
+            if processed % 500 == 0:
+                delta_t = time.time() - t0
+                avg_speed = processed / delta_t
+                now = time.time()
+                current_speed = 500 / (now - t)
+                t = now
+                eta = (len(self.nodes) - processed) / current_speed
+                status = ('Progress: {}/{} in {:.0f}s. ' +
+                          'Avg. Speed: {:.0f}/s. Current Speed {:.0f}/s ' +
+                          'ETA: {:.0f}s')
+                print(status.format(processed, len(self.nodes), delta_t,
+                                    avg_speed, current_speed, eta))
             if item.is_file():
                 size = item.stat().st_size
                 node.size = size
@@ -274,7 +289,6 @@ class PreDataScanner(object):
         for node in PreOrderIter(self.nodes[self.root]):
             if not node.name.is_file():
                 continue
-            print(node)
             supergroup = node.filetype['super-group']
             subgroup = node.filetype['sub-group']
 
@@ -350,8 +364,8 @@ def plot(pp, types):
 
 if __name__ == '__main__':
     t = time.time()
-    #p = Path('/mnt/new_var/mailscan/users/')
-    p = Path('/usr/share/')
+    p = Path('/mnt/new_var/mailscan/users/')
+    # p = Path('/usr/share/')
 
     try:
         with open('pre_scanner.p', 'rb') as f:
