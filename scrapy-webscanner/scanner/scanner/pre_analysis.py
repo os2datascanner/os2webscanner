@@ -2,50 +2,176 @@ import time
 import magic
 import pickle
 import numpy as np
+from pathlib import Path
+from anytree import Node, PreOrderIter
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-from pathlib import Path
-from anytree import Node, PreOrderIter
 
 
 def file_type_group(filetype):
     types = {}
-    types['Git'] = ['Git']
-    types['Text'] = ['ASCII', 'ISO-8859', 'XML', 'HTML', 'UTF-',
-                     'Microsoft Word', 'Composite', 'Excel', 'OpenDocument',
-                     'vCalendar', 'Event Log', 'vCard', 'PowerPoint']
-    types['Sound & Video'] = ['SysEx', 'Audio', 'WebM', 'Matroska', 'MPEG',
-                              'MED_Song']
-    types['Compressed files'] = ['Microsoft Cabinet', 'current ar archive',
-                                 'Zip', 'zip', 'Par archive', 'tar', 'XZ',
-                                 'zlib']
-    types['Data'] = ['Media descriptor 0xf4', 'TDB database', 'SQLite',
-                     'very short file', 'FoxPro', 'GVariant',  'Debian',
-                     'dBase III', 'PEM certificate', 'OpenType', 'RSA',
-                     'OpenSSH', 'Applesoft', 'GStreamer', 'Snappy', 'snappy',
-                     'GPG', 'PGP', 'Mini DuMP', 'Font', 'TrueType', 'PPD',
-                     'GNU mes', 'GNOME', 'ColorSync', 'Berkeley',
-                     'ESRI Shapefile', 'Flash', 'Microsoft ASF',
-                     'DWG AutoDesk', 'CLIPPER', 'Transport Neutral',
-                     'shortcut', 'Windows Registry', 'init=',
-                     'Solitaire Image', 'GeoSwath RDF', 'CDFV2 Encrypted']
-    types['PDF'] = ['PDF', 'PostScript']
-    types['ISO Image'] = ['ISO 9660',  'ISO Media', 'MSX ROM']
-    types['Executable'] = ['ELF', 'Executable', 'executable', 'PE32',
-                           'amd 29K']
-    types['Virtual Machines'] = ['VirtualBox']
-    types['Cache data'] = ['data', 'empty']
-    types['Images'] = ['YUV', 'Icon', 'icon', 'SVG', 'RIFF', 'PNG',
-                       'GIF', 'JPEG', 'bitmap']
-    types['Source Code'] = ['C source', 'byte-compiled', 'C#', 'C++',
-                            'Java', 'Dyalog APL']
 
-    for group in types.keys():
-        for current_type in types[group]:
-            if filetype.find(current_type) > -1:
-                filetype = group
+    types['ASCII'] = {'super-group': 'Text', 'sub-group': 'Text',
+                      'relevant': True, 'supported': True}
+    types['ISO-8859'] = {'super-group': 'Text', 'sub-group': 'Text',
+                         'relevant': True, 'supported': True}
+    types['UTF-'] = {'super-group': 'Text', 'sub-group': 'Text',
+                     'relevant': True, 'supported': True}
+    types['vCalendar'] = {'super-group': 'Text', 'sub-group': 'Text',
+                          'relevant': True, 'supported': False}
+    types['Event Log'] = {'super-group': 'Text', 'sub-group': 'Text',
+                          'relevant': True, 'supported': False}
+    types['vCard'] = {'super-group': 'Text', 'sub-group': 'Text',
+                      'relevant': True, 'supported': False}
+
+    types['Microsoft Word'] = {'super-group': 'Text', 'sub-group': 'Office',
+                               'relevant': True, 'supported': True}
+    types['Excel'] = {'super-group': 'Text', 'sub-group': 'Office',
+                      'relevant': True, 'supported': True}
+    types['PowerPoint'] = {'super-group': 'Text', 'sub-group': 'Office',
+                           'relevant': True, 'supported': True}
+    types['OpenDocument'] = {'super-group': 'Text', 'sub-group': 'Office',
+                             'relevant': True, 'supported': True}
+    types['Composite'] = {'super-group': 'Text', 'sub-group': 'Office',
+                          'relevant': True, 'supported': True}
+
+    types['XML'] = {'super-group': 'Text', 'sub-group': 'Structure Text',
+                    'relevant': True, 'supported': True}
+    types['HTML'] = {'super-group': 'Text', 'sub-group': 'Structure Text',
+                     'relevant': True, 'supported': True}
+
+    types['C#'] = {'super-group': 'Text', 'sub-group': 'Source Code',
+                   'relevant': True, 'supported': False}
+    types['Java'] = {'super-group': 'Text', 'sub-group': 'Source Code',
+                     'relevant': True, 'supported': False}
+    types['Dyalog APL'] = {'super-group': 'Text', 'sub-group': 'Source Code',
+                           'relevant': True, 'supported': False}
+
+    types['byte-compiled'] = {'super-group': 'Binary',
+                              'sub-group': 'Source Code',
+                              'relevant': False, 'supported': False}
+    types['Git'] = {'super-group': 'Text', 'sub-group': 'Data',
+                    'relevant': False, 'supported': False}
+
+    types['SysEx'] = {'super-group': 'Media', 'sub-group': 'MIDI',
+                      'relevant': False, 'supported': False}
+    types['Audio'] = {'super-group': 'Media', 'sub-group': 'Sound',
+                      'relevant': False, 'supported': False}
+    types['WebM'] = {'super-group': 'Media', 'sub-group': 'Video',
+                     'relevant': False, 'supported': False}
+    types['Matroska'] = {'super-group': 'Media', 'sub-group': 'Video',
+                         'relevant': False, 'supported': False}
+    types['MPEG'] = {'super-group': 'Media', 'sub-group': 'Video',
+                     'relevant': False, 'supported': False}
+    types['MED_Song'] = {'super-group': 'Media', 'sub-group': 'Video',
+                         'relevant': False, 'supported': False}
+
+    data_dict = {'super-group': 'Data', 'sub-group': 'Data', 'relevant': False,
+                 'supported': False}
+    types['Media descriptor 0xf4'] = data_dict
+    types['TDB database'] = data_dict
+    types['SQLite'] = data_dict
+    types['very short file'] = data_dict
+    types['FoxPro'] = data_dict
+    types['GVariant'] = data_dict
+    types['Debian'] = data_dict
+    types['dBaseIII'] = data_dict
+    types['PEM certificate'] = data_dict
+    types['OpenType'] = data_dict
+    types['RSA'] = data_dict
+    types['OpenSSH'] = data_dict
+    types['Applesoft'] = data_dict
+    types['GStreamer'] = data_dict
+    types['Snappy'] = data_dict
+    types['snappy'] = data_dict
+    types['GStreamer'] = data_dict
+    types['GPG'] = data_dict
+    types['PGP'] = data_dict
+    types['MiniDump'] = data_dict
+    types['Font'] = data_dict
+    types['TrueType'] = data_dict
+    types['PPD'] = data_dict
+    types['GNU mes'] = data_dict
+    types['GNOME'] = data_dict
+    types['ColorSync'] = data_dict
+    types['Berkeley'] = data_dict
+    types['ESRI Shapefile'] = data_dict
+    types['Flash'] = data_dict
+    types['Microsoft ASF'] = data_dict
+    types['DWG AutoDesk'] = data_dict
+    types['CLIPPER'] = data_dict
+    types['Transport Neutral'] = data_dict
+    types['shortcut'] = data_dict
+    types['Windows Registry'] = data_dict
+    types['init='] = data_dict
+    types['tcpdump'] = data_dict
+    types['Solitaire Image'] = data_dict
+    types['GeoSwath RDF'] = data_dict
+    types['CDFV2 Encrypted'] = data_dict
+    types['MSX ROM'] = data_dict
+    types['empty'] = data_dict
+
+    types['data'] = {'super-group': 'Data', 'sub-group': 'Cache Data',
+                     'relevant': False, 'supported': False}
+    types['PDF'] = {'super-group': 'Media', 'sub-group': 'Image',
+                    'relevant': True, 'supported': True}
+    types['PostScript'] = {'super-group': 'Media', 'sub-group': 'Image',
+                           'relevant': True, 'supported': True}
+    types['PNG'] = {'super-group': 'Media', 'sub-group': 'Image',
+                    'relevant': True, 'supported': True}
+    types['GIF'] = {'super-group': 'Media', 'sub-group': 'Image',
+                    'relevant': True, 'supported': True}
+    types['JPEG'] = {'super-group': 'Media', 'sub-group': 'Image',
+                     'relevant': True, 'supported': True}
+    types['YUV'] = {'super-group': 'Media', 'sub-group': 'Image',
+                    'relevant': True, 'supported': False}
+    types['Icon'] = {'super-group': 'Media', 'sub-group': 'Image',
+                     'relevant': True, 'supported': False}
+    types['SVG'] = {'super-group': 'Media', 'sub-group': 'Image',
+                    'relevant': True, 'supported': False}
+    types['RIFF'] = {'super-group': 'Media', 'sub-group': 'Image',
+                     'relevant': True, 'supported': False}
+    types['bitmap'] = {'super-group': 'Media', 'sub-group': 'Image',
+                       'relevant': True, 'supported': False}
+
+    types['ISO Image'] = {'super-group': 'Container', 'sub-group': 'ISO',
+                          'relevant': True, 'supported': False}
+    types['ISO 9660'] = {'super-group': 'Container', 'sub-group': 'ISO',
+                         'relevant': True, 'supported': False}
+    types['Microsoft Cabinet'] = {'super-group': 'Container',
+                                  'sub-group': 'Archive', 'relevant': True,
+                                  'supported': False}
+    types['Zip'] = {'super-group': 'Container', 'sub-group': 'Archive',
+                    'relevant': True, 'supported': True}
+    types['Tar'] = {'super-group': 'Container', 'sub-group': 'Archive',
+                    'relevant': True, 'supported': False}
+    types['Par archive'] = {'super-group': 'Container',
+                            'sub-group': 'Archive',
+                            'relevant': True, 'supported': False}
+    types['current ar archive'] = {'super-group': 'Container',
+                                   'sub-group': 'Archive',
+                                   'relevant': True, 'supported': False}
+    types['XZ'] = {'super-group': 'Container', 'sub-group': 'Archive',
+                   'relevant': True, 'supported': False}
+    types['zlib'] = {'super-group': 'Container', 'sub-group': 'Archive',
+                     'relevant': True, 'supported': False}
+    types['VirtualBox'] = {'super-group': 'Container',
+                           'sub-group': 'Virtual Machines',
+                           'relevant': True, 'supported': False}
+
+    exe_dict = {'super-group': 'Executable', 'sub-group': 'Executable',
+                'relevant': False, 'supported': False}
+    types['ELF'] = exe_dict
+    types['PE32'] = exe_dict
+    types['Executable'] = exe_dict
+    types['amd 29K'] = exe_dict
+
+    for current_type in types.keys():
+        if filetype.lower().find(current_type.lower()) > -1:
+            filetype = types[current_type]
+            break
     return filetype
 
 
@@ -137,51 +263,43 @@ class PreDataScanner(object):
                 print(node)
 
     def summarize_file_types(self):
-        filetypes = {}
+        types = {'super': {},
+                 'sub': {},
+                 'supported': 0,
+                 'relevant': 0}
+
         for node in PreOrderIter(self.nodes[self.root]):
             if not node.name.is_file():
                 continue
-            ft = node.filetype
-            if node.filetype in filetypes:
-                filetypes[ft]['count'] += 1
-                filetypes[ft]['sizedist'].append(node.size)
+            supergroup = node.filetype['super-group']
+            subgroup = node.filetype['sub-group']
+
+            if node.filetype['supported'] is True:
+                types['supported'] += 1
+            if node.filetype['relevant'] is True:
+                types['relevant'] += 1
+
+            if supergroup in types['super']:
+                types['super'][supergroup]['count'] += 1
+                types['super'][supergroup]['sizedist'].append(node.size)
             else:
-                filetypes[ft] = {'count': 1,
-                                 'sizedist': [node.size]}
-        return filetypes
+                types['super'][supergroup] = {'count': 1,
+                                              'sizedist': [node.size]}
+            if subgroup in types['sub']:
+                types['sub'][subgroup]['count'] += 1
+                types['sub'][subgroup]['sizedist'].append(node.size)
+            else:
+                types['sub'][subgroup] = {'count': 1,
+                                          'sizedist': [node.size]}
+
+        return types
 
 
-if __name__ == '__main__':
-    t = time.time()
-    p = Path('/mnt/new_var/mailscan/users/')
-
-    try:
-        with open('pre_scanner.p', 'rb') as f:
-            pre_scanner = pickle.load(f)
-    except FileNotFoundError:
-        pre_scanner = PreDataScanner(p)
-        with open('pre_scanner.p', 'wb') as f:
-            pickle.dump(pre_scanner, f, pickle.HIGHEST_PROTOCOL)
-    print('Load-time: {:.1f}s'.format(time.time() - t))
-
-    # TODO: Performance check, something is slower than before
-    # the code was turned into a class
-    nodes = pre_scanner.nodes
-    stats = pre_scanner.stats
-    root_inode = pre_scanner.root
-
-    filetypes = pre_scanner.summarize_file_types()
-
-    print('--- Stats ---')
-    print('Total directories: {}'.format(stats['number_of_dirs']))
-    print('Total Files: {}'.format(stats['number_of_files']))
-    print('Total Size: {}'.format(_to_filesize(stats['total-size'])))
-
-    pp = PdfPages('multipage.pdf')
+def plot(pp, types):
     labels = []
     sizes = []
     counts = []
-    for filetype, stat in filetypes.items():
+    for filetype, stat in types.items():
         size = _to_filesize(sum(stat['sizedist']))
         status_string = 'Mime-type: {}, number of files: {}, total_size: {}'
         print(status_string.format(filetype, stat['count'], size))
@@ -189,7 +307,6 @@ if __name__ == '__main__':
         size_list = np.array(stat['sizedist'])
         size_list = size_list / 1024**2
 
-        fig = plt.figure()
         plt.hist(size_list, range=(0, max(size_list)), bins=50, log=True)
         plt.title(filetype)
         plt.xlabel('Size / MB')
@@ -227,6 +344,39 @@ if __name__ == '__main__':
     plt.savefig(pp, format='pdf')
     plt.close()
 
+if __name__ == '__main__':
+    t = time.time()
+    p = Path('/mnt/new_var/mailscan/users/')
+
+
+    try:
+        with open('pre_scanner.p', 'rb') as f:
+            pre_scanner = pickle.load(f)
+    except FileNotFoundError:
+        pre_scanner = PreDataScanner(p)
+        with open('pre_scanner.p', 'wb') as f:
+            pickle.dump(pre_scanner, f, pickle.HIGHEST_PROTOCOL)
+    print('Load-time: {:.1f}s'.format(time.time() - t))
+
+    nodes = pre_scanner.nodes
+    stats = pre_scanner.stats
+    root_inode = pre_scanner.root
+
+    filetypes = pre_scanner.summarize_file_types()
+
+    print('--- Stats ---')
+    print('Total directories: {}'.format(stats['number_of_dirs']))
+    print('Total Files: {}'.format(stats['number_of_files']))
+    print('Total Size: {}'.format(_to_filesize(stats['total-size'])))
+    print()
+    print('Total Supported Files: {}'.format(filetypes['supported']))
+    print('Total Relevant Files: {}'.format(filetypes['relevant']))
+    print('-------')
+    print()
+
+    pp = PdfPages('multipage.pdf')
+    plot(pp, filetypes['super'])
+    plot(pp, filetypes['sub'])
     pp.close()
 
-    pre_scanner.check_file_group('Virtual Machine')
+    # pre_scanner.check_file_group('Virtual Machine')
