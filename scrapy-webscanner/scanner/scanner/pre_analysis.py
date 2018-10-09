@@ -57,17 +57,21 @@ def file_type_group(filetype):
     types['Git'] = {'super-group': 'Text', 'sub-group': 'Data',
                     'relevant': False, 'supported': False}
 
-    types['SysEx'] = {'super-group': 'Media', 'sub-group': 'MIDI',
+    types['SysEx'] = {'super-group': 'Media', 'sub-group': 'Sound',
                       'relevant': False, 'supported': False}
     types['Audio'] = {'super-group': 'Media', 'sub-group': 'Sound',
                       'relevant': False, 'supported': False}
+    types['MP4'] = {'super-group': 'Media', 'sub-group': 'Sound',
+                    'relevant': False, 'supported': False}
     types['WebM'] = {'super-group': 'Media', 'sub-group': 'Video',
                      'relevant': False, 'supported': False}
     types['Matroska'] = {'super-group': 'Media', 'sub-group': 'Video',
                          'relevant': False, 'supported': False}
     types['MPEG'] = {'super-group': 'Media', 'sub-group': 'Video',
                      'relevant': False, 'supported': False}
-    types['MED_Song'] = {'super-group': 'Media', 'sub-group': 'Video',
+    types['QuickTime'] = {'super-group': 'Media', 'sub-group': 'Video',
+                          'relevant': False, 'supported': False}
+    types['MED_Song'] = {'super-group': 'Media', 'sub-group': 'Sound',
                          'relevant': False, 'supported': False}
 
     data_dict = {'super-group': 'Data', 'sub-group': 'Data', 'relevant': False,
@@ -180,6 +184,9 @@ def file_type_group(filetype):
     types['Executable'] = exe_dict
     types['amd 29K'] = exe_dict
 
+    types['ERROR'] = {'super-group': 'File Error', 'sub-group': 'Error',
+                      'relevant': True, 'supported': False}
+
     for current_type in types.keys():
         if filetype.lower().find(current_type.lower()) > -1:
             filetype = types[current_type]
@@ -275,7 +282,16 @@ class PreDataScanner(object):
                 size = item.stat().st_size
                 node.size = size
                 total_size += size
-                filetype = magic.from_buffer(open(item, 'rb').read(512))
+                if item.suffix == '.txt':
+                    filetype = 'ASCII'
+                elif item.suffix == '.html':
+                    filetype = 'HTML'
+                else:
+                    try:
+                        filetype = magic.from_buffer(open(str(item),
+                                                          'rb').read(512))
+                    except TypeError:
+                        filetype = 'ERROR'
                 filetype = file_type_group(filetype)
                 node.filetype = filetype
             else:
@@ -372,16 +388,17 @@ def plot(pp, types):
 
 if __name__ == '__main__':
     t = time.time()
-    # p = Path('/mnt/new_var/mailscan/users/')
-    p = Path('/usr/share/')
+    p = Path('/mnt/new_var/mailscan/users/')
+    # p = Path('/mnt/new_var/mailscan/users/cemi@vordingborg.dk')
+    # p = Path('/usr/share/')
 
-    try:
-        with open('pre_scanner.p', 'rb') as f:
-            pre_scanner = pickle.load(f)
-    except FileNotFoundError:
-        pre_scanner = PreDataScanner(p)
-        with open('pre_scanner.p', 'wb') as f:
-            pickle.dump(pre_scanner, f, pickle.HIGHEST_PROTOCOL)
+    #try:
+    #    with open('pre_scanner.p', 'rb') as f:
+    #        pre_scanner = pickle.load(f)
+    #except FileNotFoundError:
+    pre_scanner = PreDataScanner(p)
+    #    with open('pre_scanner.p', 'wb') as f:
+    #        pickle.dump(pre_scanner, f, pickle.HIGHEST_PROTOCOL)
     print('Load-time: {:.1f}s'.format(time.time() - t))
 
     nodes = pre_scanner.nodes
