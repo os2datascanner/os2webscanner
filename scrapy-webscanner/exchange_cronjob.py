@@ -44,7 +44,7 @@ def start_exchange_export():
         # TODO: Make an intelligent usage of last_export_date, where you consider how to handle user_list is updated.
         last_export_date = None
 
-        export_dir = os.path.join(settings.EXCHANGEDOWNLOAD_TMP_PREFIX,
+        export_dir = os.path.join(settings.EXCHANGE_EXPORT_DIR_PREFIX,
                                   mail_ending.replace('@', ''))
         if not os.path.isdir(export_dir):
             os.makedirs(export_dir)
