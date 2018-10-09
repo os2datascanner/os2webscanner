@@ -13,9 +13,14 @@
 #
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
-"""Settings file for the Scanner modul"""
+"""Settings file for the Exchange export module"""
 
-# # Number of email downloader threads that should be running.
+# Path to exchange export dir
+EXCHANGE_EXPORT_DIR_PREFIX = '/tmp/os2webscanner/exchangescan/'
+
+DAYS_BETWEEN_DOWNLOAD = 1
+
+# Number of email downloader threads that should be running.
 NUMBER_OF_EMAIL_THREADS = 4
 
 MAX_WAIT_TIME = 1000
