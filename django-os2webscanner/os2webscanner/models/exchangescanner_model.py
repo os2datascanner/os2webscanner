@@ -24,12 +24,16 @@ from .exchangedomain_model import ExchangeDomain
 class ExchangeScanner(Scanner):
 
     """File scanner for scanning network drives and folders"""
-
+    # TODO: ExchangeScanner should only be able to have one domain attached
     domains = models.ManyToManyField(ExchangeDomain, related_name='exchangedomains',
                                      verbose_name='Exchange Domæner')
 
-    last_scannings_date = models.DateField(blank=True, null=True,
-                                           verbose_name='Sidste scanningstidspunkt')
+    is_exporting = models.BooleanField(default=False)
+
+    # If nothing has been exported yet this property is false.
+    is_ready_to_scan = models.BooleanField(default=False)
+
+    dir_to_scan = models.CharField(max_length=2048, verbose_name='Exchange export sti', null=True)
 
     def get_type(self):
         return 'exchange'
