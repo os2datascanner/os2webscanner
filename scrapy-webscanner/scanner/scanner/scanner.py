@@ -108,7 +108,7 @@ class Scanner:
                 else:
                     domains.append(d.url)
             elif hasattr(d, 'exchangedomain'):
-                domains.append(d.url)
+                domains.append(d.exchangedomain.dir_to_scan)
             else:
                 domains.append(d.filedomain.mountpath)
         return domains
