@@ -4,7 +4,9 @@
 """
 import os
 import time
+import shutil
 import multiprocessing
+
 from exchangescan import settings
 from exchangescan.export_exchange_content import ExchangeServerExport, read_users
 
@@ -48,15 +50,15 @@ def start_exchange_export():
                                   mail_ending.replace('@', ''))
         # Make export dir export ready
         if os.path.isdir(export_dir):
-            os.remove(export_dir)
-        os.makedirs(export_dir)
+            shutil.rmtree(export_dir)
+        os.mkdir(export_dir)
 
         scanners = {}
         for i in range(0, settings.NUMBER_OF_EMAIL_THREADS):
             scanners[i] = ExchangeServerExport(credentials,
                                                user_queue,
                                                done_queue,
-                                               export_dir,
+                                               export_dir + '/',
                                                mail_ending,
                                                start_date=
                                                last_export_date)
