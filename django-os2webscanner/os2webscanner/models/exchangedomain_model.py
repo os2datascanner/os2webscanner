@@ -34,6 +34,10 @@ class ExchangeDomain(Domain):
 
     userlist = models.FileField(upload_to='mailscan/users/')
 
+    dir_to_scan = models.CharField(max_length=2048,
+                                   verbose_name='Exchange export sti',
+                                   null=True)
+
     def get_userlist_file_path(self):
         return os.path.join(settings.MEDIA_ROOT, self.userlist.name)
 

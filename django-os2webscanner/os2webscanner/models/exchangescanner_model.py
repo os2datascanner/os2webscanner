@@ -33,8 +33,6 @@ class ExchangeScanner(Scanner):
     # If nothing has been exported yet this property is false.
     is_ready_to_scan = models.BooleanField(default=False)
 
-    dir_to_scan = models.CharField(max_length=2048, verbose_name='Exchange export sti', null=True)
-
     def get_type(self):
         return 'exchange'
 
