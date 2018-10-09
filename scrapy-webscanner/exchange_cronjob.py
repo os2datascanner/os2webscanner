@@ -74,9 +74,11 @@ def start_exchange_export():
                 print('Process with pid {} is still alive'.format(value.pid))
                 time.sleep(1)
 
+        domain.dir_to_scan = export_dir
+        domain.save()
+
         exchange_scanner.is_exporting = False
         exchange_scanner.is_ready_to_scan = True
-        exchange_scanner.dir_to_scan = export_dir
         exchange_scanner.save()
 
 
