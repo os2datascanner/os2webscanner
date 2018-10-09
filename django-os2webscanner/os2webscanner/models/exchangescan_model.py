@@ -12,16 +12,6 @@ class ExchangeScan(Scan):
         super().__init__(*args, **kwargs)
         self._old_status = self.status
 
-    folder_to_scan = models.CharField(max_length=2048,
-                                      null=True,
-                                      blank=True)
-
-    mark_scan_as_done = models.BooleanField(default=False)
-
-    last_scannings_date = models.DateField(blank=True, null=True,
-                                           verbose_name='Sidste scanningstidspunkt')
-
-
 # Create method - copies fields from scanner
     @classmethod
     def create(scan_cls, scanner):
@@ -33,13 +23,9 @@ class ExchangeScan(Scan):
             whitelisted_addresses=scanner.organization.address_whitelist,
             blacklisted_addresses=scanner.organization.address_blacklist,
             whitelisted_cprs=scanner.organization.cpr_whitelist,
-            do_cpr_scan=scanner.do_cpr_scan,
             do_name_scan=scanner.do_name_scan,
             do_address_scan=scanner.do_address_scan,
             do_ocr=scanner.do_ocr,
-            do_cpr_modulus11=scanner.do_cpr_modulus11,
-            do_cpr_ignore_irrelevant=scanner.do_cpr_ignore_irrelevant,
-            do_last_modified_check=scanner.do_last_modified_check,
             columns=scanner.columns,
             output_spreadsheet_file=scanner.output_spreadsheet_file,
             do_cpr_replace=scanner.do_cpr_replace,
@@ -48,7 +34,6 @@ class ExchangeScan(Scan):
             name_replace_text=scanner.name_replace_text,
             do_address_replace=scanner.do_address_replace,
             address_replace_text=scanner.address_replace_text,
-            last_scannings_date=scanner.exchangescanner.last_scannings_date
         )
         #
         scanner.is_running = True
