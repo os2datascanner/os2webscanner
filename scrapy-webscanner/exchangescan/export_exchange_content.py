@@ -365,8 +365,7 @@ class ExchangeMailboxScan(object):
         return self.actual_exported_mails
 
 
-
-class ExchangeServerScan(multiprocessing.Process):
+class ExchangeServerExport(multiprocessing.Process):
     """ Helper class to allow parallel processing of export
     This classes inherits from multiprocessing and helps to
     run a number of exporters in parallel """
@@ -477,10 +476,10 @@ if __name__ == '__main__':
     stats = Stats(user_queue, log_data=True)
 
     for i in range(0, number_of_threads):
-        scanner = ExchangeServerScan(credentials, user_queue, done_queue,
-                                     settings.export_path,
-                                     settings.mail_ending, start_date,
-                                     amqp=amqp)
+        scanner = ExchangeServerExport(credentials, user_queue, done_queue,
+                                       settings.export_path,
+                                       settings.mail_ending, start_date,
+                                       amqp=amqp)
         scanner.start()
         time.sleep(0.25)
         stats.add_scanner(scanner.pid)
