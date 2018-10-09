@@ -14,7 +14,6 @@ class ExchangeScannerCreate(ScannerCreate):
 
     model = ExchangeScanner
     fields = ['name', 'schedule', 'domains',
-              'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
               'do_name_scan', 'do_ocr', 'do_address_scan', 'do_last_modified_check',
               'regex_rules', 'recipients']
 
@@ -28,7 +27,6 @@ class ExchangeScannerUpdate(ScannerUpdate):
 
     model = ExchangeScanner
     fields = ['name', 'schedule', 'domains',
-              'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
               'do_name_scan', 'do_ocr', 'do_address_scan', 'do_last_modified_check',
               'regex_rules', 'recipients']
 
@@ -48,6 +46,22 @@ class ExchangeScannerAskRun(ScannerAskRun):
     """Prompt for starting exchange scan, validate first."""
 
     model = ExchangeScanner
+
+    def get_context_data(self, **kwargs):
+        """Check that user is allowed to run this scanner."""
+        context = super().get_context_data(**kwargs)
+
+        if self.object.is_ready_to_scan:
+            ok = False
+            error_message = Scanner.EXCHANGE_EXPORT_IS_RUNNING
+        else:
+            ok = True
+
+        context['ok'] = ok
+        if not ok:
+            context['error_message'] = error_message
+
+        return context
 
 
 class ExchangeScannerRun(ScannerRun):
