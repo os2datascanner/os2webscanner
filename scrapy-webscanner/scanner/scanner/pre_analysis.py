@@ -3,7 +3,6 @@ import magic
 import pickle
 import numpy as np
 from pathlib import Path
-from anytree import Node, PreOrderIter
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -210,14 +209,14 @@ def _to_filesize(filesize):
 
 class PreDataScanner(object):
     def __init__(self, path):
-        self.root = path.stat().st_ino
         self.nodes = {}
         self.stats = {}
         self.read_file_system(path)
 
     def read_file_system(self, path):
-        self.nodes[self.root] = Node(p, size=0, filetype='Directory')
-        self.read_dirtree()
+        self.nodes[path] = {'size': 0, 'filetype': 'Directory',
+                            'relevant': False}
+        self.read_dirtree(path)
 
         # We have not yet read the files, so at this point the
         # node-dict contains only directories
@@ -227,30 +226,25 @@ class PreDataScanner(object):
         print('Read files')
         self.stats['total-size'] = self.determine_file_information()
 
-    def read_dirtree(self):
-        dir = self.nodes[self.root].name
-        all = dir.glob('**')
-        next(all)  # The root of the tree is already created
-        for item in all:
-            item_inode = item.stat().st_ino
-            parent_inode = item.parent.stat().st_ino
-            self.nodes[item_inode] = Node(item, size=0, filetype='Directory',
-                                          parent=self.nodes[parent_inode])
+    def read_dirtree(self, path):
+        all_dirs = path.glob('**')
+        next(all_dirs)  # The root of the tree is already created
+        for item in all_dirs:
+            self.nodes[item] = {'size': 0, 'filetype': 'Directory',
+                                'relevant': True}
 
     def read_files(self):
         new_nodes = {}
-        for node in PreOrderIter(self.nodes[self.root]):
-            dir = node.name
-            items = dir.glob('*')
+        for node in self.nodes.keys():
+            items = node.glob('*')
             for item in items:
                 if item.is_dir():
                     continue
                 if item.is_symlink():
                     continue
-                item_inode = item.stat().st_ino
-                new_nodes[item_inode] = Node(item, parent=node, size=0)
+                new_nodes[item] = {'size': 0}
         self.nodes.update(new_nodes)
-        return(len(new_nodes))
+        return len(new_nodes)
 
     def determine_file_information(self):
         """ Read through all file-nodes. Attach size and
@@ -263,44 +257,41 @@ class PreDataScanner(object):
         processed = 0
         t0 = time.time()
         t = t0
-        for node in PreOrderIter(self.nodes[self.root]):
+        for node in self.nodes.keys():
             processed += 1
-            item = node.name
-            if processed % 500 == 0:
+            if processed % 2500 == 0:
                 delta_t = time.time() - t0
                 avg_speed = processed / delta_t
                 now = time.time()
-                current_speed = 500 / (now - t)
+                current_speed = 2500 / (now - t)
                 t = now
                 eta = (len(self.nodes) - processed) / current_speed
-                status = ('Progress: {}/{} in {:.0f}s. ' +
-                          'Avg. Speed: {:.0f}/s. Current Speed {:.0f}/s ' +
-                          'ETA: {:.0f}s')
+                status = ('Progress: {}/{} in {:.0f}s. Avg. Speed: {:.0f}/s. ' +
+                          'Current Speed {:.0f}/s ETA: {:.0f}s')
                 print(status.format(processed, len(self.nodes), delta_t,
                                     avg_speed, current_speed, eta))
-            if item.is_file():
-                size = item.stat().st_size
-                node.size = size
+            if node.is_file():
+                size = node.stat().st_size
+                self.nodes[node]['size'] = size
                 total_size += size
-                if item.suffix == '.txt':
+                if node.suffix == '.txt':  # No need to check these two
                     filetype = 'ASCII'
-                elif item.suffix == '.html':
+                elif node.suffix == '.html':
                     filetype = 'HTML'
                 else:
                     try:
-                        filetype = magic.from_buffer(open(str(item),
-                                                          'rb').read(512))
+                        filetype = magic.from_buffer(open(str(node), 'rb').read(512))
                     except TypeError:
                         filetype = 'ERROR'
                 filetype = file_type_group(filetype)
-                node.filetype = filetype
+                self.nodes[node]['filetype'] = filetype
             else:
-                node.filetype = 'Directory'
+                self.nodes[node]['filetype'] = 'Directory'
         return total_size
 
     def check_file_group(self, filetype, size=0):
-        for node in PreOrderIter(self.nodes[self.root]):
-            if (node.filetype == filetype) and (node.size > size):
+        for node in nodes:
+            if (node['filetype'] == filetype) and (node['size'] > size):
                 print(node)
 
     def summarize_file_types(self):
@@ -309,30 +300,30 @@ class PreDataScanner(object):
                  'supported': 0,
                  'relevant': 0}
 
-        for node in PreOrderIter(self.nodes[self.root]):
-            if not node.name.is_file():
+        for node in nodes.keys():
+            node_info = self.nodes[node]
+            if not node.is_file():
                 continue
-            supergroup = node.filetype['super-group']
-            subgroup = node.filetype['sub-group']
+            supergroup = self.nodes[node]['filetype']['super-group']
+            subgroup = self.nodes[node]['filetype']['sub-group']
 
-            if node.filetype['supported'] is True:
+            if node_info['filetype']['supported'] is True:
                 types['supported'] += 1
-            if node.filetype['relevant'] is True:
+            if node_info['filetype']['relevant'] is True:
                 types['relevant'] += 1
 
             if supergroup in types['super']:
                 types['super'][supergroup]['count'] += 1
-                types['super'][supergroup]['sizedist'].append(node.size)
+                types['super'][supergroup]['sizedist'].append(node_info['size'])
             else:
                 types['super'][supergroup] = {'count': 1,
-                                              'sizedist': [node.size]}
+                                              'sizedist': [node_info['size']]}
             if subgroup in types['sub']:
                 types['sub'][subgroup]['count'] += 1
-                types['sub'][subgroup]['sizedist'].append(node.size)
+                types['sub'][subgroup]['sizedist'].append(node_info['size'])
             else:
                 types['sub'][subgroup] = {'count': 1,
-                                          'sizedist': [node.size]}
-
+                                          'sizedist': [node_info['size']]}
         return types
 
 
@@ -403,7 +394,6 @@ if __name__ == '__main__':
 
     nodes = pre_scanner.nodes
     stats = pre_scanner.stats
-    root_inode = pre_scanner.root
 
     filetypes = pre_scanner.summarize_file_types()
 
