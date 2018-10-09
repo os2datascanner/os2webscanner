@@ -54,8 +54,6 @@ class Scanner(models.Model):
     schedule = RecurrenceField(max_length=1024,
                                verbose_name='Planlagt afvikling')
 
-    do_cpr_scan = models.BooleanField(default=True, verbose_name='CPR')
-
     do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
 
     do_address_scan = models.BooleanField(default=False,
@@ -65,13 +63,6 @@ class Scanner(models.Model):
 
     do_last_modified_check = models.BooleanField(default=True,
                                                  verbose_name='Tjek sidst ændret dato')
-
-    do_cpr_modulus11 = models.BooleanField(default=True,
-                                           verbose_name='Tjek modulus-11')
-
-    do_cpr_ignore_irrelevant = models.BooleanField(
-        default=True,
-        verbose_name='Ignorer ugyldige fødselsdatoer')
 
     columns = models.CharField(validators=[validate_comma_separated_integer_list],
                                max_length=128,
@@ -135,7 +126,10 @@ class Scanner(models.Model):
         "Scanneren kunne ikke startes," +
         " fordi den ikke har nogen gyldige domæner."
     )
-
+    EXCHANGE_EXPORT_IS_RUNNING = (
+        "Scanneren kunne ikke startes," +
+        " fordi der er en exchange export igang."
+    )
 
     # DON'T USE DIRECTLY !!!
     # Use process_urls property instead.
@@ -233,7 +227,7 @@ class Scanner(models.Model):
         import json
         from os2webscanner.amqp_communication import amqp_connection_manager
         queue_name = 'datascanner'
-        message = {'type': type, 'id': scan.pk, 'logfile':scan.scan_log_file}
+        message = {'type': type, 'id': scan.pk, 'logfile': scan.scan_log_file}
         amqp_connection_manager.start_amqp(queue_name)
         amqp_connection_manager.send_message(queue_name, json.dumps(message))
         amqp_connection_manager.close_connection()
