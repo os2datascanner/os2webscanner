@@ -46,8 +46,10 @@ def start_exchange_export():
 
         export_dir = os.path.join(settings.EXCHANGE_EXPORT_DIR_PREFIX,
                                   mail_ending.replace('@', ''))
-        if not os.path.isdir(export_dir):
-            os.makedirs(export_dir)
+        # Make export dir export ready
+        if os.path.isdir(export_dir):
+            os.remove(export_dir)
+        os.makedirs(export_dir)
 
         scanners = {}
         for i in range(0, settings.NUMBER_OF_EMAIL_THREADS):
