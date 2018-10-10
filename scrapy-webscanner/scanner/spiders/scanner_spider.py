@@ -148,7 +148,8 @@ class ScannerSpider(BaseScannerSpider):
                 logging.error("URL failed: {0} ({1})".format(url, str(e)))
 
         for url in self.start_urls:
-            if hasattr(self.scanner.scan_object, 'filescan'):
+            if hasattr(self.scanner.scan_object, 'filescan') \
+                    or hasattr(self.scanner.scan_object, 'exchangescan'):
                 # Some of the files are directories. We handle them in handle_error method.
                 requests.extend(self.append_file_request(url))
 
