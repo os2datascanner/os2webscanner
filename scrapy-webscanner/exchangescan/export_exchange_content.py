@@ -112,7 +112,7 @@ class ExchangeMailboxScan(object):
             
         name = ('body_' + str(item.datetime_created) + '_' +
                 str(random.random()) + '_' +
-                subject.replace('/', '_')[-60:] + ending)
+                subject.replace('/', '_').replace('?', '_')[-60:] + ending)
         path = self.current_path.joinpath(name)
         msg_body = str(item.body)
         with path.open('w') as f:
