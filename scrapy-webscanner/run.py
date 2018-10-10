@@ -125,6 +125,7 @@ class ScannerApp(multiprocessing.Process):
         domains = self.scanner.get_domain_urls()
         if len(domains) > 0:
             domain = domains[0]
+            logging.info('Starting folder analysis on path {}'.format(domain))
             files_count, dir_count, bytes_count = get_dir_files_and_bytes_count(domain)
 
             logging.info('The number of files file scan is '
