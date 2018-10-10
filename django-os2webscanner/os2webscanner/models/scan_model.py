@@ -79,10 +79,16 @@ class Scan(models.Model):
                                         default="",
                                         verbose_name='Godkendte CPR-numre')
 
+    do_cpr_scan = models.BooleanField(default=True, verbose_name='CPR')
     do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
     do_address_scan = models.BooleanField(default=False,
                                           verbose_name='Adresse')
     do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder')
+    do_cpr_modulus11 = models.BooleanField(default=True,
+                                           verbose_name='Tjek modulus-11')
+    do_cpr_ignore_irrelevant = models.BooleanField(
+        default=True,
+        verbose_name='Ignorer ugyldige fødselsdatoer')
 
     do_last_modified_check = models.BooleanField(default=True,
                                                  verbose_name='Tjek sidst ændret dato')
