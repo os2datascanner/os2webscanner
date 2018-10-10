@@ -93,7 +93,7 @@ class ScannerSpider(BaseScannerSpider):
                     self.start_urls.append(url)
 
                 self.do_last_modified_check = getattr(
-                    scan_object.webscan, "do_last_modified_check"
+                    scan_object, "do_last_modified_check"
                 )
                 self.do_last_modified_check_head_request = getattr(
                     scan_object.webscan, "do_last_modified_check_head_request"
@@ -114,7 +114,7 @@ class ScannerSpider(BaseScannerSpider):
                     self.start_urls.append(path)
 
                 self.do_last_modified_check = getattr(
-                    scan_object.filescan, "do_last_modified_check"
+                    scan_object, "do_last_modified_check"
                 )
 
     def add_correct_file_path_prefix(self, path):
