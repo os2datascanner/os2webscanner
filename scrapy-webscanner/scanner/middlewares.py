@@ -387,7 +387,8 @@ class LastModifiedCheckMiddleware(object):
         If the response has been modified, we update the database.
         If there is no stored last modified date, we save one.
         """
-        if hasattr(spider.scanner.scan_object, 'filescan'):
+        if hasattr(spider.scanner.scan_object, 'filescan') \
+                or hasattr(self.scanner.scan_object, 'exchangescan'):
             try:
                 # Removes unneeded prefix
                 file_path = response.url.replace('file://', '')
