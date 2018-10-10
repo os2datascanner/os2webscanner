@@ -288,7 +288,7 @@ class ScannerSpider(BaseScannerSpider):
         requests = []
         for file in files:
             codecs, stringdata = get_codec_and_string(file)
-            stringdata = stringdata.replace('#', '%23')
+            stringdata = stringdata.replace('#', '%23').replace('?', '%3F')
             try:
                 requests.append(Request(stringdata, callback=self.scan,
                                 errback=self.handle_error))
