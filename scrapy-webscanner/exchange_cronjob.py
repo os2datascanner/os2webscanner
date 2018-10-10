@@ -72,7 +72,7 @@ def start_exchange_export():
         for key, value in scanners.items():
             while value.is_alive():
                 print('Process with pid {} is still alive'.format(value.pid))
-                time.sleep(1)
+                time.sleep(60)
 
         domain.dir_to_scan = export_dir
         domain.save()
