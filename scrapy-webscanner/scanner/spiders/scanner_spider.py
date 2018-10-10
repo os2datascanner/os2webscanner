@@ -108,7 +108,7 @@ class ScannerSpider(BaseScannerSpider):
                 # Dict to cache referrer URL objects
                 self.referrer_url_objects = {}
                 self.external_urls = set()
-            elif hasattr(scan_object, 'filescan'):
+            else:
                 for path in self.allowed_domains:
                     path = self.add_correct_file_path_prefix(path)
                     self.start_urls.append(path)
@@ -116,10 +116,6 @@ class ScannerSpider(BaseScannerSpider):
                 self.do_last_modified_check = getattr(
                     scan_object.filescan, "do_last_modified_check"
                 )
-            elif hasattr(scan_object, 'exchangescan'):
-                path = self.scanner.scan_object.exchangescan.folder_to_scan
-                path = self.add_correct_file_path_prefix(path)
-                self.start_urls.append(path)
 
     def add_correct_file_path_prefix(self, path):
         """
