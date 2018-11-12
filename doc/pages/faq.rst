@@ -62,5 +62,5 @@ After that run
     sudo systemctl enable datascanner-manager
     sudo systemctl start datascanner-manager
 
-Be advised that You have to restart it whenever You make code changtes to any of the modules it uses
+Be advised that You have to restart it whenever You make code changes to any of the modules it uses
 
