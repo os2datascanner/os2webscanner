@@ -52,7 +52,7 @@ SECRET_KEY = 'ld0_g)jhp3v27&od88-_v83ldb!0i^bac=jh+je!!=jbvra7@j'
 # Used for filescan and mounting
 PRODUCTION_MODE = False
 
-# If filescan on the current installation is needed, enable it here
+# If webscan on the current installation is needed, enable it here
 ENABLE_WEBSCAN = True
 
 # If filescan on the current installation is needed, enable it here
