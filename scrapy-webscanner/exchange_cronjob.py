@@ -22,9 +22,7 @@ from os2webscanner.models.exchangescanner_model import ExchangeScanner
 
 def start_exchange_export():
     """Starts the exchange server export"""
-    exchange_scanner.is_exporting = True
-    exchange_scanner.is_ready_to_scan = False
-    exchange_scanner.save()
+
     valid_domains = exchange_scanner.domains.filter(
         validation_status=Domain.VALID
     )
@@ -53,7 +51,11 @@ def start_exchange_export():
             shutil.rmtree(export_dir)
         os.mkdir(export_dir)
 
+        exchange_scanner.is_exporting = True
+        exchange_scanner.is_ready_to_scan = False
+        exchange_scanner.save()
         scanners = {}
+
         for i in range(0, settings.NUMBER_OF_EMAIL_THREADS):
             scanners[i] = ExchangeServerExport(credentials,
                                                user_queue,
