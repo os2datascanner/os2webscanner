@@ -55,7 +55,7 @@ from os2webscanner.models.regexrule_model import RegexRule
 from os2webscanner.models.organization_model import Organization
 
 
-from scanner.scanner.analysis_scan import get_dir_and_files_count, get_tree_size
+from scanner.scanner.analysis_scan import get_dir_files_and_bytes_count
 
 
 class AnalysisScanTest(unittest.TestCase):
@@ -67,14 +67,13 @@ class AnalysisScanTest(unittest.TestCase):
         return dir_path
 
     def test_analysis_scan_dir_and_files_count(self):
+
         """Testing files and directory count on folder scanner/scanner."""
-        dir_count, file_count = get_dir_and_files_count(self.get_folder_path())
+
+        file_count, dir_count, bytes_count = get_dir_files_and_bytes_count(self.get_folder_path())
         self.assertEqual(7, file_count)
         self.assertEqual(3, dir_count)
-
-    def test_analysis_scan_dir_size(self):
-        tree_size = get_tree_size(self.get_folder_path())
-        self.assertEqual(18205, tree_size)
+        self.assertEqual(18204, bytes_count)
 
 
 class FileExtractorTest(unittest.TestCase):
