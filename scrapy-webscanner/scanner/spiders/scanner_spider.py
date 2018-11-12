@@ -152,7 +152,6 @@ class ScannerSpider(BaseScannerSpider):
                     or hasattr(self.scanner.scan_object, 'exchangescan'):
                 # Some of the files are directories. We handle them in handle_error method.
                 requests.extend(self.append_file_request(url))
-
             else:
                 requests.append(Request(url, callback=self.parse,
                                         errback=self.handle_error))
@@ -227,6 +226,7 @@ class ScannerSpider(BaseScannerSpider):
         if hasattr(self.scanner.scan_object, 'filescan') \
                 or hasattr(self.scanner.scan_object, 'exchangescan'):
             # If file is a directory loop through files within
+            logging.debug('Failure value: {}'.format(str(failure.value)))
             if isinstance(failure.value, IOError) \
                     and failure.value.errno == errno.EISDIR:
                 logging.debug('File that is failing: {0}'.format(failure.value.filename))
@@ -340,11 +340,18 @@ class ScannerSpider(BaseScannerSpider):
             return
 
         url = response.request.url
-        if hasattr(self.scanner.scan_object, 'filescan'):
+        if not hasattr(self.scanner.scan_object, 'webscan'):
             domain = self.scanner.valid_domains.first()
-            url = response.request.url.replace(
-                domain.filedomain.mountpath,
-                domain.filedomain.url)
+            old = ''
+            new = ''
+            if hasattr(self.scanner.scan_object, 'filescan'):
+                old = domain.filedomain.mountpath
+                new = domain.filedomain.url
+            elif hasattr(self.scanner.scan_object, 'exchangescan'):
+                old = 'file://' + domain.exchangedomain.dir_to_scan
+                new = domain.exchangedomain.url
+
+            url = response.request.url.replace(old, new)
 
         url_object = Url(url=url, mime_type=mime_type,
                          scan=self.scanner.scan_object)
