@@ -136,7 +136,15 @@ class NameTest(unittest.TestCase):
         valid_names = ['Jens Jensen', 'Jim Smith Jones',
                        'Lars L. Larsen', 'Lars Lars Lars Larsen']
         invalid_names = ['sdfsdsad Asdfsddsfasd']
-        matches = name.NameRule().execute(text)
+        matches = None
+        try:
+            matches = name.NameRule().execute(text)
+        except:
+            print('Something went wrong...')
+
+        if matches is None:
+            self.fail('Something went wrong...')
+            return
         matches = [re.sub('\s+', ' ', m['matched_data']) for m in matches]
         print(matches)
         for valid_name in valid_names:
@@ -250,7 +258,12 @@ class LibreofficeTest(unittest.TestCase):
     test_dir = base_dir + '/scrapy-webscanner/tests/data/'
 
     def create_ressources(self, filename):
-        shutil.copy2(self.test_dir + 'libreoffice/' + filename, self.test_dir + 'tmp/')
+        try:
+            shutil.copy2(self.test_dir + 'libreoffice/' + filename, self.test_dir + 'tmp/')
+        except FileNotFoundError:
+            print('File not found error: {}'.format(self.test_dir + 'libreoffice/' + filename))
+            return None
+
         url = Url(scan=Scan(), url=self.test_dir + 'tmp/' + filename)
         item = ConversionQueueItem(url=url,
                                    file=self.test_dir + 'tmp/' + filename,
@@ -266,6 +279,9 @@ class LibreofficeTest(unittest.TestCase):
 
     def test_libreoffice_conversion_success(self):
         filename = 'KK SGP eksempel 2013.02.27.xls'
+        if filename is None:
+            self.fail("File deos not exists.")
+            return
         result = self.create_ressources(filename)
         self.assertEqual(result, True)
 
@@ -275,7 +291,12 @@ class HTMLTest(unittest.TestCase):
     test_dir = base_dir + '/scrapy-webscanner/tests/data/'
 
     def create_ressources(self, filename):
-        shutil.copy2(self.test_dir + 'html/' + filename, self.test_dir + 'tmp/')
+        try:
+            shutil.copy2(self.test_dir + 'html/' + filename, self.test_dir + 'tmp/')
+        except FileNotFoundError:
+            print('File not found error: {}'.format(self.test_dir + 'html/' + filename))
+            return None
+
         url = Url(scan=Scan(), url=self.test_dir + 'tmp/' + filename)
         item = ConversionQueueItem(url=url,
                                    file=self.test_dir + 'tmp/' + filename,
@@ -289,6 +310,9 @@ class HTMLTest(unittest.TestCase):
          Will always return false as text processor instantiates scanner object which makes db call."""
         filename = 'Midler-til-frivilligt-arbejde.html'
         item = self.create_ressources(filename)
+        if item is None:
+            self.fail("File does not exists")
+            return
         html_processor = html.HTMLProcessor()
         result = html_processor.handle_queue_item(item)
         self.assertEqual(result, False)
@@ -299,7 +323,12 @@ class ZIPTest(unittest.TestCase):
     test_dir = base_dir + '/scrapy-webscanner/tests/data/'
 
     def create_ressources(self, filename):
-        shutil.copy2(self.test_dir + 'zip/' + filename, self.test_dir + 'tmp/')
+        try:
+            shutil.copy2(self.test_dir + 'zip/' + filename, self.test_dir + 'tmp/')
+        except FileNotFoundError:
+            print('File not found error: {}'.format(self.test_dir + 'zip/' + filename))
+            return None
+
         url = Url(scan=Scan(), url=self.test_dir + 'tmp/' + filename)
         item = ConversionQueueItem(pk=0,
                                    url=url,
@@ -318,6 +347,9 @@ class ZIPTest(unittest.TestCase):
         from django.conf import settings
         settings.DO_USE_MD5 = False
         result = self.create_ressources(filename)
+        if result is None:
+            self.fail("File does not exists")
+            return
         self.assertEqual(result, False)
 
 
@@ -350,7 +382,7 @@ class StoreStatsTest(unittest.TestCase):
         args = ['does not matter', scan_id]
         with patch.object(sys, 'argv', args):
             from run import ScannerApp, get_project_settings
-            scannerapp = ScannerApp()
+            scannerapp = ScannerApp(scan_id, type(webscan).__name__)
             settings = get_project_settings()
             from scrapy.crawler import CrawlerProcess
             scannerapp.crawler_process = CrawlerProcess(settings)
