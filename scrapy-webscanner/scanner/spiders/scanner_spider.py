@@ -60,6 +60,12 @@ class ScannerSpider(BaseScannerSpider):
 
         self.start_urls = []
 
+        self.crawl = False
+
+        self.do_last_modified_check = False
+
+        self.do_last_modified_check_head_request = False
+
         self.setup_spider()
 
     def setup_spider(self):
@@ -68,7 +74,6 @@ class ScannerSpider(BaseScannerSpider):
         if scan_object.scanner.process_urls:
             # from the scanner.
             self.start_urls = scan_object.scanner.process_urls
-            self.crawl = False
         else:
             self.crawl = True
             # Otherwise, use the roots of the domains as starting URLs
@@ -85,8 +90,9 @@ class ScannerSpider(BaseScannerSpider):
                     url = url.replace('*.', '')
                     logging.info("Start url %s" % str(url))
                     self.start_urls.append(url)
+
                 self.do_last_modified_check = getattr(
-                    scan_object.webscan, "do_last_modified_check"
+                    scan_object, "do_last_modified_check"
                 )
                 self.do_last_modified_check_head_request = getattr(
                     scan_object.webscan, "do_last_modified_check_head_request"
@@ -101,19 +107,26 @@ class ScannerSpider(BaseScannerSpider):
                 # Dict to cache referrer URL objects
                 self.referrer_url_objects = {}
                 self.external_urls = set()
-            elif hasattr(scan_object, 'filescan'):
+            else:
                 for path in self.allowed_domains:
-                    logging.info("Start path %s" % str(path))
-                    if not path.startswith('file://'):
-                        path = 'file://%s' % path
-
+                    path = self.add_correct_file_path_prefix(path)
                     self.start_urls.append(path)
 
                 self.do_last_modified_check = getattr(
-                    scan_object.filescan, "do_last_modified_check"
+                    scan_object, "do_last_modified_check"
                 )
-                # Not used on type filescan
-                self.do_last_modified_check_head_request = False
+
+    def add_correct_file_path_prefix(self, path):
+        """
+        Helper method for making sure file path starts with file://.
+        This prefix is needed by scrapy, or else scrapy does not know it is a file path.
+        :param path: path to folder or file
+        :return: path with prefix file://
+        """
+        logging.info("Start path %s" % str(path))
+        if not path.startswith('file://'):
+            path = 'file://%s' % path
+        return path
 
     def start_requests(self):
         """Return requests for all starting URLs AND sitemap URLs."""
@@ -134,13 +147,13 @@ class ScannerSpider(BaseScannerSpider):
                 logging.error("URL failed: {0} ({1})".format(url, str(e)))
 
         for url in self.start_urls:
-            if hasattr(self.scanner.scan_object, 'filescan'):
+            if hasattr(self.scanner.scan_object, 'filescan') \
+                    or hasattr(self.scanner.scan_object, 'exchangescan'):
                 # Some of the files are directories. We handle them in handle_error method.
                 requests.extend(self.append_file_request(url))
-
             else:
                 requests.append(Request(url, callback=self.parse,
-                                         errback=self.handle_error))
+                                        errback=self.handle_error))
         return requests
 
     def parse(self, response):
@@ -209,8 +222,10 @@ class ScannerSpider(BaseScannerSpider):
         url = getattr(failure.value, "filename", "Not Filled")
         status_message = "Not filled"
         status_code = -1
-        if  hasattr(self.scanner.scan_object, 'filescan'):
+        if hasattr(self.scanner.scan_object, 'filescan') \
+                or hasattr(self.scanner.scan_object, 'exchangescan'):
             # If file is a directory loop through files within
+            logging.debug('Failure value: {}'.format(str(failure.value)))
             if isinstance(failure.value, IOError) \
                     and failure.value.errno == errno.EISDIR:
                 logging.debug('File that is failing: {0}'.format(failure.value.filename))
@@ -272,7 +287,7 @@ class ScannerSpider(BaseScannerSpider):
         requests = []
         for file in files:
             codecs, stringdata = get_codec_and_string(file)
-            stringdata = stringdata.replace('#', '%23')
+            stringdata = stringdata.replace('#', '%23').replace('?', '%3F')
             try:
                 requests.append(Request(stringdata, callback=self.scan,
                                 errback=self.handle_error))
@@ -325,11 +340,18 @@ class ScannerSpider(BaseScannerSpider):
             return
 
         url = response.request.url
-        if hasattr(self.scanner.scan_object, 'filescan'):
+        if not hasattr(self.scanner.scan_object, 'webscan'):
             domain = self.scanner.valid_domains.first()
-            url = response.request.url.replace(
-                domain.filedomain.mountpath,
-                domain.filedomain.url)
+            old = ''
+            new = ''
+            if hasattr(self.scanner.scan_object, 'filescan'):
+                old = domain.filedomain.mountpath
+                new = domain.filedomain.url
+            elif hasattr(self.scanner.scan_object, 'exchangescan'):
+                old = 'file://' + domain.exchangedomain.dir_to_scan
+                new = domain.exchangedomain.url
+
+            url = response.request.url.replace(old, new)
 
         url_object = Url(url=url, mime_type=mime_type,
                          scan=self.scanner.scan_object)

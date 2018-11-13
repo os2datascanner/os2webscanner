@@ -50,11 +50,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterField(
             model_name='scanner',
-            name='do_link_check',
-            field=models.BooleanField(default=False, verbose_name='Tjek om interne links virker.'),
-        ),
-        migrations.AlterField(
-            model_name='scanner',
             name='schedule',
             field=recurrence.fields.RecurrenceField(max_length=1024, null=True, verbose_name='Planlagt afvikling'),
         ),

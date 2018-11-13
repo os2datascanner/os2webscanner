@@ -23,7 +23,6 @@ from ..rules.regexrule import RegexRule
 from ..rules.cpr import CPRRule
 
 from ..processors.processor import Processor
-from os2webscanner.models.domain_model import Domain
 from os2webscanner.models.scan_model import Scan
 
 
@@ -99,8 +98,8 @@ class Scanner:
                 urls.append('file://' + domain.webdomain.sitemap_full_path)
         return urls
 
-    def get_domains(self):
-        """Return a list of domains."""
+    def get_domain_urls(self):
+        """Return a list of valid domain urls."""
         domains = []
         for d in self.valid_domains:
             if hasattr(d, 'webdomain'):
@@ -108,8 +107,25 @@ class Scanner:
                     domains.append(urlparse(d.url).hostname)
                 else:
                     domains.append(d.url)
+            elif hasattr(d, 'exchangedomain'):
+                domains.append(d.exchangedomain.dir_to_scan)
             else:
                 domains.append(d.filedomain.mountpath)
+        return domains
+
+    def get_domain_objects(self):
+        """
+        Returns a list of valid domain objects
+        :return: domain list
+        """
+        domains = []
+        for domain in self.valid_domains:
+            if hasattr(domain, 'webdomain'):
+                    domains.append(domain.webdomain)
+            elif hasattr(domain, 'exchangedomain'):
+                domains.append(domain.exchangedomain)
+            else:
+                domains.append(domain.filedomain)
         return domains
 
     def scan(self, data, url_object):

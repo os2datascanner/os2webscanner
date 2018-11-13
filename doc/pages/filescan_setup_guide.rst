@@ -4,7 +4,7 @@ File Scan Setup
 
 Copy static folder to webscanner_site:
 .. code:: bash
-    $ cp -R django-os2webscanner/os2webscanner/static webscanner_site/static
+    $ python webscanner_site/manage.py collectstatic
 
 Create mount directory:
 .. code:: bash

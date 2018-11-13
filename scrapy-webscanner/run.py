@@ -16,20 +16,20 @@
 # source municipalities ( http://www.os2web.dk/ )
 """Run a scan by Scan ID."""
 from urllib.parse import urlparse
+import multiprocessing
 
 import os
 import sys
 import django
-
 # Include the Django app
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(base_dir + "/webscanner_site")
 os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
-django.setup()
 
 os.umask(0o007)
-
 os.environ["SCRAPY_SETTINGS_MODULE"] = "scanner.settings"
+
+django.setup()
 
 from twisted.internet import reactor
 from scrapy.crawler import CrawlerProcess
@@ -51,7 +51,7 @@ from os2webscanner.models.url_model import Url
 
 import linkchecker
 
-import signal
+# import signal
 
 import logging
 
@@ -59,44 +59,51 @@ import logging
 timezone.activate(timezone.get_default_timezone())
 
 
-def signal_handler(signal, frame):
-    """Handle being killed."""
-    scanner_app.handle_killed()
-    reactor.stop()
+# def signal_handler(signal, frame):
+#     """Handle being killed."""
+#     scanner_app.handle_killed()
+#     reactor.stop()
 
 
-signal.signal(signal.SIGINT | signal.SIGTERM, signal_handler)
+# signal.signal(signal.SIGINT | signal.SIGTERM, signal_handler)
 
 
-class ScannerApp:
+class ScannerApp(multiprocessing.Process):
     """A scanner application which can be run."""
 
-    def __init__(self):
+    def __init__(self, scan_id, scanner_type, logfile=None):
         """
         Initialize the scanner application.
-        Takes input, argv[1], which is directly related to the scan job id in the database.
-        Updates the scan status and sets the pid.
+        Takes scan id as input, which is directly related to the scan job id in the database.
         """
-        self.scan_id = sys.argv[1]
-
-        # Get scan object from DB
-        self.scan_object = Scan.objects.get(pk=self.scan_id)
-        self.scan_object.set_scan_status_start()
-        self.scanner = Scanner(self.scan_id)
+        multiprocessing.Process.__init__(self)
+        self.scan_id = scan_id
+        # For now scanner_type is not used...
+        self.scanner_type = scanner_type
+        self.logfile = logfile
 
     def run(self):
-        """Run the scanner, blocking until finished."""
+        """Updates the scan status and sets the pid.
+        Run the scanner, blocking until finished."""
+        django.setup()
+        logging.basicConfig(filename=self.logfile, level=logging.DEBUG)
+
+        self.scanner = Scanner(self.scan_id)
+
+        if self.scanner.scan_object.status is not Scan.STARTED:
+            self.scanner.scan_object.set_scan_status_start()
+
         settings = get_project_settings()
 
         self.crawler_process = CrawlerProcess(settings)
 
-        if hasattr(self.scan_object, 'webscan'):
+        if hasattr(self.scanner.scan_object, 'webscan'):
             self.start_webscan_crawlers()
         else:
             self.start_filescan_crawlers()
 
         # Update scan status
-        self.scan_object.set_scan_status_done()
+        self.scanner.scan_object.set_scan_status_done()
 
     def start_filescan_crawlers(self):
         """Starting a file scan by first analysing the folder to scan,
@@ -113,13 +120,13 @@ class ScannerApp:
         file count and folder size. Subfolders and files included."""
 
         logging.info('Starting folder analysis...')
-        from scanner.scanner.analysis_scan import get_dir_and_files_count, \
-            get_tree_size
+        from scanner.scanner.analysis_scan import get_dir_files_and_bytes_count
 
-        domains = self.scanner.get_domains()
+        domains = self.scanner.get_domain_urls()
         if len(domains) > 0:
-            domain = self.scanner.get_domains()[0]
-            dir_count, files_count = get_dir_and_files_count(domain)
+            domain = domains[0]
+            logging.info('Starting folder analysis on path {}'.format(domain))
+            files_count, dir_count, bytes_count = get_dir_files_and_bytes_count(domain)
 
             logging.info('The number of files file scan is '
                          'going to scan is: {}'.format(files_count))
@@ -127,16 +134,14 @@ class ScannerApp:
             logging.info('The number of folders file scan is '
                          'going to scan is: {}'.format(dir_count))
 
-            domain_size = get_tree_size(domain)
-
             logging.info('The size of the domain file scan is '
-                         'going to scan: {}'.format(domain_size))
+                         'going to scan: {}'.format(bytes_count))
 
         logging.info('Folder analysis completed...')
 
     def start_webscan_crawlers(self):
         # Don't sitemap scan when running over RPC or if no sitemap is set on scan
-        if not self.scan_object.scanner.process_urls:
+        if not self.scanner.scan_object.scanner.process_urls:
             if len(self.scanner.get_sitemap_urls()) is not 0\
                     or len(self.scanner.get_uploaded_sitemap_urls()) is not 0:
                 self.sitemap_spider = self.setup_sitemap_spider()
@@ -148,8 +153,8 @@ class ScannerApp:
         self.scanner_spider = self.setup_scanner_spider()
 
         self.start_crawlers()
-        if (self.scan_object.webscan.do_link_check
-            and self.scan_object.webscan.do_external_link_check):
+        if (self.scanner.scan_object.webscan.do_link_check
+            and self.scanner.scan_object.webscan.do_external_link_check):
             # Do external link check
             self.external_link_check(self.scanner_spider.external_urls)
 
@@ -161,8 +166,8 @@ class ScannerApp:
 
     def handle_killed(self):
         """Handle being killed by updating the scan status."""
-        # self.scan_object = Scan.objects.get(pk=self.scan_id)
-        self.scan_object.set_scan_status_failed()
+        self.scanner.scan_object = Scan.objects.get(pk=self.scan_id)
+        self.scanner.scan_object.set_scan_status_failed()
         self.scan.logging_occurrence("SCANNER FAILED: Killed")
         logging.error("Killed")
 
@@ -212,7 +217,7 @@ class ScannerApp:
 
             result = linkchecker.check_url(url)
             if result is not None:
-                broken_url = Url(url=url, scan=self.scan_object.webscan,
+                broken_url = Url(url=url, scan=self.scanner.scan_object.webscan,
                                  status_code=result["status_code"],
                                  status_message=result["status_message"])
                 broken_url.save()
@@ -266,7 +271,7 @@ class ScannerApp:
         self.filescan_cleanup()
 
     def filescan_cleanup(self):
-        if hasattr(self.scan_object, 'filescan'):
+        if hasattr(self.scanner.scan_object, 'filescan'):
             for domain in self.scanner.valid_domains:
                 domain.filedomain.smb_umount()
 
@@ -280,7 +285,7 @@ class ScannerApp:
         remaining_queue_items = ConversionQueueItem.objects.filter(
             status__in=[ConversionQueueItem.NEW,
                         ConversionQueueItem.PROCESSING],
-            url__scan=self.scan_object
+            url__scan=self.scanner.scan_object
         ).count()
 
         if remaining_queue_items > 0:
@@ -292,6 +297,3 @@ class ScannerApp:
         else:
             logging.info("No more active processors, closing spider...")
 
-
-scanner_app = ScannerApp()
-scanner_app.run()

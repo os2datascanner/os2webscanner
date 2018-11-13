@@ -161,10 +161,15 @@ class ScannerRun(RestrictedDetailView):
     template_name = 'os2webscanner/scanner_run.html'
     model = Scanner
 
+    def __init__(self):
+        self.object = None
+
     def get(self, request, *args, **kwargs):
         """Handle a get request to the view."""
         self.object = self.get_object()
-        result = self.object.run(user=request.user)
+        result = self.object.run(type(self.object).__name__,
+                                 user=request.user)
+
         context = self.get_context_data(object=self.object)
         context['success'] = isinstance(result, Scan)
 

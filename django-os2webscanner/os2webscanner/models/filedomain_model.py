@@ -23,7 +23,6 @@ from subprocess import call, CalledProcessError
 from django.conf import settings
 from django.db import models
 
-from os2webscanner.aescipher import decrypt
 from .domain_model import Domain
 
 # Get an instance of a logger
@@ -72,7 +71,8 @@ class FileDomain(Domain):
             return True
 
         # Make only one scanner able to scan mounted file directory.
-        # Scrapy locks the files while reading, so to scan jobs running at the same time is not possible.
+        # Scrapy locks the files while reading, so it is not possible to have two scan jobs
+        # running at the same time on the same mount point.
 
         command = 'sudo mount -t cifs ' + self.root_url + ' ' + self.mountpath + ' -o iocharset=utf8'
 
@@ -82,7 +82,7 @@ class FileDomain(Domain):
         if self.authentication.username != '':
             command += ',username=' + self.authentication.username
         if len(self.authentication.ciphertext) > 0:
-            password = decrypt(bytes(self.authentication.iv), bytes(self.authentication.ciphertext))
+            password = self.authentication.get_password()
             command += ',password=' + password
         if self.authentication.domain != '':
             command += ',domain=' + self.authentication.domain

@@ -28,13 +28,14 @@ import sys
 import subprocess
 import time
 import signal
+import settings as scanner_settings
 
 import django
 from datetime import timedelta
 from django.utils import timezone
 from django.db import transaction, IntegrityError, DatabaseError
 from django import db
-from django.conf import settings
+from django.conf import settings as django_settings
 
 
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -48,16 +49,15 @@ from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
 from os2webscanner.models.scan_model import Scan
 
 
-var_dir = settings.VAR_DIR
+var_dir = django_settings.VAR_DIR
 
 log_dir = os.path.join(var_dir, "logs")
 
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
-processes_per_type = 2
-
-processing_timeout = timedelta(minutes=10)
+processes_per_type = scanner_settings.NUMBER_OF_PROCESSES_PER_TYPE
+processing_timeout = timedelta(minutes=20)
 
 process_types = ('html', 'libreoffice', 'ocr', 'pdf', 'zip', 'text', 'csv', 'xml')
 
@@ -246,20 +246,16 @@ def main():
                     status=Scan.STARTED
                 ).select_for_update(nowait=True)
                 for scan in running_scans:
-                    if not scan.pid:
+                    print('Scan has pid {}'.format(scan.pid))
+                    if not scan.pid \
+                            and not hasattr(scan, 'exchangescan'):
                         continue
                     try:
                         # Check if process is still running
                         os.kill(scan.pid, 0)
                     except OSError:
-                        scan.status = Scan.FAILED
-                        scan.log_occurrence(
-                            "SCAN FAILED: Process died"
-                        )
-                        scanner = scan.scanner
-                        scanner.is_running = False
-                        scanner.save()
-                        scan.save()
+                        scan.set_scan_status_failed(
+                            "SCAN FAILED: Process died with pid {}".format(scan.pid))
         except (DatabaseError, IntegrityError) as ex:
             print('Error occured while trying to kill process %s' % scan.pid)
             print('Error message %s' % ex)

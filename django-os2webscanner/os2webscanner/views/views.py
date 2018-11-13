@@ -36,11 +36,13 @@ from django.conf import settings
 
 from ..models.webdomain_model import WebDomain
 from ..models.filedomain_model import FileDomain
+from ..models.exchangedomain_model import ExchangeDomain
 from ..models.organization_model import Organization
 from ..models.userprofile_model import UserProfile
 from ..models.regexrule_model import RegexRule
 from ..models.webscanner_model import WebScanner
 from ..models.filescanner_model import FileScanner
+from ..models.exchangescanner_model import ExchangeScanner
 from ..models.scan_model import Scan
 from ..models.conversionqueueitem_model import ConversionQueueItem
 from ..models.referrerurl_model import ReferrerUrl
@@ -424,6 +426,8 @@ class DialogSuccess(TemplateView):
         'webscanners': WebScanner,
         'filedomains': FileDomain,
         'filescanners': FileScanner,
+        'exchangedomains': ExchangeDomain,
+        'exchangescanners': ExchangeScanner,
         'rules': RegexRule,
         'groups': Group,
         'reports/summaries': Summary,

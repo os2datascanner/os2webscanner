@@ -57,13 +57,16 @@ class WebDomain(Domain):
                                                         'serveren')
 
     @property
+    def display_name(self):
+        """The name used when displaying the domain on the web page."""
+        return "Domain '%s'" % self.root_url
+
+    @property
     def root_url(self):
         """Return the root url of the domain."""
         url = self.url.replace('*.', '')
-        if (
-                    not self.url.startswith('http://') and not
-                self.url.startswith('https://')
-        ):
+        if (not self.url.startswith('http://') and not
+                self.url.startswith('https://')):
             return 'http://%s/' % url
         else:
             return url

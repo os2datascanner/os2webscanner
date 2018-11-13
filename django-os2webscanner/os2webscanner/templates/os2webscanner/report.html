@@ -52,7 +52,7 @@ Rapport &dash; {{scan.scanner.name}}
                 <td>{{ scan.get_status_display }}</td>
             </tr>
             <tr>
-                <td>Antal matches:</td>
+                <td>Antal filer med matches:</td>
                 <td>{{ no_of_matches }}</td>
             </tr>
         {% if files_scraped_count %}
@@ -102,11 +102,6 @@ Rapport &dash; {{scan.scanner.name}}
               <td {% if not scan.do_last_modified_check %} class="text-muted" {% endif %}>Tjek Last-Modified{% if scan.do_last_modified_check %} <span class="glyphicon glyphicon-ok"></span>{% endif %}</td> 
               <td {% if not scan.do_last_modified_check_head_request and not scan.do_last_modified_check or not scan.do_last_modified_check and scan.do_last_modified_check_head_request %} class="text-muted" {% endif %}>Brug HEAD request{% if scan.do_last_modified_check_head_request and scan.do_last_modified_check %} <span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
               <td></td>
-          </tr>
-          <tr>
-              <td {% if not scan.do_cpr_scan %} class="text-muted" {% endif %}>CPR{% if scan.do_cpr_scan %} <span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
-              <td {% if not scan.do_cpr_modulus11 %} class="text-muted" {% endif %}>Tjek modulus-11{% if scan.do_cpr_modulus11 and scan.do_cpr_scan %} <span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
-              <td {% if not scan.do_cpr_ignore_irrelevant %} class="text-muted" {% endif %}>Ignorer ugyldige fødselsdatoer{% if scan.do_cpr_ignore_irrelevant and scan.do_cpr_scan %} <span class="glyphicon glyphicon-ok"></span>{% endif %}</td>
           </tr>
           <tr>
             <td {% if not scan.do_link_check %} class="text-muted" {% endif %}>Tjek links{% if scan.do_link_check %} <span class="glyphicon glyphicon-ok"></span>{% endif %}</td>

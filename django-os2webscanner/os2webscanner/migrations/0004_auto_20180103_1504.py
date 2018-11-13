@@ -292,11 +292,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterField(
             model_name='scan',
-            name='do_link_check',
-            field=models.BooleanField(default=False, verbose_name='Tjek links'),
-        ),
-        migrations.AlterField(
-            model_name='scan',
             name='do_name_scan',
             field=models.BooleanField(default=False, verbose_name='Navn'),
         ),
@@ -404,11 +399,6 @@ class Migration(migrations.Migration):
             model_name='scanner',
             name='do_last_modified_check_head_request',
             field=models.BooleanField(default=True, verbose_name='Brug HEAD request'),
-        ),
-        migrations.AlterField(
-            model_name='scanner',
-            name='do_link_check',
-            field=models.BooleanField(default=False, verbose_name='Tjek links'),
         ),
         migrations.AlterField(
             model_name='scanner',

@@ -75,8 +75,8 @@ class WebScan(Scan):
             do_link_check=scanner.do_link_check,
             do_external_link_check=scanner.do_external_link_check,
             do_last_modified_check=scanner.do_last_modified_check,
-            do_last_modified_check_head_request=scanner.
-                do_last_modified_check_head_request,
+            do_last_modified_check_head_request=
+            scanner.do_last_modified_check_head_request,
             do_collect_cookies=scanner.do_collect_cookies,
             columns=scanner.columns,
             output_spreadsheet_file=scanner.output_spreadsheet_file,
