@@ -312,6 +312,7 @@ class PreDataScanner(object):
             else:
                 matchtype = 'Unknown'
             filetype = file_type_group(matchtype, mime=True)
+            """
             if filetype['super-group'] == 'Unknown' and matchtype is not 'Unknown':
                 print()
                 print(node)
@@ -321,6 +322,7 @@ class PreDataScanner(object):
                 import random
                 if random.random() > 0.95:
                     1/0
+            """
         return filetype
 
     def determine_file_information(self):
