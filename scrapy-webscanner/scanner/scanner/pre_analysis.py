@@ -21,10 +21,12 @@ def _type_dict(group, sub, mime=None, relevant=False, supported=None):
 def file_type_group(filetype, mime=False):
     # Todo: A combined magic + mime-search will be even more accurate
     types = {}
+    
+    # Seveal of the ascii-types should be sorted by the mime-type
     types['ASCII'] = _type_dict(
         'Text', 'Text',
-        ['javascript', 'sql', 'json', 'diff', 'text/plain', 'x-trash', 'csv', 'rdp',
-         'css', 'markdown', 'ica'],
+        ['javascript', 'x-sql', 'json', 'x-diff', 'text/plain', 'x-trash', 'csv', 'rdp',
+         'markdown','x-ica', 'text/css', 'x-info', 'x-ctx', 'x-cache'],
         True, 'text.py')
     types['ISO-8859'] = _type_dict('Text', 'Text', None, True, 'text.py')
     types['UTF-'] = _type_dict('Text', 'Text', None, True, 'text.py')
@@ -34,26 +36,28 @@ def file_type_group(filetype, mime=False):
     types['sendmail m4'] = _type_dict('Text', 'Text', None, True, None)
     types['Microsoft Word'] = _type_dict('Text', 'Office', None, True,
                                          'libreoffice.py')
-    types['Excel'] = _type_dict('Text', 'Office', None, True, 'libreoffice.py')
+    types['Excel'] = _type_dict('Text', 'Office', ['vnd.ms-excel'], True, 'libreoffice.py')
     types['PowerPoint'] = _type_dict('Text', 'Office', None, True, 'libreoffice.py')
-    types['OpenDocument'] = _type_dict('Text', 'Office', None, True,
-                                       'libreoffice.py')
+    types['OpenDocument'] = _type_dict('Text', 'Office',
+                                       ['vnd.oasis.opendocument.text',
+                                        'vnd.oasis.opendocument.database'],
+                                       True, 'libreoffice.py')
     types['Composite'] = _type_dict('Text', 'Office', None, True, 'libreoffice.py')
     types['XML'] = _type_dict('Text', 'Structured Text', ['xml'], True, 'xml.py')
     types['HTML'] = _type_dict('Text', 'Structured Text', ['html'], True, 'html.py')
-    types['C#'] = _type_dict('Text', 'Source Code', None, True, None)
+    types['C#'] = _type_dict('Text', 'Source Code', ['x-pdb'], True, None)
     types['Perl'] = _type_dict('Text', 'Source Code', ['x-perl'], True, None)
     types['Python'] = _type_dict('Text', 'Source Code', ['x-python'], False, None)
     types['shell script'] = _type_dict('Text', 'Source Code', ['x-sh'], False, None)
-    types['Java'] = _type_dict('Text', 'Source Code', None, True, None)
+    types['Java'] = _type_dict('Text', 'Source Code', ['x-java'], True, None)
     types['Dyalog APL'] = _type_dict('Text', 'Source Code', None, True, None)
     types['byte-compiled'] = _type_dict('Binary', 'Source Code', None, False, None)
     types['SysEx'] = _type_dict('Media', 'Sound', None, False, None)
     types['Audio'] = _type_dict('Media', 'Sound', None, False, None)
-    types['MP4'] = _type_dict('Media', 'Sound', None, False, None)
+    types['MP4'] = _type_dict('Media', 'Video', ['mp4'], False, None)
     types['MED_Song'] = _type_dict('Media', 'Sound', None, False, None)
-    types['WebM'] = _type_dict('Media', 'Video', 'webm', False, None)
-    types['Matroska'] = _type_dict('Media', 'Video', None, False, None)
+    types['WebM'] = _type_dict('Media', 'Video', ['webm'], False, None)
+    types['Matroska'] = _type_dict('Media', 'Video', ['matroska'], False, None)
     types['MPEG'] = _type_dict('Media', 'Video', None, False, None)
     types['QuickTime'] = _type_dict('Media', 'Video', None, False, None)
     types['Git'] = _type_dict('Data', 'Text', None, False, None)
@@ -64,10 +68,10 @@ def file_type_group(filetype, mime=False):
     types['Qt Traslation'] = _type_dict('Data', 'Data', None, False, None)
     types['FoxPro'] = _type_dict('Data', 'Data', None, False, None)
     types['GVariant'] = _type_dict('Data', 'Data', None, False, None)
-    types['Debian'] = _type_dict('Data', 'Data', None, False, None)
+    types['Debian'] = _type_dict('Data', 'Data', ['x-debian-package'], False, None)
     types['dBase III'] = _type_dict('Data', 'Data', None, False, None)
-    types['PEM certificate'] = _type_dict('Data', 'Data', None, False, None)
-    types['OpenType'] = _type_dict('Data', 'Data', None, False, None)
+    types['PEM certificate'] = _type_dict('Data', 'Data', ['x-x509-ca-cert'], False, None)
+    types['OpenType'] = _type_dict('Data', 'Data', ['vnd.ms-fontobject'], False, None)
     types['RSA'] = _type_dict('Data', 'Data', None, False, None)
     types['OpenSSH'] = _type_dict('Data', 'Data', None, False, None)
     types['Applesoft'] = _type_dict('Data', 'Data', None, False, None)
@@ -82,9 +86,9 @@ def file_type_group(filetype, mime=False):
     types['GPG'] = _type_dict('Data', 'Data', None, False, None)
     types['PGP'] = _type_dict('Data', 'Data', ['pgp'], False, None)
     types['Mini Dump'] = _type_dict('Data', 'Data', None, False, None)
-    types['Font'] = _type_dict('Data', 'Data', None, False, None)
+    types['Font'] = _type_dict('Data', 'Data', ['font-woff'], False, None)
     types['GUS patch'] = _type_dict('Data', 'Data', None, False, None)
-    types['TrueType'] = _type_dict('Data', 'Data', None, False, None)
+    types['TrueType'] = _type_dict('Data', 'Data', ['font-sfnt'], False, None)
     types['SoftQuad'] = _type_dict('Data', 'Data', None, False, None)
     types['PPD'] = _type_dict('Data', 'Data', None, False, None)
     types['GNU mes'] = _type_dict('Data', 'Data', None, False, None)
@@ -109,7 +113,11 @@ def file_type_group(filetype, mime=False):
     types['MSX ROM'] = _type_dict('Data', 'Data', None, False, None)
     types['Quake'] = _type_dict('Data', 'Data', None, False, None)
     types['empty'] = _type_dict('Data', 'Data', None, False, None)
-    types['data'] = _type_dict('Data', 'Cache Data', None, False, None)
+
+    # Some certificates also ends up here
+    types['data'] = _type_dict('Data', 'Cache Data',
+                               ['vnd.ms-pki.seccat', 'x-cerius', 'x-pkcs12'],
+                               False, None)
     types['PDF'] = _type_dict('Media', 'PDF', ['pdf'], True, 'pdf.py')
     types['PostScript'] = _type_dict('Media', 'PDF', None, True, None)
     types['PNG'] = _type_dict('Media', 'Image', ['png'], True, 'ocr.py')
@@ -122,13 +130,18 @@ def file_type_group(filetype, mime=False):
     types['bitmap'] = _type_dict('Media', 'Image', None, False, None)
     types['ISO Media'] = _type_dict('Container', 'ISO Image', None, True, None)
     types['ISO Image'] = _type_dict('Container', 'ISO Image', None, True, None)
-    types['ISO 9660'] = _type_dict('Container', 'ISO Image', None, True, None)
-    types['Zip'] = _type_dict('Container', 'Archive', None, True, 'zip.py')
-    types['xz'] = _type_dict('Container', 'Archive', 'xz', True, None)
+    types['ISO 9660'] = _type_dict('Container', 'ISO Image', ['x-iso9660-image'],
+                                   True, None)
+
+    # Some of these are not a real zip-files. Combined type-check would help.
+    types['Zip'] = _type_dict('Container', 'Archive',
+                              ['application/zip', 'x-xpinstall', 'java-archive'],
+                              True, 'zip.py')
+    types['xz'] = _type_dict('Container', 'Archive', ['xz'], True, None)
     types['gzip'] = _type_dict('Container', 'Archive', ['gzip'], True, 'zip.py')
     types['bzip'] = _type_dict('Container', 'Archive', ['bzip2'], True, None)
-    types['Microsoft Cabinet'] = _type_dict('Container', 'Archive', None, True, None)
-    types['Tar'] = _type_dict('Container', 'Archive', None, True, None)
+    types['Microsoft Cabinet'] = _type_dict('Container', 'Archive', ['x-cab'], True, None)
+    types['Tar'] = _type_dict('Container', 'Archive', ['x-tar'], True, None)
     types['Par archive'] = _type_dict('Container', 'Archive', None, True, None)
     types['current ar archive'] = _type_dict('Container', 'Archive', None, True,
                                              None)
@@ -136,9 +149,10 @@ def file_type_group(filetype, mime=False):
     types['zlib'] = _type_dict('Container', 'Archive', None, True, None)
     types['VirtualBox'] = _type_dict('Container', 'Virtual Machine', None, False,
                                      None)
-    types['ELF'] = _type_dict('Data', 'Executable', None, False, None)
+    types['ELF'] = _type_dict('Data', 'Executable', ['octet-stream'], False, None)
     types['PE32'] = _type_dict('Data', 'Executable', None, False, None)
-    types['Executable'] = _type_dict('Data', 'Executable', None, False, None)
+    types['Executable'] = _type_dict('Data', 'Executable', ['x-msdos-program'],
+                                     False, None)
     types['amd 29K'] = _type_dict('Data', 'Executable', None, False, None)
 
     types['ERROR'] = _type_dict('Error', 'Error', None, True, None)
@@ -153,9 +167,8 @@ def file_type_group(filetype, mime=False):
             mimetypes = current_type['mime']
             if mimetypes is None:
                 continue
+            assert(isinstance(mimetypes, list))
             for mimetype in mimetypes:
-                print('!!!')
-                print(mimetype)
                 if filetype.find(mimetype) > -1:
                     filetype = current_type
                     return filetype
@@ -176,7 +189,12 @@ def _to_filesize(filesize):
 
 
 class PreDataScanner(object):
-    def __init__(self, path):
+    def __init__(self, path, detection_method='fast-magic'):
+        if not detection_method in ['fast-magic', 'magic', 'mime']:
+            # Also add an option to use both
+            exit('Unsupport type detection')
+        else:
+            self.detection_method=detection_method
         self.nodes = {}
         self.stats = {}
         self.t0 = time.time()
@@ -227,36 +245,40 @@ class PreDataScanner(object):
         return len(new_nodes)
 
     def _find_file_type(self, node):
-        mime_type = mimetypes.guess_type(node.name, strict=False)
-        """
-        if node.suffix == '.txt':  # No need to check these two
-            filetype = 'ASCII'
-        elif node.suffix == '.html':
-            filetype = 'HTML'
-        else:
+        filetype = None
+        if self.detection_method=='fast-magic':
+            if node.suffix == '.txt':  # No need to check these two
+                filetype = 'ASCII'
+            elif node.suffix == '.html':
+                filetype = 'HTML'
+        if self.detection_method in ['magic', 'fast-magic'] and filetype is None:
             try:
                 filetype = magic.from_buffer(open(str(node), 'rb').read(512))
             except TypeError:
                 filetype = 'ERROR'
-        """
-        if mime_type[1] is not None:
-            matchtype = mime_type[1]
-        elif mime_type[0] is not None:
-            matchtype = mime_type[0]
-        else:
-            matchtype = 'Unknown'
-        filetype = file_type_group(matchtype, mime=True)
-        print()
-        print(matchtype)
-        print(node)
-        print(filetype)
-        if filetype['super-group'] == 'Unknown' and matchtype is not 'Unknown':
+            filetype = file_type_group(matchtype, mime=False)
+
+        if self.detection_method == 'mime':
+            mime_type = mimetypes.guess_type(node.name, strict=False)
+            if mime_type[1] is not None:
+                matchtype = mime_type[1]
+            elif mime_type[0] is not None:
+                matchtype = mime_type[0]
+            else:
+                matchtype = 'Unknown'
+            filetype = file_type_group(matchtype, mime=True)
             print()
+            print(mime_type)
+            print(matchtype)
             print(node)
-            print('Mime: {}'.format(mime_type))
-            magic = magic.from_buffer(open(str(node), 'rb').read(512))
-            print('Magic: {}'.format(magic))
-            1/0
+            print(filetype)
+            if filetype['super-group'] == 'Unknown' and matchtype is not 'Unknown':
+                print()
+                print(node)
+                print('Mime: {}'.format(mime_type))
+                magictype = magic.from_buffer(open(str(node), 'rb').read(512))
+                print('Magic: {}'.format(magictype))
+                1/0
         return filetype
 
     def determine_file_information(self):
@@ -427,7 +449,7 @@ if __name__ == '__main__':
     # p = Path('/mnt/new_var/mailscan/users/')
     p = Path('/home/robertj')
 
-    pre_scanner = PreDataScanner(p)
+    pre_scanner = PreDataScanner(p, detection_method='mime')
     filetypes = pre_scanner.summarize_file_types()
     pre_scanner.update_stats(print_output=True)
 
