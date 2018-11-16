@@ -1,5 +1,6 @@
 import time
 import magic
+import mimetypes
 import numpy as np
 from pathlib import Path
 import matplotlib
@@ -8,129 +9,157 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
 
-def _type_dict(group, sub, relevant=False, supported=None):
+def _type_dict(group, sub, mime=None, relevant=False, supported=None):
     type_dict = {'super-group': group,
                  'sub-group': sub,
+                 'mime': mime,
                  'relevant': relevant,
                  'supported': supported}
     return type_dict
 
 
-def file_type_group(filetype):
+def file_type_group(filetype, mime=False):
+    # Todo: A combined magic + mime-search will be even more accurate
     types = {}
-    types['ASCII'] = _type_dict('Text', 'Text', True, 'text.py')
-    types['ISO-8859'] = _type_dict('Text', 'Text', True, 'text.py')
-    types['UTF-'] = _type_dict('Text', 'Text', True, 'text.py')
-    types['vCalendar'] = _type_dict('Text', 'Text', True, None)
-    types['Event Log'] = _type_dict('Text', 'Text', True, None)
-    types['vCard'] = _type_dict('Text', 'Text', True, None)
-    types['sendmail m4'] = _type_dict('Text', 'Text', True, None)
-    types['Microsoft Word'] = _type_dict('Text', 'Office', True, 'libreoffice.py')
-    types['Excel'] = _type_dict('Text', 'Office', True, 'libreoffice.py')
-    types['PowerPoint'] = _type_dict('Text', 'Office', True, 'libreoffice.py')
-    types['OpenDocument'] = _type_dict('Text', 'Office', True, 'libreoffice.py')
-    types['Composite'] = _type_dict('Text', 'Office', True, 'libreoffice.py')
-    types['XML'] = _type_dict('Text', 'Structured Text', True, 'xml.py')
-    types['HTML'] = _type_dict('Text', 'Structured Text', True, 'html.py')
-    types['C#'] = _type_dict('Text', 'Source Code', True, None)
-    types['Java'] = _type_dict('Text', 'Source Code', True, None)
-    types['Dyalog APL'] = _type_dict('Text', 'Source Code', True, None)
-    types['byte-compiled'] = _type_dict('Binary', 'Source Code', False, None)
-    types['SysEx'] = _type_dict('Media', 'Sound', False, None)
-    types['Audio'] = _type_dict('Media', 'Sound', False, None)
-    types['MP4'] = _type_dict('Media', 'Sound', False, None)
-    types['MED_Song'] = _type_dict('Media', 'Sound', False, None)
-    types['WebM'] = _type_dict('Media', 'Video', False, None)
-    types['Matroska'] = _type_dict('Media', 'Video', False, None)
-    types['MPEG'] = _type_dict('Media', 'Video', False, None)
-    types['QuickTime'] = _type_dict('Media', 'Video', False, None)
-    types['Git'] = _type_dict('Data', 'Text', False, None)
-    types['Media descriptor 0xf4'] = _type_dict('Data', 'Data', False, None)
-    types['TDB database'] = _type_dict('Data', 'Data', False, None)
-    types['SQLite'] = _type_dict('Data', 'Data', False, None)
-    types['very short file'] = _type_dict('Data', 'Data', False, None)
-    types['Qt Traslation'] = _type_dict('Data', 'Data', False, None)
-    types['FoxPro'] = _type_dict('Data', 'Data', False, None)
-    types['GVariant'] = _type_dict('Data', 'Data', False, None)
-    types['Debian'] = _type_dict('Data', 'Data', False, None)
-    types['dBase III'] = _type_dict('Data', 'Data', False, None)
-    types['PEM certificate'] = _type_dict('Data', 'Data', False, None)
-    types['OpenType'] = _type_dict('Data', 'Data', False, None)
-    types['RSA'] = _type_dict('Data', 'Data', False, None)
-    types['OpenSSH'] = _type_dict('Data', 'Data', False, None)
-    types['Applesoft'] = _type_dict('Data', 'Data', False, None)
-    types['GStreamer'] = _type_dict('Data', 'Data', False, None)
-    types['Snappy'] = _type_dict('Data', 'Data', False, None)
-    types['snappy'] = _type_dict('Data', 'Data', False, None)
-    types['GStreamer'] = _type_dict('Data', 'Data', False, None)
-    types['Minix filesystem'] = _type_dict('Data', 'Data', False, None)
-    types['SE Linux policy'] = _type_dict('Data', 'Data', False, None)
-    types['binary'] = _type_dict('Data', 'Data', False, None)
-    types['Compiled terminfo'] = _type_dict('Data', 'Data', False, None)
-    types['GPG'] = _type_dict('Data', 'Data', False, None)
-    types['PGP'] = _type_dict('Data', 'Data', False, None)
-    types['Mini Dump'] = _type_dict('Data', 'Data', False, None)
-    types['Font'] = _type_dict('Data', 'Data', False, None)
-    types['GUS patch'] = _type_dict('Data', 'Data', False, None)
-    types['TrueType'] = _type_dict('Data', 'Data', False, None)
-    types['SoftQuad'] = _type_dict('Data', 'Data', False, None)
-    types['PPD'] = _type_dict('Data', 'Data', False, None)
-    types['GNU mes'] = _type_dict('Data', 'Data', False, None)
-    types['GNOME'] = _type_dict('Data', 'Data', False, None)
-    types['ColorSync'] = _type_dict('Data', 'Data', False, None)
-    types['Berkeley'] = _type_dict('Data', 'Data', False, None)
-    types['ESRI Shapefile'] = _type_dict('Data', 'Data', False, None)
-    types['Flash'] = _type_dict('Data', 'Data', False, None)
-    types['Microsoft ASF'] = _type_dict('Data', 'Data', False, None)
-    types['DWG AutoDesk'] = _type_dict('Data', 'Data', False, None)
-    types['CLIPPER'] = _type_dict('Data', 'Data', False, None)
-    types['Transport Neutral'] = _type_dict('Data', 'Data', False, None)
-    types['shortcut'] = _type_dict('Data', 'Data', False, None)
-    types['Windows Registry'] = _type_dict('Data', 'Data', False, None)
-    types['init='] = _type_dict('Data', 'Data', False, None)
-    types['tcpdump'] = _type_dict('Data', 'Data', False, None)
-    types['Solitaire Image'] = _type_dict('Data', 'Data', False, None)
-    types['GeoSwath RDF'] = _type_dict('Data', 'Data', False, None)
-    types['CDFV2 Encrypted'] = _type_dict('Data', 'Data', False, None)
-    types['Translation'] = _type_dict('Data', 'Data', False, None)
-    types['X11 cursor'] = _type_dict('Data', 'Data', False, None)
-    types['MSX ROM'] = _type_dict('Data', 'Data', False, None)
-    types['Quake'] = _type_dict('Data', 'Data', False, None)
-    types['empty'] = _type_dict('Data', 'Data', False, None)
-    types['data'] = _type_dict('Data', 'Cache Data', False, None)
-    types['PDF'] = _type_dict('Media', 'PDF', True, 'pdf.py')
-    types['PostScript'] = _type_dict('Media', 'PDF', True, None)
-    types['PNG'] = _type_dict('Media', 'Image', True, 'ocr.py')
-    types['GIF'] = _type_dict('Media', 'Image', True, 'ocr.py')
-    types['JPEG'] = _type_dict('Media', 'Image', True, 'ocr.py')
-    types['YUV'] = _type_dict('Media', 'Image', True, None)
-    types['Icon'] = _type_dict('Media', 'Image', False, None)
-    types['SVG'] = _type_dict('Media', 'Image', False, None)
-    types['RIFF'] = _type_dict('Media', 'Image', False, None)
-    types['bitmap'] = _type_dict('Media', 'Image', False, None)
-    types['ISO Media'] = _type_dict('Container', 'ISO Image', True, None)
-    types['ISO Image'] = _type_dict('Container', 'ISO Image', True, None)
-    types['ISO 9660'] = _type_dict('Container', 'ISO Image', True, None)
-    types['Zip'] = _type_dict('Container', 'Archive', True, 'zip.py')
-    types['Microsoft Cabinet'] = _type_dict('Container', 'Archive', True, None)
-    types['Tar'] = _type_dict('Container', 'Archive', True, None)
-    types['Par archive'] = _type_dict('Container', 'Archive', True, None)
-    types['current ar archive'] = _type_dict('Container', 'Archive', True, None)
-    types['XZ'] = _type_dict('Container', 'Archive', True, None)
-    types['zlib'] = _type_dict('Container', 'Archive', True, None)
-    types['VirtualBox'] = _type_dict('Container', 'Virtual Machine', False, None)
-    types['ELF'] = _type_dict('Data', 'Executable', False, None)
-    types['PE32'] = _type_dict('Data', 'Executable', False, None)
-    types['Executable'] = _type_dict('Data', 'Executable', False, None)
-    types['amd 29K'] = _type_dict('Data', 'Executable', False, None)
+    types['ASCII'] = _type_dict(
+        'Text', 'Text',
+        ['javascript', 'sql', 'json', 'diff', 'text/plain', 'x-trash', 'csv', 'rdp',
+         'css', 'markdown', 'ica'],
+        True, 'text.py')
+    types['ISO-8859'] = _type_dict('Text', 'Text', None, True, 'text.py')
+    types['UTF-'] = _type_dict('Text', 'Text', None, True, 'text.py')
+    types['vCalendar'] = _type_dict('Text', 'Text', ['calendar'], True, None)
+    types['Event Log'] = _type_dict('Text', 'Text', None, True, None)
+    types['vCard'] = _type_dict('Text', 'Text', None, True, None)
+    types['sendmail m4'] = _type_dict('Text', 'Text', None, True, None)
+    types['Microsoft Word'] = _type_dict('Text', 'Office', None, True,
+                                         'libreoffice.py')
+    types['Excel'] = _type_dict('Text', 'Office', None, True, 'libreoffice.py')
+    types['PowerPoint'] = _type_dict('Text', 'Office', None, True, 'libreoffice.py')
+    types['OpenDocument'] = _type_dict('Text', 'Office', None, True,
+                                       'libreoffice.py')
+    types['Composite'] = _type_dict('Text', 'Office', None, True, 'libreoffice.py')
+    types['XML'] = _type_dict('Text', 'Structured Text', ['xml'], True, 'xml.py')
+    types['HTML'] = _type_dict('Text', 'Structured Text', ['html'], True, 'html.py')
+    types['C#'] = _type_dict('Text', 'Source Code', None, True, None)
+    types['Perl'] = _type_dict('Text', 'Source Code', ['x-perl'], True, None)
+    types['Python'] = _type_dict('Text', 'Source Code', ['x-python'], False, None)
+    types['shell script'] = _type_dict('Text', 'Source Code', ['x-sh'], False, None)
+    types['Java'] = _type_dict('Text', 'Source Code', None, True, None)
+    types['Dyalog APL'] = _type_dict('Text', 'Source Code', None, True, None)
+    types['byte-compiled'] = _type_dict('Binary', 'Source Code', None, False, None)
+    types['SysEx'] = _type_dict('Media', 'Sound', None, False, None)
+    types['Audio'] = _type_dict('Media', 'Sound', None, False, None)
+    types['MP4'] = _type_dict('Media', 'Sound', None, False, None)
+    types['MED_Song'] = _type_dict('Media', 'Sound', None, False, None)
+    types['WebM'] = _type_dict('Media', 'Video', 'webm', False, None)
+    types['Matroska'] = _type_dict('Media', 'Video', None, False, None)
+    types['MPEG'] = _type_dict('Media', 'Video', None, False, None)
+    types['QuickTime'] = _type_dict('Media', 'Video', None, False, None)
+    types['Git'] = _type_dict('Data', 'Text', None, False, None)
+    types['Media descriptor 0xf4'] = _type_dict('Data', 'Data', None, False, None)
+    types['TDB database'] = _type_dict('Data', 'Data', None, False, None)
+    types['SQLite'] = _type_dict('Data', 'Data', None, False, None)
+    types['very short file'] = _type_dict('Data', 'Data', None, False, None)
+    types['Qt Traslation'] = _type_dict('Data', 'Data', None, False, None)
+    types['FoxPro'] = _type_dict('Data', 'Data', None, False, None)
+    types['GVariant'] = _type_dict('Data', 'Data', None, False, None)
+    types['Debian'] = _type_dict('Data', 'Data', None, False, None)
+    types['dBase III'] = _type_dict('Data', 'Data', None, False, None)
+    types['PEM certificate'] = _type_dict('Data', 'Data', None, False, None)
+    types['OpenType'] = _type_dict('Data', 'Data', None, False, None)
+    types['RSA'] = _type_dict('Data', 'Data', None, False, None)
+    types['OpenSSH'] = _type_dict('Data', 'Data', None, False, None)
+    types['Applesoft'] = _type_dict('Data', 'Data', None, False, None)
+    types['GStreamer'] = _type_dict('Data', 'Data', None, False, None)
+    types['Snappy'] = _type_dict('Data', 'Data', None, False, None)
+    types['snappy'] = _type_dict('Data', 'Data', None, False, None)
+    types['GStreamer'] = _type_dict('Data', 'Data', None, False, None)
+    types['Minix filesystem'] = _type_dict('Data', 'Data', None, False, None)
+    types['SE Linux policy'] = _type_dict('Data', 'Data', None, False, None)
+    types['binary'] = _type_dict('Data', 'Data', None, False, None)
+    types['Compiled terminfo'] = _type_dict('Data', 'Data', None, False, None)
+    types['GPG'] = _type_dict('Data', 'Data', None, False, None)
+    types['PGP'] = _type_dict('Data', 'Data', ['pgp'], False, None)
+    types['Mini Dump'] = _type_dict('Data', 'Data', None, False, None)
+    types['Font'] = _type_dict('Data', 'Data', None, False, None)
+    types['GUS patch'] = _type_dict('Data', 'Data', None, False, None)
+    types['TrueType'] = _type_dict('Data', 'Data', None, False, None)
+    types['SoftQuad'] = _type_dict('Data', 'Data', None, False, None)
+    types['PPD'] = _type_dict('Data', 'Data', None, False, None)
+    types['GNU mes'] = _type_dict('Data', 'Data', None, False, None)
+    types['GNOME'] = _type_dict('Data', 'Data', None, False, None)
+    types['ColorSync'] = _type_dict('Data', 'Data', None, False, None)
+    types['Berkeley'] = _type_dict('Data', 'Data', None, False, None)
+    types['ESRI Shapefile'] = _type_dict('Data', 'Data', None, False, None)
+    types['Flash'] = _type_dict('Data', 'Data', None, False, None)
+    types['Microsoft ASF'] = _type_dict('Data', 'Data', None, False, None)
+    types['DWG AutoDesk'] = _type_dict('Data', 'Data', None, False, None)
+    types['CLIPPER'] = _type_dict('Data', 'Data', None, False, None)
+    types['Transport Neutral'] = _type_dict('Data', 'Data', None, False, None)
+    types['shortcut'] = _type_dict('Data', 'Data', None, False, None)
+    types['Windows Registry'] = _type_dict('Data', 'Data', None, False, None)
+    types['init='] = _type_dict('Data', 'Data', None, False, None)
+    types['tcpdump'] = _type_dict('Data', 'Data', None, False, None)
+    types['Solitaire Image'] = _type_dict('Data', 'Data', None, False, None)
+    types['GeoSwath RDF'] = _type_dict('Data', 'Data', None, False, None)
+    types['CDFV2 Encrypted'] = _type_dict('Data', 'Data', None, False, None)
+    types['Translation'] = _type_dict('Data', 'Data', None, False, None)
+    types['X11 cursor'] = _type_dict('Data', 'Data', None, False, None)
+    types['MSX ROM'] = _type_dict('Data', 'Data', None, False, None)
+    types['Quake'] = _type_dict('Data', 'Data', None, False, None)
+    types['empty'] = _type_dict('Data', 'Data', None, False, None)
+    types['data'] = _type_dict('Data', 'Cache Data', None, False, None)
+    types['PDF'] = _type_dict('Media', 'PDF', ['pdf'], True, 'pdf.py')
+    types['PostScript'] = _type_dict('Media', 'PDF', None, True, None)
+    types['PNG'] = _type_dict('Media', 'Image', ['png'], True, 'ocr.py')
+    types['GIF'] = _type_dict('Media', 'Image', ['gif'], True, 'ocr.py')
+    types['JPEG'] = _type_dict('Media', 'Image', ['jpeg'], True, 'ocr.py')
+    types['YUV'] = _type_dict('Media', 'Image', None, True, None)
+    types['Icon'] = _type_dict('Media', 'Image', ['vnd.microsoft.icon'], False, None)
+    types['SVG'] = _type_dict('Media', 'Image', None, False, None)
+    types['RIFF'] = _type_dict('Media', 'Image', None, False, None)
+    types['bitmap'] = _type_dict('Media', 'Image', None, False, None)
+    types['ISO Media'] = _type_dict('Container', 'ISO Image', None, True, None)
+    types['ISO Image'] = _type_dict('Container', 'ISO Image', None, True, None)
+    types['ISO 9660'] = _type_dict('Container', 'ISO Image', None, True, None)
+    types['Zip'] = _type_dict('Container', 'Archive', None, True, 'zip.py')
+    types['xz'] = _type_dict('Container', 'Archive', 'xz', True, None)
+    types['gzip'] = _type_dict('Container', 'Archive', ['gzip'], True, 'zip.py')
+    types['bzip'] = _type_dict('Container', 'Archive', ['bzip2'], True, None)
+    types['Microsoft Cabinet'] = _type_dict('Container', 'Archive', None, True, None)
+    types['Tar'] = _type_dict('Container', 'Archive', None, True, None)
+    types['Par archive'] = _type_dict('Container', 'Archive', None, True, None)
+    types['current ar archive'] = _type_dict('Container', 'Archive', None, True,
+                                             None)
+    types['XZ'] = _type_dict('Container', 'Archive', None, True, None)
+    types['zlib'] = _type_dict('Container', 'Archive', None, True, None)
+    types['VirtualBox'] = _type_dict('Container', 'Virtual Machine', None, False,
+                                     None)
+    types['ELF'] = _type_dict('Data', 'Executable', None, False, None)
+    types['PE32'] = _type_dict('Data', 'Executable', None, False, None)
+    types['Executable'] = _type_dict('Data', 'Executable', None, False, None)
+    types['amd 29K'] = _type_dict('Data', 'Executable', None, False, None)
 
-    types['ERROR'] = _type_dict('Error', 'Error', True, None)
+    types['ERROR'] = _type_dict('Error', 'Error', None, True, None)
 
-    for current_type in types.keys():
-        if filetype.lower().find(current_type.lower()) > -1:
-            filetype = types[current_type]
-            return filetype
-    filetype = _type_dict('Unknown', filetype, True, None)
+    if mime is False:
+        for current_type in types.keys():
+            if filetype.lower().find(current_type.lower()) > -1:
+                filetype = types[current_type]
+                return filetype
+    else:
+        for current_type in types.values():
+            mimetypes = current_type['mime']
+            if mimetypes is None:
+                continue
+            for mimetype in mimetypes:
+                print('!!!')
+                print(mimetype)
+                if filetype.find(mimetype) > -1:
+                    filetype = current_type
+                    return filetype
+    filetype = _type_dict('Unknown', filetype, None, True, None)
     return filetype
 
 
@@ -197,6 +226,39 @@ class PreDataScanner(object):
         self.nodes.update(new_nodes)
         return len(new_nodes)
 
+    def _find_file_type(self, node):
+        mime_type = mimetypes.guess_type(node.name, strict=False)
+        """
+        if node.suffix == '.txt':  # No need to check these two
+            filetype = 'ASCII'
+        elif node.suffix == '.html':
+            filetype = 'HTML'
+        else:
+            try:
+                filetype = magic.from_buffer(open(str(node), 'rb').read(512))
+            except TypeError:
+                filetype = 'ERROR'
+        """
+        if mime_type[1] is not None:
+            matchtype = mime_type[1]
+        elif mime_type[0] is not None:
+            matchtype = mime_type[0]
+        else:
+            matchtype = 'Unknown'
+        filetype = file_type_group(matchtype, mime=True)
+        print()
+        print(matchtype)
+        print(node)
+        print(filetype)
+        if filetype['super-group'] == 'Unknown' and matchtype is not 'Unknown':
+            print()
+            print(node)
+            print('Mime: {}'.format(mime_type))
+            magic = magic.from_buffer(open(str(node), 'rb').read(512))
+            print('Magic: {}'.format(magic))
+            1/0
+        return filetype
+
     def determine_file_information(self):
         """ Read through all file-nodes. Attach size and
         filetype to all of them.
@@ -225,16 +287,7 @@ class PreDataScanner(object):
                 size = node.stat().st_size
                 self.nodes[node]['size'] = size
                 total_size += size
-                if node.suffix == '.txt':  # No need to check these two
-                    filetype = 'ASCII'
-                elif node.suffix == '.html':
-                    filetype = 'HTML'
-                else:
-                    try:
-                        filetype = magic.from_buffer(open(str(node), 'rb').read(512))
-                    except TypeError:
-                        filetype = 'ERROR'
-                filetype = file_type_group(filetype)
+                filetype = self._find_file_type(node)
                 self.nodes[node]['filetype'] = filetype
             else:
                 self.nodes[node]['filetype'] = _type_dict('Directory', 'Directory',
@@ -371,8 +424,8 @@ class PreDataScanner(object):
 
 if __name__ == '__main__':
     t = time.time()
-    p = Path('/mnt/new_var/mailscan/users/')
-    # p = Path('/usr/share/')
+    # p = Path('/mnt/new_var/mailscan/users/')
+    p = Path('/home/robertj')
 
     pre_scanner = PreDataScanner(p)
     filetypes = pre_scanner.summarize_file_types()
