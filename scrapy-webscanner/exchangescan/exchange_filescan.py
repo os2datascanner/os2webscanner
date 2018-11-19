@@ -1,4 +1,8 @@
 """
+VIGTIGT!!!!
+Denne fil bruges ikke mere nogen steder og skal heller ikke bruges fremadrettet.
+Gemmes kun midlertidigt indtil anden implementation virker efter hensigten.
+
 Demands:
 * starter når den første _done folder er markeret
 * hvis filscan indhenter exchange download skal filscan vente indtil en ny folder er markeret med _done.
