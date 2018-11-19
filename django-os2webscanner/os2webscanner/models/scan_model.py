@@ -277,10 +277,7 @@ class Scan(models.Model):
         """Delete pending conversion queue items and remove the scan dir."""
         # remove all files associated with the scan
         if self.is_scan_dir_writable():
-            if not hasattr(self, 'exchangescan'):
-                self.delete_scan_dir(log)
-            elif self.exchangescan.mark_scan_as_done:
-                self.delete_scan_dir(log)
+            self.delete_scan_dir(log)
 
     @classmethod
     def cleanup_finished_scans(cls, scan_age, log=False):
