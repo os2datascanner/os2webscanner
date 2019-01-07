@@ -17,6 +17,29 @@ def _type_dict(group, sub, mime=None, relevant=False, supported=None):
                  'supported': supported}
     return type_dict
 
+# stat(2) calls over the network seem to be very expensive, so this cache
+# class stores and reuses their results as much as possible
+from stat import S_ISREG, S_ISDIR, S_ISLNK
+class _statcache(dict):
+    def __missing__(self, path):
+        try:
+            s = path.stat()
+            self[path] = s
+            return s
+        except FileNotFoundError:
+            pass
+
+    def _test_if(self, path, func, default):
+        s = self[path]
+        return func(s) if s else default
+
+    def is_file(self, path):
+        return self._test_if(path, lambda s: S_ISREG(s.st_mode), False)
+    def is_dir(self, path):
+        return self._test_if(path, lambda s: S_ISDIR(s.st_mode), False)
+    def is_symlink(self, path):
+        return self._test_if(path, lambda s: S_ISLNK(s.st_mode), False)
+statcache = _statcache()
 
 def file_type_group(filetype, mime=False):
     # Todo: A combined magic + mime-search will be even more accurate
@@ -281,9 +304,9 @@ class PreDataScanner(object):
         for node in self.nodes.keys():
             items = node.glob('*')
             for item in items:
-                if item.is_dir():
+                if statcache.is_dir(item):
                     continue
-                if item.is_symlink():
+                if statcache.is_symlink(item):
                     continue
                 new_nodes[item] = {'size': 0}
         self.nodes.update(new_nodes)
@@ -349,8 +372,8 @@ class PreDataScanner(object):
                           'Current Speed {:.0f}/s ETA: {:.0f}s')
                 print(status.format(processed, len(self.nodes), delta_t,
                                     avg_speed, current_speed, eta))
-            if node.is_file():
-                size = node.stat().st_size
+            if statcache.is_file(node):
+                size = statcache[node].st_size
                 self.nodes[node]['size'] = size
                 total_size += size
                 filetype = self._find_file_type(node)
@@ -373,7 +396,7 @@ class PreDataScanner(object):
 
         for node in self.nodes.keys():
             node_info = self.nodes[node]
-            if not node.is_file():
+            if not statcache.is_file(node):
                 continue
             supergroup = self.nodes[node]['filetype']['super-group']
             subgroup = self.nodes[node]['filetype']['sub-group']
