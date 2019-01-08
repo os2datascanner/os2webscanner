@@ -106,38 +106,11 @@ class ScannerApp(multiprocessing.Process):
         self.scanner.scan_object.set_scan_status_done()
 
     def start_filescan_crawlers(self):
-        """Starting a file scan by first analysing the folder to scan,
-        and afterwards setting up the scrapy spider."""
-
-        self.filescan_analysis()
+        """Start a file scan."""
 
         self.sitemap_spider = None
         self.scanner_spider = self.setup_scanner_spider()
         self.start_crawlers()
-
-    def filescan_analysis(self):
-        """Analysing the folder domain by logging folder,
-        file count and folder size. Subfolders and files included."""
-
-        logging.info('Starting folder analysis...')
-        from scanner.scanner.analysis_scan import get_dir_files_and_bytes_count
-
-        domains = self.scanner.get_domain_urls()
-        if len(domains) > 0:
-            domain = domains[0]
-            logging.info('Starting folder analysis on path {}'.format(domain))
-            files_count, dir_count, bytes_count = get_dir_files_and_bytes_count(domain)
-
-            logging.info('The number of files file scan is '
-                         'going to scan is: {}'.format(files_count))
-
-            logging.info('The number of folders file scan is '
-                         'going to scan is: {}'.format(dir_count))
-
-            logging.info('The size of the domain file scan is '
-                         'going to scan: {}'.format(bytes_count))
-
-        logging.info('Folder analysis completed...')
 
     def start_webscan_crawlers(self):
         # Don't sitemap scan when running over RPC or if no sitemap is set on scan
