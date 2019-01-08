@@ -1,13 +1,20 @@
+import sys
 import time
 import magic
 import mimetypes
-import numpy as np
 from pathlib import Path
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
 
+plots_available = True
+try:
+    import numpy as np
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    from matplotlib.backends.backend_pdf import PdfPages
+except ImportError:
+    print("dependencies not met -- PreDataScanner.plot will not be available",
+            file=sys.stderr)
+    plots_available = False
 
 def _type_dict(group, sub, mime=None, relevant=False, supported=None):
     type_dict = {'super-group': group,
@@ -462,54 +469,57 @@ class PreDataScanner(object):
             print('-------')
             print()
 
-    def plot(self, pp, types):
-        labels = []
-        sizes = []
-        counts = []
-        for filetype, stat in types.items():
-            size = _to_filesize(sum(stat['sizedist']))
-            status_string = 'Mime-type: {}, number of files: {}, total_size: {}'
-            print(status_string.format(filetype, stat['count'], size))
+    if plots_available:
+        def plot(self, pp, types):
+            labels = []
+            sizes = []
+            counts = []
+            for filetype, stat in types.items():
+                size = _to_filesize(sum(stat['sizedist']))
+                status_string = \
+                    'Mime-type: {}, number of files: {}, total_size: {}'
+                print(status_string.format(filetype, stat['count'], size))
 
-            size_list = np.array(stat['sizedist'])
-            size_list = size_list / 1024**2
+                size_list = np.array(stat['sizedist'])
+                size_list = size_list / 1024**2
 
-            plt.hist(size_list, range=(0, max(size_list)), bins=50, log=True)
-            plt.title(filetype)
-            plt.xlabel('Size / MB')
+                plt.hist(size_list,
+                        range=(0, max(size_list)), bins=50, log=True)
+                plt.title(filetype)
+                plt.xlabel('Size / MB')
+                plt.savefig(pp, format='pdf')
+                plt.close()
+
+                labels.append(filetype)
+                sizes.append(sum(stat['sizedist']))
+                counts.append(stat['count'])
+
+            other = 0
+            compact_sizes = []
+            compact_labels = []
+            for i in range(0, len(sizes)):
+                if (sizes[i] / self.stats['total_size']) < 0.025:
+                    other += sizes[i]
+                else:
+                    compact_sizes.append(sizes[i])
+                    compact_labels.append(labels[i])
+            compact_labels.append('Other')
+            compact_sizes.append(other)
+
+            explode = [0.4 if (i / self.stats['total_size']) < 0.05 else 0
+                       for i in compact_sizes]
+
+            fig1, ax1 = plt.subplots()
+            textprops = {'fontsize': 'x-small'}
+            wedges, texts, autotext = ax1.pie(compact_sizes, autopct='%1.0f%%',
+                                              shadow=False, startangle=90,
+                                              explode=explode,
+                                              textprops=textprops)
+            ax1.axis('equal')
+            ax1.legend(wedges, compact_labels, fontsize='x-small')
+
             plt.savefig(pp, format='pdf')
             plt.close()
-
-            labels.append(filetype)
-            sizes.append(sum(stat['sizedist']))
-            counts.append(stat['count'])
-
-        other = 0
-        compact_sizes = []
-        compact_labels = []
-        for i in range(0, len(sizes)):
-            if (sizes[i] / self.stats['total_size']) < 0.025:
-                other += sizes[i]
-            else:
-                compact_sizes.append(sizes[i])
-                compact_labels.append(labels[i])
-        compact_labels.append('Other')
-        compact_sizes.append(other)
-
-        explode = [0.4 if (i / self.stats['total_size']) < 0.05 else 0
-                   for i in compact_sizes]
-
-        fig1, ax1 = plt.subplots()
-        textprops = {'fontsize': 'x-small'}
-        wedges, texts, autotext = ax1.pie(compact_sizes, autopct='%1.0f%%',
-                                          shadow=False, startangle=90,
-                                          explode=explode,
-                                          textprops=textprops)
-        ax1.axis('equal')
-        ax1.legend(wedges, compact_labels, fontsize='x-small')
-
-        plt.savefig(pp, format='pdf')
-        plt.close()
 
 
 if __name__ == '__main__':
