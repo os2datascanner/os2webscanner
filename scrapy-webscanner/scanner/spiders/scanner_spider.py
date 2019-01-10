@@ -134,8 +134,11 @@ class ScannerSpider(BaseScannerSpider):
         logging.info("Starting requests")
         sitemap_start_urls = self.runner.get_start_urls_from_sitemap()
         requests = []
+        logging.info("Adding requests for {0} sitemap start URLs".format(
+                len(sitemap_start_urls)))
         for url in sitemap_start_urls:
             try:
+                logging.info("Adding request for sitemap URL {0}".format(url))
                 requests.append(
                     Request(url["url"],
                             callback=self.parse,
