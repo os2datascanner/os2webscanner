@@ -21,27 +21,16 @@ class ScannerList(RestrictedListView):
         return qs
 
 
-class ScannerCreate(RestrictedCreateView):
+class ScannerBase():
     template_name = 'os2webscanner/scanner_form.html'
 
     def get_form(self, form_class=None):
-        """Get the form for the view.
 
-        Querysets used for choices in the 'domains' and 'regex_rules' fields
-        will be limited by the user's organization unless the user is a
-        superuser.
-        """
         if form_class is None:
             form_class = self.get_form_class()
 
         form = super().get_form(form_class)
         form.fields['schedule'].required = False
-        try:
-            organization = self.request.user.profile.organization
-            groups = self.request.user.profile.groups.all()
-        except UserProfile.DoesNotExist:
-            organization = None
-            groups = None
 
         # Exclude recipients with no email address
         form.fields[
@@ -49,6 +38,24 @@ class ScannerCreate(RestrictedCreateView):
         ].queryset = form.fields[
             'recipients'
         ].queryset.exclude(user__email="")
+
+        return form
+
+    def get_scanner_object(self):
+        return self.get_object()
+
+
+class ScannerCreate(ScannerBase, RestrictedCreateView):
+
+    def get_form(self, form_class=None):
+
+        form = super().get_form(form_class)
+        try:
+            organization = self.request.user.profile.organization
+            groups = self.request.user.profile.groups.all()
+        except UserProfile.DoesNotExist:
+            organization = None
+            groups = None
 
         if not self.request.user.is_superuser:
             for field_name in ['domains', 'regex_rules', 'recipients']:
@@ -69,9 +76,8 @@ class ScannerCreate(RestrictedCreateView):
         return form
 
 
-class ScannerUpdate(RestrictedUpdateView):
-    """Update a scanner view."""
-    template_name = 'os2webscanner/scanner_form.html'
+class ScannerUpdate(ScannerBase, RestrictedUpdateView):
+    """View for editing an existing scannerjob."""
 
     def get_form(self, form_class=None):
         """Get the form for the view.
@@ -80,22 +86,10 @@ class ScannerUpdate(RestrictedUpdateView):
         will be limited by the user's organiztion unless the user is a
         superuser.
         """
-        if form_class is None:
-            form_class = self.get_form_class()
-
-        self.fields = self.get_form_fields()
         form = super().get_form(form_class)
-        form.fields['schedule'].required = False
 
-        scanner = self.get_object()
-
-        # Exclude recipients with no email address
-        form.fields[
-            'recipients'
-        ].queryset = form.fields[
-            'recipients'
-        ].queryset.exclude(user__email="")
-
+        scanner = self.get_scanner_object()
+        
         for field_name in ['domains', 'regex_rules', 'recipients']:
             queryset = form.fields[field_name].queryset
             queryset = queryset.filter(organization=scanner.organization)
