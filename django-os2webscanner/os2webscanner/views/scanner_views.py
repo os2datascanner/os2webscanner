@@ -85,6 +85,7 @@ class ScannerCreate(ScannerBase, RestrictedCreateView):
 
 class ScannerUpdate(ScannerBase, RestrictedUpdateView):
     """View for editing an existing scannerjob."""
+    edit = True
 
     def get_form(self, form_class=None):
         """Get the form for the view.
