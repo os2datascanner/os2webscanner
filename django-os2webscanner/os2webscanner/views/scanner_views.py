@@ -46,9 +46,15 @@ class ScannerBase():
 
 
 class ScannerCreate(ScannerBase, RestrictedCreateView):
+    """View for creating a new scannerjob."""
 
     def get_form(self, form_class=None):
+        """Get the form for the view.
 
+        Querysets used for choices in the 'domains' and 'regex_rules' fields
+        will be limited by the user's organization unless the user is a
+        superuser.
+        """
         form = super().get_form(form_class)
         try:
             organization = self.request.user.profile.organization
@@ -58,22 +64,23 @@ class ScannerCreate(ScannerBase, RestrictedCreateView):
             groups = None
 
         if not self.request.user.is_superuser:
-            for field_name in ['domains', 'regex_rules', 'recipients']:
-                queryset = form.fields[field_name].queryset
-                queryset = queryset.filter(organization=organization)
-                if (
-                        self.request.user.profile.is_group_admin or
-                        field_name == 'recipients'
-                ):
-                    # Already filtered by organization, nothing more to do.
-                    pass
-                else:
-                    queryset = queryset.filter(
-                        Q(group__in=groups) | Q(group__isnull=True)
-                    )
-                form.fields[field_name].queryset = queryset
+            self.filter_queryset(form, groups, organization)
 
         return form
+
+    def filter_queryset(self, form, groups, organization):
+        for field_name in ['domains', 'regex_rules', 'recipients']:
+            queryset = form.fields[field_name].queryset
+            queryset = queryset.filter(organization=organization)
+            if (self.request.user.profile.is_group_admin or
+                            field_name == 'recipients'):
+                # Already filtered by organization, nothing more to do.
+                pass
+            else:
+                queryset = queryset.filter(
+                    Q(group__in=groups) | Q(group__isnull=True)
+                )
+            form.fields[field_name].queryset = queryset
 
 
 class ScannerUpdate(ScannerBase, RestrictedUpdateView):
@@ -83,13 +90,18 @@ class ScannerUpdate(ScannerBase, RestrictedUpdateView):
         """Get the form for the view.
 
         Querysets used for choices in the 'domains' and 'regex_rules' fields
-        will be limited by the user's organiztion unless the user is a
+        will be limited by the user's organization unless the user is a
         superuser.
         """
         form = super().get_form(form_class)
 
         scanner = self.get_scanner_object()
-        
+
+        self.filter_queryset(form, scanner)
+
+        return form
+
+    def filter_queryset(self, form, scanner):
         for field_name in ['domains', 'regex_rules', 'recipients']:
             queryset = form.fields[field_name].queryset
             queryset = queryset.filter(organization=scanner.organization)
@@ -107,8 +119,6 @@ class ScannerUpdate(ScannerBase, RestrictedUpdateView):
                         Q(group=scanner.group) | Q(group__isnull=True)
                     )
             form.fields[field_name].queryset = queryset
-
-        return form
 
 
 class ScannerDelete(RestrictedDeleteView):
