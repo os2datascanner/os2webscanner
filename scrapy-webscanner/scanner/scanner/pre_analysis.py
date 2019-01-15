@@ -4,6 +4,8 @@ import magic
 import mimetypes
 from pathlib import Path
 
+import logging
+
 plots_available = True
 try:
     import numpy as np
@@ -287,15 +289,15 @@ class PreDataScanner(object):
         self.stats['number_of_dirs'] = len(self.nodes)
         self.stats['time_number_of_dirs'] = time.time() - self.t0
         status_string = 'Read {} directories. Total run-time: {:.2f}s'
-        print(status_string.format(self.stats['number_of_dirs'],
-                                   self.stats['time_number_of_dirs']))
+        logging.info(status_string.format(self.stats['number_of_dirs'],
+                                          self.stats['time_number_of_dirs']))
 
         self.stats['number_of_files'] = self.read_files()
         status_string = 'Read {} directories. Total run-time: {:.2f}s'
         self.stats['time_number_of_files'] = time.time() - self.t0
         status_string = 'Read {} files. Total run-time: {:.2f}s'
-        print(status_string.format(self.stats['number_of_files'],
-                                   self.stats['time_number_of_files']))
+        logging.info(status_string.format(self.stats['number_of_files'],
+                                          self.stats['time_number_of_files']))
         self.stats['total_size'] = self.determine_file_information()
         self.stats['time_file_types'] = time.time() - self.t0
 
@@ -378,8 +380,8 @@ class PreDataScanner(object):
                 eta = (len(self.nodes) - processed) / current_speed
                 status = ('Progress: {}/{} in {:.0f}s. Avg. Speed: {:.0f}/s. ' +
                           'Current Speed {:.0f}/s ETA: {:.0f}s')
-                print(status.format(processed, len(self.nodes), delta_t,
-                                    avg_speed, current_speed, eta))
+                logging.info(status.format(processed, len(self.nodes), delta_t,
+                                           avg_speed, current_speed, eta))
             if statcache.is_file(node):
                 size = statcache[node].st_size
                 self.nodes[node]['size'] = size
