@@ -26,8 +26,8 @@ import codecs
 import random
 import subprocess
 import hashlib
-import logging
 import traceback
+import urllib.parse
 
 from django.db import transaction, IntegrityError, DatabaseError
 from django import db
@@ -202,7 +202,11 @@ class Processor(object):
         tmp_dir = url_object.tmp_dir
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
-        file_name = os.path.basename(url_object.url)
+        # We do a url decode to get rid of %20% etc.
+        file_name = os.path.basename(
+            urllib.parse.unquote(url_object.url)
+        )
+
         if file_name == '':
             file_name = url_object.pk + ".data"
         tmp_file_path = os.path.join(tmp_dir, file_name)
@@ -223,6 +227,7 @@ class Processor(object):
             status=ConversionQueueItem.NEW,
         )
         new_item.save()
+
         return True
 
     def process_file(self, file_path, url, page_no=None):
