@@ -262,12 +262,13 @@ class ScannerApp(multiprocessing.Process):
         logging.debug('Statistic saved.')
 
     def handle_error(self, failure, response, spider):
-        """Handle spider errors, updating scan status."""
-        logging.error("Scan failed: %s" % failure.getErrorMessage())
-        self.store_stats()
-        scan_object = Scan.objects.get(pk=self.scan_id)
-        scan_object.reason = failure.getErrorMessage()
-        scan_object.save()
+        """Printing spider errors.
+
+        When an exception occurs in a spider callback we do not need to stop the scan.
+        The scan is only stopped when the spider signals it has stopped.
+
+        So we only print the error to the log."""
+        logging.error("An error occured: %s" % failure.getErrorMessage())
 
     def filescan_cleanup(self):
         if hasattr(self.scanner.scan_object, 'filescan'):
