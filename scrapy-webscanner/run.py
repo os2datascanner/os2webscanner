@@ -268,7 +268,6 @@ class ScannerApp(multiprocessing.Process):
         scan_object = Scan.objects.get(pk=self.scan_id)
         scan_object.reason = failure.getErrorMessage()
         scan_object.save()
-        self.filescan_cleanup()
 
     def filescan_cleanup(self):
         if hasattr(self.scanner.scan_object, 'filescan'):
