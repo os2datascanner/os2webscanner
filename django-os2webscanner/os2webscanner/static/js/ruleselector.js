@@ -47,20 +47,23 @@
     recalcIframeHeight();
   });
 
-  // removing a rule from the list of selected rules
-  $("#selected_rules").on("click", ".remove-rule", function() {
-    var elm = $(this).closest("div"); // we want the actual parent div, not the a itself
-    var ruleId = elm.attr("data-rule-id");
-    var ruleLi = $("#available_rules").find("li[data-rule-id=\"" + ruleId + "\"]");
-    var ruleAnchor = ruleLi.find("a");
-    ruleLi.removeAttr("data-disabled");
-    ruleAnchor.tooltip(); // re-enable tooltip
 
-    $(this).closest("form").find("input[type=\"hidden\"][name=\"regex_rules\"][value=\"" + ruleId + "\"]").remove(); // remove the hidden input field corresponding to the rule we removed
-    elm.remove();
+  if ( $("#edit-scanner-modal-title").length ){
+    // removing a rule from the list of selected rules
+    $("#selected_rules").on("click", ".remove-rule", function() {
+      var elm = $(this).closest("div"); // we want the actual parent div, not the a itself
+      var ruleId = elm.attr("data-rule-id");
+      var ruleLi = $("#available_rules").find("li[data-rule-id=\"" + ruleId + "\"]");
+      var ruleAnchor = ruleLi.find("a");
+      ruleLi.removeAttr("data-disabled");
+      ruleAnchor.tooltip(); // re-enable tooltip
 
-    recalcIframeHeight();
-  });
+      $(this).closest("form").find("input[type=\"hidden\"][name=\"regex_rules\"][value=\"" + ruleId + "\"]").remove(); // remove the hidden input field corresponding to the rule we removed
+      elm.remove();
+
+      recalcIframeHeight();
+    });
+  }
 
   // // adding a system rule
   // $("#available_rules").on("click", "[data-systemrule-target]:not([data-disabled])", function() {
