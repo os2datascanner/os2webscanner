@@ -300,20 +300,60 @@ class PreDataScanner(object):
                                           self.stats['time_number_of_files']))
         self.stats['total_size'] = self.determine_file_information()
         self.stats['time_file_types'] = time.time() - self.t0
+        status_string = 'Generated metadata for {} files. Total run-time: {:.2f}s'
+        logging.info(status_string.format(self.stats['number_of_files'],
+                                          self.stats['time_number_of_files']))
 
     def read_dirtree(self, path):
+        logging.info('Reading directories...')
         all_dirs = path.glob('**')
         next(all_dirs)  # The root of the tree is already created
+        processed = 0
+        t0 = time.time()
+        t = t0
         for item in all_dirs:
+            processed += 1
+            if processed % 2500 == 0:
+                now = time.time()
+                delta_t = now - t0
+                avg_speed = processed / delta_t
+                current_speed = 2500 / (now - t)
+                t = now
+                status = ('Progress: found {} directories in {:.0f}s. ' +
+                          'Avg. Speed: {:.0f} directories/s. ' +
+                          'Current Speed {:.0f} directories/s.')
+                logging.info(status.format(processed, delta_t,
+                                           avg_speed, current_speed))
             self.nodes[item] = {'size': 0,
                                 'filetype': _type_dict('Directory', 'Directory',
                                                        False, None)}
 
     def read_files(self):
+        logging.info('Reading files...')
         new_nodes = {}
+        dirs_processed = 0
+        files_processed = 0
+        t0 = time.time()
+        t = t0
         for node in self.nodes.keys():
+            dirs_processed += 1
+            if dirs_processed % 2500 == 0:
+                now = time.time()
+                delta_t = now - t0
+                avg_speed = dirs_processed / delta_t
+                current_speed = 2500 / (now - t)
+                t = now
+                eta = (len(self.nodes) - dirs_processed) / current_speed
+                status = ('Progress: on directory {}/{} after {:.0f}s. ' +
+                          'Found {} files. ' +
+                          'Avg. Speed: {:.0f} directories/s. ' +
+                          'Current Speed {:.0f} directories/s. ETA: {:.0f}s.')
+                logging.info(status.format(dirs_processed, len(self.nodes),
+                                           delta_t, files_processed, avg_speed,
+                                           current_speed, eta))
             items = node.glob('*')
             for item in items:
+                files_processed += 1
                 if statcache.is_dir(item):
                     continue
                 if statcache.is_symlink(item):
@@ -365,6 +405,7 @@ class PreDataScanner(object):
         :param root: Pointer to root-node
         :return: Total file size in bytes
         """
+        logging.info('Generating file metadata...')
         total_size = 0
         processed = 0
         t0 = time.time()
@@ -372,14 +413,15 @@ class PreDataScanner(object):
         for node in self.nodes.keys():
             processed += 1
             if processed % 2500 == 0:
-                delta_t = time.time() - self.t0
-                avg_speed = processed / delta_t
                 now = time.time()
+                delta_t = now - t0
+                avg_speed = processed / delta_t
                 current_speed = 2500 / (now - t)
                 t = now
                 eta = (len(self.nodes) - processed) / current_speed
-                status = ('Progress: {}/{} in {:.0f}s. Avg. Speed: {:.0f}/s. ' +
-                          'Current Speed {:.0f}/s ETA: {:.0f}s')
+                status = ('Progress: {}/{} in {:.0f}s. ' +
+                          'Avg. Speed: {:.0f} files/s. ' +
+                          'Current Speed {:.0f} files/s. ETA: {:.0f}s.')
                 logging.info(status.format(processed, len(self.nodes), delta_t,
                                            avg_speed, current_speed, eta))
             if statcache.is_file(node):
