@@ -27,7 +27,6 @@ import random
 import subprocess
 import hashlib
 import traceback
-import urllib.parse
 
 from django.db import transaction, IntegrityError, DatabaseError
 from django import db
@@ -202,10 +201,8 @@ class Processor(object):
         tmp_dir = url_object.tmp_dir
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
-        # We do a url decode to get rid of %20% etc.
-        file_name = os.path.basename(
-            urllib.parse.unquote(url_object.url)
-        )
+
+        file_name = os.path.basename(url_object.url)
 
         if file_name == '':
             file_name = url_object.pk + ".data"
