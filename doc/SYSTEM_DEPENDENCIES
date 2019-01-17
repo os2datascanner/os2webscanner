@@ -17,3 +17,6 @@ imagemagick
 unoconv
 mailutils
 libssl-dev
+cifs-utils
+rabbitmq-server
+libkrb5-dev

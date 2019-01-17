@@ -12,7 +12,7 @@ Regler
       <p class="h2" style="display:inline-block;">Ad hoc-regler</p>
       <span class="page-action">
         <button type="button" class="btn btn-default" data-toggle="modal" data-target="#create-rule-modal">
-          Tilføj ny 
+          Tilføj ny
           <span style="position:relative;top:.15em;" class="glyphicon glyphicon-plus-sign"></span>
         </button>
       </span>
@@ -53,6 +53,13 @@ Regler
               <td>
                 <strong>
                 <small>
+                Scan CPR
+                </small>
+                </strong>
+              </td>
+              <td>
+                <strong>
+                <small>
                 Følsomhed
                 </small>
                 </strong>
@@ -87,6 +94,7 @@ Regler
                 </span>
               </td>
               <td class="rule-expression">
+                {% if rule.patterns.all|length > 0 %}
                 <input type="checkbox" class="show-patterns" id="show-patterns-{{ forloop.counter }}" name="show-patterns-{{ forloop.counter }}">
                 <label for="show-patterns-{{ forloop.counter }}">
                   Vis udtryk?
@@ -96,6 +104,12 @@ Regler
                   <code>{{ pattern.pattern_string }}</code>
                   {% endfor %}
                 </div>
+                {% endif %}
+              </td>
+              <td class="rule-cpr">
+                <span>
+                  {% if rule.cpr_enabled %}<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>{% endif %}
+                </span>
               </td>
               <td class="rule-sensitivity">
                 <span>

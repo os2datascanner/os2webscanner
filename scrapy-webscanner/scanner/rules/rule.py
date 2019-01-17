@@ -17,8 +17,11 @@
 
 
 class Rule:
-
     """Represents a rule which can be executed on text and returns matches."""
+
+    def __init__(self, *args, **kwargs):
+        self.cpr_pattern = r"\b(\d{2}[\s]?\d{2}[\s]?\d{2})(?:[\s\-/\.]|\s\-\s)?(\d{4})\b"
+
 
     def execute(self, text):
         """Execute the rule on the given text.

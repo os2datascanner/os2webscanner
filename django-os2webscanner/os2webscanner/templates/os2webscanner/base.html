@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="" />
   <meta name="author" content="" />
-  <title>{% block title %}{% endblock %} | OS2webscanner</title>
+  <title>{% block title %}{% endblock %} | OS2datascanner</title>
   <!-- Bootstrap core CSS -->
   <link href="{% static "css/bootstrap.min.css" %}" rel="stylesheet" />
   <link href="{% static "css/webscanner.css" %}" rel="stylesheet" />
@@ -35,7 +35,7 @@
             </span>
         </button>
         <a class="navbar-brand {% block index_active %}{% endblock %}" href="/">
-          OS2Webscanner
+          OS2datascanner
         </a>
       </div>
       <div class="collapse navbar-collapse">
@@ -43,7 +43,13 @@
             {% if user.is_authenticated %}
             {% if not user.profile.is_upload_only %}
           <li {% block scanners_active %}{% endblock %}>
-            <a href="/webscanners/">Scannerjob</a>
+              {% if settings.ENABLE_WEBSCAN %}
+                <a href="/webscanners/">Scannerjob</a>
+              {% elif settings.ENABLE_FILESCAN %}
+                <a href="/filescanners/">Scannerjob</a>
+              {% elif settings.ENABLE_EXCHANGESCAN %}
+                <a href="/exchangescanners/">Scannerjob</a>
+              {% endif %}
           </li>
           {% if user.profile.is_groups_enabled %}
           {% if user.is_superuser or user.profile.is_group_admin %}
@@ -53,7 +59,13 @@
           {% endif %}
           {% endif %}
           <li {% block domains_active %}{% endblock %}>
-            <a href="/webdomains/">Domæner</a>
+              {% if settings.ENABLE_WEBSCAN %}
+                  <a href="/webdomains/">Domæner</a>
+              {% elif settings.ENABLE_FILESCAN %}
+                  <a href="/filedomains/">Domæner</a>
+              {% elif settings.ENABLE_EXCHANGESCAN %}
+                  <a href="/exchangedomains/">Domæner</a>
+              {% endif %}
           </li>
           <li {% block rules_active %}{% endblock %}>
             <a href="/rules/">Regler</a>

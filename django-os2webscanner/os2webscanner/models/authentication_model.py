@@ -1,5 +1,6 @@
 from django.db import models
 
+from ..aescipher import encrypt, decrypt
 from .authenticationmethods_model import AuthenticationMethods
 
 
@@ -26,3 +27,9 @@ class Authentication(models.Model):
                       null=True,
                       related_name='authentication_method',
                       verbose_name='Login Metode')
+
+    def get_password(self):
+        return decrypt(bytes(self.iv), bytes(self.ciphertext))
+
+    def set_password(self, password):
+        self.iv, self.ciphertext = encrypt(password)

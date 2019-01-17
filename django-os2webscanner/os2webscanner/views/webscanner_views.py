@@ -15,7 +15,6 @@ class WebScannerCreate(ScannerCreate):
     model = WebScanner
     type = 'web'
     fields = ['name', 'schedule', 'domains',
-              'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
               'do_name_scan', 'do_ocr', 'do_address_scan',
               'do_link_check', 'do_external_link_check', 'do_collect_cookies',
               'do_last_modified_check', 'do_last_modified_check_head_request',
@@ -32,7 +31,6 @@ class WebScannerUpdate(ScannerUpdate):
     model = WebScanner
     type = 'web'
     fields = ['name', 'schedule', 'domains',
-              'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
               'do_name_scan', 'do_ocr', 'do_address_scan',
               'do_link_check', 'do_external_link_check', 'do_collect_cookies',
               'do_last_modified_check', 'do_last_modified_check_head_request',

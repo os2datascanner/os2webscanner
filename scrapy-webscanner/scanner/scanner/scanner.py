@@ -23,7 +23,6 @@ from ..rules.regexrule import RegexRule
 from ..rules.cpr import CPRRule
 
 from ..processors.processor import Processor
-from os2webscanner.models.domain_model import Domain
 from os2webscanner.models.scan_model import Scan
 
 
@@ -33,13 +32,10 @@ class Scanner:
     def __init__(self, scan_id):
         """Load the scanner settings from the given scan ID."""
         # Get scan object from DB
-        # TODO: Parse object around instead of making db query. However impact should be tested.
         self.scan_object = Scan.objects.get(pk=scan_id)
 
         self.rules = self._load_rules()
-        self.valid_domains = self.scan_object.domains.filter(
-            validation_status=Domain.VALID
-        )
+        self.valid_domains = self.scan_object.get_valid_domains
 
     def _load_rules(self):
         """Load rules based on WebScanner settings."""
@@ -67,7 +63,10 @@ class Scanner:
                 RegexRule(
                     name=rule.name,
                     pattern_strings=rule.patterns.all(),
-                    sensitivity=rule.sensitivity
+                    sensitivity=rule.sensitivity,
+                    cpr_enabled=rule.cpr_enabled,
+                    ignore_irrelevant=rule.ignore_irrelevant,
+                    do_modulus11=rule.do_modulus11
                 )
             )
         return rules
@@ -99,8 +98,8 @@ class Scanner:
                 urls.append('file://' + domain.webdomain.sitemap_full_path)
         return urls
 
-    def get_domains(self):
-        """Return a list of domains."""
+    def get_domain_urls(self):
+        """Return a list of valid domain urls."""
         domains = []
         for d in self.valid_domains:
             if hasattr(d, 'webdomain'):
@@ -108,8 +107,25 @@ class Scanner:
                     domains.append(urlparse(d.url).hostname)
                 else:
                     domains.append(d.url)
+            elif hasattr(d, 'exchangedomain'):
+                domains.append(d.exchangedomain.dir_to_scan)
             else:
                 domains.append(d.filedomain.mountpath)
+        return domains
+
+    def get_domain_objects(self):
+        """
+        Returns a list of valid domain objects
+        :return: domain list
+        """
+        domains = []
+        for domain in self.valid_domains:
+            if hasattr(domain, 'webdomain'):
+                    domains.append(domain.webdomain)
+            elif hasattr(domain, 'exchangedomain'):
+                domains.append(domain.exchangedomain)
+            else:
+                domains.append(domain.filedomain)
         return domains
 
     def scan(self, data, url_object):
@@ -137,7 +153,7 @@ class Scanner:
         for rule in self.rules:
             print('-------Rule to be executed {0}-------'.format(rule))
             rule_matches = rule.execute(text)
-            # TODO: Temporary fix. CPRRule needs to be a regexrule
+
             if isinstance(rule, CPRRule):
                 for match in rule_matches:
                     match['matched_rule'] = rule.name

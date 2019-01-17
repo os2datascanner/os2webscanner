@@ -35,13 +35,45 @@ import re
 import linkchecker
 
 import unittest
-from scanner.rules import cpr, name
+
+from scanner.scanner.scanner import Scanner
+
+from scanner.rules import cpr, name, regexrule
+
 from scanner.spiders import scanner_spider
-from scanner.processors import pdf, libreoffice, html
+from scanner.processors import pdf, libreoffice, html, zip
 
 from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
 from os2webscanner.models.url_model import Url
 from os2webscanner.models.scan_model import Scan
+
+from os2webscanner.models.webscan_model import WebScan
+from os2webscanner.models.webscanner_model import WebScanner
+from os2webscanner.models.webdomain_model import WebDomain
+
+from os2webscanner.models.regexrule_model import RegexRule
+from os2webscanner.models.organization_model import Organization
+
+
+from scanner.scanner.analysis_scan import get_dir_files_and_bytes_count
+
+
+class AnalysisScanTest(unittest.TestCase):
+
+    @staticmethod
+    def get_folder_path():
+        dir_path = os.path.dirname(os.path.realpath(__file__)) + '/scanner/scanner'
+        print('Directory Path:' + dir_path)
+        return dir_path
+
+    def test_analysis_scan_dir_and_files_count(self):
+
+        """Testing files and directory count on folder scanner/scanner."""
+
+        file_count, dir_count, bytes_count = get_dir_files_and_bytes_count(self.get_folder_path())
+        self.assertEqual(7, file_count)
+        self.assertEqual(3, dir_count)
+        self.assertEqual(18204, bytes_count)
 
 
 class FileExtractorTest(unittest.TestCase):
@@ -104,7 +136,15 @@ class NameTest(unittest.TestCase):
         valid_names = ['Jens Jensen', 'Jim Smith Jones',
                        'Lars L. Larsen', 'Lars Lars Lars Larsen']
         invalid_names = ['sdfsdsad Asdfsddsfasd']
-        matches = name.NameRule().execute(text)
+        matches = None
+        try:
+            matches = name.NameRule().execute(text)
+        except:
+            print('Something went wrong...')
+
+        if matches is None:
+            self.fail('Something went wrong...')
+            return
         matches = [re.sub('\s+', ' ', m['matched_data']) for m in matches]
         print(matches)
         for valid_name in valid_names:
@@ -218,7 +258,12 @@ class LibreofficeTest(unittest.TestCase):
     test_dir = base_dir + '/scrapy-webscanner/tests/data/'
 
     def create_ressources(self, filename):
-        shutil.copy2(self.test_dir + 'libreoffice/' + filename, self.test_dir + 'tmp/')
+        try:
+            shutil.copy2(self.test_dir + 'libreoffice/' + filename, self.test_dir + 'tmp/')
+        except FileNotFoundError:
+            print('File not found error: {}'.format(self.test_dir + 'libreoffice/' + filename))
+            return None
+
         url = Url(scan=Scan(), url=self.test_dir + 'tmp/' + filename)
         item = ConversionQueueItem(url=url,
                                    file=self.test_dir + 'tmp/' + filename,
@@ -234,6 +279,9 @@ class LibreofficeTest(unittest.TestCase):
 
     def test_libreoffice_conversion_success(self):
         filename = 'KK SGP eksempel 2013.02.27.xls'
+        if filename is None:
+            self.fail("File deos not exists.")
+            return
         result = self.create_ressources(filename)
         self.assertEqual(result, True)
 
@@ -243,7 +291,12 @@ class HTMLTest(unittest.TestCase):
     test_dir = base_dir + '/scrapy-webscanner/tests/data/'
 
     def create_ressources(self, filename):
-        shutil.copy2(self.test_dir + 'html/' + filename, self.test_dir + 'tmp/')
+        try:
+            shutil.copy2(self.test_dir + 'html/' + filename, self.test_dir + 'tmp/')
+        except FileNotFoundError:
+            print('File not found error: {}'.format(self.test_dir + 'html/' + filename))
+            return None
+
         url = Url(scan=Scan(), url=self.test_dir + 'tmp/' + filename)
         item = ConversionQueueItem(url=url,
                                    file=self.test_dir + 'tmp/' + filename,
@@ -257,9 +310,288 @@ class HTMLTest(unittest.TestCase):
          Will always return false as text processor instantiates scanner object which makes db call."""
         filename = 'Midler-til-frivilligt-arbejde.html'
         item = self.create_ressources(filename)
+        if item is None:
+            self.fail("File does not exists")
+            return
         html_processor = html.HTMLProcessor()
         result = html_processor.handle_queue_item(item)
         self.assertEqual(result, False)
+
+
+class ZIPTest(unittest.TestCase):
+
+    test_dir = base_dir + '/scrapy-webscanner/tests/data/'
+
+    def create_ressources(self, filename):
+        try:
+            shutil.copy2(self.test_dir + 'zip/' + filename, self.test_dir + 'tmp/')
+        except FileNotFoundError:
+            print('File not found error: {}'.format(self.test_dir + 'zip/' + filename))
+            return None
+
+        url = Url(scan=Scan(), url=self.test_dir + 'tmp/' + filename)
+        item = ConversionQueueItem(pk=0,
+                                   url=url,
+                                   file=self.test_dir + 'tmp/' + filename,
+                                   type=zip.ZipProcessor,
+                                   status=ConversionQueueItem.NEW)
+
+        with tempfile.TemporaryDirectory(dir=self.test_dir + 'tmp/') as temp_dir:
+            zip_processor = zip.ZipProcessor()
+            result = zip_processor.convert(item, temp_dir)
+
+        return result
+
+    def test_unzip_on_password_zip(self):
+        filename = 'Nye_Ejere_6.zip'
+        from django.conf import settings
+        settings.DO_USE_MD5 = False
+        result = self.create_ressources(filename)
+        if result is None:
+            self.fail("File does not exists")
+            return
+        self.assertEqual(result, False)
+
+
+class StoreStatsTest(unittest.TestCase):
+
+    def test_store_stats(self):
+        scan_id, scannerapp, webscan = self.create_ressources()
+
+        files_skipped_count = 110
+        files_scraped_count = 5
+        scannerapp.scanner = Scanner(scan_id)
+        scannerapp.scanner_spider = scannerapp.setup_scanner_spider()
+        scannerapp.scanner_spider.crawler.stats.set_value('last_modified_check/pages_skipped', files_skipped_count)
+        scannerapp.scanner_spider.crawler.stats.set_value('downloader/request_count', files_scraped_count)
+        scannerapp.scanner_spider.crawler.stats.get_stats()
+        scannerapp.store_stats()
+        from os2webscanner.models.statistic_model import Statistic
+        statistic = Statistic.objects.get(scan=webscan)
+        self.assertEqual(statistic.files_skipped_count, files_skipped_count)
+        self.assertEqual(statistic.files_scraped_count, files_scraped_count)
+
+    def create_ressources(self):
+        webscan = CreateWebScan.create_webscan(self)
+        try:
+            # python 3.4+ should use builtin unittest.mock not mock package
+            from unittest.mock import patch
+        except ImportError:
+            from mock import patch
+        scan_id = webscan.pk
+        args = ['does not matter', scan_id]
+        with patch.object(sys, 'argv', args):
+            from run import ScannerApp, get_project_settings
+            scannerapp = ScannerApp(scan_id, type(webscan).__name__)
+            settings = get_project_settings()
+            from scrapy.crawler import CrawlerProcess
+            scannerapp.crawler_process = CrawlerProcess(settings)
+        return scan_id, scannerapp, webscan
+
+    def test_store_multiple_stats(self):
+        scan_id, scannerapp, webscan = self.create_ressources()
+
+        for i in range(2):
+            files_skipped_count = 110
+            files_scraped_count = 5
+            scannerapp.scanner = Scanner(scan_id)
+            scannerapp.scanner_spider = scannerapp.setup_scanner_spider()
+            scannerapp.scanner_spider.crawler.stats.set_value('last_modified_check/pages_skipped', files_skipped_count)
+            scannerapp.scanner_spider.crawler.stats.set_value('downloader/request_count', files_scraped_count)
+            scannerapp.scanner_spider.crawler.stats.get_stats()
+            scannerapp.store_stats()
+
+        from os2webscanner.models.statistic_model import Statistic
+        statistic = Statistic.objects.get(scan=webscan)
+        self.assertEqual(statistic.files_skipped_count, files_skipped_count*2)
+        self.assertEqual(statistic.files_scraped_count, files_scraped_count*2)
+
+
+class CreateWebScan(object):
+
+    def create_webscan(self):
+        return WebScan.objects.create(
+            status=Scan.NEW,
+            scanner=WebScanner.objects.filter()[:1].get()
+        )
+
+
+class CreateWebScanner(object):
+
+    def create_webscanner(self):
+        return WebScanner.objects.create(
+            organization=Organization.objects.filter()[:1].get()
+        )
+
+
+class CreateOrganization(object):
+
+    def create_organization(self):
+        return Organization.objects.create(
+            name='Magenta',
+            contact_email='info@magenta.dk',
+            contact_phone='39393939'
+        )
+
+
+class CreateWebDomain(object):
+
+    def create_webdomain(self):
+        return WebDomain.objects.create(
+            url='/something/test',
+            organization=Organization.objects.get()
+        )
+
+
+class RegexRuleIsAllMatchTest(unittest.TestCase):
+
+    organization = None
+
+    def setUp(self):
+        self.create_organization()
+
+    def create_regexrule(self, name, description, cpr_enabled, ignore_irrelevant):
+        if self.organization is None:
+            self.create_organization()
+
+        rule = RegexRule(name=name,
+                         organization=self.organization,
+                         description=description,
+                         cpr_enabled=cpr_enabled,
+                         ignore_irrelevant=ignore_irrelevant
+                         )
+        return rule
+
+    def create_organization(self):
+        if self.organization is None:
+            self.organization = Organization(name='Magenta',
+                                             contact_email='info@magenta.dk',
+                                             contact_phone='39393939'
+                                             )
+
+    def create_scanner_regexrule(self, pattern_objects, rule):
+        regex_rule = regexrule.RegexRule(
+            name=rule.name,
+            pattern_strings=pattern_objects,
+            sensitivity=rule.sensitivity,
+            cpr_enabled=rule.cpr_enabled,
+            ignore_irrelevant=rule.ignore_irrelevant,
+            do_modulus11=rule.do_modulus11
+        )
+        return regex_rule
+
+    def test_cpr_and_name_rule(self):
+        text = """
+        2110625629 Bacon ipsum dolor amet turducken 
+        kevin brisket ribeye jowl short l
+        tail Danni Als alcatra boudin filet mignon shankle 
+        """
+        rule = self.create_regexrule('cpr_and_name_rule',
+                                     'Finds cpr and name',
+                                     True, False)
+
+        regex_pattern = PatternMockObject()
+        regex_rule = self.create_scanner_regexrule(regex_pattern, rule)
+        matches = regex_rule.execute(text)
+        result = regex_rule.is_all_match(matches)
+        self.assertEqual(result, True)
+
+    def test_cpr_name_something_rule_match(self):
+        text = """
+        Something bacon ipsum dolor amet turducken 
+        kevin brisket ribeye 2110625629 jowl short l
+        tail Danni Als alcatra boudin filet mignon shankle 
+        """
+        rule = self.create_regexrule('cpr_name_something_rule',
+                                     'Finds cpr, name and the word Something.',
+                                     True, False)
+
+        pattern_objects = PatternMockObjects()
+        regex_pattern1 = PatternMockObject()
+        regex_pattern2 = PatternMockObject()
+
+        regex_pattern2.pattern_string = 'Something'
+
+        pattern_objects.add_pattern_string(regex_pattern1)
+        pattern_objects.add_pattern_string(regex_pattern2)
+
+        regex_rule = self.create_scanner_regexrule(pattern_objects, rule)
+        matches = regex_rule.execute(text)
+        result = regex_rule.is_all_match(matches)
+        self.assertEqual(result, True)
+
+    def test_cpr_name_something_rule_no_match(self):
+        text = """
+        Something bacon ipsum dolor amet turducken 
+        kevin brisket ribeye 2110625629 jowl short l
+        tail Danni Als alcatra boudin filet mignon shankle 
+        """
+        rule = self.create_regexrule('cpr_name_something_rule',
+                                     'Finds cpr, name and the word something.',
+                                     True, False)
+
+        pattern_objects = PatternMockObjects()
+        regex_pattern1 = PatternMockObject()
+        regex_pattern2 = PatternMockObject()
+
+        regex_pattern2.pattern_string = 'something'
+
+        pattern_objects.add_pattern_string(regex_pattern1)
+        pattern_objects.add_pattern_string(regex_pattern2)
+
+        regex_rule = self.create_scanner_regexrule(pattern_objects, rule)
+        matches = regex_rule.execute(text)
+        result = regex_rule.is_all_match(matches)
+        self.assertEqual(result, False)
+
+    def test_name_something_rule_match(self):
+        text = """
+        Something bacon ipsum dolor amet turducken 
+        kevin brisket ribeye 2110625629 jowl short l
+        tail Danni Als alcatra boudin filet mignon shankle 
+        """
+        rule = self.create_regexrule('name_something_rule',
+                                     'Finds name and the word Something.',
+                                     False, False)
+
+        pattern_objects = PatternMockObjects()
+        regex_pattern1 = PatternMockObject()
+        regex_pattern2 = PatternMockObject()
+
+        regex_pattern2.pattern_string = 'Something'
+
+        pattern_objects.add_pattern_string(regex_pattern1)
+        pattern_objects.add_pattern_string(regex_pattern2)
+
+        regex_rule = self.create_scanner_regexrule(pattern_objects, rule)
+        matches = regex_rule.execute(text)
+        result = regex_rule.is_all_match(matches)
+        self.assertEqual(result, True)
+
+
+class PatternMockObjects(object):
+    """
+    This is not pretty but it works :)
+    The fastest way for me, to go around django queryset method call in scanner/regexrule.py line 38.
+    """
+
+    def __init__(self):
+        self.pattern_string_objects = []
+
+    def add_pattern_string(self, pattern_string_obj):
+        self.pattern_string_objects.append(pattern_string_obj)
+
+    def all(self):
+        return self.pattern_string_objects
+
+
+class PatternMockObject(object):
+
+    pattern_string = '[A-Z]([a-z]+|\.)(?:\s+[A-Z]([a-z]+|\.))' \
+                     '*(?:\s+[a-z][a-z\-]+){0,2}\s+[A-Z]([a-z]+|\.)'
+
+    def all(self):
+        return [self]
 
 
 def main():

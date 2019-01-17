@@ -14,7 +14,6 @@ class FileScannerCreate(ScannerCreate):
 
     model = FileScanner
     fields = ['name', 'schedule', 'domains',
-              'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
               'do_name_scan', 'do_ocr', 'do_address_scan', 'do_last_modified_check',
               'regex_rules', 'recipients']
 
@@ -28,7 +27,6 @@ class FileScannerUpdate(ScannerUpdate):
 
     model = FileScanner
     fields = ['name', 'schedule', 'domains',
-              'do_cpr_scan', 'do_cpr_modulus11', 'do_cpr_ignore_irrelevant',
               'do_name_scan', 'do_ocr', 'do_address_scan', 'do_last_modified_check',
               'regex_rules', 'recipients']
 

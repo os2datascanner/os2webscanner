@@ -46,7 +46,7 @@ function handleSubChoices(choice) {
   var siblings = choice.siblings("input[type='checkbox']");
   siblings.prop("disabled", !state);
   if(!state) {
-    siblings.prop("checked", false);
+    siblings.prop("checked", false).change();
   }
 }
 

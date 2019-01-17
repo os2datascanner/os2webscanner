@@ -15,6 +15,8 @@ PROJECT_DIR = os.path.dirname(BASE_DIR)
 VAR_DIR = os.path.join(PROJECT_DIR, 'var')
 LOGS_DIR = os.path.join(VAR_DIR, 'logs')
 
+DEBUG = True
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -24,6 +26,7 @@ TEMPLATES = [
         ],
         'APP_DIRS': True,
         'OPTIONS': {
+            'debug': DEBUG,
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
@@ -46,19 +49,23 @@ SITE_ID = 1
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'ld0_g)jhp3v27&od88-_v83ldb!0i^bac=jh+je!!=jbvra7@j'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-TEMPLATE_DEBUG = True
-
+# Used for filescan and mounting
 PRODUCTION_MODE = False
+
+# If webscan on the current installation is needed, enable it here
+ENABLE_WEBSCAN = True
 
 # If filescan on the current installation is needed, enable it here
 ENABLE_FILESCAN = True
 
+# If exchangescan on the current installation is needed, enable it here
+ENABLE_EXCHANGESCAN = True
+
 # Add settings here to make them accessible from templates
 SETTINGS_EXPORT = [
     'ENABLE_FILESCAN',
+    'ENABLE_EXCHANGESCAN',
+    'ENABLE_WEBSCAN',
 ]
 
 # Application definition
@@ -127,6 +134,8 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+USE_THOUSAND_SEPARATOR = True
 
 
 # Static files (CSS, JavaScript, Images)

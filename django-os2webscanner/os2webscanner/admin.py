@@ -28,6 +28,7 @@ from .models.organization_model import Organization
 from .models.userprofile_model import UserProfile
 from .models.webdomain_model import WebDomain
 from .models.filedomain_model import FileDomain
+from .models.exchangedomain_model import ExchangeDomain
 from .models.regexrule_model import RegexRule
 from .models.scanner_model import Scanner
 from .models.match_model import Match
@@ -42,8 +43,8 @@ from .models.statistic_model import Statistic
 from .models.regexpattern_model import RegexPattern
 
 ar = admin.site.register
-classes = [Authentication, Organization, WebDomain, FileDomain, RegexRule,
-           Scanner, Scan, Match, Url, ConversionQueueItem, ReferrerUrl,
+classes = [Authentication, Organization, WebDomain, FileDomain, ExchangeDomain,
+           RegexRule, Scanner, Scan, Match, Url, ConversionQueueItem, ReferrerUrl,
            UrlLastModified, Group, Md5Sum, Statistic, RegexPattern]
 list(map(ar, classes))
 

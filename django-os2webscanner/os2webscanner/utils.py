@@ -22,7 +22,6 @@ import shutil
 import requests
 import time
 import datetime
-
 import chardet
 import logging
 
@@ -162,7 +161,7 @@ def scans_for_summary_report(summary, from_date=None, to_date=None):
         start_time__lt=to_date
     ).order_by('id')
 
-    return (relevant_scans, from_date, to_date)
+    return relevant_scans, from_date, to_date
 
 
 def send_summary_report(summary, from_date=None, to_date=None,
@@ -272,3 +271,19 @@ def secure_save(object):
        object.save()
     except IntegrityError as ie:
        logging.error('Error Happened: {}'.format(ie))
+
+
+def domain_form_manipulate(form):
+    """ Manipulates domain form fields.
+    All form widgets will have added the css class 'form-control'.
+    All domain names must be without spaces.
+    """
+    for fname in form.fields:
+        f = form.fields[fname]
+        f.widget.attrs['class'] = 'form-control'
+
+    if form['url'].value():
+        if ' ' in form['url'].value():
+            form.add_error('url', u'Mellemrum er ikke tilladt i domænenavnet.')
+
+    return form

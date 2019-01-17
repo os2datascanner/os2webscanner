@@ -22,6 +22,7 @@ import datetime
 
 from django.utils import timezone
 from django.conf import settings
+from django.core.validators import validate_comma_separated_integer_list
 
 from django.db import models
 from django.db.models.aggregates import Count
@@ -92,9 +93,12 @@ class Scan(models.Model):
     do_last_modified_check = models.BooleanField(default=True,
                                                  verbose_name='Tjek sidst ændret dato')
 
-    columns = models.CommaSeparatedIntegerField(max_length=128,
-                                                null=True,
-                                                blank=True)
+    columns = models.CharField(validators=[validate_comma_separated_integer_list],
+                               max_length=128,
+                               null=True,
+                               blank=True
+                               )
+
     regex_rules = models.ManyToManyField(RegexRule,
                                          blank=True,
                                          verbose_name='Regex regler')
@@ -151,6 +155,12 @@ class Scan(models.Model):
             url__scan=self,
             status=ConversionQueueItem.FAILED
         ).count()
+
+    @property
+    def get_valid_domains(self):
+        return self.domains.filter(
+            validation_status=Domain.VALID
+        )
 
     @property
     def status_text(self):
@@ -243,16 +253,16 @@ class Scan(models.Model):
         used by the scan.
         """
         # Pre-save stuff
-        if (self.status in [Scan.DONE, Scan.FAILED] and
-                    (self._old_status != self.status)):
+        if self.status in [Scan.DONE, Scan.FAILED] and \
+                (self._old_status != self.status):
             self.end_time = datetime.datetime.now(tz=timezone.utc)
 
         # Actual save
         super().save(*args, **kwargs)
         # Post-save stuff
 
-        if (self.status in [Scan.DONE, Scan.FAILED] and
-                    (self._old_status != self.status)):
+        if self.status in [Scan.DONE, Scan.FAILED] and \
+                (self._old_status != self.status):
             # Send email
             from os2webscanner.utils import notify_user
             try:
@@ -265,25 +275,9 @@ class Scan(models.Model):
 
     def cleanup_finished_scan(self, log=False):
         """Delete pending conversion queue items and remove the scan dir."""
-        # Delete all pending conversionqueue items
-        from .conversionqueueitem_model import ConversionQueueItem
-        pending_items = ConversionQueueItem.objects.filter(
-            url__scan=self,
-            status=ConversionQueueItem.NEW
-        )
-        if log:
-            if pending_items.exists():
-                print("Deleting %d remaining conversion queue items from " \
-                      "finished scan %s" % (
-                          pending_items.count(), self))
-
-        pending_items.delete()
-
         # remove all files associated with the scan
         if self.is_scan_dir_writable():
-            if log:
-                print("Deleting scan directory: %s %s", self.scan_dir,
-            shutil.rmtree(self.scan_dir, True))
+            self.delete_scan_dir(log)
 
     @classmethod
     def cleanup_finished_scans(cls, scan_age, log=False):
@@ -299,8 +293,30 @@ class Scan(models.Model):
             Q(status__in=(Scan.DONE, Scan.FAILED)),
             Q(end_time__gt=oldest_end_time) | Q(end_time__isnull=True)
         )
+
         for scan in inactive_scans:
+            scan.delete_all_pending_conversionqueue_items(log)
             scan.cleanup_finished_scan(log=log)
+
+    def delete_all_pending_conversionqueue_items(self, log):
+        # Delete all pending conversionqueue items
+        from .conversionqueueitem_model import ConversionQueueItem
+        pending_items = ConversionQueueItem.objects.filter(
+            url__scan=self,
+            status=ConversionQueueItem.NEW
+        )
+        if log:
+            if pending_items.exists():
+                print("Deleting %d remaining conversion queue items from "
+                      "finished scan %s" % (
+                          pending_items.count(), self))
+        pending_items.delete()
+
+    def delete_scan_dir(self, log):
+        if log:
+            print("Deleting scan directory: {}".format(self.scan_dir))
+            shutil.rmtree(self.scan_dir, True)
+            print('Directory deleted: {}'.format(self.scan_dir))
 
     @classmethod
     def pause_non_ocr_conversions_on_scans_with_too_many_ocr_items(cls):
@@ -355,33 +371,41 @@ class Scan(models.Model):
 
     def set_scan_status_start(self):
         # Update start_time to now and status to STARTED
-        scanner = self.scanner
-        scanner.is_running = True
-        scanner.save()
+        self.set_scanner_status(True)
         self.start_time = datetime.datetime.now(tz=timezone.utc)
         self.status = Scan.STARTED
         self.reason = ""
-        self.pid = os.getpid()
+        pid = os.getpid()
+        print('Starting scan job with pid {}'.format(pid))
+        self.pid = pid
         self.save()
 
     def set_scan_status_done(self):
-        scanner = self.scanner
-        scanner.is_running = False
-        scanner.save()
+        self.set_scanner_status()
         self.status = Scan.DONE
         self.pid = None
         self.reason = ""
         self.save()
 
-    def set_scan_status_failed(self):
+    def set_scan_status_failed(self, reason):
         self.pid = None
         self.status = Scan.FAILED
-        scanner = self.scanner
-        scanner.is_running = False
-        scanner.save()
-        self.reason = "Killed"
+        self.set_scanner_status()
+        if reason is None:
+            self.reason = "Killed"
+        else:
+            self.reason = reason
+
+        self.log_occurrence(
+            self.reason
+        )
         # TODO: Remove all non-processed conversion queue items.
         self.save()
+
+    def set_scanner_status(self, status=False):
+        scanner = self.scanner
+        scanner.is_running = status
+        scanner.save()
 
     class Meta:
         abstract = False

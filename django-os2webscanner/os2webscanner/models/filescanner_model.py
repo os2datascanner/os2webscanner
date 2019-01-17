@@ -37,7 +37,9 @@ class FileScanner(Scanner):
         # hvad kan gå galt: mount fejler, login er forkert,
         # login mangler, login skal slet ikke være der, stien til netværksdrev er forkert.
         for domain in self.domains.all():
-            if not domain.smbmount():
+            if domain.url == "//sparketilhjørne":
+                pass
+            elif not domain.smb_mount():
                 return FileDomain.MOUNT_FAILED
 
         from .filescan_model import FileScan

@@ -27,8 +27,13 @@ from .views.webscanner_views import WebScannerCreate, WebScannerUpdate, WebScann
 from .views.filescanner_views import FileScannerCreate, FileScannerRun, FileScannerAskRun, FileScannerUpdate, \
     FileScannerDelete, FileScannerList
 from .views.views import OrganizationUpdate, OrganizationList
-from .views.domain_views import WebDomainUpdate, FileDomainUpdate, DomainValidate, WebDomainDelete, \
-    WebDomainList, FileDomainList, WebDomainCreate, FileDomainCreate, FileDomainDelete
+from .views.domain_views import DomainValidate
+from .views.exchangedomain_views import ExchangeDomainList, ExchangeDomainCreate, ExchangeDomainUpdate, \
+    ExchangeDomainDelete
+from .views.filedomain_views import FileDomainList, FileDomainCreate, FileDomainUpdate, FileDomainDelete
+from .views.webdomain_views import WebDomainList, WebDomainCreate, WebDomainUpdate, WebDomainDelete
+from .views.exchangescanner_views import ExchangeScannerList, ExchangeScannerCreate, ExchangeScannerUpdate, \
+    ExchangeScannerDelete, ExchangeScannerRun, ExchangeScannerAskRun
 from .views.views import GroupList, GroupCreate, GroupUpdate, GroupDelete
 from .views.rule_views import RuleList, RuleCreate, RuleUpdate, RuleDelete
 from .views.views import SummaryList, SummaryCreate, SummaryUpdate, SummaryDelete
@@ -36,7 +41,7 @@ from .views.views import SummaryReport, DialogSuccess, SystemStatusView
 from .views.views import file_upload, referrer_content
 from .models.webscanner_model import WebScanner
 from .models.filescanner_model import FileScanner
-
+from .models.exchangescanner_model import ExchangeScanner
 
 js_info_dict = {
     'packages': ('os2webscanner', 'recurrence')
@@ -45,6 +50,19 @@ js_info_dict = {
 urlpatterns = [
     # App URLs
     url(r'^$', MainPageView.as_view(), name='index'),
+    url(r'^exchangescanners/$', ExchangeScannerList.as_view(), name='exchangescanners'),
+    url(r'^exchangescanners/add/$', ExchangeScannerCreate.as_view(), name='exchangescanner_add'),
+    url(r'^exchangescanners/(?P<pk>\d+)/delete/$', ExchangeScannerDelete.as_view(),
+        name='exchangescanner_delete'),
+    url(r'^exchangescanners/(?P<pk>\d+)/$', ExchangeScannerUpdate.as_view(),
+        name='exchangescanner_update'),
+    url(r'^exchangescanners/(?P<pk>\d+)/run/$', ExchangeScannerRun.as_view(),
+        name='exchangescanner_run'),
+    url(r'^exchangescanners/(?P<pk>\d+)/askrun/$',
+        ExchangeScannerAskRun.as_view(
+            template_name='os2webscanner/scanner_askrun.html',
+            model=ExchangeScanner),
+        name='scanner_askrun'),
     url(r'^webscanners/$', WebScannerList.as_view(), name='webscanners'),
     url(r'^webscanners/add/$', WebScannerCreate.as_view(), name='webscanner_add'),
     url(r'^webscanners/(?P<pk>\d+)/delete/$', WebScannerDelete.as_view(),
@@ -60,17 +78,26 @@ urlpatterns = [
         name='scanner_update'),
     url(r'^filescanners/$', FileScannerList.as_view(), name='filescanners'),
     url(r'^filescanners/add/$', FileScannerCreate.as_view(), name='filescanner_add'),
+    url(r'^filescanners/(?P<pk>\d+)/$', FileScannerUpdate.as_view(),
+        name='scanner_update'),
     url(r'^filescanners/(?P<pk>\d+)/delete/$', FileScannerDelete.as_view(),
         name='scanner_delete'),
     url(r'^filescanners/(?P<pk>\d+)/run/$', FileScannerRun.as_view(),
-        name='scanner_run'),
+        name='filescanner_run'),
     url(r'^filescanners/(?P<pk>\d+)/askrun/$',
         FileScannerAskRun.as_view(
             template_name='os2webscanner/scanner_askrun.html',
             model=FileScanner),
-        name='scanner_askrun'),
-    url(r'^filescanners/(?P<pk>\d+)/$', FileScannerUpdate.as_view(),
-        name='scanner_update'),
+        name='filescanner_askrun'),
+    url(r'^exchangedomains/$', ExchangeDomainList.as_view(), name='exchangedomains'),
+    url(r'^exchangedomains/add/$', ExchangeDomainCreate.as_view(), name='exchangedomain_add'),
+    url(r'^exchangedomains/(?P<pk>\d+)/validate/$', DomainValidate.as_view(),
+        name='exchange_domain_validate'),
+    url(r'^(exchangedomains)/(\d+)/(success)/$', DialogSuccess.as_view()),
+    url(r'^exchangedomains/(?P<pk>\d+)/$', ExchangeDomainUpdate.as_view(),
+        name='exchange_domain_update'),
+    url(r'^exchangedomains/(?P<pk>\d+)/delete/$', ExchangeDomainDelete.as_view(),
+        name='exchange_domain_delete'),
     url(r'^filedomains/$', FileDomainList.as_view(), name='filedomains'),
     url(r'^filedomains/add/$', FileDomainCreate.as_view(), name='filedomain_add'),
     url(r'^filedomains/(?P<pk>\d+)/validate/$', DomainValidate.as_view(),
@@ -162,6 +189,11 @@ urlpatterns = [
     url(r'^(filescanners|filedomains|rules|groups|reports/summaries)/(\d+)/(created)/$',
         DialogSuccess.as_view()),
     url(r'^(filescanners|filedomains|rules|groups|reports/summaries)/(\d+)/(saved)/$',
+        DialogSuccess.as_view()),
+    # General dialog success handler
+    url(r'^(exchangescanners|exchangedomains|rules|groups|reports/summaries)/(\d+)/(created)/$',
+        DialogSuccess.as_view()),
+    url(r'^(exchangescanners|exchangedomains|rules|groups|reports/summaries)/(\d+)/(saved)/$',
         DialogSuccess.as_view()),
     url(r'^jsi18n/$', javascript_catalog, js_info_dict),
     # System functions

@@ -38,6 +38,10 @@ class RegexRule(models.Model):
                                       default=Sensitivity.HIGH,
                                       verbose_name='Følsomhed')
 
+    cpr_enabled = models.BooleanField(default=False, verbose_name='Scan CPR')
+    do_modulus11 = models.BooleanField(default=False, verbose_name='Tjek modulus-11')
+    ignore_irrelevant = models.BooleanField(default=False, verbose_name='Ignorer ugyldige fødselsdatoer')
+
     @property
     def display_name(self):
         """The name used when displaying the regexrule on the web page."""

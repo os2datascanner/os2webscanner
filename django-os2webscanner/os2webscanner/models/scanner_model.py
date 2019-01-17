@@ -22,11 +22,10 @@ import os
 import datetime
 import json
 
-from subprocess import Popen
+from django.core.validators import validate_comma_separated_integer_list
+from django.db import models
 
 from model_utils.managers import InheritanceManager
-from django.conf import settings
-from django.db import models
 from recurrence.fields import RecurrenceField
 
 from .organization_model import Organization
@@ -74,9 +73,11 @@ class Scanner(models.Model):
         default=True,
         verbose_name='Ignorer ugyldige fødselsdatoer')
 
-    columns = models.CommaSeparatedIntegerField(max_length=128,
-                                                null=True,
-                                                blank=True)
+    columns = models.CharField(validators=[validate_comma_separated_integer_list],
+                               max_length=128,
+                               null=True,
+                               blank=True
+                               )
 
     regex_rules = models.ManyToManyField(RegexRule,
                                          blank=True,
@@ -134,7 +135,10 @@ class Scanner(models.Model):
         "Scanneren kunne ikke startes," +
         " fordi den ikke har nogen gyldige domæner."
     )
-
+    EXCHANGE_EXPORT_IS_RUNNING = (
+        "Scanneren kunne ikke startes," +
+        " fordi der er en exchange export igang."
+    )
 
     # DON'T USE DIRECTLY !!!
     # Use process_urls property instead.
@@ -206,7 +210,7 @@ class Scanner(models.Model):
         """Return the name of the scanner."""
         return self.__unicode__()
 
-    def run(self, test_only=False, blocking=False, user=None):
+    def run(self, type, test_only=False, blocking=False, user=None):
         """Run a scan with the Scanner.
 
         Return the Scan object if we started the scanner.
@@ -228,29 +232,15 @@ class Scanner(models.Model):
         # Add user as recipient on scan
         if user:
             scan.recipients.add(user.profile)
-        # Get path to run script
-        SCRAPY_WEBSCANNER_DIR = os.path.join(settings.PROJECT_DIR, "scrapy-webscanner")
 
-        if test_only:
-            return scan
+        import json
+        from os2webscanner.amqp_communication import amqp_connection_manager
+        queue_name = 'datascanner'
+        message = {'type': type, 'id': scan.pk, 'logfile': scan.scan_log_file}
+        amqp_connection_manager.start_amqp(queue_name)
+        amqp_connection_manager.send_message(queue_name, json.dumps(message))
+        amqp_connection_manager.close_connection()
 
-        if not os.path.exists(scan.scan_log_dir):
-            os.makedirs(scan.scan_log_dir)
-        log_file = open(scan.scan_log_file, "a")
-
-        if not os.path.exists(scan.scan_output_files_dir):
-            os.makedirs(scan.scan_output_files_dir)
-
-        try:
-            process = Popen([os.path.join(SCRAPY_WEBSCANNER_DIR, "run.sh"),
-                             str(scan.pk)], cwd=SCRAPY_WEBSCANNER_DIR,
-                            stderr=log_file,
-                            stdout=log_file)
-            if blocking:
-                process.communicate()
-        except Exception as e:
-            print(e)
-            return None
         return scan
 
     class Meta:

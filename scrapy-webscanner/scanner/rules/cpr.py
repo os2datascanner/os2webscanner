@@ -47,10 +47,11 @@ class CPRRule(Rule):
         self.do_modulus11 = do_modulus11
         self.whitelist = load_whitelist(whitelist)
 
-    def execute(self, text):
+    def execute(self, text, mask_digits=True):
         """Execute the CPR rule."""
         matches = match_cprs(text, do_modulus11=self.do_modulus11,
                              ignore_irrelevant=self.ignore_irrelevant,
+                             mask_digits=mask_digits,
                              whitelist=self.whitelist)
         return matches
 

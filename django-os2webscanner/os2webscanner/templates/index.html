@@ -1,6 +1,6 @@
 {% extends 'os2webscanner/base.html' %}
 {%  block title %}
-OS2Webscanner
+OS2datascanner
 {% endblock %}
 
 {% block body %}
@@ -8,7 +8,13 @@ OS2Webscanner
 <div class="container">
   <ul class="row cards">
     <li class="col-xs-12 col-sm-6 col-md-4">
-      <a href="/webscanners/" class="panel panel-default">
+      {% if settings.ENABLE_WEBSCAN %}
+        <a href="/webscanners/" class="panel panel-default">
+      {% elif settings.ENABLE_FILESCAN %}
+        <a href="/filescanners/" class="panel panel-default">
+      {% elif settings.ENABLE_EXCHANGESCAN %}
+        <a href="/exchangescanners/" class="panel panel-default">
+      {% endif %}
         <div class="panel-body">
           <span class="h2">
             Scannerjob
@@ -18,7 +24,13 @@ OS2Webscanner
       </a>
     </li>
     <li class="col-xs-12 col-sm-6 col-md-4">
-      <a href="/webdomains/" class="panel panel-default">
+      {% if settings.ENABLE_WEBSCAN %}
+        <a href="/webdomains/" class="panel panel-default">
+      {% elif settings.ENABLE_FILESCAN %}
+          <a href="/filedomains/" class="panel panel-default">
+      {% elif settings.ENABLE_EXCHANGESCAN %}
+          <a href="/exchangedomains/" class="panel panel-default">
+      {% endif %}
         <div class="panel-body">
           <span class="h2">
             Domæner
@@ -65,7 +77,7 @@ OS2Webscanner
 {% endblock %}
 
 {% block heading %} 
-OS2Webscanner
+OS2datascanner
 {% endblock %}
 
 {% block index_active %}active{% endblock %}

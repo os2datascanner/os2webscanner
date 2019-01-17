@@ -1,15 +1,13 @@
 from django import forms
 
-from ..validate import validate_domain, get_validation_str
+from ..validate import validate_domain
 
 from .views import RestrictedListView, RestrictedCreateView, \
-    RestrictedUpdateView, RestrictedDetailView, RestrictedDeleteView
+    RestrictedUpdateView, RestrictedDetailView
 
-from ..models.domain_model import Domain
-from ..models.webdomain_model import WebDomain
-from ..models.filedomain_model import FileDomain
 from ..models.authentication_model import Authentication
-from ..aescipher import encrypt, decrypt
+from ..models.domain_model import Domain
+from ..utils import domain_form_manipulate
 
 
 class DomainList(RestrictedListView):
@@ -27,22 +25,6 @@ class DomainList(RestrictedListView):
             query_set = query_set.order_by('url', 'pk')
 
         return query_set
-
-
-class WebDomainList(DomainList):
-
-    """Displays list of domains."""
-
-    model = WebDomain
-    type = 'web'
-
-
-class FileDomainList(DomainList):
-
-    """Displays list of domains."""
-
-    model = FileDomain
-    type = 'file'
 
 
 class DomainCreate(RestrictedCreateView):
@@ -79,62 +61,27 @@ class DomainCreate(RestrictedCreateView):
             f = form.fields[fname]
             f.widget.attrs['class'] = 'form-control'
 
-        return form
-
-
-class WebDomainCreate(DomainCreate):
-
-    """Web domain create form."""
-
-    model = WebDomain
-    fields = ['url', 'exclusion_rules', 'download_sitemap', 'sitemap_url',
-              'sitemap']
-
-    def get_success_url(self):
-        """The URL to redirect to after successful creation."""
-        return '/webdomains/%s/created/' % self.object.pk
-
-
-class FileDomainCreate(DomainCreate):
-
-    """File domain create form."""
-
-    model = FileDomain
-    fields = ['url', 'exclusion_rules']
-
-    def get_form(self, form_class=None):
-        """Adds special field password."""
-        if form_class is None:
-            form_class = self.get_form_class()
-
-        form = super().get_form(form_class)
-        form.fields['username'] = forms.CharField(max_length=1024, required=False)
-        form.fields['password'] = forms.CharField(max_length=50, required=False)
-        form.fields['domain'] = forms.CharField(max_length=2024, required=False)
-        return form
+        return domain_form_manipulate(form)
 
     def form_valid(self, form):
-        """Makes sure password gets encrypted before stored in db."""
+        """Makes sure authentication info gets stored in db."""
         filedomain = form.save(commit=False)
         authentication = Authentication()
-        if len(form.cleaned_data['username']) > 0:
+        if 'username' in form.cleaned_data and \
+                        len(form.cleaned_data['username']) > 0:
             username = str(form.cleaned_data['username'])
             authentication.username = username
-        if len(form.cleaned_data['password']) > 0:
-            iv, ciphertext = encrypt(str(form.cleaned_data['password']))
-            authentication.ciphertext = ciphertext
-            authentication.iv = iv
-        if len(form.cleaned_data['domain']) > 0:
+        if 'password' in form.cleaned_data and \
+                        len(form.cleaned_data['password']) > 0:
+            authentication.set_password(str(form.cleaned_data['password']))
+        if 'domain' in form.cleaned_data and \
+                        len(form.cleaned_data['domain']) > 0:
             domain = str(form.cleaned_data['domain'])
             authentication.domain = domain
         authentication.save()
         filedomain.authentication = authentication
         filedomain.save()
         return super().form_valid(form)
-
-    def get_success_url(self):
-        """The URL to redirect to after successful creation."""
-        return '/filedomains/%s/created/' % self.object.pk
 
 
 class DomainUpdate(RestrictedUpdateView):
@@ -177,7 +124,7 @@ class DomainUpdate(RestrictedUpdateView):
                 )
                 vm_field.widget.attrs['class'] = 'validateradio'
 
-        return form
+        return domain_form_manipulate(form)
 
     def form_valid(self, form):
         """Validate the submitted form."""
@@ -189,85 +136,18 @@ class DomainUpdate(RestrictedUpdateView):
             self.object = form.save(commit=False)
             self.object.organization = user_profile.organization
 
+        domain = form.save(commit=False)
+        authentication = domain.authentication
+        if 'username' in form.cleaned_data:
+            authentication.username = form.cleaned_data['username']
+        if 'password' in form.cleaned_data:
+            authentication.set_password(str(form.cleaned_data['password']))
+        if 'domain' in form.cleaned_data:
+            authentication.domain = form.cleaned_data['domain']
+        if authentication is not None:
+            authentication.save()
+
         return super().form_valid(form)
-
-
-class WebDomainUpdate(DomainUpdate):
-    """Update a web domain view."""
-
-    model = WebDomain
-    fields = ['url', 'exclusion_rules', 'download_sitemap',
-              'sitemap_url', 'sitemap']
-
-    def get_context_data(self, **kwargs):
-        """Get the context used when rendering the template."""
-        context = super().get_context_data(**kwargs)
-        for value, desc in WebDomain.validation_method_choices:
-            key = 'valid_txt_' + str(value)
-            context[key] = get_validation_str(self.object, value)
-        return context
-
-    def get_success_url(self):
-        """The URL to redirect to after successful updating.
-
-        Will redirect the user to the validate view if the form was submitted
-        with the 'save_and_validate' button.
-        """
-        if 'save_and_validate' in self.request.POST:
-            return 'validate/'
-        else:
-            return '/webdomains/%s/saved/' % self.object.pk
-
-
-class FileDomainUpdate(DomainUpdate):
-    """Update a file domain view."""
-
-    model = FileDomain
-    fields = ['url', 'exclusion_rules']
-
-    def get_form(self, form_class=None):
-        """Adds special field password and decrypts password."""
-        if form_class is None:
-            form_class = self.get_form_class()
-
-        form = super().get_form(form_class)
-        filedomain = self.get_object()
-        authentication = filedomain.authentication
-        form.fields['username'] = forms.CharField(max_length=1024, required=False)
-        form.fields['password'] = forms.CharField(max_length=50, required=False)
-        form.fields['domain'] = forms.CharField(max_length=2024, required=False)
-        if len(authentication.username) > 0:
-            form.fields['username'].initial = authentication.username
-        if len(authentication.ciphertext) > 0:
-            password = decrypt(bytes(authentication.iv),
-                               bytes(authentication.ciphertext))
-            form.fields['password'].initial = password
-        if len(authentication.domain) > 0:
-            form.fields['domain'].initial = authentication.domain
-        return form
-
-    def form_valid(self, form):
-        """Makes sure password gets encrypted before stored in db."""
-        filedomain = form.save(commit=False)
-        authentication = filedomain.authentication
-        authentication.username = form.cleaned_data['username']
-        iv, ciphertext = encrypt(form.cleaned_data['password'])
-        authentication.ciphertext = ciphertext
-        authentication.iv = iv
-        authentication.domain = form.cleaned_data['domain']
-        authentication.save()
-        return super().form_valid(form)
-
-    def get_success_url(self):
-        """The URL to redirect to after successful updating.
-
-        Will redirect the user to the validate view if the form was submitted
-        with the 'save_and_validate' button.
-        """
-        if 'save_and_validate' in self.request.POST:
-            return 'validate/'
-        else:
-            return '/filedomains/%s/saved/' % self.object.pk
 
 
 class DomainValidate(RestrictedDetailView):
@@ -290,20 +170,3 @@ class DomainValidate(RestrictedDetailView):
             context['validation_success'] = result
 
         return context
-
-
-class WebDomainDelete(RestrictedDeleteView):
-
-    """Delete a domain view."""
-
-    model = Domain
-    success_url = '/webdomains/'
-
-
-class FileDomainDelete(RestrictedDeleteView):
-
-    """Delete a domain view."""
-
-    model = Domain
-    success_url = '/filedomains/'
-

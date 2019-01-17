@@ -14,13 +14,12 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 """Text Processors."""
-
 from os2webscanner.utils import get_codec_and_string
 
-from ..scanner.scanner import Scanner
 from .processor import Processor
 import os
 import logging
+
 
 class TextProcessor(Processor):
 
@@ -48,10 +47,12 @@ class TextProcessor(Processor):
             logging.error('Error happened for file: {}'.format(url_object.url))
             return False
 
+        from ..scanner.scanner import Scanner
+
         scanner = Scanner(url_object.scan.pk)
 
         matches = scanner.execute_rules(data)
-        for match in matches:
+        for match in matches[:10]:
             match['url'] = url_object
             match['scan'] = url_object.scan
             if page_no:

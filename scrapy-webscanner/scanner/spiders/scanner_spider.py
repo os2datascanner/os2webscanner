@@ -35,11 +35,12 @@ from ..linkextractor import LxmlLinkExtractor
 
 from .base_spider import BaseScannerSpider
 
+from ..scanner.pre_analysis import PreDataScanner
+from pathlib import Path
+
 from ..processors.processor import Processor
 
-from os2webscanner.utils import capitalize_first
-
-from os2webscanner.utils import get_codec_and_string, secure_save
+from os2webscanner.utils import capitalize_first, get_codec_and_string, secure_save
 from os2webscanner.models.url_model import Url
 from os2webscanner.models.referrerurl_model import ReferrerUrl
 
@@ -62,6 +63,12 @@ class ScannerSpider(BaseScannerSpider):
 
         self.start_urls = []
 
+        self.crawl = False
+
+        self.do_last_modified_check = False
+
+        self.do_last_modified_check_head_request = False
+
         self.setup_spider()
 
     def setup_spider(self):
@@ -70,7 +77,6 @@ class ScannerSpider(BaseScannerSpider):
         if scan_object.scanner.process_urls:
             # from the scanner.
             self.start_urls = scan_object.scanner.process_urls
-            self.crawl = False
         else:
             self.crawl = True
             # Otherwise, use the roots of the domains as starting URLs
@@ -87,8 +93,9 @@ class ScannerSpider(BaseScannerSpider):
                     url = url.replace('*.', '')
                     logging.info("Start url %s" % str(url))
                     self.start_urls.append(url)
+
                 self.do_last_modified_check = getattr(
-                    scan_object.webscan, "do_last_modified_check"
+                    scan_object, "do_last_modified_check"
                 )
                 self.do_last_modified_check_head_request = getattr(
                     scan_object.webscan, "do_last_modified_check_head_request"
@@ -103,19 +110,26 @@ class ScannerSpider(BaseScannerSpider):
                 # Dict to cache referrer URL objects
                 self.referrer_url_objects = {}
                 self.external_urls = set()
-            elif hasattr(scan_object, 'filescan'):
+            else:
                 for path in self.allowed_domains:
-                    logging.info("Start path %s" % str(path))
-                    if not path.startswith('file://'):
-                        path = 'file://%s' % path
-
+                    path = self.add_correct_file_path_prefix(path)
                     self.start_urls.append(path)
 
                 self.do_last_modified_check = getattr(
-                    scan_object.filescan, "do_last_modified_check"
+                    scan_object, "do_last_modified_check"
                 )
-                # Not used on type filescan
-                self.do_last_modified_check_head_request = False
+
+    def add_correct_file_path_prefix(self, path):
+        """
+        Helper method for making sure file path starts with file://.
+        This prefix is needed by scrapy, or else scrapy does not know it is a file path.
+        :param path: path to folder or file
+        :return: path with prefix file://
+        """
+        logging.info("Start path %s" % str(path))
+        if not path.startswith('file://'):
+            path = 'file://%s' % path
+        return path
 
     def start_requests(self):
         """Return requests for all starting URLs AND sitemap URLs."""
@@ -123,8 +137,11 @@ class ScannerSpider(BaseScannerSpider):
         logging.info("Starting requests")
         sitemap_start_urls = self.runner.get_start_urls_from_sitemap()
         requests = []
+        logging.info("Adding requests for {0} sitemap start URLs".format(
+                len(sitemap_start_urls)))
         for url in sitemap_start_urls:
             try:
+                logging.info("Adding request for sitemap URL {0}".format(url))
                 requests.append(
                     Request(url["url"],
                             callback=self.parse,
@@ -136,13 +153,13 @@ class ScannerSpider(BaseScannerSpider):
                 logging.error("URL failed: {0} ({1})".format(url, str(e)))
 
         for url in self.start_urls:
-            if hasattr(self.scanner.scan_object, 'filescan'):
+            if hasattr(self.scanner.scan_object, 'filescan') \
+                    or hasattr(self.scanner.scan_object, 'exchangescan'):
                 # Some of the files are directories. We handle them in handle_error method.
                 requests.extend(self.append_file_request(url))
-
             else:
                 requests.append(Request(url, callback=self.parse,
-                                         errback=self.handle_error))
+                                        errback=self.handle_error))
         return requests
 
     def parse(self, response):
@@ -187,19 +204,22 @@ class ScannerSpider(BaseScannerSpider):
         :param filepath: The path to the files
         :return: filemap
         """
-        path = filepath.replace('file://', '')
-        filemap = []
-        if os.path.isdir(path) is not True:
-            return filemap
-        for (dirpath, dirnames, filenames) in walk(path):
-            for filename in filenames:
-                filename = filepath + '/' + filename
-                filemap.append(filename)
-            for dirname in dirnames:
-                dirname = filepath + '/' + dirname
-                filemap.append(dirname)
-            break;
 
+        path = Path(filepath.replace('file://', ''))
+        files = PreDataScanner(path, detection_method='mime')
+        filemap = []
+        relevant_files = 0
+        relevant_file_size = 0
+
+        logging.info('Starting folder analysis...')
+        for path, info in files.nodes.items():
+            if info['filetype']['relevant'] and info['filetype']['supported']:
+                relevant_files += 1
+                relevant_file_size += info['size']
+                filemap.append('file://' + str(path))
+        logging.info('Found {0} relevant files ({1} bytes).'.format(
+                relevant_files, relevant_file_size))
+        logging.info('Folder analysis completed...')
         return filemap
 
     def handle_error(self, failure):
@@ -211,8 +231,10 @@ class ScannerSpider(BaseScannerSpider):
         url = getattr(failure.value, "filename", "Not Filled")
         status_message = "Not filled"
         status_code = -1
-        if  hasattr(self.scanner.scan_object, 'filescan'):
+        if hasattr(self.scanner.scan_object, 'filescan') \
+                or hasattr(self.scanner.scan_object, 'exchangescan'):
             # If file is a directory loop through files within
+            logging.debug('Failure value: {}'.format(str(failure.value)))
             if isinstance(failure.value, IOError) \
                     and failure.value.errno == errno.EISDIR:
                 logging.debug('File that is failing: {0}'.format(failure.value.filename))
@@ -224,7 +246,7 @@ class ScannerSpider(BaseScannerSpider):
             elif isinstance(failure.value, IOError):
                 status_message = str(failure.value.errno)
         # Else if scanner is type webscan
-        elif  hasattr(self.scanner.scan_object, 'webscan'):
+        elif hasattr(self.scanner.scan_object, 'webscan'):
             # If we should not do link check or failure is ignore request
             # and it is not a http error we know it is a last-modified check.
             if (not self.scanner.scan_object.webscan.do_link_check or
@@ -274,7 +296,7 @@ class ScannerSpider(BaseScannerSpider):
         requests = []
         for file in files:
             codecs, stringdata = get_codec_and_string(file)
-            stringdata = stringdata.replace('#', '%23')
+            stringdata = stringdata.replace('#', '%23').replace('?', '%3F')
             try:
                 requests.append(Request(stringdata, callback=self.scan,
                                 errback=self.handle_error))
@@ -326,7 +348,21 @@ class ScannerSpider(BaseScannerSpider):
             # Ignore this URL
             return
 
-        url_object = Url(url=response.request.url, mime_type=mime_type,
+        url = response.request.url
+        if not hasattr(self.scanner.scan_object, 'webscan'):
+            domain = self.scanner.valid_domains.first()
+            old = ''
+            new = ''
+            if hasattr(self.scanner.scan_object, 'filescan'):
+                old = domain.filedomain.mountpath
+                new = domain.filedomain.url
+            elif hasattr(self.scanner.scan_object, 'exchangescan'):
+                old = 'file://' + domain.exchangedomain.dir_to_scan
+                new = domain.exchangedomain.url
+
+            url = response.request.url.replace(old, new)
+
+        url_object = Url(url=url, mime_type=mime_type,
                          scan=self.scanner.scan_object)
         url_object.save()
 

@@ -26,7 +26,6 @@ import codecs
 import random
 import subprocess
 import hashlib
-import logging
 import traceback
 
 from django.db import transaction, IntegrityError, DatabaseError
@@ -202,13 +201,16 @@ class Processor(object):
         tmp_dir = url_object.tmp_dir
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
+
         file_name = os.path.basename(url_object.url)
+
         if file_name == '':
             file_name = url_object.pk + ".data"
         tmp_file_path = os.path.join(tmp_dir, file_name)
-        f = open(tmp_file_path, 'wb')
-        f.write(data)
-        f.close()
+
+        with open(tmp_file_path, 'wb') as tmp_file:
+            tmp_file.write(data)
+
         datetime_print("Wrote {0} to file {1}".format(
             url_object.url,
             tmp_file_path)
@@ -222,6 +224,7 @@ class Processor(object):
             status=ConversionQueueItem.NEW,
         )
         new_item.save()
+
         return True
 
     def process_file(self, file_path, url, page_no=None):
@@ -496,9 +499,9 @@ class Processor(object):
         'image': 'ocr',
 
         'text/html': 'html',
-        'text/xml': 'html',
+        'text/xml': 'xml',
         'application/xhtml+xml': 'html',
-        'application/xml': 'html',
+        'application/xml': 'xml',
         'application/vnd.google-earth.kml+xml': 'html',
 
         'application/javascript': 'text',

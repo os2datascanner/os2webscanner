@@ -10,8 +10,10 @@
 <p>
   {% if webscanner.pk %}
       <a href="/webscanners/{{webscanner.pk}}/run/" class="btn btn-primary">Ja, kør!</a>
-  {% else %}
+  {% elif filescanner.pk %}
       <a href="/filescanners/{{filescanner.pk}}/run/" class="btn btn-primary">Ja, kør!</a>
+  {% elif exchangescanner.pk %}
+      <a href="/exchangescanners/{{exchangescanner.pk}}/run/" class="btn btn-primary">Ja, kør!</a>
   {% endif %}
 </p>
 {% else %}
