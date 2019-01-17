@@ -120,8 +120,8 @@ class OffsiteDownloaderMiddleware(object):
             return None
         else:
             domain = urlparse_cached(request).hostname
-            logging.debug("Filtered offsite request to %(domain)r: %(request)s",
-                          domain=domain, request=request)
+            logging.debug("Filtered offsite request to %(domain)r: %(request)s" %
+                          {"domain": domain, "request": request})
             raise IgnoreRequest
 
     def should_follow(self, request, spider):

@@ -31,7 +31,7 @@ os.environ["SCRAPY_SETTINGS_MODULE"] = "scanner.settings"
 
 django.setup()
 
-from twisted.internet import reactor
+from twisted.internet import reactor, defer
 from scrapy.crawler import CrawlerProcess
 from scrapy import signals
 from scrapy.utils.project import get_project_settings
@@ -81,6 +81,8 @@ class ScannerApp(multiprocessing.Process):
         # For now scanner_type is not used...
         self.scanner_type = scanner_type
         self.logfile = logfile
+        self.sitemap_crawler = None
+        self.scanner_crawler = None
 
     def run(self):
         """Updates the scan status and sets the pid.
@@ -106,63 +108,41 @@ class ScannerApp(multiprocessing.Process):
         self.scanner.scan_object.set_scan_status_done()
 
     def start_filescan_crawlers(self):
-        """Starting a file scan by first analysing the folder to scan,
-        and afterwards setting up the scrapy spider."""
+        """Start a file scan."""
 
-        self.filescan_analysis()
-
-        self.sitemap_spider = None
-        self.scanner_spider = self.setup_scanner_spider()
-        self.start_crawlers()
-
-    def filescan_analysis(self):
-        """Analysing the folder domain by logging folder,
-        file count and folder size. Subfolders and files included."""
-
-        logging.info('Starting folder analysis...')
-        from scanner.scanner.analysis_scan import get_dir_files_and_bytes_count
-
-        domains = self.scanner.get_domain_urls()
-        if len(domains) > 0:
-            domain = domains[0]
-            logging.info('Starting folder analysis on path {}'.format(domain))
-            files_count, dir_count, bytes_count = get_dir_files_and_bytes_count(domain)
-
-            logging.info('The number of files file scan is '
-                         'going to scan is: {}'.format(files_count))
-
-            logging.info('The number of folders file scan is '
-                         'going to scan is: {}'.format(dir_count))
-
-            logging.info('The size of the domain file scan is '
-                         'going to scan: {}'.format(bytes_count))
-
-        logging.info('Folder analysis completed...')
+        logging.info("Beginning crawler process.")
+        self.run_crawlers()
+        self.crawler_process.start()
+        logging.info("Crawler process finished.")
 
     def start_webscan_crawlers(self):
-        # Don't sitemap scan when running over RPC or if no sitemap is set on scan
-        if not self.scanner.scan_object.scanner.process_urls:
-            if len(self.scanner.get_sitemap_urls()) is not 0\
-                    or len(self.scanner.get_uploaded_sitemap_urls()) is not 0:
-                self.sitemap_spider = self.setup_sitemap_spider()
-            else:
-                self.sitemap_spider = None
-        else:
-            self.sitemap_spider = None
+        logging.info("Beginning crawler process.")
+        self.run_crawlers()
+        self.crawler_process.start()
+        logging.info("Crawler process finished.")
 
-        self.scanner_spider = self.setup_scanner_spider()
-
-        self.start_crawlers()
         if (self.scanner.scan_object.webscan.do_link_check
             and self.scanner.scan_object.webscan.do_external_link_check):
             # Do external link check
-            self.external_link_check(self.scanner_spider.external_urls)
+            self.external_link_check(self.scanner_crawler.spider.external_urls)
 
-    def start_crawlers(self):
-        # Run the crawlers and block
-        logging.info('Starting crawler process.')
-        self.crawler_process.start()
-        logging.info('Crawler process started.')
+    @defer.inlineCallbacks
+    def run_crawlers(self):
+        # Don't sitemap scan when running over RPC or if no sitemap is set on
+        # scan (or if the scanner isn't a web scanner!)
+        if hasattr(self.scanner.scan_object, 'webscan') \
+                and not self.scanner.scan_object.scanner.process_urls:
+            if len(self.scanner.get_sitemap_urls()) is not 0\
+                    or len(self.scanner.get_uploaded_sitemap_urls()) is not 0:
+                yield self.crawler_process.crawl(self.make_sitemap_crawler(),
+                        scanner=self.scanner,
+                        runner=self,
+                        sitemap_urls=self.scanner.get_sitemap_urls(),
+                        uploaded_sitemap_urls=
+                            self.scanner.get_uploaded_sitemap_urls(),
+                        sitemap_alternate_links=True)
+        yield self.crawler_process.crawl(self.make_scanner_crawler(),
+                scanner=self.scanner, runner=self)
 
     def handle_killed(self):
         """Handle being killed by updating the scan status."""
@@ -171,34 +151,27 @@ class ScannerApp(multiprocessing.Process):
         self.scan.logging_occurrence("SCANNER FAILED: Killed")
         logging.error("Killed")
 
-    def setup_sitemap_spider(self):
-        """Setup the sitemap spider."""
-        crawler = self.crawler_process.create_crawler(SitemapURLGathererSpider)
-        self.crawler_process.crawl(
-            crawler,
-            scanner=self.scanner,
-            runner=self,
-            sitemap_urls=self.scanner.get_sitemap_urls(),
-            uploaded_sitemap_urls=self.scanner.get_uploaded_sitemap_urls(),
-            sitemap_alternate_links=True
-            )
-        return crawler.spider
+    def make_sitemap_crawler(self):
+        """Setup the sitemap spider and crawler."""
+        self.sitemap_crawler = \
+            self.crawler_process.create_crawler(SitemapURLGathererSpider)
+        return self.sitemap_crawler
 
-    def setup_scanner_spider(self):
-        """Setup the scanner spider."""
-        crawler = self.crawler_process.create_crawler(ScannerSpider)
-        crawler.signals.connect(self.handle_closed,
-                                signal=signals.spider_closed)
-        crawler.signals.connect(self.handle_error, signal=signals.spider_error)
-        crawler.signals.connect(self.handle_idle, signal=signals.spider_idle)
-        self.crawler_process.crawl(crawler, scanner=self.scanner, runner=self)
-        return crawler.spider
+    def make_scanner_crawler(self):
+        """Setup the scanner spider and crawler."""
+        self.scanner_crawler = \
+            self.crawler_process.create_crawler(ScannerSpider)
+        csigs = self.scanner_crawler.signals
+        csigs.connect(self.handle_closed, signal=signals.spider_closed)
+        csigs.connect(self.handle_error, signal=signals.spider_error)
+        csigs.connect(self.handle_idle, signal=signals.spider_idle)
+        return self.scanner_crawler
 
     def get_start_urls_from_sitemap(self):
         """Return the URLs found by the sitemap spider."""
-        if self.sitemap_spider is not None:
+        if self.sitemap_crawler is not None:
             logging.debug('Sitemap spider found')
-            return self.sitemap_spider.get_urls()
+            return self.sitemap_crawler.spider.get_urls()
         else:
             return []
 
@@ -221,7 +194,7 @@ class ScannerApp(multiprocessing.Process):
                                  status_code=result["status_code"],
                                  status_message=result["status_message"])
                 broken_url.save()
-                self.scanner_spider.associate_url_referrers(broken_url)
+                self.scanner_crawler.spider.associate_url_referrers(broken_url)
 
     def handle_closed(self, spider, reason):
         """Handle the spider being finished."""
@@ -233,7 +206,7 @@ class ScannerApp(multiprocessing.Process):
 
     def store_stats(self):
         """Stores scrapy scanning stats when scan is completed."""
-        logging.info('Stats: {0}'.format(self.scanner_spider.crawler.stats.get_stats()))
+        logging.info('Stats: {0}'.format(self.scanner_crawler.stats.get_stats()))
 
         try:
             statistics, created = Statistic.objects.get_or_create(scan=self.scanner.scan_object)
@@ -242,19 +215,19 @@ class ScannerApp(multiprocessing.Process):
                 self.scan_id)
             )
 
-        if self.scanner_spider.crawler.stats.get_value(
+        if self.scanner_crawler.stats.get_value(
                 'last_modified_check/pages_skipped'):
-            statistics.files_skipped_count += self.scanner_spider.crawler.stats.get_value(
+            statistics.files_skipped_count += self.scanner_crawler.stats.get_value(
                 'last_modified_check/pages_skipped'
             )
-        if self.scanner_spider.crawler.stats.get_value(
+        if self.scanner_crawler.stats.get_value(
                 'downloader/request_count'):
-            statistics.files_scraped_count += self.scanner_spider.crawler.stats.get_value(
+            statistics.files_scraped_count += self.scanner_crawler.stats.get_value(
                 'downloader/request_count'
             )
-        if self.scanner_spider.crawler.stats.get_value(
+        if self.scanner_crawler.stats.get_value(
                 'downloader/exception_type_count/builtins.IsADirectoryError'):
-            statistics.files_is_dir_count += self.scanner_spider.crawler.stats.get_value(
+            statistics.files_is_dir_count += self.scanner_crawler.stats.get_value(
                 'downloader/exception_type_count/builtins.IsADirectoryError'
             )
 
