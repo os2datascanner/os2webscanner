@@ -65,7 +65,9 @@ class SitemapURLGathererSpider(BaseScannerSpider, SitemapSpider):
                     if any(x.search(loc) for x in self._follow):
                         yield Request(loc, callback=self._parse_sitemap)
             elif s.type == 'urlset':
-                for url in iter(s):
+                urls = list(iter(s))
+                logging.info("Checking {0} sitemap URLs".format(len(urls)))
+                for url in urls:
                     loc = url['loc']
                     # Add the lastmod date to the Request meta
                     lastmod = url.get('lastmod', None)
@@ -74,6 +76,7 @@ class SitemapURLGathererSpider(BaseScannerSpider, SitemapSpider):
                     for r, c in self._cbs:
                         if r.search(loc):
                             self.urls.append({"url": loc, "lastmod": lastmod})
+                            logging.info("Adding sitemap URL {0}".format(loc))
                             break
 
     def get_urls(self):
