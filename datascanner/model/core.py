@@ -1,5 +1,9 @@
+from urllib.parse import quote, unquote, urlsplit, urlunsplit
 from mimetypes import guess_type
 from subprocess import run, PIPE, DEVNULL
+
+class Error(Exception):
+    pass
 
 class _TypPropEq:
     """\
@@ -46,6 +50,28 @@ same type and properties compare equal.
 
     def files(self, sm):
         raise NotImplemented("Source.files")
+
+    def to_url(self):
+        raise NotImplemented("Source.to_url")
+
+    __url_handlers = {}
+    @staticmethod
+    def _register_url_handler(scheme, handler):
+        print("Source._register_url_handler(scheme={0}, handler={1})".format(scheme, handler))
+        assert not scheme in Source.__url_handlers
+        Source.__url_handlers[scheme] = handler
+
+    @staticmethod
+    def from_url(url):
+        print("Source.from_url(url={0})".format(url))
+        scheme, netloc, path, _, _ = urlsplit(url)
+        if not scheme in Source.__url_handlers:
+            raise UnknownSchemeError(scheme)
+        return Source.__url_handlers[scheme](
+                scheme, netloc, unquote(path) if path else None)
+
+class UnknownSchemeError(Error):
+    pass
 
 class SourceManager:
     """\
