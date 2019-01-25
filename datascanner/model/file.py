@@ -46,7 +46,7 @@ class FilesystemResource(Resource):
     def __init__(self, handle, sm):
         super(FilesystemResource, self).__init__(handle, sm)
         self._full_path = \
-            self.open().joinpath(self.get_handle().get_relative_path())
+            self._open_source().joinpath(self.get_handle().get_relative_path())
         self._hash = None
         self._stat = None
 

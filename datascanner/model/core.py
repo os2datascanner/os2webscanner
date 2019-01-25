@@ -176,7 +176,7 @@ get to a file's contents. As such, they are not serialisable."""
 
     def get_handle(self):
         return self._handle
-    def open(self):
+    def _open_source(self):
         return self._sm.open(self.get_handle().get_source())
 
     def get_hash(self):

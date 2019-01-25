@@ -31,7 +31,7 @@ class WebResource(Resource):
 
     def get_header(self):
         if not self._header:
-            response = self.open().request(
+            response = self._open_source().request(
                     "HEAD", str(self._handle.get_relative_path()))
             self._header = dict(response.headers)
         return self._header
@@ -47,7 +47,7 @@ class WebResource(Resource):
     def __enter__(self):
         assert not self._ntr
         try:
-            response = self.open().request(
+            response = self._open_source().request(
                     "GET", str(self._handle.get_relative_path()))
             self._ntr = _NamedTemporaryResource(self._handle.get_name())
             with self._ntr.open("wb") as res:
