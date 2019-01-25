@@ -1,6 +1,7 @@
 from ..smb import SMBHandle, SMBSource
 from ..core import Source
 from ..file import FilesystemSource
+from ..http import WebSource, SecureWebSource
 
 from pathlib import Path
 
@@ -18,6 +19,11 @@ sources_and_urls = [
         "smb://SYSGRP;FaithfullA:secretpassword@10.0.0.30/Share%24/Documents"),
     (SMBSource("//10.0.0.30/Share$/Documents", "FaithfullA", None, "SYSGRP"),
         "smb://SYSGRP;FaithfullA@10.0.0.30/Share%24/Documents"),
+
+    (WebSource("www.example.com"),
+        "http://www.example.com"),
+    (SecureWebSource("www.example.com"),
+        "https://www.example.com"),
 ]
 
 def equality_check(generated, reference):

@@ -1,5 +1,8 @@
-from urllib3 import HTTPConnectionPool
-from utilities import NamedTemporaryResource
+from model.core import Source, Handle, Resource
+from model.utilities import NamedTemporaryResource
+
+from urllib.parse import urlsplit, urlunsplit
+from urllib3 import HTTPConnectionPool, HTTPSConnectionPool
 from dateutil.parser import parse
 
 class WebSource(Source):
@@ -15,6 +18,44 @@ class WebSource(Source):
 
     def _close(self, pool):
         pool.close()
+
+    def to_url(self):
+        netloc = \
+            self._host + ((':' + self._port) if not self._port == 80 else '')
+        return urlunsplit(('http', netloc, '', None, None))
+
+    @staticmethod
+    def from_url(url):
+        scheme, netloc, path, _, _ = urlsplit(url)
+        assert not path
+        host = netloc.split(':', maxsplit=1)
+        return WebSource(host[0], 80 if len(host) == 1 else int(host[1]))
+
+Source._register_url_handler("http", WebSource.from_url)
+
+class SecureWebSource(WebSource):
+    def __init__(self, host, port=443):
+        super(SecureWebSource, self).__init__(host, port)
+
+    def __str__(self):
+        return "SecureWebSource({0}:{1})".format(self._host, self._port)
+
+    def _open(self, sm):
+        return HTTPSConnectionPool(self._host, self._port)
+
+    def to_url(self):
+        netloc = \
+            self._host + ((':' + self._port) if not self._port == 443 else '')
+        return urlunsplit(('https', netloc, '', None, None))
+
+    @staticmethod
+    def from_url(url):
+        scheme, netloc, path, _, _ = urlsplit(url)
+        assert not path
+        host = netloc.split(':', maxsplit=1)
+        return SecureWebSource(host[0], 443 if len(host) == 1 else int(host[1]))
+
+Source._register_url_handler("https", SecureWebSource.from_url)
 
 class WebHandle(Handle):
     def __init__(self, source, path):
