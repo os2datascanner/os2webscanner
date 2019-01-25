@@ -52,18 +52,22 @@ same type and properties compare equal.
         raise NotImplemented("Source.files")
 
     def to_url(self):
+        """\
+Returns a representation of this Source as a URL. The resulting URL can be
+passed to the Source.from_url function to produce a new Source that compares
+equal to this one."""
         raise NotImplemented("Source.to_url")
 
     __url_handlers = {}
     @staticmethod
     def _register_url_handler(scheme, handler):
-        print("Source._register_url_handler(scheme={0}, handler={1})".format(scheme, handler))
         assert not scheme in Source.__url_handlers
         Source.__url_handlers[scheme] = handler
 
     @staticmethod
     def from_url(url):
-        print("Source.from_url(url={0})".format(url))
+        """\
+Parses the given URL to produce a new Source."""
         scheme, netloc, path, _, _ = urlsplit(url)
         if not scheme in Source.__url_handlers:
             raise UnknownSchemeError(scheme)
@@ -153,7 +157,7 @@ and call its compute_type() method instead.)
 
     def follow(self, sm):
         """\
-Follow this Handle using the state in the StateManager @sm, returning a
+Follows this Handle using the state in the StateManager @sm, returning a
 concrete Resource.
 """
         raise NotImplementedError("Handle.follow")
