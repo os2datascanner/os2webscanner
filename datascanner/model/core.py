@@ -97,8 +97,9 @@ Handles unserialisable!)
 
     def open(self, source):
         if not self.is_open(source):
+            o = source._open(self)
             self._order.append(source)
-            self._opened[source] = source._open(self)
+            self._opened[source] = o
         return self._opened[source]
 
     def __enter__(self):
