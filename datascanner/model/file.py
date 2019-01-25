@@ -1,6 +1,6 @@
 from model.core import Source, Handle, Resource
 
-from urllib.parse import quote, urlunsplit
+from urllib.parse import quote, unquote, urlsplit, urlunsplit
 from hashlib import md5
 from pathlib import Path
 from datetime import datetime
@@ -29,9 +29,10 @@ class FilesystemSource(Source):
         return urlunsplit(('file', '', quote(str(self._path)), None, None))
 
     @staticmethod
-    def from_url(scheme, netloc, path=None):
+    def from_url(url):
+        scheme, netloc, path, _, _ = urlsplit(url)
         assert not netloc
-        return FilesystemSource(path)
+        return FilesystemSource(unquote(path) if path else None)
 
 Source._register_url_handler("file", FilesystemSource.from_url)
 

@@ -1,4 +1,3 @@
-from urllib.parse import quote, unquote, urlsplit, urlunsplit
 from mimetypes import guess_type
 from subprocess import run, PIPE, DEVNULL
 
@@ -76,11 +75,10 @@ equal to this one."""
     def from_url(url):
         """\
 Parses the given URL to produce a new Source."""
-        scheme, netloc, path, _, _ = urlsplit(url)
+        scheme, _ = url.split(':', maxsplit=1)
         if not scheme in Source.__url_handlers:
             raise UnknownSchemeError(scheme)
-        return Source.__url_handlers[scheme](
-                scheme, netloc, unquote(path) if path else None)
+        return Source.__url_handlers[scheme](url)
 
 class UnknownSchemeError(Error):
     pass

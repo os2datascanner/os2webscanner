@@ -3,7 +3,7 @@ from model.file import FilesystemResource
 
 from os import rmdir
 from regex import compile, match
-from urllib.parse import quote, urlunsplit
+from urllib.parse import quote, unquote, urlsplit, urlunsplit
 from pathlib import Path
 from tempfile import mkdtemp
 from subprocess import run
@@ -77,11 +77,12 @@ class SMBSource(Source):
 
     netloc_regex = compile(r"^(((\w+);)?(\w+)(:(\w+))?@)?([\w.]+)$")
     @staticmethod
-    def from_url(scheme, netloc, path):
+    def from_url(url):
+        scheme, netloc, path, _, _ = urlsplit(url)
         match = SMBSource.netloc_regex.match(netloc)
         if match:
             _, _, domain, username, _, password, unc = match.groups()
-            return SMBSource("//" + unc + path,
+            return SMBSource("//" + unc + unquote(path),
                 username or None, password or None, domain or None)
         else:
             return None
