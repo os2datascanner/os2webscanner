@@ -13,7 +13,7 @@ class ZipSource(Source):
     def __str__(self):
         return "ZipSource({0})".format(self._handle)
 
-    def files(self, sm):
+    def handles(self, sm):
         _, zipfile = sm.open(self)
         for f in zipfile.namelist():
             if not f[-1] == "/":

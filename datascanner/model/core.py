@@ -53,11 +53,11 @@ will later pass to _close.
 Closes a cookie previously returned by _open."""
         raise NotImplemented("Source._close")
 
-    def files(self, sm):
+    def handles(self, sm):
         """\
 Yields Handles corresponding to every leaf node in this hierarchy. These
 Handles are generated in an undefined order."""
-        raise NotImplemented("Source.files")
+        raise NotImplemented("Source.handles")
 
     def to_url(self):
         """\

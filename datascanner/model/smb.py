@@ -54,7 +54,7 @@ class SMBSource(Source):
         finally:
             rmdir(mntdir)
 
-    def files(self, sm):
+    def handles(self, sm):
         mntdir = sm.open(self)
         for d in mntdir.glob("**"):
             for f in d.iterdir():

@@ -10,7 +10,7 @@ class FilesystemSource(Source):
         self._path = Path(path)
         assert self._path.is_absolute()
 
-    def files(self, sm):
+    def handles(self, sm):
         for d in self._path.glob("**"):
             for f in d.iterdir():
                 if f.is_file():
