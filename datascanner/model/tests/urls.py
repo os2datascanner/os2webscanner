@@ -1,5 +1,6 @@
 from ..smb import SMBHandle, SMBSource
 from ..core import Source
+from ..data import DataSource
 from ..file import FilesystemSource
 from ..http import WebSource, SecureWebSource
 
@@ -24,6 +25,9 @@ sources_and_urls = [
         "http://www.example.com"),
     (SecureWebSource("www.example.com"),
         "https://www.example.com"),
+
+    (DataSource(b"This is a test", "text/plain"),
+        "data:text/plain;base64,VGhpcyBpcyBhIHRlc3Q="),
 ]
 
 def equality_check(generated, reference):
