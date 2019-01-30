@@ -80,6 +80,29 @@ Parses the given URL to produce a new Source."""
             raise UnknownSchemeError(scheme)
         return Source.__url_handlers[scheme](url)
 
+    __mime_handlers = {}
+    @staticmethod
+    def _register_mime_handler(mime, constructor):
+        assert not mime in Source.__mime_handlers
+        Source.__mime_handlers[mime] = constructor
+
+    @staticmethod
+    def from_handle(handle, sm=None):
+        """\
+Tries to create a Source from a Handle.
+
+This will only work if the target of the Handle in question can meaningfully be
+interpreted as the root of a hierarchy of its own -- for example, if it's an
+archive."""
+        if not sm:
+            mime = handle.guess_type()
+        else:
+            mime = handle.follow(sm).compute_type()
+        if mime in Source.__mime_handlers:
+            return Source.__mime_handlers[mime](handle)
+        else:
+            return None
+
 class UnknownSchemeError(Error):
     pass
 
