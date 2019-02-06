@@ -25,7 +25,6 @@ import magic
 import codecs
 import random
 import subprocess
-import hashlib
 import traceback
 
 from django.db import transaction, IntegrityError, DatabaseError
@@ -34,7 +33,6 @@ from django.utils import timezone
 from django.conf import settings
 
 from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
-from os2webscanner.models.md5sum_model import Md5Sum
 
 
 # Minimum width and height an image must have to be scanned
@@ -43,14 +41,6 @@ MIN_OCR_DIMENSION_BOTH = 7
 # Minimum width or height (at least one dimension) an image must have to be
 # scanned
 MIN_OCR_DIMENSION_EITHER = 64
-
-
-def get_md5_sum(data):
-    """Helper function to calculate md5 sum."""
-
-    md5 = hashlib.md5(data).hexdigest()
-
-    return md5
 
 
 def get_ocr_page_no(ocr_file_name):
@@ -129,44 +119,6 @@ class Processor(object):
         """
         return settings.VAR_DIR
 
-    def is_md5_known(self, data, scan):
-        """Decide if we know a given file by calculating its MD5."""
-
-        if settings.DO_USE_MD5:
-            md5 = get_md5_sum(data)
-            exists = Md5Sum.objects.filter(
-                organization=scan.scanner.organization,
-                md5=md5,
-                is_cpr_scan=scan.do_cpr_scan,
-                is_check_mod11=scan.do_cpr_modulus11,
-                is_ignore_irrelevant=scan.do_cpr_ignore_irrelevant,
-            ).count() > 0
-        else:
-            exists = False
-
-        return exists
-
-    def store_md5(self, data, scan):
-
-        """
-        Store MD5 sum for these scan parameters & data.
-        """
-        if settings.DO_USE_MD5:
-            md5str = get_md5_sum(data)
-
-            md5 = Md5Sum(
-                organization=scan.scanner.organization,
-                md5=md5str,
-                is_cpr_scan=scan.do_cpr_scan,
-                is_check_mod11=scan.do_cpr_modulus11,
-                is_ignore_irrelevant=scan.do_cpr_ignore_irrelevant,
-            )
-            try:
-                md5.save()
-            except IntegrityError:
-                # This happens, we now know - but is not actually an error.
-                pass
-
     def handle_spider_item(self, data, url_object):
         """Process an item from a spider. Must be overridden.
 
@@ -194,9 +146,6 @@ class Processor(object):
         # Get temporary directory
         if not isinstance(data, bytes):
             data = data.encode('utf-8')
-
-        if self.is_md5_known(data, url_object.scan):
-            return True
 
         tmp_dir = url_object.tmp_dir
         if not os.path.exists(tmp_dir):
@@ -396,9 +345,6 @@ class Processor(object):
         """
         with open(item.file_path, "rb") as f:
             data = f.read()
-            if self.is_md5_known(data, item.url.scan):
-                # Already processed this file, nothing more to do
-                return True
 
         tmp_dir = item.tmp_dir
         if not os.path.exists(tmp_dir):
@@ -406,9 +352,6 @@ class Processor(object):
 
         result = self.convert(item, tmp_dir)
         if result:
-            # Conversion successful, store MD5 sum.
-            self.store_md5(data, item.url.scan)
-
             if os.path.exists(item.file_path):
                 os.remove(item.file_path)
 
