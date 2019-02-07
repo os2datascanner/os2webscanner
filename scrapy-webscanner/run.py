@@ -49,6 +49,8 @@ from os2webscanner.models.statistic_model import Statistic
 from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
 from os2webscanner.models.url_model import Url
 
+from dateutil.parser import parse as parse_datetime
+
 import linkchecker
 
 # import signal
@@ -71,7 +73,7 @@ timezone.activate(timezone.get_default_timezone())
 class ScannerApp(multiprocessing.Process):
     """A scanner application which can be run."""
 
-    def __init__(self, scan_id, scanner_type, logfile=None):
+    def __init__(self, scan_id, scanner_type, logfile=None, last_started=None):
         """
         Initialize the scanner application.
         Takes scan id as input, which is directly related to the scan job id in the database.
@@ -81,6 +83,8 @@ class ScannerApp(multiprocessing.Process):
         # For now scanner_type is not used...
         self.scanner_type = scanner_type
         self.logfile = logfile
+        self.last_started = \
+            parse_datetime(last_started) if last_started else None
         self.sitemap_crawler = None
         self.scanner_crawler = None
 

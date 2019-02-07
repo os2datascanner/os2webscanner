@@ -236,7 +236,18 @@ class Scanner(models.Model):
         import json
         from os2webscanner.amqp_communication import amqp_connection_manager
         queue_name = 'datascanner'
-        message = {'type': type, 'id': scan.pk, 'logfile': scan.scan_log_file}
+        completed_scans = \
+            self.webscans.all().filter(start_time__isnull=False,
+                    end_time__isnull=False).order_by('pk')
+        last_scan_started_at = \
+            completed_scans.last().start_time.isoformat() \
+            if len(completed_scans) > 0 else None
+        message = {
+            'type': type,
+            'id': scan.pk,
+            'logfile': scan.scan_log_file,
+            'last_started': last_scan_started_at
+        }
         amqp_connection_manager.start_amqp(queue_name)
         amqp_connection_manager.send_message(queue_name, json.dumps(message))
         amqp_connection_manager.close_connection()
