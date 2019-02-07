@@ -233,18 +233,21 @@ class ScannerSpider(BaseScannerSpider):
         status_code = -1
         if hasattr(self.scanner.scan_object, 'filescan') \
                 or hasattr(self.scanner.scan_object, 'exchangescan'):
-            # If file is a directory loop through files within
-            logging.debug('Failure value: {}'.format(str(failure.value)))
-            if isinstance(failure.value, IOError) \
-                    and failure.value.errno == errno.EISDIR:
-                logging.debug('File that is failing: {0}'.format(failure.value.filename))
-
-                return self.append_file_request('file://' + failure.value.filename)
-            # If file has not been changes since last, an ignorerequest is returned.
-            elif isinstance(failure.value, IgnoreRequest):
+            if isinstance(failure.value, IgnoreRequest):
+                # The file hasn't changed since the last scan
                 return
-            elif isinstance(failure.value, IOError):
-                status_message = str(failure.value.errno)
+            else:
+                # If file is a directory loop through files within
+                logging.debug('Failure value: {}'.format(str(failure.value)))
+                if isinstance(failure.value, IOError) \
+                        and failure.value.errno == errno.EISDIR:
+                    logging.debug('File that is failing: {0}'.format(
+                            failure.value.filename))
+
+                    return self.append_file_request(
+                            'file://' + failure.value.filename)
+                elif isinstance(failure.value, IOError):
+                    status_message = str(failure.value.errno)
         # Else if scanner is type webscan
         elif hasattr(self.scanner.scan_object, 'webscan'):
             # If we should not do link check or failure is ignore request
