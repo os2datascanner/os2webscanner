@@ -25,7 +25,8 @@ def callback(ch, method, properties, body):
     print(" [x] Received %r" % body)
     ch.basic_ack(delivery_tag=method.delivery_tag)
     # Collect scan object and map properties
-    scan_job_list.append(ScannerApp(body['id'], body['type'], body["logfile"]))
+    scan_job_list.append(ScannerApp(
+            body['id'], body['type'], body['logfile'], body['last_started']))
     scan_job_list[-1].start()
 
 
