@@ -136,4 +136,14 @@
   //   }
   //   handleSubChoices(checkbox);
   // }
+
+    $( document ).ready(function() {
+        // Handler for .ready() called.
+        if($("#is_edit_view")){
+            $("#selected_rules .remove-rule").addClass('disabled')
+            /*$("#selected_rules span").css('color', '#aaa')*/
+            $("#selected_rules span").addClass('disabled')
+        }
+    });
+
 })(os2web, jQuery);
