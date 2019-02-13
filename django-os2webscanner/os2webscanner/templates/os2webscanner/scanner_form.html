@@ -59,6 +59,9 @@
   </ul>
 </div>
 {% endif %}
+{% if view.edit %}
+<p id="is_edit_view" style="display:none"></p>
+{% endif %}
 <form class="form-horizontal" role="form" method="post">
   {% csrf_token %}
   <div id="{{ form.name.auto_id }}_container" class="col-sm-12{% if form.name.errors %} has-error{% endif %}">
