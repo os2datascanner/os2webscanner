@@ -120,8 +120,8 @@ class OffsiteDownloaderMiddleware(object):
             return None
         else:
             domain = urlparse_cached(request).hostname
-            logging.debug("Filtered offsite request to %(domain)r: %(request)s",
-                          domain=domain, request=request)
+            logging.debug("Filtered offsite request to %(domain)r: %(request)s" %
+                          {"domain": domain, "request": request})
             raise IgnoreRequest
 
     def should_follow(self, request, spider):
@@ -455,35 +455,47 @@ class LastModifiedCheckMiddleware(object):
                     logging.debug("Last modified %s" % last_modified)
 
         if last_modified is not None:
-            # Check against the database
-            canonical_url = canonicalize_url(response.url)
-            try:
-                url_last_modified = UrlLastModified.objects.get(
-                    url=canonical_url,
-                    scanner=self.get_scanner_object(spider)
-                )
-                stored_last_modified = url_last_modified.last_modified
-                logging.info("Comparing header %s against stored %s" % (
-                    last_modified, stored_last_modified))
-                if (stored_last_modified is not None
-                        and last_modified == stored_last_modified):
-                    return False
+            if hasattr(spider.scanner.scan_object, 'filescan'):
+                # Has this file changed since the last time we ran a scan?
+                logging.info(
+                    "Comparing header %s against scan timestamp %s" %
+                            (last_modified, spider.runner.last_started))
+                last_scan_started_at = spider.runner.last_started
+                if not last_scan_started_at or \
+                        last_modified > last_scan_started_at:
+                    return True
                 else:
-                    # Update last-modified date in database
-                    url_last_modified.last_modified = last_modified
+                    return False
+            else:
+                # Check against the database
+                canonical_url = canonicalize_url(response.url)
+                try:
+                    url_last_modified = UrlLastModified.objects.get(
+                        url=canonical_url,
+                        scanner=self.get_scanner_object(spider)
+                    )
+                    stored_last_modified = url_last_modified.last_modified
+                    logging.info("Comparing header %s against stored %s" % (
+                        last_modified, stored_last_modified))
+                    if (stored_last_modified is not None
+                            and last_modified == stored_last_modified):
+                        return False
+                    else:
+                        # Update last-modified date in database
+                        url_last_modified.last_modified = last_modified
+                        url_last_modified.save()
+                        return True
+                except UrlLastModified.DoesNotExist:
+                    logging.debug("No stored Last-Modified header found.")
+                    url_last_modified = UrlLastModified(
+                        url=canonical_url,
+                        last_modified=last_modified,
+                        scanner=self.get_scanner_object(spider)
+                    )
+                    logging.debug("Saving new last-modified value %s" %
+                                url_last_modified)
                     url_last_modified.save()
                     return True
-            except UrlLastModified.DoesNotExist:
-                logging.debug("No stored Last-Modified header found.")
-                url_last_modified = UrlLastModified(
-                    url=canonical_url,
-                    last_modified=last_modified,
-                    scanner=self.get_scanner_object(spider)
-                )
-                logging.debug("Saving new last-modified value %s" %
-                            url_last_modified)
-                url_last_modified.save()
-                return True
         else:
             # If there is no Last-Modified header, we have to assume it has
             # been modified.

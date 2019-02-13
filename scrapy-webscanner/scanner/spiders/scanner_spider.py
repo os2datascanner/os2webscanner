@@ -35,6 +35,9 @@ from ..linkextractor import LxmlLinkExtractor
 
 from .base_spider import BaseScannerSpider
 
+from ..scanner.pre_analysis import PreDataScanner
+from pathlib import Path
+
 from ..processors.processor import Processor
 
 from os2webscanner.utils import capitalize_first, get_codec_and_string, secure_save
@@ -134,8 +137,11 @@ class ScannerSpider(BaseScannerSpider):
         logging.info("Starting requests")
         sitemap_start_urls = self.runner.get_start_urls_from_sitemap()
         requests = []
+        logging.info("Adding requests for {0} sitemap start URLs".format(
+                len(sitemap_start_urls)))
         for url in sitemap_start_urls:
             try:
+                logging.info("Adding request for sitemap URL {0}".format(url))
                 requests.append(
                     Request(url["url"],
                             callback=self.parse,
@@ -198,19 +204,22 @@ class ScannerSpider(BaseScannerSpider):
         :param filepath: The path to the files
         :return: filemap
         """
-        path = filepath.replace('file://', '')
-        filemap = []
-        if os.path.isdir(path) is not True:
-            return filemap
-        for (dirpath, dirnames, filenames) in walk(path):
-            for filename in filenames:
-                filename = filepath + '/' + filename
-                filemap.append(filename)
-            for dirname in dirnames:
-                dirname = filepath + '/' + dirname
-                filemap.append(dirname)
-            break;
 
+        path = Path(filepath.replace('file://', ''))
+        files = PreDataScanner(path, detection_method='mime')
+        filemap = []
+        relevant_files = 0
+        relevant_file_size = 0
+
+        logging.info('Starting folder analysis...')
+        for path, info in files.nodes.items():
+            if info['filetype']['relevant'] and info['filetype']['supported']:
+                relevant_files += 1
+                relevant_file_size += info['size']
+                filemap.append('file://' + str(path))
+        logging.info('Found {0} relevant files ({1} bytes).'.format(
+                relevant_files, relevant_file_size))
+        logging.info('Folder analysis completed...')
         return filemap
 
     def handle_error(self, failure):
@@ -224,18 +233,21 @@ class ScannerSpider(BaseScannerSpider):
         status_code = -1
         if hasattr(self.scanner.scan_object, 'filescan') \
                 or hasattr(self.scanner.scan_object, 'exchangescan'):
-            # If file is a directory loop through files within
-            logging.debug('Failure value: {}'.format(str(failure.value)))
-            if isinstance(failure.value, IOError) \
-                    and failure.value.errno == errno.EISDIR:
-                logging.debug('File that is failing: {0}'.format(failure.value.filename))
-
-                return self.append_file_request('file://' + failure.value.filename)
-            # If file has not been changes since last, an ignorerequest is returned.
-            elif isinstance(failure.value, IgnoreRequest):
+            if isinstance(failure.value, IgnoreRequest):
+                # The file hasn't changed since the last scan
                 return
-            elif isinstance(failure.value, IOError):
-                status_message = str(failure.value.errno)
+            else:
+                # If file is a directory loop through files within
+                logging.debug('Failure value: {}'.format(str(failure.value)))
+                if isinstance(failure.value, IOError) \
+                        and failure.value.errno == errno.EISDIR:
+                    logging.debug('File that is failing: {0}'.format(
+                            failure.value.filename))
+
+                    return self.append_file_request(
+                            'file://' + failure.value.filename)
+                elif isinstance(failure.value, IOError):
+                    status_message = str(failure.value.errno)
         # Else if scanner is type webscan
         elif hasattr(self.scanner.scan_object, 'webscan'):
             # If we should not do link check or failure is ignore request

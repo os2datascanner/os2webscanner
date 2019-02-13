@@ -10,6 +10,7 @@ Create mount directory:
 .. code:: bash
     $ sudo mkdir /tmp/mnt
     $ sudo chown -R www-data:www-data /tmp/mnt
+    $ sudo chmod 0700 /tmp/mnt
 
 Make it possible for www-data to execute mount and umount command:
 .. code:: bash

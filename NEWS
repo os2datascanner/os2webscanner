@@ -1,3 +1,13 @@
+* Version 2.0.0, January 17. 2019
+
+New in this version:
+    - Exchange scan is now supported. The exchange folders are downloaded first, and when finished, a file scan is started on the downloaded data.
+    - Starting new scanjobs is now done using rabbitmq.
+    - Scans are now only processing files the datascanner supports. That would be: text, csv, xml, html, pdf, image files (jpg, png, tiff, gif), ms office files.
+    - XML processor added.
+    - Better error handling during scans.
+    - A number of bug fixes: #26044, #26727 (the most important one. Sitemap processing was not always done before scan started), #24001, #25362
+
 * Version 1.8.0.6, September 25. 2018
 
 Hotfix:
