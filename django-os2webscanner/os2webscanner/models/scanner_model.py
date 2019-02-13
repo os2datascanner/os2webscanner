@@ -54,8 +54,6 @@ class Scanner(models.Model):
     schedule = RecurrenceField(max_length=1024,
                                verbose_name='Planlagt afvikling')
 
-    do_cpr_scan = models.BooleanField(default=True, verbose_name='CPR')
-
     do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
 
     do_address_scan = models.BooleanField(default=False,
@@ -65,13 +63,6 @@ class Scanner(models.Model):
 
     do_last_modified_check = models.BooleanField(default=True,
                                                  verbose_name='Tjek sidst ændret dato')
-
-    do_cpr_modulus11 = models.BooleanField(default=True,
-                                           verbose_name='Tjek modulus-11')
-
-    do_cpr_ignore_irrelevant = models.BooleanField(
-        default=True,
-        verbose_name='Ignorer ugyldige fødselsdatoer')
 
     columns = models.CharField(validators=[validate_comma_separated_integer_list],
                                max_length=128,
