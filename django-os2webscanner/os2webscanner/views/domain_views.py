@@ -1,7 +1,5 @@
 from django import forms
 
-from ..validate import validate_domain
-
 from .views import RestrictedListView, RestrictedCreateView, \
     RestrictedUpdateView, RestrictedDetailView
 
@@ -101,8 +99,6 @@ class DomainUpdate(RestrictedUpdateView):
 
         if self.request.user.is_superuser:
             fields.append('validation_status')
-        elif not self.object.validation_status:
-            fields.append('validation_method')
 
         self.fields = fields
         return fields
@@ -154,24 +150,3 @@ class DomainUpdate(RestrictedUpdateView):
 
         return super().form_valid(form)
 
-
-class DomainValidate(RestrictedDetailView):
-
-    """View that handles validation of a domain."""
-
-    model = Domain
-
-    def get_context_data(self, **kwargs):
-        """Perform validation and populate the template context."""
-        context = super().get_context_data(**kwargs)
-        context['validation_status'] = self.object.validation_status
-        if not self.object.validation_status:
-            result = validate_domain(self.object)
-
-            if result:
-                self.object.validation_status = Domain.VALID
-                self.object.save()
-
-            context['validation_success'] = result
-
-        return context
