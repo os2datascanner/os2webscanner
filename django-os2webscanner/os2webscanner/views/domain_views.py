@@ -64,6 +64,11 @@ class DomainCreate(RestrictedCreateView):
         return domain_form_manipulate(form)
 
     def form_valid(self, form):
+        if not self.request.user.is_superuser:
+            user_profile = self.request.user.profile
+            self.object = form.save(commit=False)
+            self.object.organization = user_profile.organization
+
         """Makes sure authentication info gets stored in db."""
         filedomain = form.save(commit=False)
         authentication = Authentication()
