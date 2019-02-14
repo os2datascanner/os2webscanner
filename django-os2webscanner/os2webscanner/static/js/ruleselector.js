@@ -123,27 +123,4 @@
     $("#available_rules").css("max-height", maxHeight + "px");
   });
 
-  // function toggleCheckboxGroup(checkbox) {
-  //   var state = checkbox.prop("checked");
-  //   var checkboxGroup = checkbox.parent(".checkbox-group");
-  //   var ruleLi = $("[data-systemrule-target=\"" + checkbox.attr("id").replace("id_", "") + "\"]");
-  //   if(state) {
-  //     checkboxGroup.show();
-  //     ruleLi.attr("data-disabled", "");
-  //   } else {
-  //     checkboxGroup.hide();
-  //     ruleLi.removeAttr("data-disabled");
-  //   }
-  //   handleSubChoices(checkbox);
-  // }
-
-    $( document ).ready(function() {
-        // Handler for .ready() called.
-        if($("#is_edit_view")){
-            $("#selected_rules .remove-rule").addClass('disabled')
-            /*$("#selected_rules span").css('color', '#aaa')*/
-            $("#selected_rules span").addClass('disabled')
-        }
-    });
-
 })(os2web, jQuery);
