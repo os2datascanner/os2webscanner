@@ -10,6 +10,8 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+from django.utils.translation import gettext_lazy as _
+
 BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 PROJECT_DIR = os.path.dirname(BASE_DIR)
 VAR_DIR = os.path.join(PROJECT_DIR, 'var')
@@ -91,6 +93,7 @@ XMLRPC_METHODS = (
 )
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -129,6 +132,11 @@ LANGUAGE_CODE = 'da-dk'
 
 LOCALE_PATHS = (
     os.path.join(PROJECT_DIR, 'django-os2webscanner/os2webscanner/locale/'),
+)
+
+LANGUAGES = (
+    ('da', _('Danish')),
+    ('en', _('English')),
 )
 
 TIME_ZONE = 'CET'
