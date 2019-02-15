@@ -127,6 +127,10 @@ DATABASE_POOL_ARGS = {
 
 LANGUAGE_CODE = 'da-dk'
 
+LOCALE_PATHS = (
+    os.path.join(PROJECT_DIR, 'django-os2webscanner/os2webscanner/locale/'),
+)
+
 TIME_ZONE = 'CET'
 
 USE_I18N = True
