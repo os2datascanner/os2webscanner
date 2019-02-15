@@ -234,7 +234,7 @@ max-width:20%;
   padding-bottom:0;
   margin-bottom:calc(.5em - 1px);
 }
-#selected_rules > .selected_rule span.disabled {
+#selected_rules > .selected_rule .disabled {
   color: #aaa
 }
 #selected_rules #rules_list {
