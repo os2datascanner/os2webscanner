@@ -27,11 +27,10 @@ from .views.webscanner_views import WebScannerCreate, WebScannerUpdate, WebScann
 from .views.filescanner_views import FileScannerCreate, FileScannerRun, FileScannerAskRun, FileScannerUpdate, \
     FileScannerDelete, FileScannerList
 from .views.views import OrganizationUpdate, OrganizationList
-from .views.domain_views import DomainValidate
 from .views.exchangedomain_views import ExchangeDomainList, ExchangeDomainCreate, ExchangeDomainUpdate, \
     ExchangeDomainDelete
 from .views.filedomain_views import FileDomainList, FileDomainCreate, FileDomainUpdate, FileDomainDelete
-from .views.webdomain_views import WebDomainList, WebDomainCreate, WebDomainUpdate, WebDomainDelete
+from .views.webdomain_views import WebDomainList, WebDomainCreate, WebDomainUpdate, WebDomainDelete, WebDomainValidate
 from .views.exchangescanner_views import ExchangeScannerList, ExchangeScannerCreate, ExchangeScannerUpdate, \
     ExchangeScannerDelete, ExchangeScannerRun, ExchangeScannerAskRun
 from .views.views import GroupList, GroupCreate, GroupUpdate, GroupDelete
@@ -91,8 +90,6 @@ urlpatterns = [
         name='filescanner_askrun'),
     url(r'^exchangedomains/$', ExchangeDomainList.as_view(), name='exchangedomains'),
     url(r'^exchangedomains/add/$', ExchangeDomainCreate.as_view(), name='exchangedomain_add'),
-    url(r'^exchangedomains/(?P<pk>\d+)/validate/$', DomainValidate.as_view(),
-        name='exchange_domain_validate'),
     url(r'^(exchangedomains)/(\d+)/(success)/$', DialogSuccess.as_view()),
     url(r'^exchangedomains/(?P<pk>\d+)/$', ExchangeDomainUpdate.as_view(),
         name='exchange_domain_update'),
@@ -100,8 +97,6 @@ urlpatterns = [
         name='exchange_domain_delete'),
     url(r'^filedomains/$', FileDomainList.as_view(), name='filedomains'),
     url(r'^filedomains/add/$', FileDomainCreate.as_view(), name='filedomain_add'),
-    url(r'^filedomains/(?P<pk>\d+)/validate/$', DomainValidate.as_view(),
-        name='file_domain_validate'),
     url(r'^(filedomains)/(\d+)/(success)/$', DialogSuccess.as_view()),
     url(r'^filedomains/(?P<pk>\d+)/$', FileDomainUpdate.as_view(),
         name='file_domain_update'),
@@ -109,7 +104,7 @@ urlpatterns = [
         name='file_domain_delete'),
     url(r'^webdomains/$', WebDomainList.as_view(), name='webdomains'),
     url(r'^webdomains/add/$', WebDomainCreate.as_view(), name='webdomain_add'),
-    url(r'^webdomains/(?P<pk>\d+)/validate/$', DomainValidate.as_view(),
+    url(r'^webdomains/(?P<pk>\d+)/validate/$', WebDomainValidate.as_view(),
         name='web_domain_validate'),
     url(r'^(webdomains)/(\d+)/(success)/$', DialogSuccess.as_view()),
     url(r'^webdomains/(?P<pk>\d+)/$', WebDomainUpdate.as_view(),
