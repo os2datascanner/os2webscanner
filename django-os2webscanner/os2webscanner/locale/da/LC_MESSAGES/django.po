@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-02-15 14:26+0100\n"
+"POT-Creation-Date: 2019-02-15 14:52+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,23 +25,20 @@ msgstr ""
 msgid "Important dates"
 msgstr ""
 
-#: django-os2webscanner/os2webscanner/templates/os2webscanner/scanner_form.html:85
-msgid ""
-"Domains and rules cannot be changed after a scanner job has been created."
+#: django-os2webscanner/os2webscanner/templates/os2webscanner/scanner_form.html:86
+msgid "Domæner og regler kan ikke ændres efter scannerjobbet er oprettet."
 msgstr "Domæner og regler kan ikke ændres efter scannerjobbet er oprettet."
 
-#: django-os2webscanner/os2webscanner/templates/os2webscanner/scanner_form.html:229
 msgid ""
-"The list of domains cannot be edited. To scan other domains, create a new "
-"scanner job."
+"Listen af domæner kan ikke redigeres. For at scanne andre domæner, opret da "
+"et nyt scannerjob."
 msgstr ""
 "Listen af domæner kan ikke redigeres. For at scanne andre domæner, opret da "
 "et nyt scannerjob."
 
-#: django-os2webscanner/os2webscanner/templates/os2webscanner/scanner_form.html:263
 msgid ""
-"The list of rules cannot be edited. To scan with other rules, create a new "
-"scanner job."
+"Listen af regler kan ikke redigeres. For at scanne med andre regler, opret "
+"da et nyt scannerjob."
 msgstr ""
 "Listen af regler kan ikke redigeres. For at scanne med andre regler, opret "
 "da et nyt scannerjob."
@@ -140,3 +137,15 @@ msgstr "Email adresse"
 #: django-os2webscanner/os2webscanner/templates/password_reset_form.html:12
 msgid "Reset my password"
 msgstr "Nulstil mit kodeord."
+
+#: webscanner_site/webscanner/settings.py:138
+msgid "Danish"
+msgstr ""
+
+#: webscanner_site/webscanner/settings.py:139
+msgid "English"
+msgstr ""
+
+#~ msgid ""
+#~ "Domains and rules cannot be changed after a scanner job has been created."
+#~ msgstr "Domæner og regler kan ikke ændres efter scannerjobbet er oprettet."
