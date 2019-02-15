@@ -55,6 +55,7 @@
       {% if view.edit %}
         $("#selected_rules .remove-rule").addClass('disabled')
         $("#selected_rules span").addClass('disabled')
+        $("#select_scan_rules_container").css('opacity', '.35')
       {% endif %}
     })
   })(jQuery);
@@ -80,8 +81,8 @@
     </div>
 {% endif %}
 
-{% if view.edit %}
-    <p id="is_edit_view" style="display:none"></p>
+{% if not view.edit %}
+    <p id="is_edit_view" class="bg-info">{% trans "Domæner og regler kan ikke ændres efter scannerjobbet er oprettet." %}</p>
 {% endif %}
 
 <form class="form-horizontal" role="form" method="post">
@@ -224,6 +225,9 @@
   </ul>
   <div class="tab-content">
     <div class="tab-pane active" id="domains">
+        {% if view.edit %}
+            <p class="bg-warning">{% trans "Domæner kan ikke redigeres. Opret et nyt scannerjob hvis et andet domæne ønskes scannet." %}</p>
+        {% endif %}
       <div id="{{ form.domains.auto_id }}_container"
            class="col-sm-12{% if form.domains.errors %} has-error{% endif %}">
         <div class="form-group">
@@ -255,6 +259,9 @@
       </div>
     </div>
     <div class="tab-pane" id="rules">
+        {% if view.edit %}
+        <p class="bg-warning">{% trans "Regler kan ikke redigeres. Opret et nyt scannerjob hvis andre regler ønskes for domænet." %}</p>
+        {% endif %}
       <div id="select_scan_rules_container" class="col-sm-12">
         <div class="form-group">
           <h5>Indstillinger</h5>
@@ -451,8 +458,11 @@
             SelectFilter.init("id_domains",
               "domæner", 0, "{% static 'admin/' %}");
             {% if view.edit %}
-                $("div.selector select.filtered").attr('disabled', true)
-                $("div.selector a").removeClass('active')
+                /*$("[id^=id_domains]").attr('disabled', true)
+                $("[id^=id_domains]").unbind()*/
+                $("#id_domains_container").css('opacity', '.35')
+                $("[id^=id_domains]").removeClass('active').addClass('disabled')
+                $("[id^=id_domains]").css('pointer-events', 'none')
             {% endif %}
         }
    );
