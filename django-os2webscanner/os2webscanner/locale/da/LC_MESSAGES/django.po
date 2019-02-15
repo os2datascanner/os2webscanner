@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-02-15 14:02+0100\n"
+"POT-Creation-Date: 2019-02-15 14:26+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,18 +26,25 @@ msgid "Important dates"
 msgstr ""
 
 #: django-os2webscanner/os2webscanner/templates/os2webscanner/scanner_form.html:85
-msgid "Domains and rules cannot be changed after a scanner job has been created."
+msgid ""
+"Domains and rules cannot be changed after a scanner job has been created."
 msgstr "Domæner og regler kan ikke ændres efter scannerjobbet er oprettet."
 
 #: django-os2webscanner/os2webscanner/templates/os2webscanner/scanner_form.html:229
-msgid "The list of domains cannot be edited. To scan other domains, create a new "
+msgid ""
+"The list of domains cannot be edited. To scan other domains, create a new "
 "scanner job."
-msgstr "Listen af domæner kan ikke redigeres. For at scanne andre domæner, opret da et nyt scannerjob."
+msgstr ""
+"Listen af domæner kan ikke redigeres. For at scanne andre domæner, opret da "
+"et nyt scannerjob."
 
 #: django-os2webscanner/os2webscanner/templates/os2webscanner/scanner_form.html:263
-msgid "The list of rules cannot be edited. To scan with other rules, create a new "
+msgid ""
+"The list of rules cannot be edited. To scan with other rules, create a new "
 "scanner job."
-msgstr "Listen af regler kan ikke redigeres. For at scanne med andre regler, opret da et nyt scannerjob."
+msgstr ""
+"Listen af regler kan ikke redigeres. For at scanne med andre regler, opret "
+"da et nyt scannerjob."
 
 #: django-os2webscanner/os2webscanner/templates/password_change_done.html:5
 #: django-os2webscanner/os2webscanner/templates/password_change_done.html:6
@@ -60,7 +67,9 @@ msgstr "Log ind"
 msgid ""
 "Please enter your new password twice so we can verify you typed it in "
 "correctly."
-msgstr "Vær venlig at indtaste dit nye kodeord to gange, så vi kan være sikre på at det er indtastet korrekt."
+msgstr ""
+"Vær venlig at indtaste dit nye kodeord to gange, så vi kan være sikre på at "
+"det er indtastet korrekt."
 
 #: django-os2webscanner/os2webscanner/templates/password_reset_confirm.html:14
 msgid "New password:"
@@ -78,8 +87,9 @@ msgstr "Ændre mit kodeord"
 msgid ""
 "The password reset link was invalid, possibly because it has already been "
 "used.  Please request a new password reset."
-msgstr "Nullstil kodeords-linket virker ikke. Dette skyldes sandsynligvis at det allerede er blevet brugt."
- "Vær venlig at nulstille dit kodeord igen."
+msgstr ""
+"Nullstil kodeords-linket virker ikke. Dette skyldes sandsynligvis at det "
+"allerede er blevet brugt.Vær venlig at nulstille dit kodeord igen."
 
 #: django-os2webscanner/os2webscanner/templates/password_reset_done.html:8
 msgid ""
