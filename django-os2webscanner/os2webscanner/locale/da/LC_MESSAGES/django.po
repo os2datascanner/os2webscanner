@@ -8,390 +8,125 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-02-05 13:25-0600\n"
+"POT-Creation-Date: 2019-02-15 14:02+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: base.py:871
-msgid "annually"
-msgstr "årligt"
+#: django-os2webscanner/os2webscanner/admin.py:86
+msgid "Personal info"
+msgstr ""
 
-#: base.py:871
-msgid "monthly"
-msgstr "månedligt"
+#: django-os2webscanner/os2webscanner/admin.py:88
+msgid "Important dates"
+msgstr ""
 
-#: base.py:871
-msgid "weekly"
-msgstr "ugenligt"
+#: django-os2webscanner/os2webscanner/templates/os2webscanner/scanner_form.html:85
+msgid "Domains and rules cannot be changed after a scanner job has been created."
+msgstr "Domæner og regler kan ikke ændres efter scannerjobbet er oprettet."
 
-#: base.py:871
-msgid "daily"
-msgstr "dagligt"
+#: django-os2webscanner/os2webscanner/templates/os2webscanner/scanner_form.html:229
+msgid "The list of domains cannot be edited. To scan other domains, create a new "
+"scanner job."
+msgstr "Listen af domæner kan ikke redigeres. For at scanne andre domæner, opret da et nyt scannerjob."
 
-#: base.py:872
-msgid "hourly"
-msgstr "time"
+#: django-os2webscanner/os2webscanner/templates/os2webscanner/scanner_form.html:263
+msgid "The list of rules cannot be edited. To scan with other rules, create a new "
+"scanner job."
+msgstr "Listen af regler kan ikke redigeres. For at scanne med andre regler, opret da et nyt scannerjob."
 
-#: base.py:872
-msgid "minutely"
-msgstr "pr. minut"
+#: django-os2webscanner/os2webscanner/templates/password_change_done.html:5
+#: django-os2webscanner/os2webscanner/templates/password_change_done.html:6
+msgid "Password change successful"
+msgstr "Kodeord er blevet skiftet."
 
-#: base.py:872
-msgid "secondly"
-msgstr "pr. sekund"
+#: django-os2webscanner/os2webscanner/templates/password_change_done.html:9
+msgid "Your password was changed."
+msgstr "Dit kodeord er ændret"
 
-#: base.py:875
-msgid "year"
-msgstr "år"
+#: django-os2webscanner/os2webscanner/templates/password_reset_complete.html:10
+msgid "Your password has been set.  You may go ahead and log in now."
+msgstr "Dit kodeord er blevet gemt. Du kan nu logge ind."
 
-#: base.py:875
-msgid "month"
-msgstr "måned"
+#: django-os2webscanner/os2webscanner/templates/password_reset_complete.html:12
+msgid "Log in"
+msgstr "Log ind"
 
-#: base.py:875
-msgid "week"
-msgstr "uge"
+#: django-os2webscanner/os2webscanner/templates/password_reset_confirm.html:10
+msgid ""
+"Please enter your new password twice so we can verify you typed it in "
+"correctly."
+msgstr "Vær venlig at indtaste dit nye kodeord to gange, så vi kan være sikre på at det er indtastet korrekt."
 
-#: base.py:875
-msgid "day"
-msgstr "dag"
+#: django-os2webscanner/os2webscanner/templates/password_reset_confirm.html:14
+msgid "New password:"
+msgstr "Nyt kodeord:"
 
-#: base.py:876
-msgid "hour"
-msgstr "time"
+#: django-os2webscanner/os2webscanner/templates/password_reset_confirm.html:18
+msgid "Confirm password:"
+msgstr "Gentag kodeord:"
 
-#: base.py:876
-msgid "minute"
-msgstr "minut"
+#: django-os2webscanner/os2webscanner/templates/password_reset_confirm.html:20
+msgid "Change my password"
+msgstr "Ændre mit kodeord"
 
-#: base.py:876
-msgid "second"
-msgstr "sekund"
+#: django-os2webscanner/os2webscanner/templates/password_reset_confirm.html:25
+msgid ""
+"The password reset link was invalid, possibly because it has already been "
+"used.  Please request a new password reset."
+msgstr "Nullstil kodeords-linket virker ikke. Dette skyldes sandsynligvis at det allerede er blevet brugt."
+ "Vær venlig at nulstille dit kodeord igen."
 
-#: base.py:879
-msgid "years"
-msgstr "år"
+#: django-os2webscanner/os2webscanner/templates/password_reset_done.html:8
+msgid ""
+"We've emailed you instructions for setting your password, if an account "
+"exists with the email you entered. You should receive them shortly."
+msgstr ""
 
-#: base.py:879
-msgid "months"
-msgstr "måneder"
+#: django-os2webscanner/os2webscanner/templates/password_reset_done.html:10
+msgid ""
+"If you don't receive an email, please make sure you've entered the address "
+"you registered with, and check your spam folder."
+msgstr ""
 
-#: base.py:879
-msgid "weeks"
-msgstr "uger"
-
-#: base.py:879
-msgid "days"
-msgstr "dage"
-
-#: base.py:880
-msgid "hours"
-msgstr "timer"
-
-#: base.py:880
-msgid "minutes"
-msgstr "minutter"
-
-#: base.py:880
-msgid "seconds"
-msgstr "sekunder"
-
-#: base.py:885
+#: django-os2webscanner/os2webscanner/templates/password_reset_email.html:2
 #, python-format
-msgid "1st %(weekday)s"
-msgstr "1. %(weekday)s"
+msgid ""
+"You're receiving this email because you requested a password reset for your "
+"user account at %(site_name)s."
+msgstr ""
 
-#: base.py:886
+#: django-os2webscanner/os2webscanner/templates/password_reset_email.html:4
+msgid "Please go to the following page and choose a new password:"
+msgstr ""
+
+#: django-os2webscanner/os2webscanner/templates/password_reset_email.html:8
+msgid "Your username, in case you've forgotten:"
+msgstr ""
+
+#: django-os2webscanner/os2webscanner/templates/password_reset_email.html:10
+msgid "Thanks for using our site!"
+msgstr ""
+
+#: django-os2webscanner/os2webscanner/templates/password_reset_email.html:12
 #, python-format
-msgid "2nd %(weekday)s"
-msgstr "2. %(weekday)s"
-
-#: base.py:887
-#, python-format
-msgid "3rd %(weekday)s"
-msgstr "3. %(weekday)s"
-
-#: base.py:888 base.py:907
-#, python-format
-msgid "last %(weekday)s"
-msgstr "sidste %(weekday)s"
-
-#: base.py:889
-#, python-format
-msgid "2nd last %(weekday)s"
-msgstr "2. sidste %(weekday)s"
-
-#: base.py:890
-#, python-format
-msgid "3rd last %(weekday)s"
-msgstr "3. sidste %(weekday)s"
-
-#: base.py:893
-msgid "Mon"
-msgstr "Man"
-
-#: base.py:893
-msgid "Tue"
-msgstr "Tir"
-
-#: base.py:893
-msgid "Wed"
-msgstr "Ons"
-
-#: base.py:894
-msgid "Thu"
-msgstr "Tor"
-
-#: base.py:894
-msgid "Fri"
-msgstr "Fre"
-
-#: base.py:894
-msgid "Sat"
-msgstr "Lør"
-
-#: base.py:894
-msgid "Sun"
-msgstr "Søn"
-
-#: base.py:897
-msgid "Jan"
-msgstr "Jan"
-
-#: base.py:897
-msgid "Feb"
-msgstr "Feb"
-
-#: base.py:897
-msgid "Mar"
-msgstr "Mar"
-
-#: base.py:897
-msgid "Apr"
-msgstr "Apr"
-
-#: base.py:898 base.py:917 choices.py:31
-msgid "May"
-msgstr "Maj"
-
-#: base.py:898
-msgid "Jun"
-msgstr "Jun"
-
-#: base.py:898
-msgid "Jul"
-msgstr "Jul"
-
-#: base.py:898
-msgid "Aug"
-msgstr "Aug"
-
-#: base.py:899
-msgid "Sep"
-msgstr "Sep"
-
-#: base.py:899
-msgid "Oct"
-msgstr "Okt"
-
-#: base.py:899
-msgid "Nov"
-msgstr "Nov"
-
-#: base.py:899
-msgid "Dec"
-msgstr "Dec"
-
-#: base.py:904
-#, python-format
-msgid "first %(weekday)s"
-msgstr "første %(weekday)s"
-
-#: base.py:905
-#, python-format
-msgid "second %(weekday)s"
-msgstr "anden %(weekday)s"
-
-#: base.py:906
-#, python-format
-msgid "third %(weekday)s"
-msgstr "tredje %(weekday)s"
-
-#: base.py:908
-#, python-format
-msgid "second last %(weekday)s"
-msgstr "anden sidste %(weekday)s"
-
-#: base.py:909
-#, python-format
-msgid "third last %(weekday)s"
-msgstr "tredje sidste %(weekday)s"
-
-#: base.py:912 choices.py:17
-msgid "Monday"
-msgstr "Mandag"
-
-#: base.py:912 choices.py:18
-msgid "Tuesday"
-msgstr "Tirsdag"
-
-#: base.py:912 choices.py:19
-msgid "Wednesday"
-msgstr "Onsdag"
-
-#: base.py:913 choices.py:20
-msgid "Thursday"
-msgstr "Torsdag"
-
-#: base.py:913 choices.py:21
-msgid "Friday"
-msgstr "Fredag"
-
-#: base.py:913 choices.py:22
-msgid "Saturday"
-msgstr "Lørdag"
-
-#: base.py:913 choices.py:23
-msgid "Sunday"
-msgstr "Søndag"
-
-#: base.py:916 choices.py:27
-msgid "January"
-msgstr "Januar"
-
-#: base.py:916 choices.py:28
-msgid "February"
-msgstr "Februar"
-
-#: base.py:916 choices.py:29
-msgid "March"
-msgstr "Marts"
-
-#: base.py:916 choices.py:30
-msgid "April"
-msgstr "April"
-
-#: base.py:917 choices.py:32
-msgid "June"
-msgstr "Juni"
-
-#: base.py:917 choices.py:33
-msgid "July"
-msgstr "Juli"
-
-#: base.py:917 choices.py:34
-msgid "August"
-msgstr "August"
-
-#: base.py:918 choices.py:35
-msgid "September"
-msgstr "September"
-
-#: base.py:918 choices.py:36
-msgid "October"
-msgstr "Oktober"
-
-#: base.py:918 choices.py:37
-msgid "November"
-msgstr "November"
-
-#: base.py:918 choices.py:38
-msgid "December"
-msgstr "December"
-
-#: base.py:936 base.py:951 base.py:974 base.py:992
-msgid ", "
-msgstr ","
-
-#: base.py:942
-#, python-format
-msgid "every %(number)s %(freq)s"
-msgstr "hver %(number)s %(freq)s"
-
-#: base.py:953 base.py:977
-#, python-format
-msgid "each %(items)s"
-msgstr "alle %(items)s"
-
-#: base.py:956 base.py:965 base.py:969
-#, python-format
-msgid "on the %(items)s"
-msgstr "på den %(items)s"
-
-#: base.py:984
-msgid "occuring once"
-msgstr "forekommende en gang"
-
-#: base.py:986
-#, python-format
-msgid "occuring %(number)s times"
-msgstr "forekommende %(number)s gange"
-
-#: base.py:989
-#, python-format
-msgid "until %(date)s"
-msgstr "indtil %(date)s"
-
-#: choices.py:7
-msgid "Secondly"
-msgstr "Pr. sekund"
-
-#: choices.py:8
-msgid "Minutely"
-msgstr "Pr. minut"
-
-#: choices.py:9
-msgid "Hourly"
-msgstr "Pr. time"
-
-#: choices.py:10
-msgid "Daily"
-msgstr "Daglig"
-
-#: choices.py:11
-msgid "Weekly"
-msgstr "Ugenligt"
-
-#: choices.py:12
-msgid "Monthly"
-msgstr "Månedligt"
-
-#: choices.py:13
-msgid "Yearly"
-msgstr "Årlig"
-
-#: choices.py:44
-msgid "Inclusion"
-msgstr "Inkluderet"
-
-#: choices.py:45
-msgid "Exclusion"
-msgstr "Ekskluderet"
-
-#: forms.py:64
-msgid "Invalid frequency."
-msgstr "Ugyldig frekvens"
-
-#: forms.py:66
-#, python-format
-msgid "Max rules exceeded. The limit is %(limit)s"
-msgstr "Maks antal regler overskrevet. Græsen er %(limit)s"
-
-#: forms.py:68
-#, python-format
-msgid "Max exclusion rules exceeded. The limit is %(limit)s"
-msgstr "Maks antal eksklusion regler overskrevet. Græsen er %(limit)s"
-
-#: forms.py:70
-#, python-format
-msgid "Max dates exceeded. The limit is %(limit)s"
-msgstr "Maks datoer overskredet. Grænsen er %(limit)s"
-
-#: forms.py:72
-#, python-format
-msgid "Max exclusion dates exceeded. The limit is %(limit)s"
-msgstr "Maks eksklusion datoer overskrevet. Grænsen er %(limit)s"
+msgid "The %(site_name)s team"
+msgstr ""
+
+#: django-os2webscanner/os2webscanner/templates/password_reset_form.html:8
+msgid ""
+"Forgotten your password? Enter your email address below, and we'll email "
+"instructions for setting a new one."
+msgstr ""
+
+#: django-os2webscanner/os2webscanner/templates/password_reset_form.html:12
+msgid "Email address:"
+msgstr "Email adresse"
+
+#: django-os2webscanner/os2webscanner/templates/password_reset_form.html:12
+msgid "Reset my password"
+msgstr "Nulstil mit kodeord."
