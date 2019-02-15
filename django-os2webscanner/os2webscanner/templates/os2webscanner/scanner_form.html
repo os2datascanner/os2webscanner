@@ -82,7 +82,7 @@
 {% endif %}
 
 {% if not view.edit %}
-    <p id="is_edit_view" class="bg-info">{% trans "Domæner og regler kan ikke ændres efter scannerjobbet er oprettet." %}</p>
+    <p id="is_edit_view" class="bg-info">{% trans "Domains and rules cannot be changed after a scanner job has been created." %}</p>
 {% endif %}
 
 <form class="form-horizontal" role="form" method="post">
@@ -226,7 +226,7 @@
   <div class="tab-content">
     <div class="tab-pane active" id="domains">
         {% if view.edit %}
-            <p class="bg-warning">{% trans "Domæner kan ikke redigeres. Opret et nyt scannerjob hvis et andet domæne ønskes scannet." %}</p>
+            <p class="bg-warning">{% trans "The list of domains cannot be edited. To scan other domains, create a new scanner job." %}</p>
         {% endif %}
       <div id="{{ form.domains.auto_id }}_container"
            class="col-sm-12{% if form.domains.errors %} has-error{% endif %}">
@@ -260,7 +260,7 @@
     </div>
     <div class="tab-pane" id="rules">
         {% if view.edit %}
-        <p class="bg-warning">{% trans "Regler kan ikke redigeres. Opret et nyt scannerjob hvis andre regler ønskes for domænet." %}</p>
+        <p class="bg-warning">{% trans "The list of rules cannot be edited. To scan with other rules, create a new scanner job." %}</p>
         {% endif %}
       <div id="select_scan_rules_container" class="col-sm-12">
         <div class="form-group">
