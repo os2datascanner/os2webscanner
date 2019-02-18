@@ -23,7 +23,7 @@ from ..rules.regexrule import RegexRule
 from ..rules.cpr import CPRRule
 
 from ..processors.processor import Processor
-from os2webscanner.models.scan_model import Scan
+from os2webscanner.models.scans.scan_model import Scan
 
 
 class Scanner:
