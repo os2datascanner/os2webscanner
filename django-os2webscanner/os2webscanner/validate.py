@@ -15,13 +15,13 @@
 # source municipalities ( http://www.os2web.dk/ )
 """Domain validation functions."""
 
-import re
-from urllib.request import Request, urlopen
-from urllib.error import URLError, HTTPError
-from urllib.parse import urljoin
 import hashlib
+import re
+from urllib.error import URLError
+from urllib.parse import urljoin
+from urllib.request import Request, urlopen
 
-from .models.webdomain_model import WebDomain
+from .models.domains.webdomain_model import WebDomain
 
 
 def _do_request(url):

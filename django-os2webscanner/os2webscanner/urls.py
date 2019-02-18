@@ -15,33 +15,33 @@
 # source municipalities ( http://www.os2web.dk/ )
 """URL mappings."""
 
+import django.contrib.auth.views
 from django.conf import settings
 from django.conf.urls import url
 from django.views.i18n import javascript_catalog
-import django.contrib.auth.views
 
-from .views.views import MainPageView
-from .views.report_views import ScanReportLog, CSVReportDetails, ReportDetails, ReportList, ReportDelete
-from .views.webscanner_views import WebScannerCreate, WebScannerUpdate, WebScannerDelete, WebScannerRun, \
-    WebScannerAskRun, WebScannerList
-from .views.filescanner_views import FileScannerCreate, FileScannerRun, FileScannerAskRun, FileScannerUpdate, \
-    FileScannerDelete, FileScannerList
-from .views.views import OrganizationUpdate, OrganizationList
+from .models.scannerjobs.exchangescanner_model import ExchangeScanner
+from .models.scannerjobs.filescanner_model import FileScanner
+from .models.scannerjobs.webscanner_model import WebScanner
 from .views.domain_views import DomainValidate
 from .views.exchangedomain_views import ExchangeDomainList, ExchangeDomainCreate, ExchangeDomainUpdate, \
     ExchangeDomainDelete
-from .views.filedomain_views import FileDomainList, FileDomainCreate, FileDomainUpdate, FileDomainDelete
-from .views.webdomain_views import WebDomainList, WebDomainCreate, WebDomainUpdate, WebDomainDelete
 from .views.exchangescanner_views import ExchangeScannerList, ExchangeScannerCreate, ExchangeScannerUpdate, \
     ExchangeScannerDelete, ExchangeScannerRun, ExchangeScannerAskRun
-from .views.views import GroupList, GroupCreate, GroupUpdate, GroupDelete
+from .views.filedomain_views import FileDomainList, FileDomainCreate, FileDomainUpdate, FileDomainDelete
+from .views.filescanner_views import FileScannerCreate, FileScannerRun, FileScannerAskRun, FileScannerUpdate, \
+    FileScannerDelete, FileScannerList
+from .views.report_views import ScanReportLog, CSVReportDetails, ReportDetails, ReportList, ReportDelete
 from .views.rule_views import RuleList, RuleCreate, RuleUpdate, RuleDelete
+from .views.views import GroupList, GroupCreate, GroupUpdate, GroupDelete
+from .views.views import MainPageView
+from .views.views import OrganizationUpdate, OrganizationList
 from .views.views import SummaryList, SummaryCreate, SummaryUpdate, SummaryDelete
 from .views.views import SummaryReport, DialogSuccess, SystemStatusView
 from .views.views import file_upload, referrer_content
-from .models.webscanner_model import WebScanner
-from .models.filescanner_model import FileScanner
-from .models.exchangescanner_model import ExchangeScanner
+from .views.webdomain_views import WebDomainList, WebDomainCreate, WebDomainUpdate, WebDomainDelete
+from .views.webscanner_views import WebScannerCreate, WebScannerUpdate, WebScannerDelete, WebScannerRun, \
+    WebScannerAskRun, WebScannerList
 
 js_info_dict = {
     'packages': ('os2webscanner', 'recurrence')
