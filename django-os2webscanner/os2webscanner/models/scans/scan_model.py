@@ -26,10 +26,10 @@ from django.db.models.aggregates import Count
 from django.utils import timezone
 
 from ..domains.domain_model import Domain
-from .regexrule_model import RegexRule
+from ..regexrule_model import RegexRule
 from ..scannerjobs.scanner_model import Scanner
-from .sensitivity_level import Sensitivity
-from .userprofile_model import UserProfile
+from ..sensitivity_level import Sensitivity
+from ..userprofile_model import UserProfile
 
 timezone.activate(timezone.get_default_timezone())
 
@@ -142,7 +142,7 @@ class Scan(models.Model):
 
     def get_number_of_failed_conversions(self):
         """The number conversions that has failed during this scan."""
-        from .conversionqueueitem_model import ConversionQueueItem
+        from ..conversionqueueitem_model import ConversionQueueItem
         return ConversionQueueItem.objects.filter(
             url__scan=self,
             status=ConversionQueueItem.FAILED
@@ -295,7 +295,7 @@ class Scan(models.Model):
 
     def delete_all_pending_conversionqueue_items(self, log):
         # Delete all pending conversionqueue items
-        from .conversionqueueitem_model import ConversionQueueItem
+        from ..conversionqueueitem_model import ConversionQueueItem
         pending_items = ConversionQueueItem.objects.filter(
             url__scan=self,
             status=ConversionQueueItem.NEW
@@ -328,7 +328,7 @@ class Scan(models.Model):
         When the number of OCR items falls below the lower threshold
         (RESUME_NON_OCR_ITEMS_THRESHOLD), non-OCR conversions are resumed.
         """
-        from .conversionqueueitem_model import ConversionQueueItem
+        from ..conversionqueueitem_model import ConversionQueueItem
         ocr_items_by_scan = ConversionQueueItem.objects.filter(
             status=ConversionQueueItem.NEW,
             type="ocr"
