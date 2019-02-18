@@ -5,7 +5,6 @@ from scrapy.spiders.sitemap import iterloc
 from scrapy.utils.sitemap import Sitemap, sitemap_urls_from_robots
 
 from scrapy.http import Request
-import logging
 
 from .base_spider import BaseScannerSpider
 
