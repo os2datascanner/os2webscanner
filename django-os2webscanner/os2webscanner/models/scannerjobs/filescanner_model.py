@@ -43,10 +43,12 @@ class FileScanner(Scanner):
                 return FileDomain.MOUNT_FAILED
 
         from .filescan_model import FileScan
-        return FileScan.create(self)
+        filescan = FileScan()
+        return filescan.create(self)
+
 
     def get_type(self):
-        return 'file'
+            return 'file'
 
     def get_absolute_url(self):
         """Get the absolute URL for scanners."""

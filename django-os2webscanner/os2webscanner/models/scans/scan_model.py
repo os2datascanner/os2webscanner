@@ -78,17 +78,11 @@ class Scan(models.Model):
     whitelisted_cprs = models.TextField(max_length=4096, blank=True,
                                         default="",
                                         verbose_name='Godkendte CPR-numre')
-
-    do_cpr_scan = models.BooleanField(default=True, verbose_name='CPR')
     do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
     do_address_scan = models.BooleanField(default=False,
                                           verbose_name='Adresse')
     do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder')
-    do_cpr_modulus11 = models.BooleanField(default=True,
-                                           verbose_name='Tjek modulus-11')
-    do_cpr_ignore_irrelevant = models.BooleanField(
-        default=True,
-        verbose_name='Ignorer ugyldige fødselsdatoer')
+
 
     do_last_modified_check = models.BooleanField(default=True,
                                                  verbose_name='Tjek sidst ændret dato')
@@ -180,7 +174,10 @@ class Scan(models.Model):
     @property
     def scan_log_dir(self):
         """Return the path to the scan log dir."""
-        return os.path.join(settings.VAR_DIR, 'logs', 'scans')
+        log_dir = os.path.join(settings.VAR_DIR, 'logs', 'scans')
+        if not os.path.isdir(log_dir):
+            os.makedirs(log_dir)
+        return log_dir
 
     @property
     def scan_log_file(self):
@@ -406,6 +403,42 @@ class Scan(models.Model):
         scanner = self.scanner
         scanner.is_running = status
         scanner.save()
+
+    # Create method - copies fields from scanner
+    def create(self, scanner):
+        """ Create and copy fields from scanner. """
+        self.is_visible = scanner.is_visible
+        self.whitelisted_names = scanner.organization.name_whitelist
+        self.blacklisted_names = scanner.organization.name_blacklist
+        self.whitelisted_addresses = scanner.organization.address_whitelist
+        self.blacklisted_addresses = scanner.organization.address_blacklist
+        self.whitelisted_cprs = scanner.organization.cpr_whitelist
+        self.do_name_scan = scanner.do_name_scan
+        self.do_address_scan = scanner.do_address_scan
+        self.do_ocr = scanner.do_ocr
+        self.do_last_modified_check = scanner.do_last_modified_check
+        self.columns = scanner.columns
+        self.output_spreadsheet_file = scanner.output_spreadsheet_file
+        self.do_cpr_replace = scanner.do_cpr_replace
+        self.cpr_replace_text = scanner.cpr_replace_text
+        self.do_name_replace = scanner.do_name_replace
+        self.name_replace_text = scanner.name_replace_text
+        self.do_address_replace = scanner.do_address_replace
+        self.address_replace_text = scanner.address_replace_text
+
+        self.set_status_new(scanner)
+
+        return self
+
+    def set_status_new(self, scanner):
+        scanner.is_running = True
+        scanner.save()
+        self.status = Scan.NEW
+        self.scanner = scanner
+        self.save()
+        self.domains.add(*scanner.domains.all())
+        self.regex_rules.add(*scanner.regex_rules.all())
+        self.recipients.add(*scanner.recipients.all())
 
     class Meta:
         abstract = False

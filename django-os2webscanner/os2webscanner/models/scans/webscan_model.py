@@ -56,48 +56,13 @@ class WebScan(Scan):
     # TODO: Add field for sitemap.xml url count
 
     # Create method - copies fields from scanner
-    @classmethod
-    def create(scan_cls, scanner):
+    def create(self, scanner):
         """ Create and copy fields from scanner. """
-        scan = scan_cls(
-            is_visible=scanner.is_visible,
-            whitelisted_names=scanner.organization.name_whitelist,
-            blacklisted_names=scanner.organization.name_blacklist,
-            whitelisted_addresses=scanner.organization.address_whitelist,
-            blacklisted_addresses=scanner.organization.address_blacklist,
-            whitelisted_cprs=scanner.organization.cpr_whitelist,
-            do_cpr_scan=scanner.do_cpr_scan,
-            do_name_scan=scanner.do_name_scan,
-            do_address_scan=scanner.do_address_scan,
-            do_ocr=scanner.do_ocr,
-            do_cpr_modulus11=scanner.do_cpr_modulus11,
-            do_cpr_ignore_irrelevant=scanner.do_cpr_ignore_irrelevant,
-            do_link_check=scanner.do_link_check,
-            do_external_link_check=scanner.do_external_link_check,
-            do_last_modified_check=scanner.do_last_modified_check,
-            do_last_modified_check_head_request=
-            scanner.do_last_modified_check_head_request,
-            do_collect_cookies=scanner.do_collect_cookies,
-            columns=scanner.columns,
-            output_spreadsheet_file=scanner.output_spreadsheet_file,
-            do_cpr_replace=scanner.do_cpr_replace,
-            cpr_replace_text=scanner.cpr_replace_text,
-            do_name_replace=scanner.do_name_replace,
-            name_replace_text=scanner.name_replace_text,
-            do_address_replace=scanner.do_address_replace,
-            address_replace_text=scanner.address_replace_text
-        )
-        #
-        scanner.is_running = True
-        scanner.save()
-        scan.status = Scan.NEW
-        scan.scanner = scanner
-        scan.save()
-        scan.domains.add(*scanner.domains.all())
-        scan.regex_rules.add(*scanner.regex_rules.all())
-        scan.recipients.add(*scanner.recipients.all())
-
-        return scan
+        self.do_link_check = scanner.do_link_check
+        self.do_external_link_check = scanner.do_external_link_check
+        self.do_last_modified_check_head_request = scanner.do_last_modified_check_head_request
+        self.do_collect_cookies = scanner.do_collect_cookies
+        return super().create(scanner)
 
         # Cookie log - undigested cookie strings for inspection.
     def log_cookie(self, string):

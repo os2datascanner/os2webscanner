@@ -46,7 +46,8 @@ class WebScanner(Scanner):
 
     def create_scan(self):
         from .webscan_model import WebScan
-        return WebScan.create(self)
+        webscan = WebScan()
+        return webscan.create(self)
 
     def get_type(self):
         return 'web'
