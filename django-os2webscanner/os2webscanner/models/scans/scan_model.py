@@ -16,22 +16,20 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 
+import datetime
 import os
 import shutil
-import datetime
-
-from django.utils import timezone
 from django.conf import settings
 from django.core.validators import validate_comma_separated_integer_list
-
 from django.db import models
 from django.db.models.aggregates import Count
+from django.utils import timezone
 
+from ..domains.domain_model import Domain
 from .regexrule_model import RegexRule
+from ..scannerjobs.scanner_model import Scanner
 from .sensitivity_level import Sensitivity
 from .userprofile_model import UserProfile
-from .domain_model import Domain
-from .scanner_model import Scanner
 
 timezone.activate(timezone.get_default_timezone())
 

@@ -17,8 +17,8 @@
 # source municipalities ( http://www.os2web.dk/ )
 from django.db import models
 
+from ..domains.exchangedomain_model import ExchangeDomain
 from .scanner_model import Scanner
-from .exchangedomain_model import ExchangeDomain
 
 
 class ExchangeScanner(Scanner):

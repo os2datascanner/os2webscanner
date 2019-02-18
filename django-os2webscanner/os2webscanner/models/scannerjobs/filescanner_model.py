@@ -18,8 +18,8 @@
 
 from django.db import models
 
+from ..domains.filedomain_model import FileDomain
 from .scanner_model import Scanner
-from .filedomain_model import FileDomain
 
 
 class FileScanner(Scanner):
