@@ -16,40 +16,39 @@
 # source municipalities ( http://www.os2web.dk/ )
 """Contains Django views."""
 
+import codecs
 import os
 import tempfile
-import codecs
-from shutil import copyfile
-
+from django.conf import settings
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Q
+from django.forms.models import modelform_factory
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render_to_response
 from django.shortcuts import redirect
-from django.views.generic import View, ListView, TemplateView, DetailView
-from django.views.generic.edit import ModelFormMixin, DeleteView
-from django.views.generic.edit import CreateView, UpdateView
-from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from django.forms.models import modelform_factory
-from django.conf import settings
+from django.views.generic import View, ListView, TemplateView, DetailView
+from django.views.generic.edit import CreateView, UpdateView
+from django.views.generic.edit import ModelFormMixin, DeleteView
+from shutil import copyfile
 
-from ..models.webdomain_model import WebDomain
-from ..models.filedomain_model import FileDomain
-from ..models.exchangedomain_model import ExchangeDomain
-from ..models.organization_model import Organization
-from ..models.userprofile_model import UserProfile
-from ..models.regexrule_model import RegexRule
-from ..models.webscanner_model import WebScanner
-from ..models.filescanner_model import FileScanner
-from ..models.exchangescanner_model import ExchangeScanner
-from ..models.scan_model import Scan
-from ..models.conversionqueueitem_model import ConversionQueueItem
-from ..models.referrerurl_model import ReferrerUrl
-from ..models.group_model import Group
-from ..models.summary_model import Summary
-from ..utils import scans_for_summary_report, do_scan
 from ..forms import FileUploadForm
+from ..models.conversionqueueitem_model import ConversionQueueItem
+from ..models.domains.exchangedomain_model import ExchangeDomain
+from ..models.scannerjobs.exchangescanner_model import ExchangeScanner
+from ..models.domains.filedomain_model import FileDomain
+from ..models.scannerjobs.filescanner_model import FileScanner
+from ..models.group_model import Group
+from ..models.organization_model import Organization
+from ..models.referrerurl_model import ReferrerUrl
+from ..models.regexrule_model import RegexRule
+from ..models.scans.scan_model import Scan
+from ..models.summary_model import Summary
+from ..models.userprofile_model import UserProfile
+from ..models.domains.webdomain_model import WebDomain
+from ..models.scannerjobs.webscanner_model import WebScanner
+from ..utils import scans_for_summary_report, do_scan
 
 
 class LoginRequiredMixin(View):

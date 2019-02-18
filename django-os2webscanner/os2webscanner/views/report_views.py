@@ -16,16 +16,14 @@
 # source municipalities ( http://www.os2web.dk/ )
 """Contains Django views."""
 import csv
-
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 
 from .views import LoginRequiredMixin, RestrictedListView, \
     DeleteView, UpdateView
-
 from ..models.match_model import Match
 from ..models.referrerurl_model import ReferrerUrl
-from ..models.scan_model import Scan
+from ..models.scans.scan_model import Scan
 from ..models.statistic_model import Statistic
 from ..models.url_model import Url
 from ..models.userprofile_model import UserProfile

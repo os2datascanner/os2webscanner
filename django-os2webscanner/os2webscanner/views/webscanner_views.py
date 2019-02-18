@@ -1,5 +1,5 @@
-from ..models.webscanner_model import WebScanner
 from .scanner_views import *
+from ..models.scannerjobs.webscanner_model import WebScanner
 
 
 class WebScannerList(ScannerList):

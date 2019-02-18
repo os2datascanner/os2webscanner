@@ -1,8 +1,8 @@
-from ..models.domain_model import Domain
-from ..models.webdomain_model import WebDomain
-from ..validate import get_validation_str
 from .domain_views import DomainList, DomainCreate, DomainUpdate
 from .views import RestrictedDeleteView
+from ..models.domains.domain_model import Domain
+from ..models.domains.webdomain_model import WebDomain
+from ..validate import get_validation_str
 
 
 class WebDomainList(DomainList):

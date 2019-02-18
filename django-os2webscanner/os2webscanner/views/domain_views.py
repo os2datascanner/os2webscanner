@@ -1,13 +1,11 @@
 from django import forms
 
-from ..validate import validate_domain
-
 from .views import RestrictedListView, RestrictedCreateView, \
     RestrictedUpdateView, RestrictedDetailView
-
 from ..models.authentication_model import Authentication
-from ..models.domain_model import Domain
+from ..models.domains.domain_model import Domain
 from ..utils import domain_form_manipulate
+from ..validate import validate_domain
 
 
 class DomainList(RestrictedListView):
