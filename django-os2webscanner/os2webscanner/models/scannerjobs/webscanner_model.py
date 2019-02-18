@@ -19,7 +19,7 @@
 from django.db import models
 
 from .scanner_model import Scanner
-from .webdomain_model import WebDomain
+from ..domains.webdomain_model import WebDomain
 
 
 class WebScanner(Scanner):
