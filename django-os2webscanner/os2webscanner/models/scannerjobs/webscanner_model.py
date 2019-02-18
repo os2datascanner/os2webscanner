@@ -45,7 +45,7 @@ class WebScanner(Scanner):
     )
 
     def create_scan(self):
-        from .webscan_model import WebScan
+        from ..scans.webscan_model import WebScan
         webscan = WebScan()
         return webscan.create(self)
 
