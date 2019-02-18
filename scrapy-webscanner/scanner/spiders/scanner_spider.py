@@ -19,8 +19,6 @@ import errno
 import logging
 import magic
 import mimetypes
-import os
-from os import walk
 import re
 import regex
 
