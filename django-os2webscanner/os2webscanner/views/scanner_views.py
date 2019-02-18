@@ -2,8 +2,8 @@ from django.db.models import Q
 
 from .views import RestrictedListView, RestrictedCreateView, \
     RestrictedUpdateView, RestrictedDetailView, RestrictedDeleteView
-from ..models.scan_model import Scan
-from ..models.scanner_model import Scanner
+from ..models.scans.scan_model import Scan
+from ..models.scannerjobs.scanner_model import Scanner
 from ..models.userprofile_model import UserProfile
 
 

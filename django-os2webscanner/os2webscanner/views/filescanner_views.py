@@ -1,5 +1,5 @@
 from .scanner_views import *
-from ..models.filescanner_model import FileScanner
+from ..models.scannerjobs.filescanner_model import FileScanner
 
 
 class FileScannerList(ScannerList):
