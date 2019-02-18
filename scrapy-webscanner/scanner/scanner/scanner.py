@@ -40,13 +40,6 @@ class Scanner:
     def _load_rules(self):
         """Load rules based on WebScanner settings."""
         rules = []
-        if self.scan_object.do_cpr_scan:
-            rules.append(CPRRule(
-                do_modulus11=self.scan_object.do_cpr_modulus11,
-                ignore_irrelevant=self.scan_object.do_cpr_ignore_irrelevant,
-                whitelist=self.scan_object.whitelisted_cprs
-                )
-            )
         if self.scan_object.do_name_scan:
             rules.append(
                 NameRule(whitelist=self.scan_object.whitelisted_names,
