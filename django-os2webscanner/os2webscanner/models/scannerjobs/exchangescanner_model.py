@@ -41,8 +41,9 @@ class ExchangeScanner(Scanner):
         return '/exchangescanners/'
 
     def create_scan(self):
-        from .exchangescan_model import ExchangeScan
-        return ExchangeScan.create(self)
+        from ..scans.exchangescan_model import ExchangeScan
+        exchangescan = ExchangeScan()
+        return exchangescan.create(self)
 
     class Meta:
         db_table = 'os2webscanner_exchangescanner'
