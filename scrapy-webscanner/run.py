@@ -44,7 +44,7 @@ from django.utils import timezone
 from django.core.exceptions import MultipleObjectsReturned
 
 from scanner.scanner.scanner import Scanner
-from os2webscanner.models.scan_model import Scan
+from os2webscanner.models.scans.scan_model import Scan
 from os2webscanner.models.statistic_model import Statistic
 from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
 from os2webscanner.models.url_model import Url
