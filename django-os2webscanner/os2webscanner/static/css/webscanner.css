@@ -379,3 +379,7 @@ padding:0;
 .selector-available h2, .selector-chosen h2 {
     font-size: inherit;
 }
+
+input.phantom {
+display: none;
+}
