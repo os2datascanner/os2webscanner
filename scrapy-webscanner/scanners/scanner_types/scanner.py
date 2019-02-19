@@ -23,7 +23,7 @@ from ..rules.cpr import CPRRule
 from ..processors.processor import Processor
 
 
-class Scanner:
+class Scanner(object):
     """Represents a scanner which can scan data using configured rules."""
 
     def __init__(self, scan_id):
