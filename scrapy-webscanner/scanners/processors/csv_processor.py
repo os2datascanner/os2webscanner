@@ -45,7 +45,7 @@ class CSVProcessor(Processor):
 
     def process(self, data, url_object):
         """Process the CSV, by executing rules and saving matches."""
-        from ..scanner.scanner import Scanner
+        from ..scanner_types.scanner import Scanner
         scanner = Scanner(url_object.scan.pk)
         # print "*** 1 ***"
         # If we don't have to do any annotation/replacement, treat it like a
