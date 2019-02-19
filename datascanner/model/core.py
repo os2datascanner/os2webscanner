@@ -1,3 +1,4 @@
+from pathlib import Path
 from mimetypes import guess_type
 from subprocess import run, PIPE, DEVNULL
 
@@ -169,7 +170,10 @@ same type and properties compare equal.
 """
     def __init__(self, source, relpath):
         self._source = source
-        self._relpath = relpath
+        if isinstance(relpath, Path):
+            self._relpath = relpath
+        else:
+            self._relpath = Path(relpath)
 
     def get_source(self):
         return self._source
