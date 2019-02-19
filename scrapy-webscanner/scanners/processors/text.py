@@ -47,7 +47,7 @@ class TextProcessor(Processor):
             logging.error('Error happened for file: {}'.format(url_object.url))
             return False
 
-        from ..scanner.scanner import Scanner
+        from ..scanner_types.scanner import Scanner
 
         scanner = Scanner(url_object.scan.pk)
 
