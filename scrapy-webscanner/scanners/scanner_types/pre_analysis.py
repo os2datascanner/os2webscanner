@@ -559,7 +559,7 @@ class PreDataScanner(object):
 
 if __name__ == '__main__':
     t = time.time()
-    p = Path('/tmp/mnt/os2webscanner/robertj/')
+    p = Path('/tmp/mnt/os2webscanner/tmpxus17k2_/')
 
     pre_scanner = PreDataScanner(p, detection_method='mime')
     filetypes = pre_scanner.summarize_file_types()

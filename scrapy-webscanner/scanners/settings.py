@@ -24,20 +24,20 @@
 #
 import os
 
-BOT_NAME = 'scanner'
+BOT_NAME = 'scanners'
 
-SPIDER_MODULES = ['scanner.spiders']
-NEWSPIDER_MODULE = 'scanner.spiders'
+SPIDER_MODULES = ['scanners.spiders']
+NEWSPIDER_MODULE = 'scanners.spiders'
 
 SPIDER_MIDDLEWARES = {
     # Disable default OffsiteMiddleware
     'scrapy.spidermiddlewares.offsite.OffsiteMiddleware': None,
 
     # Use our own custom OffsiteMiddleware which doesn't allow subdomains
-    'scanner.middlewares.NoSubdomainOffsiteMiddleware': 500,
+    'scanners.middlewares.middlewares.NoSubdomainOffsiteMiddleware': 500,
 
-    'scanner.middlewares.ExclusionRuleMiddleware': 1000,
-    'scanner.middlewares.LastModifiedLinkStorageMiddleware': 1100
+    'scanners.middlewares.middlewares.ExclusionRuleMiddleware': 1000,
+    'scanners.middlewares.middlewares.LastModifiedLinkStorageMiddleware': 1100
 }
 
 COOKIES_ENABLED = True
@@ -45,11 +45,11 @@ COOKIES_DEBUG = True
 
 DOWNLOADER_MIDDLEWARES = {
     'scrapy.downloadermiddlewares.redirect.RedirectMiddleware': None,
-    'scanner.middlewares.OffsiteRedirectMiddleware': 600,
-    'scanner.middlewares.CookieCollectorMiddleware': 700,
-    'scanner.middlewares.OffsiteDownloaderMiddleware': 1000,
-    'scanner.middlewares.ExclusionRuleDownloaderMiddleware': 1100,
-    'scanner.middlewares.LastModifiedCheckMiddleware': 1200,
+    'scanners.middlewares.middlewares.OffsiteRedirectMiddleware': 600,
+    'scanner.middlewares.middlewares.CookieCollectorMiddleware': 700,
+    'scanner.middlewares.middlewares.OffsiteDownloaderMiddleware': 1000,
+    'scanner.middlewares.middlewares.ExclusionRuleDownloaderMiddleware': 1100,
+    'scanner.middlewares.webscan_middleware.WebScanLastModifiedCheckMiddleware': 1200,
 }
 
 LOG_LEVEL = 'DEBUG'

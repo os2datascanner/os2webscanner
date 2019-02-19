@@ -15,15 +15,12 @@
 # source municipalities ( http://www.os2web.dk/ )
 
 """Contains a WebScanner."""
-from urllib.parse import urlparse
-
 from ..rules.name import NameRule
 from ..rules.address import AddressRule
 from ..rules.regexrule import RegexRule
 from ..rules.cpr import CPRRule
 
 from ..processors.processor import Processor
-from os2webscanner.models.scans.scan_model import Scan
 
 
 class Scanner:
@@ -32,6 +29,7 @@ class Scanner:
     def __init__(self, scan_id):
         """Load the scanner settings from the given scan ID."""
         # Get scan object from DB
+        from os2webscanner.models.scans.scan_model import Scan
         self.scan_object = Scan.objects.get(pk=scan_id)
 
         self.rules = self._load_rules()
@@ -81,45 +79,6 @@ class Scanner:
             if sitemap_url:
                 urls.append(sitemap_url)
         return urls
-
-    def get_uploaded_sitemap_urls(self):
-        """Return a list of uploaded sitemap.xml files for all scanner domains.
-        """
-        urls = []
-        for domain in self.valid_domains:
-            if domain.webdomain.sitemap != '':
-                urls.append('file://' + domain.webdomain.sitemap_full_path)
-        return urls
-
-    def get_domain_urls(self):
-        """Return a list of valid domain urls."""
-        domains = []
-        for d in self.valid_domains:
-            if hasattr(d, 'webdomain'):
-                if d.url.startswith('http://') or d.url.startswith('https://'):
-                    domains.append(urlparse(d.url).hostname)
-                else:
-                    domains.append(d.url)
-            elif hasattr(d, 'exchangedomain'):
-                domains.append(d.exchangedomain.dir_to_scan)
-            else:
-                domains.append(d.filedomain.mountpath)
-        return domains
-
-    def get_domain_objects(self):
-        """
-        Returns a list of valid domain objects
-        :return: domain list
-        """
-        domains = []
-        for domain in self.valid_domains:
-            if hasattr(domain, 'webdomain'):
-                    domains.append(domain.webdomain)
-            elif hasattr(domain, 'exchangedomain'):
-                domains.append(domain.exchangedomain)
-            else:
-                domains.append(domain.filedomain)
-        return domains
 
     def scan(self, data, url_object):
         """Scan data for matches from a spider.
