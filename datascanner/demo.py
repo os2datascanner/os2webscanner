@@ -45,7 +45,7 @@ bFx1eAsAAQToAwAABOgDAABQSwUGAAAAAAcABwCOAgAATQMAAAAA"
 with SourceManager() as sm:
     def handle_source(s):
         for handle in s.handles(sm):
-            sub_source = Source.from_handle(handle)
+            sub_source = Source.from_handle(handle, sm)
             if sub_source:
                 handle_source(sub_source)
             elif handle.guess_type() == "text/plain":
