@@ -46,10 +46,10 @@ COOKIES_DEBUG = True
 DOWNLOADER_MIDDLEWARES = {
     'scrapy.downloadermiddlewares.redirect.RedirectMiddleware': None,
     'scanners.middlewares.middlewares.OffsiteRedirectMiddleware': 600,
-    'scanner.middlewares.middlewares.CookieCollectorMiddleware': 700,
-    'scanner.middlewares.middlewares.OffsiteDownloaderMiddleware': 1000,
-    'scanner.middlewares.middlewares.ExclusionRuleDownloaderMiddleware': 1100,
-    'scanner.middlewares.webscan_middleware.WebScanLastModifiedCheckMiddleware': 1200,
+    'scanners.middlewares.middlewares.CookieCollectorMiddleware': 700,
+    'scanners.middlewares.middlewares.OffsiteDownloaderMiddleware': 1000,
+    'scanners.middlewares.middlewares.ExclusionRuleDownloaderMiddleware': 1100,
+    'scanners.middlewares.webscan_middleware.WebScanLastModifiedCheckMiddleware': 1200,
 }
 
 LOG_LEVEL = 'DEBUG'
