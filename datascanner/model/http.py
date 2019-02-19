@@ -1,6 +1,7 @@
 from model.core import Source, Handle, Resource
 from model.utilities import NamedTemporaryResource
 
+from io import BytesIO
 from urllib.parse import urlsplit, urlunsplit
 from urllib3 import HTTPConnectionPool, HTTPSConnectionPool
 from dateutil.parser import parse
@@ -69,7 +70,6 @@ class WebResource(Resource):
     def __init__(self, handle, sm):
         super(WebResource, self).__init__(handle, sm)
         self._header = None
-        self._ntr = None
 
     def get_header(self):
         if not self._header:
@@ -90,11 +90,16 @@ class WebResource(Resource):
     def make_path(self):
         ntr = NamedTemporaryResource(self._handle.get_name())
         try:
-            response = self._open_source().request(
-                    "GET", str(self._handle.get_relative_path()))
             with ntr.open("wb") as res:
-                res.write(response.data)
+                with self.make_stream() as s:
+                    res.write(s.read())
             yield ntr.get_path()
         finally:
             ntr.finished()
 
+    @contextmanager
+    def make_stream(self):
+        response = self._open_source().request(
+                "GET", str(self._handle.get_relative_path()))
+        with BytesIO(response.data) as s:
+            yield s

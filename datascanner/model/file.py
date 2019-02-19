@@ -52,12 +52,9 @@ class FilesystemResource(Resource):
         self._hash = None
         self._stat = None
 
-    def _open(self):
-        return open(self._full_path, "rb")
-
     def get_hash(self):
         if not self._hash:
-            with self._open() as f:
+            with self.make_stream() as f:
                 self._hash = md5(f.read())
         return self._hash
 
@@ -73,3 +70,7 @@ class FilesystemResource(Resource):
     def make_path(self):
         yield str(self._full_path)
 
+    @contextmanager
+    def make_stream(self):
+        with open(self._full_path, "rb") as s:
+            yield s

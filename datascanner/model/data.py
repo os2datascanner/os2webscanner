@@ -51,15 +51,11 @@ class DataResource(Resource):
     def __init__(self, handle, sm):
         super(DataResource, self).__init__(handle, sm)
         self._hash = None
-        self._ntf = None
-
-    def _open(self):
-        return BytesIO(self.get_handle().get_source()._content)
 
     def get_hash(self):
         if not self._hash:
-            with self._open() as f:
-                self._hash = md5(f.read())
+            with self.make_stream() as s:
+                self._hash = md5(s.read())
         return self._hash
 
     def get_last_modified(self):
@@ -70,8 +66,13 @@ class DataResource(Resource):
         ntf = NamedTemporaryFile(delete=False)
         try:
             with ntf as res:
-                res.write(self._open().read())
+                with self.make_stream() as s:
+                    res.write(s.read())
             yield ntf.name
         finally:
             remove(ntf.name)
 
+    @contextmanager
+    def make_stream(self):
+        with BytesIO(self.get_handle().get_source()._content) as s:
+            yield s

@@ -60,9 +60,13 @@ class ZipResource(Resource):
         ntr = NamedTemporaryResource(Path(self._handle.get_name()))
         try:
             with ntr.open("wb") as f:
-                with self._open_source()[1].open(str(self._handle.get_relative_path())) as res:
-                    f.write(res.read())
+                with self.make_stream() as s:
+                    f.write(s.read())
             yield ntr.get_path()
         finally:
             ntr.finished()
 
+    @contextmanager
+    def make_stream(self):
+        with self._open_source()[1].open(str(self._handle.get_relative_path())) as s:
+            yield s
