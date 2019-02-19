@@ -423,7 +423,6 @@ class Scan(models.Model):
         self.name_replace_text = scanner.name_replace_text
         self.do_address_replace = scanner.do_address_replace
         self.address_replace_text = scanner.address_replace_text
-
         self.set_status_new(scanner)
 
         return self

@@ -1,4 +1,3 @@
-from django.db import models
 from .scan_model import Scan
 
 
@@ -12,5 +11,3 @@ class ExchangeScan(Scan):
         super().__init__(*args, **kwargs)
         self._old_status = self.status
 
-    class Meta:
-        db_table = 'os2webscanner_exchangescan'

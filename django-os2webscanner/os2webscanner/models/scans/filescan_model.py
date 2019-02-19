@@ -28,11 +28,3 @@ class FileScan(Scan):
         """
         super().__init__(*args, **kwargs)
         self._old_status = self.status
-
-    def cleanup_finished_scan(self, log=False):
-        """Delete pending conversion queue items and remove the scan dir."""
-        if self.is_scan_dir_writable():
-            self.delete_scan_dir(log)
-
-    class Meta:
-        db_table = 'os2webscanner_filescan'
