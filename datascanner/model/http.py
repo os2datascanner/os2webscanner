@@ -4,6 +4,7 @@ from model.utilities import NamedTemporaryResource
 from urllib.parse import urlsplit, urlunsplit
 from urllib3 import HTTPConnectionPool, HTTPSConnectionPool
 from dateutil.parser import parse
+from contextlib import contextmanager
 
 class WebSource(Source):
     def __init__(self, host, port=80):
@@ -85,19 +86,15 @@ class WebResource(Resource):
         return self.get_header()["Content-Type"] \
                 or "application/octet-stream"
 
-    def __enter__(self):
-        assert not self._ntr
+    @contextmanager
+    def make_path(self):
+        ntr = NamedTemporaryResource(self._handle.get_name())
         try:
             response = self._open_source().request(
                     "GET", str(self._handle.get_relative_path()))
-            self._ntr = _NamedTemporaryResource(self._handle.get_name())
-            with self._ntr.open("wb") as res:
+            with ntr.open("wb") as res:
                 res.write(response.data)
-            return self._ntr.get_path()
-        except:
-            raise
+            yield ntr.get_path()
+        finally:
+            ntr.finished()
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        assert self._ntr
-        self._ntr.finished()
-        self._ntr = None

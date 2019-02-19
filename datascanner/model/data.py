@@ -6,6 +6,7 @@ from base64 import b64decode, b64encode
 from hashlib import md5
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+from contextlib import contextmanager
 
 class DataSource(Source):
     def __init__(self, content, mime="application/octet-stream"):
@@ -64,18 +65,13 @@ class DataResource(Resource):
     def get_last_modified(self):
         return None
 
-    def __enter__(self):
-        assert not self._ntf
+    @contextmanager
+    def make_path(self):
+        ntf = NamedTemporaryFile(delete=False)
         try:
-            ntf = NamedTemporaryFile(delete=False)
-            self._ntf = ntf.name
             with ntf as res:
                 res.write(self._open().read())
-            return self._ntf
-        except:
-            raise
+            yield ntf.name
+        finally:
+            remove(ntf.name)
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        assert self._ntf
-        remove(self._ntf)
-        self._ntf = None

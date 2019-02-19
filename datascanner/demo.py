@@ -49,7 +49,7 @@ with SourceManager() as sm:
             if sub_source:
                 handle_source(sub_source)
             elif handle.guess_type() == "text/plain":
-                with handle.follow(sm) as path:
+                with handle.follow(sm).make_path() as path:
                     print("{0} -> {1}".format(handle, path))
                     run(["cat", path])
 

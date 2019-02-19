@@ -4,6 +4,7 @@ from urllib.parse import quote, unquote, urlsplit, urlunsplit
 from hashlib import md5
 from pathlib import Path
 from datetime import datetime
+from contextlib import contextmanager
 
 class FilesystemSource(Source):
     def __init__(self, path):
@@ -68,8 +69,7 @@ class FilesystemResource(Resource):
     def get_last_modified(self):
         return datetime.fromtimestamp(self.get_stat().st_mtime)
 
-    def __enter__(self):
-        return str(self._full_path)
+    @contextmanager
+    def make_path(self):
+        yield str(self._full_path)
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        pass
