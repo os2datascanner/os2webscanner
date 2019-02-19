@@ -38,9 +38,7 @@ class FileScanner(Scanner):
             if not domain.smb_mount():
                 return FileDomain.MOUNT_FAILED
 
-        from ..scans.filescan_model import FileScan
-        filescan = FileScan()
-        return filescan.create(self)
+        return super().create_scan()
 
 
     def get_type(self):

@@ -245,6 +245,15 @@ class Scanner(models.Model):
 
         return scan
 
+    def create_scan(self):
+        """
+        Creates a file scan.
+        :return: A file scan object
+        """
+        from ..scans.scan_model import Scan
+        scan = Scan()
+        return scan.create(self)
+
     class Meta:
         abstract = False
         ordering = ['name']
