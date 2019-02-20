@@ -6,10 +6,7 @@
 # these files to cat(1). All of the temporary files created as part of this
 # process are automatically cleaned up.
 
-from model.zip import ZipSource
 from model.core import Source, SourceManager
-from model.data import DataSource
-from model.file import FilesystemSource
 
 from subprocess import run
 
