@@ -39,7 +39,9 @@ hierarchy, but they aren't responsible for holding actual connection state --
 that gets stashed in a SourceManager instead.
 
 Sources are serialisable and persistent, and two different Sources with the
-same type and properties compare equal.
+same type and properties compare equal. (One useful consequence of this is that
+SourceManager will collapse several equal Sources together, only opening one of
+them.)
 """
     def _open(self, sm):
         """\
@@ -162,9 +164,10 @@ class Handle(_TypPropEq):
 A Handle is a reference to a leaf node in a hierarchy maintained by a Source.
 Handles can be followed to give a Resource, a concrete object.
 
-There is no defined way to get a Handle other than for a Source to generate one
-(or to make a copy of an existing one). Each type of Source defines what its
-Handles and their paths mean.
+Although all Handle subclasses expose the same two-argument constructor, which
+takes a Source and a pathlib.Path, each type of Source defines what its Handles
+and their paths mean; the only general way to get a meaningful Handle is the
+Source.handles() function (or to make a copy of an existing one).
 
 Handles are serialisable and persistent, and two different Handles with the
 same type and properties compare equal.
