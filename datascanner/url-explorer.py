@@ -1,26 +1,40 @@
 #!/bin/sh
 
 import sys
+import argparse
 
 from model.core import Source, SourceManager
 from model.core import UnknownSchemeError
 
+guess_mime = True
+
 def print_source(manager, source, depth=0):
   for h in source.handles(manager):
     print("{0}{1}".format("  " * depth, h))
-    derived_source = Source.from_handle(h)
+    derived_source = Source.from_handle(h, manager if not guess_mime else None)
     if derived_source:
       print_source(manager, derived_source, depth + 1)
 
 if __name__ == '__main__':
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+          "urls",
+          metavar="URL", nargs='+')
+  parser.add_argument(
+          "--compute-mime",
+          action='store_false', dest='guess')
+  parser.add_argument(
+          "--guess-mime",
+          action='store_true', dest='guess', default=True)
+
+  args = parser.parse_args()
+
+  guess_mime = args.guess
   sources = []
-  for i in sys.argv:
-    try:
-      s = Source.from_url(i)
-      print(s)
-      sources.append(s)
-    except UnknownSchemeError:
-      pass
   with SourceManager() as sm:
-    for s in sources:
-      print_source(sm, s)
+    for i in args.urls:
+      try:
+        s = Source.from_url(i)
+        print_source(sm, s)
+      except UnknownSchemeError:
+        pass
