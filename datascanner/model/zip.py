@@ -9,7 +9,6 @@ from contextlib import contextmanager
 class ZipSource(Source):
     def __init__(self, handle):
         self._handle = handle
-        self._zip = None
 
     def __str__(self):
         return "ZipSource({0})".format(self._handle)
