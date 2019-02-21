@@ -4,3 +4,4 @@ import model.tar
 import model.zip
 import model.data
 import model.http
+import model.filtered
