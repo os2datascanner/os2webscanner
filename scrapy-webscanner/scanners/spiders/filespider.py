@@ -29,8 +29,7 @@ class FileSpider(ScannerSpider):
 
         The configuration will be loaded from the Scanner.
         """
-        super().__init__(scanner=scanner, *a, **kw)
-        self.runner = runner
+        super().__init__(scanner=scanner, runner=runner, *a, **kw)
 
     def setup_spider(self):
         logging.info("Initializing spider of type FileSpider")
