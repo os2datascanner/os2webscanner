@@ -24,11 +24,10 @@ class WebSpider(ScannerSpider):
 
         The configuration will be loaded from the Scanner.
         """
-        super().__init__(scanner=scanner, *a, **kw)
-        self.runner = runner
-        self.do_last_modified_check_head_request = False
+        super().__init__(scanner=scanner, runner=runner, *a, **kw)
 
     def setup_spider(self):
+        logging.info("Initializing spider of type WebSpider")
         scan_object = self.scanner.scan_object
         # If the scan is run from a web service, use the starting urls
         if scan_object.scanner.process_urls:
@@ -37,7 +36,6 @@ class WebSpider(ScannerSpider):
         else:
             self.crawl = True
             # Otherwise, use the roots of the domains as starting URLs
-            logging.info("Initializing spider of type WebSpider")
             for url in self.allowed_domains:
                 if (
                             not url.startswith('http://') and
@@ -54,7 +52,7 @@ class WebSpider(ScannerSpider):
                 scan_object, "do_last_modified_check"
             )
             self.do_last_modified_check_head_request = getattr(
-                scan_object.webscan, "do_last_modified_check_head_request"
+                scan_object, "do_last_modified_check_head_request"
             )
             self.link_extractor = LxmlLinkExtractor(
                 deny_extensions=(),
@@ -103,12 +101,12 @@ class WebSpider(ScannerSpider):
 
         self.scan(response)
 
-        if self.scanner.webscan.do_link_check:
+        if self.scanner.scan_object.do_link_check:
             source_url = response.request.url
             for request in requests:
                 target_url = request.url
                 self.referrers.setdefault(target_url, []).append(source_url)
-                if (self.scanner.webscan.do_external_link_check and
+                if (self.scanner.scan_object.do_external_link_check and
                         self.is_offsite(request)):
                     # Save external URLs for later checking
                     self.external_urls.add(target_url)
@@ -126,12 +124,22 @@ class WebSpider(ScannerSpider):
 
         If link checking is enabled, saves the broken URL and referrers.
         """
+        try:
+            logging.info("Handle error response status code: {}".format(failure.value.response))
+            logging.info("Url that failed: {}".format(
+                failure.value.response.request.url))
+        except:
+            logging.error("Could not print handle error status code.")
+
         # If we should not do link check or failure is ignore request
         # and it is not a http error we know it is a last-modified check.
-        if (not self.scanner.scan_object.webscan.do_link_check or
+        if (not self.scanner.scan_object.do_link_check or
                 (isinstance(failure.value, IgnoreRequest) and not isinstance(
                     failure.value, HttpError))):
+            logging.info("We do not do link check or failure is an instance of "
+                         "IgnoreRequest: {}".format(failure.value))
             return
+
         if hasattr(failure.value, "response"):
             response = failure.value.response
             url = response.request.url
@@ -161,7 +169,7 @@ class WebSpider(ScannerSpider):
 
     def scan(self, response):
         """Scan a response, returning any matches."""
-        super().scan(self, response)
+        super().scan(response)
 
     def _extract_requests(self, response):
         """Extract requests from the response."""
@@ -186,6 +194,6 @@ class WebSpider(ScannerSpider):
         """Create or get existing ReferrerUrl object."""
         if referrer not in self.referrer_url_objects:
             self.referrer_url_objects[referrer] = ReferrerUrl(
-                url=referrer, scan=self.scanner.scan_object.webscan)
+                url=referrer, scan=self.scanner.scan_object)
             self.referrer_url_objects[referrer].save()
         return self.referrer_url_objects[referrer]
