@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-02-15 14:52+0100\n"
+"POT-Creation-Date: 2019-02-15 15:02+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -27,7 +27,8 @@ msgstr ""
 
 #: django-os2webscanner/os2webscanner/templates/os2webscanner/scanner_form.html:86
 msgid "Domæner og regler kan ikke ændres efter scannerjobbet er oprettet."
-msgstr "Domains and rules cannot be changed after a scanner job has been created."
+msgstr ""
+"Domains and rules cannot be changed after a scanner job has been created."
 
 #: django-os2webscanner/os2webscanner/templates/os2webscanner/scanner_form.html:230
 msgid ""
