@@ -15,6 +15,8 @@
 # source municipalities ( http://www.os2web.dk/ )
 
 """Contains a WebScanner."""
+import logging
+
 from ..rules.name import NameRule
 from ..rules.address import AddressRule
 from ..rules.regexrule import RegexRule
@@ -94,6 +96,8 @@ class Scanner(object):
         )
         processor = Processor.processor_by_type(processor_type)
         if processor is not None:
+            logging.info("{} is handled by processor of type {}".format(
+                url_object.url, processor_type))
             return processor.handle_spider_item(data, url_object)
 
     def execute_rules(self, text):
