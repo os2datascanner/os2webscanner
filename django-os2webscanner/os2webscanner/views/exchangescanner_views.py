@@ -1,5 +1,5 @@
 from .scanner_views import *
-from ..models.exchangescanner_model import ExchangeScanner
+from ..models.scannerjobs.exchangescanner_model import ExchangeScanner
 
 
 class ExchangeScannerList(ScannerList):

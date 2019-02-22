@@ -17,11 +17,10 @@
 # source municipalities ( http://www.os2web.dk/ )
 
 import os
+from django.db import models
 from urllib.request import urlopen
 
-from django.db import models
-
-from .scan_model import Scan
+from .scans.scan_model import Scan
 
 
 class Url(models.Model):

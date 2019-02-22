@@ -15,14 +15,13 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 
-from recurrence.fields import RecurrenceField
-
 from django.db import models
+from recurrence.fields import RecurrenceField
 
 from .group_model import Group
 from .organization_model import Organization
 from .userprofile_model import UserProfile
-from .webscanner_model import WebScanner
+from .scannerjobs.webscanner_model import WebScanner
 
 
 class Summary(models.Model):

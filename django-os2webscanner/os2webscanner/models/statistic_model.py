@@ -1,6 +1,6 @@
 from django.db import models
 
-from .scan_model import Scan
+from .scans.scan_model import Scan
 
 
 class Statistic(models.Model):

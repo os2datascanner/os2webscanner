@@ -223,11 +223,19 @@ max-width:20%;
   padding-bottom:0;
   margin-bottom:-1px;
 }
+#selected_rules .remove-rule.disabled {
+  pointer-events: none;
+  cursor: default;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14.588' height='14.588'%3E%3Cpath fill='grey' d='M14.588 1.414L13.173 0l-5.88 5.879L1.414 0 0 1.414l5.879 5.879L0 13.173l1.414 1.415 5.879-5.88 5.88 5.88 1.415-1.415-5.88-5.88z'/%3E%3C/svg%3E");
+}
 #selected_rules > .selected_rule span:not([data-original-title=""]):hover,
 #selected_rules > .selected_rule span:not([data-original-title=""]):focus { /* don't give items with empty tooltips the hover style */
   border-bottom:1px dotted #999;
   padding-bottom:0;
   margin-bottom:calc(.5em - 1px);
+}
+#selected_rules > .selected_rule .disabled {
+  color: #aaa
 }
 #selected_rules #rules_list {
   float:right;
