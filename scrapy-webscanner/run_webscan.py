@@ -42,8 +42,8 @@ class StartWebScan(StartScan, multiprocessing.Process):
         self.crawler_process.start()
         logging.info("Crawler process finished.")
 
-        if (self.webscanner.scan_object.do_link_check
-            and self.webscanner.scan_object.do_external_link_check):
+        if (self.scanner.scan_object.do_link_check
+            and self.scanner.scan_object.do_external_link_check):
             # Do external link check
             self.external_link_check(self.scanner_crawler.spider.external_urls)
 
@@ -61,9 +61,11 @@ class StartWebScan(StartScan, multiprocessing.Process):
                                                  uploaded_sitemap_urls=
                                                  self.scanner.get_uploaded_sitemap_urls(),
                                                  sitemap_alternate_links=True)
-        else:
-            yield self.crawler_process.crawl(self.make_scanner_crawler(WebSpider),
-                                             scanner=self.scanner, runner=self)
+
+        self.make_scanner_crawler(WebSpider)
+        yield self.crawler_process.crawl(self.scanner_crawler,
+                                         scanner=self.scanner,
+                                         runner=self)
     def make_sitemap_crawler(self):
         """Setup the sitemap spider and crawler."""
         self.sitemap_crawler = \
