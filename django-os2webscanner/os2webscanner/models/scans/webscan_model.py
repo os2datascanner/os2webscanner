@@ -52,9 +52,6 @@ class WebScan(Scan):
     do_collect_cookies = models.BooleanField(default=False,
                                              verbose_name='Saml cookies')
 
-    # Statistics
-    # TODO: Add field for sitemap.xml url count
-
     # Create method - copies fields from scanner
     def create(self, scanner):
         """ Create and copy fields from scanner. """
