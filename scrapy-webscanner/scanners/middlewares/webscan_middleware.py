@@ -14,6 +14,7 @@ from os2webscanner.models.urllastmodified_model import UrlLastModified
 
 from .middlewares import LastModifiedCheckMiddleware
 
+
 class WebScanLastModifiedCheckMiddleware(LastModifiedCheckMiddleware):
 
     def __init__(self, crawler):
@@ -37,6 +38,7 @@ class WebScanLastModifiedCheckMiddleware(LastModifiedCheckMiddleware):
 
     def process_response(self, request, response, spider):
         """Process a spider response."""
+        logging.info("Process response for url {}".format(request.url))
         # Don't run the check if it's not specified by the spider
         if request.meta.get('skip_modified_check', False):
             return response
@@ -50,12 +52,11 @@ class WebScanLastModifiedCheckMiddleware(LastModifiedCheckMiddleware):
         # Check the Last-Modified header to see if the content has been
         # updated since the last time we checked it.
         if self.has_been_modified(request, response, spider):
-            logging.debug("Page has been modified since Last-Modified %s"
-                          % response)
+            logging.debug("Page has been modified since Last-Modified {}".format(response))
             # request.method only available for webscanner
             if request.method == 'HEAD':
                 # Issue a new GET request, since the data was updated
-                logging.debug("Issuing a new GET for %s" % request)
+                logging.debug("Issuing a new GET for {}".format(request))
 
                 # Skip the modified check, since we just did the check
                 meta = request.meta
@@ -77,7 +78,7 @@ class WebScanLastModifiedCheckMiddleware(LastModifiedCheckMiddleware):
                               callback=request.callback,
                               errback=request.errback,
                               headers={"referer": response.url})
-                logging.debug("Adding request %s" % req)
+                logging.debug("Adding request {}".format(req))
                 self.crawler.engine.crawl(req, spider)
             # Ignore the request, since the content has not been modified
             self.stats.inc_value('last_modified_check/pages_skipped')
@@ -105,12 +106,11 @@ class WebScanLastModifiedCheckMiddleware(LastModifiedCheckMiddleware):
                 "Content-Type", None
             ).decode('utf-8')
             if content_type_header.startswith("text/html"):
-                # TODO: Check meta tag.
-                # TODO: This is correct, but find out where it goes :-)
                 try:
                     body_html = html.fromstring(response.body)
                 except:
-                    logging.info('error occured.')
+                    logging.info('Error occured while trying to extract string from response body.')
+
                 meta_dict = {list(el.values())[0]: list(el.values())[1]
                              for el in body_html.findall('head/meta')}
                 if 'last-modified' in meta_dict:
@@ -121,6 +121,7 @@ class WebScanLastModifiedCheckMiddleware(LastModifiedCheckMiddleware):
                         logging.error(
                             "Date format error on last modied: {0}".format(lm)
                         )
+
         # lastmod comes from a sitemap.xml file
         sitemap_lastmod_date = request.meta.get("lastmod", None)
         if sitemap_lastmod_date is None:
@@ -165,10 +166,10 @@ class WebScanLastModifiedCheckMiddleware(LastModifiedCheckMiddleware):
                 url_last_modified = UrlLastModified(
                     url=canonical_url,
                     last_modified=last_modified,
-                    scanner=self.spider.scanner.scan_object.scanner
+                    scanner=self.get_scanner_object(spider)
                 )
-                logging.debug("Saving new last-modified value %s" %
-                              url_last_modified)
+                logging.debug("Saving new last-modified value {}".format(
+                              url_last_modified))
                 url_last_modified.save()
                 return True
         else:
@@ -205,3 +206,8 @@ class WebScanLastModifiedCheckMiddleware(LastModifiedCheckMiddleware):
             return url_last_modified
         except UrlLastModified.DoesNotExist:
             return None
+
+    def get_scanner_object(self, spider):
+        """Return the spider's scanner object."""
+        return spider.scanner.scan_object.scanner
+
