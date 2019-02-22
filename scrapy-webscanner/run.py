@@ -39,7 +39,7 @@ from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
 timezone.activate(timezone.get_default_timezone())
 
 
-class StartScan:
+class StartScan(object):
     """A scanner application which can be run."""
 
     def __init__(self, scan_id, logfile=None, last_started=None):
@@ -53,6 +53,8 @@ class StartScan:
             parse_datetime(last_started) if last_started else None
         self.sitemap_crawler = None
         self.scanner_crawler = None
+
+        # Should maybe be removed...
         django.setup()
         logging.basicConfig(filename=self.logfile, level=logging.DEBUG)
 
