@@ -16,6 +16,9 @@
 # source municipalities ( http://www.os2web.dk/ )
 """Contains Django views."""
 import csv
+
+from urllib.parse import unquote
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 
@@ -121,6 +124,16 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
             context['files_skipped_count'] = stats.files_skipped_count
         except ObjectDoesNotExist:
             pass
+
+        if hasattr(self.get_object(), 'filescan'):
+            # Patch all of the context's match model objects to have paths
+            # rather than URLs(!) (This should be fine, since we don't save
+            # them, and it keeps the complexity out of the browser: the
+            # database genuinely shouldn't have URLs here, so let's pretend
+            # that it doesn't...)
+            for k in ['matches', 'all_matches']:
+                for m in context[k]:
+                    m.url.url = unquote(m.url.url)
 
         return context
 
