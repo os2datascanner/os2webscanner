@@ -9,6 +9,7 @@ from scrapy.exceptions import IgnoreRequest
 
 from .middlewares import LastModifiedCheckMiddleware
 
+
 class FileScanLastModifiedCheckMiddleware(LastModifiedCheckMiddleware):
 
     def __init__(self, crawler):
