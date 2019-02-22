@@ -124,29 +124,40 @@ of the state that it's been tracking at context exit time. This might mean, for
 example, automatically disconnecting from remote resources, unmounting drives,
 or closing file handles.
 
+SourceManagers can be nested to an arbitrary depth, provided that their
+contexts are also nested; child SourceManagers will not try to open Sources
+that their antecedents have already opened, and the nesting ensures that their
+own state will be cleaned up before that of their antecedents.
+
 SourceManagers are not serialisable. (They're /supposed/ to be not
 serialisable! They track all of the state that would otherwise make Sources and
 Handles unserialisable!)
 """
-    def __init__(self):
+    def __init__(self, parent=None):
+        """\
+Initialises this SourceManager.
+
+If @parent is not None, then it *must* be a SourceManager operating as a
+context manager in a containing scope."""
         self._order = []
         self._opened = {}
+        self._parent = parent
 
-    def is_open(self, source):
+    def open(self, source, try_open=True):
         """\
-Indicates whether or not the given Source has been opened in this
-SourceManager."""
-        return source in self._opened
-
-    def open(self, source):
-        """\
-Returns the cookie returned by opening the given Source (which will be opened
-in this SourceManager, if it wasn't already)."""
-        if not self.is_open(source):
-            o = source._open(self)
-            self._order.append(source)
-            self._opened[source] = o
-        return self._opened[source]
+Returns the cookie returned by opening the given Source. If @try_open is True,
+the Source will be opened in this SourceManager if necessary."""
+        if not source in self._opened:
+            cookie = None
+            if self._parent:
+                cookie = self._parent.open(source, try_open=False)
+            if not cookie and try_open:
+                cookie = source._open(self)
+                self._order.append(source)
+                self._opened[source] = cookie
+            return cookie
+        else:
+            return self._opened[source]
 
     def __enter__(self):
         return self
