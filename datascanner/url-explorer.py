@@ -13,7 +13,8 @@ def print_source(manager, source, depth=0):
     print("{0}{1}".format("  " * depth, h))
     derived_source = Source.from_handle(h, manager if not guess_mime else None)
     if derived_source:
-      print_source(manager, derived_source, depth + 1)
+      with SourceManager(manager) as derived_manager:
+        print_source(derived_manager, derived_source, depth + 1)
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
