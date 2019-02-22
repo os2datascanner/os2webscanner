@@ -257,6 +257,7 @@ Rapport &dash; {{scan.scanner.name}}
             <tbody>
                 <script>
                     var status_messages = [];
+                    var all_broken = [];
                 </script>
             {% for referrer in referrer_urls %}
                 <tr class="danger">
@@ -271,10 +272,23 @@ Rapport &dash; {{scan.scanner.name}}
                 <td class="broken-url-show">
                     <p>
                         <script>
-                            var get_messages = '{% for broken in referrer.broken_urls %}{{broken.status_message}};{% endfor %}';
-                            status_messages.push(get_messages.split(';'));
+                            var get_messages = Array(
+                            {% for broken in referrer.broken_urls %}
+                                "{{ broken.status_message }}",
+                            {% endfor %});
+                            var all_broken_urls = Array(
+                            {% for url in referrer.broken_urls.all %}
+                                "{{ url }}",
+                            {% endfor %}
+                            );
+                            status_messages.push(get_messages);
+                            all_broken.push(all_broken_urls);
                         </script>
-                        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#view-deadlinks-modal" onclick="showReferrerUrl('{{referrer.id}}','{{referrer.url}}','{{referrer.broken_urls.all}}',status_messages[{{ forloop.counter0 }}])">
+                        <button type="button"
+                                class="btn btn-default"
+                                data-toggle="modal"
+                                data-target="#view-deadlinks-modal"
+                                onclick="showReferrerUrl('{{referrer.id}}','{{referrer.url}}',all_broken[{{ forloop.counter0 }}],status_messages[{{ forloop.counter0 }}])">
                         <span class="glyphicon glyphicon-eye-open"></span>
                         Inspicér
                         </button>
@@ -524,21 +538,16 @@ Rapport &dash; {{scan.scanner.name}}
         return $("#iframe").contents().find('a[href*="' + href + '"]');
     }
 
-    function showReferrerUrl(id, url, broken_link,error) {
+    function showReferrerUrl(id, url, broken_link, error) {
+        console.log(id, url, broken_link, error)
         var url_mask = "{% url 'referrer_content' pk=12345 %}".replace(/12345/, id.toString());
         document.getElementById("iframe").src = url_mask;
-
-        tmp = broken_link.replace(/<Url: /g,'')
-                         .replace('[','')
-                         .replace('>]','')
-                         .replace(/>, /g,',')
-                         .split(',')
 
         $("#create-summary-modal-title span").html('<a href="' + url + '">' + url + '</a>');
 
         linkMarkup = '';
-        for (var i = 0; i < tmp.length; i++) {
-            linkMarkup += "<a class='list-group-item list-group-item-action' data-href='"+tmp[i]+"'>"+ tmp[i] +"<br>";
+        for (var i = 0; i < broken_link.length; i++) {
+            linkMarkup += "<a class='list-group-item list-group-item-action' data-href='"+broken_link[i]+"'>"+broken_link[i]+"<br>";
             linkMarkup += "<span class='label label-danger'>"+ error[i] +"</span></a>";
         }
 

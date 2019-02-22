@@ -15,33 +15,32 @@
 # source municipalities ( http://www.os2web.dk/ )
 """URL mappings."""
 
+import django.contrib.auth.views
 from django.conf import settings
 from django.conf.urls import url
 from django.views.i18n import javascript_catalog
-import django.contrib.auth.views
 
-from .views.views import MainPageView
-from .views.report_views import ScanReportLog, CSVReportDetails, ReportDetails, ReportList, ReportDelete
-from .views.webscanner_views import WebScannerCreate, WebScannerUpdate, WebScannerDelete, WebScannerRun, \
-    WebScannerAskRun, WebScannerList
-from .views.filescanner_views import FileScannerCreate, FileScannerRun, FileScannerAskRun, FileScannerUpdate, \
-    FileScannerDelete, FileScannerList
-from .views.views import OrganizationUpdate, OrganizationList
-from .views.domain_views import DomainValidate
+from .models.scannerjobs.exchangescanner_model import ExchangeScanner
+from .models.scannerjobs.filescanner_model import FileScanner
+from .models.scannerjobs.webscanner_model import WebScanner
 from .views.exchangedomain_views import ExchangeDomainList, ExchangeDomainCreate, ExchangeDomainUpdate, \
     ExchangeDomainDelete
-from .views.filedomain_views import FileDomainList, FileDomainCreate, FileDomainUpdate, FileDomainDelete
-from .views.webdomain_views import WebDomainList, WebDomainCreate, WebDomainUpdate, WebDomainDelete
 from .views.exchangescanner_views import ExchangeScannerList, ExchangeScannerCreate, ExchangeScannerUpdate, \
     ExchangeScannerDelete, ExchangeScannerRun, ExchangeScannerAskRun
-from .views.views import GroupList, GroupCreate, GroupUpdate, GroupDelete
+from .views.filedomain_views import FileDomainList, FileDomainCreate, FileDomainUpdate, FileDomainDelete
+from .views.filescanner_views import FileScannerCreate, FileScannerRun, FileScannerAskRun, FileScannerUpdate, \
+    FileScannerDelete, FileScannerList
+from .views.report_views import ScanReportLog, CSVReportDetails, ReportDetails, ReportList, ReportDelete
 from .views.rule_views import RuleList, RuleCreate, RuleUpdate, RuleDelete
+from .views.views import GroupList, GroupCreate, GroupUpdate, GroupDelete
+from .views.views import MainPageView
+from .views.views import OrganizationUpdate, OrganizationList
 from .views.views import SummaryList, SummaryCreate, SummaryUpdate, SummaryDelete
 from .views.views import SummaryReport, DialogSuccess, SystemStatusView
 from .views.views import file_upload, referrer_content
-from .models.webscanner_model import WebScanner
-from .models.filescanner_model import FileScanner
-from .models.exchangescanner_model import ExchangeScanner
+from .views.webdomain_views import WebDomainList, WebDomainCreate, WebDomainUpdate, WebDomainDelete, WebDomainValidate
+from .views.webscanner_views import WebScannerCreate, WebScannerUpdate, WebScannerDelete, WebScannerRun, \
+    WebScannerAskRun, WebScannerList
 
 js_info_dict = {
     'packages': ('os2webscanner', 'recurrence')
@@ -91,8 +90,6 @@ urlpatterns = [
         name='filescanner_askrun'),
     url(r'^exchangedomains/$', ExchangeDomainList.as_view(), name='exchangedomains'),
     url(r'^exchangedomains/add/$', ExchangeDomainCreate.as_view(), name='exchangedomain_add'),
-    url(r'^exchangedomains/(?P<pk>\d+)/validate/$', DomainValidate.as_view(),
-        name='exchange_domain_validate'),
     url(r'^(exchangedomains)/(\d+)/(success)/$', DialogSuccess.as_view()),
     url(r'^exchangedomains/(?P<pk>\d+)/$', ExchangeDomainUpdate.as_view(),
         name='exchange_domain_update'),
@@ -100,8 +97,6 @@ urlpatterns = [
         name='exchange_domain_delete'),
     url(r'^filedomains/$', FileDomainList.as_view(), name='filedomains'),
     url(r'^filedomains/add/$', FileDomainCreate.as_view(), name='filedomain_add'),
-    url(r'^filedomains/(?P<pk>\d+)/validate/$', DomainValidate.as_view(),
-        name='file_domain_validate'),
     url(r'^(filedomains)/(\d+)/(success)/$', DialogSuccess.as_view()),
     url(r'^filedomains/(?P<pk>\d+)/$', FileDomainUpdate.as_view(),
         name='file_domain_update'),
@@ -109,7 +104,7 @@ urlpatterns = [
         name='file_domain_delete'),
     url(r'^webdomains/$', WebDomainList.as_view(), name='webdomains'),
     url(r'^webdomains/add/$', WebDomainCreate.as_view(), name='webdomain_add'),
-    url(r'^webdomains/(?P<pk>\d+)/validate/$', DomainValidate.as_view(),
+    url(r'^webdomains/(?P<pk>\d+)/validate/$', WebDomainValidate.as_view(),
         name='web_domain_validate'),
     url(r'^(webdomains)/(\d+)/(success)/$', DialogSuccess.as_view()),
     url(r'^webdomains/(?P<pk>\d+)/$', WebDomainUpdate.as_view(),

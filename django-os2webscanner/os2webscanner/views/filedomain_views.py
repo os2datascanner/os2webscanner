@@ -1,11 +1,10 @@
 from django import forms
 
 from .domain_views import DomainList, DomainCreate, DomainUpdate
-
-from ..models.domain_model import Domain
-from ..models.filedomain_model import FileDomain
 from .views import RestrictedDeleteView
 from ..aescipher import decrypt
+from ..models.domains.domain_model import Domain
+from ..models.domains.filedomain_model import FileDomain
 
 
 class FileDomainList(DomainList):

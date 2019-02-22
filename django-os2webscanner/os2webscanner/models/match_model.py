@@ -18,9 +18,9 @@
 
 from django.db import models
 
-from .url_model import Url
-from .scan_model import Scan
+from .scans.scan_model import Scan
 from .sensitivity_level import Sensitivity
+from .url_model import Url
 
 
 class Match(models.Model):

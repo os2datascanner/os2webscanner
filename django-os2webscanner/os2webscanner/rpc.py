@@ -14,20 +14,18 @@
 
 """ Web service functions, to be invoked over XML-RPC."""
 
+import csv
 import os
 import re
-import csv
 import tempfile
-
-from django.contrib.auth import authenticate
 from django.conf import settings
+from django.contrib.auth import authenticate
 from django.utils import six
-
-from .utils import do_scan
-from .models.match_model import Match
-from .models.scan_model import Scan
-
 from django_xmlrpc.decorators import xmlrpc_func
+
+from .models.match_model import Match
+from .models.scans.scan_model import Scan
+from .utils import do_scan
 
 
 @xmlrpc_func(returns='string', args=['string', 'string', 'string', 'dict'])

@@ -1,6 +1,6 @@
 from django.db import models
 
-from .scanner_model import Scanner
+from .scannerjobs.scanner_model import Scanner
 
 
 class UrlLastModified(models.Model):

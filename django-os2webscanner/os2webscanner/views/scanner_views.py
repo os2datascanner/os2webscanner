@@ -2,8 +2,8 @@ from django.db.models import Q
 
 from .views import RestrictedListView, RestrictedCreateView, \
     RestrictedUpdateView, RestrictedDetailView, RestrictedDeleteView
-from ..models.scan_model import Scan
-from ..models.scanner_model import Scanner
+from ..models.scans.scan_model import Scan
+from ..models.scannerjobs.scanner_model import Scanner
 from ..models.userprofile_model import UserProfile
 
 
@@ -21,8 +21,32 @@ class ScannerList(RestrictedListView):
         return qs
 
 
-class ScannerCreate(RestrictedCreateView):
+class ScannerBase():
     template_name = 'os2webscanner/scanner_form.html'
+
+    def get_form(self, form_class=None):
+
+        if form_class is None:
+            form_class = self.get_form_class()
+
+        form = super().get_form(form_class)
+        form.fields['schedule'].required = False
+
+        # Exclude recipients with no email address
+        form.fields[
+            'recipients'
+        ].queryset = form.fields[
+            'recipients'
+        ].queryset.exclude(user__email="")
+
+        return form
+
+    def get_scanner_object(self):
+        return self.get_object()
+
+
+class ScannerCreate(ScannerBase, RestrictedCreateView):
+    """View for creating a new scannerjob."""
 
     def get_form(self, form_class=None):
         """Get the form for the view.
@@ -31,11 +55,7 @@ class ScannerCreate(RestrictedCreateView):
         will be limited by the user's organization unless the user is a
         superuser.
         """
-        if form_class is None:
-            form_class = self.get_form_class()
-
         form = super().get_form(form_class)
-        form.fields['schedule'].required = False
         try:
             organization = self.request.user.profile.organization
             groups = self.request.user.profile.groups.all()
@@ -43,59 +63,46 @@ class ScannerCreate(RestrictedCreateView):
             organization = None
             groups = None
 
-        # Exclude recipients with no email address
-        form.fields[
-            'recipients'
-        ].queryset = form.fields[
-            'recipients'
-        ].queryset.exclude(user__email="")
-
         if not self.request.user.is_superuser:
-            for field_name in ['domains', 'regex_rules', 'recipients']:
-                queryset = form.fields[field_name].queryset
-                queryset = queryset.filter(organization=organization)
-                if (
-                        self.request.user.profile.is_group_admin or
-                        field_name == 'recipients'
-                ):
-                    # Already filtered by organization, nothing more to do.
-                    pass
-                else:
-                    queryset = queryset.filter(
-                        Q(group__in=groups) | Q(group__isnull=True)
-                    )
-                form.fields[field_name].queryset = queryset
+            self.filter_queryset(form, groups, organization)
 
         return form
 
+    def filter_queryset(self, form, groups, organization):
+        for field_name in ['domains', 'regex_rules', 'recipients']:
+            queryset = form.fields[field_name].queryset
+            queryset = queryset.filter(organization=organization)
+            if (self.request.user.profile.is_group_admin or
+                            field_name == 'recipients'):
+                # Already filtered by organization, nothing more to do.
+                pass
+            else:
+                queryset = queryset.filter(
+                    Q(group__in=groups) | Q(group__isnull=True)
+                )
+            form.fields[field_name].queryset = queryset
 
-class ScannerUpdate(RestrictedUpdateView):
-    """Update a scanner view."""
-    template_name = 'os2webscanner/scanner_form.html'
+
+class ScannerUpdate(ScannerBase, RestrictedUpdateView):
+    """View for editing an existing scannerjob."""
+    edit = True
 
     def get_form(self, form_class=None):
         """Get the form for the view.
 
         Querysets used for choices in the 'domains' and 'regex_rules' fields
-        will be limited by the user's organiztion unless the user is a
+        will be limited by the user's organization unless the user is a
         superuser.
         """
-        if form_class is None:
-            form_class = self.get_form_class()
-
-        self.fields = self.get_form_fields()
         form = super().get_form(form_class)
-        form.fields['schedule'].required = False
 
-        scanner = self.get_object()
+        scanner = self.get_scanner_object()
 
-        # Exclude recipients with no email address
-        form.fields[
-            'recipients'
-        ].queryset = form.fields[
-            'recipients'
-        ].queryset.exclude(user__email="")
+        self.filter_queryset(form, scanner)
 
+        return form
+
+    def filter_queryset(self, form, scanner):
         for field_name in ['domains', 'regex_rules', 'recipients']:
             queryset = form.fields[field_name].queryset
             queryset = queryset.filter(organization=scanner.organization)
@@ -113,8 +120,6 @@ class ScannerUpdate(RestrictedUpdateView):
                         Q(group=scanner.group) | Q(group__isnull=True)
                     )
             form.fields[field_name].queryset = queryset
-
-        return form
 
 
 class ScannerDelete(RestrictedDeleteView):

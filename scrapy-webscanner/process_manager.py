@@ -46,7 +46,7 @@ django.setup()
 os.umask(0o007)
 
 from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
-from os2webscanner.models.scan_model import Scan
+from os2webscanner.models.scans.scan_model import Scan
 
 
 var_dir = django_settings.VAR_DIR
