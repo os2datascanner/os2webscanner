@@ -30,10 +30,21 @@ def html_processor(r, **kwargs):
                 stdout=PIPE,
                 stderr=DEVNULL, **kwargs).stdout.strip()
 
+def libreoffice_processor(r, **kwargs):
+    with r.make_path() as f:
+        return run(["libreoffice", "--cat", f],
+                universal_newlines=True,
+                stdout=PIPE,
+                stderr=DEVNULL, **kwargs).stdout.strip()
+
 processors = {
     "text/plain": plain_text_processor,
     "image/png": image_processor,
     "image/jpeg": image_processor,
     "application/pdf": pdf_processor,
-    "text/html": html_processor
+    "text/html": html_processor,
+    "application/vnd.oasis.opendocument.spreadsheet": libreoffice_processor,
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": libreoffice_processor,
+    "application/vnd.oasis.opendocument.text": libreoffice_processor,
+    "application/vnd.ms-excel": libreoffice_processor
 }
