@@ -87,7 +87,6 @@ class FileDomain(Domain):
         if self.authentication.domain != '':
             command += ',domain=' + self.authentication.domain
 
-        logger.debug('Mount command: {0}'.format(command))
         response = call(command, shell=True)
 
         if response is not 0:
