@@ -33,6 +33,7 @@ def html_processor(r, **kwargs):
 processors = {
     "text/plain": plain_text_processor,
     "image/png": image_processor,
+    "image/jpeg": image_processor,
     "application/pdf": pdf_processor,
     "text/html": html_processor
 }
