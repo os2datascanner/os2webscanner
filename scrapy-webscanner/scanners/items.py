@@ -22,13 +22,13 @@
 
 from scrapy.item import Field
 from scrapy_djangoitem import DjangoItem
-from os2webscanner.models.match_model import Match
 
 
 class MatchItem(DjangoItem):
 
     """Scrapy Item using the Match object from the Django model as storage."""
 
+    from os2webscanner.models.match_model import Match
     django_model = Match
 
     """Original text matched. Stored temporarily for the purposes of
