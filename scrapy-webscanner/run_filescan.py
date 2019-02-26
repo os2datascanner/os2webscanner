@@ -3,10 +3,10 @@ import multiprocessing
 
 from twisted.internet import reactor, defer
 
+from run import StartScan
+
 from scanners.spiders.filespider import FileSpider
 from scanners.scanner_types.filescanner import FileScanner
-
-from run import StartScan
 
 
 class StartFileScan(StartScan, multiprocessing.Process):
@@ -18,14 +18,14 @@ class StartFileScan(StartScan, multiprocessing.Process):
         Takes scan id as input, which is directly related to the scan job id in the database.
         """
 
-        multiprocessing.Process.__init__(self)
         super().__init__(scan_id, logfile, last_started)
-        self.scanner = FileScanner(self.scan_id)
+        multiprocessing.Process.__init__(self)
 
     def run(self):
         """Updates the scan status and sets the pid.
         Run the scanner, blocking until finished."""
-
+        super().run()
+        self.scanner = FileScanner(self.scan_id)
         if self.scanner.scan_object.status is not "STARTED":
             self.scanner.scan_object.set_scan_status_start()
 

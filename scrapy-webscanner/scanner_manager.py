@@ -2,19 +2,6 @@
 import pika
 import json
 
-import os
-import sys
-import django
-
-base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-sys.path.append(base_dir + "/webscanner_site")
-os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
-
-os.umask(0o007)
-os.environ["SCRAPY_SETTINGS_MODULE"] = "scanners.settings"
-
-django.setup()
-
 from run_webscan import StartWebScan
 from run_filescan import StartFileScan
 

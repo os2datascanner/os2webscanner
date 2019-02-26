@@ -17,7 +17,6 @@
 """Run a scan by Scan ID."""
 
 import logging
-import django
 
 from dateutil.parser import parse as parse_datetime
 
@@ -27,15 +26,17 @@ from scrapy.utils.project import get_project_settings
 from scrapy.crawler import CrawlerProcess
 from scrapy.exceptions import DontCloseSpider
 
-from django.utils import timezone
-from django.core.exceptions import MultipleObjectsReturned
+import os
+os.umask(0o007)
+os.environ["SCRAPY_SETTINGS_MODULE"] = "scanners.settings"
 
-from os2webscanner.models.scans.scan_model import Scan
-from os2webscanner.models.statistic_model import Statistic
-from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
-
+# django_setup needs to be loaded before any imports from django app os2webscanner
+from utils import load_webscanner_settings, run_django_setup
+load_webscanner_settings()
+run_django_setup()
 
 # Activate timezone from settings
+from django.utils import timezone
 timezone.activate(timezone.get_default_timezone())
 
 
@@ -54,15 +55,22 @@ class StartScan(object):
         self.sitemap_crawler = None
         self.scanner_crawler = None
 
-        # Should maybe be removed...
-        django.setup()
         logging.basicConfig(filename=self.logfile, level=logging.DEBUG)
 
         self.settings = get_project_settings()
         self.crawler_process = CrawlerProcess(self.settings)
 
+    def run(self):
+        """Updates the scan status and sets the pid.
+        Run the scanner, blocking until finished."""
+        # A new instance of django setup needs to be loaded for the scan process,
+        # so the django db connection is not shared between processors.
+        from utils import run_django_setup
+        run_django_setup()
+
     def handle_killed(self):
         """Handle being killed by updating the scan status."""
+        from os2webscanner.models.scans.scan_model import Scan
         self.scanner.scan_object = Scan.objects.get(pk=self.scan_id)
         self.scanner.scan_object.set_scan_status_failed()
         self.scan.logging_occurrence("SCANNER FAILED: Killed")
@@ -87,6 +95,8 @@ class StartScan(object):
 
     def store_stats(self):
         """Stores scrapy scanning stats when scan is completed."""
+        from os2webscanner.models.statistic_model import Statistic
+        from django.core.exceptions import MultipleObjectsReturned
         logging.info('Stats: {0}'.format(self.scanner_crawler.stats.get_stats()))
 
         try:
@@ -129,6 +139,7 @@ class StartScan(object):
 
         Keep it open if there are still queue items to be processed.
         """
+        from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
         logging.debug("Spider Idle...")
         # Keep spider alive if there are still queue items to be processed
         remaining_queue_items = ConversionQueueItem.objects.filter(

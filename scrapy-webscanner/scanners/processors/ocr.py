@@ -42,15 +42,18 @@ class OCRProcessor(Processor):
     def convert(self, item, tmp_dir):
         """Convert the item and immediately run a Text processor on it."""
         txt_file = os.path.join(tmp_dir, "file")
+        logging.info("Starting OCR on file {}".format(item.file_path))
         return_code = subprocess.call([
             "tesseract", item.file_path, txt_file,
             "-psm", "1", "-l", "dan+eng"
         ])
         if return_code != 0:
+            logging.info("OCR failed for file {}".format(item.file_path))
             return False
 
+        logging.info("OCR succeeded for file {}".format(item.file_path))
         txt_file += ".txt"
-        logging.info("Processing file {0}".format(txt_file))
+        logging.info("Processing OCR generated file {0}".format(txt_file))
         self.text_processor.process_file(txt_file, item.url, item.page_no)
         if os.path.exists(txt_file):
             os.remove(txt_file)
