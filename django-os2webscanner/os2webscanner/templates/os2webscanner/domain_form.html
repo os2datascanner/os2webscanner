@@ -76,6 +76,23 @@
     </div>
   </div>
 
+  {% if form.alias %}
+   <div id="{{ form.alias.auto_id }}_container" class="col-sm-12{% if form.alias.errors %} has-error{% endif %}">
+        <div class="form-group">
+            <label class="control-label col-sm-3" for="id_{{ form.alias.name }}">Drevbogstav</label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control" name="{{ form.alias.name }}" id="id_{{ form.alias.name }}" {% if form.alias.value %}value="{{ form.alias.value }}"{% endif %}>
+                {% if form.alias.help_text %}
+                    <p>
+                        <small>{{ form.alias.help_text }}</small>
+                    </p>
+                {% endif %}
+                {% if form.alias.errors %}{{ form.alias.errors }}{% endif %}
+            </div>
+        </div>
+    </div>
+  {% endif %}
+
   {% if form.organization %}
     <div id="{{ form.organization.auto_id }}_container" class="col-sm-12{% if form.organization.errors %} has-error{% endif %}">
       <div class="form-group">

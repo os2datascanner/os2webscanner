@@ -22,7 +22,11 @@ Rapport &dash; {{scan.scanner.name}}
                 <tr>
                     {% if scan.domains.all and not scan.scanner.process_urls %}<td>
                         {% for domain in scan.domains.all %}
-                            {{domain.url}}<br>
+                            {% if domain.filedomain.alias %}
+                                {{domain.filedomain.alias}}: ({{domain.url}})<br>
+                            {% else %}
+                                {{domain.url}}<br>
+                            {% endif %}
                         {% endfor %}
                     </td>{% endif %}
                 </tr>
@@ -183,12 +187,15 @@ Rapport &dash; {{scan.scanner.name}}
               <tr class="{{ match.get_sensitivity_class }}">
                   <td class="match-url">
                     <span>
-                        {% if  "file:///" in match.url.url %}
+                        {% if "file://" in match.url.url %}
                         {{ match.url.url|slice:"7:" }}
                         {% else %}
                         <a href="{{ match.url.url }}" target="_NEW">{{ match.url.url }}</a>
                         {% endif %}
                     </span>
+                    {% if "file://" in match.url.url %}
+                    <input type="text" class="phantom" value="{{ match.url.url|slice:"7:" }}" />
+                    {% endif %}
                   </td>
                   <td class="match-rule">
                       <span>{{ match.get_matched_rule_display }}</span>
@@ -553,6 +560,32 @@ Rapport &dash; {{scan.scanner.name}}
 
         $("#list-links").html('Finder links...');
         prevTarg = null;
+    }
+
+    document.onready = function() {
+        $("td.match-url").each(function(idx, element) {
+            var e = $(element);
+            var hidden = e.find("input[type='text'].phantom")
+            /* Only set up the copy-on-click handler if we found a hidden input
+               field to copy from */
+            hidden.each(function() {
+                e.attr("title", "Klik for at kopiere teksten til clipboard")
+                e.click(function() {
+                    /* We can only select text in editable, visible fields, so
+                       make the hidden input control visible, select its
+                       contents, copy it, and then hide it again. ...
+                       Interesting platform, the Web, isn't it? */
+                    hidden.removeClass("phantom")
+                    console.log(hidden)
+                    hidden.select()
+                    document.execCommand("copy")
+                    hidden.addClass("phantom")
+
+                    e.css("opacity", 0.2)
+                    e.fadeTo(200, 1)
+                })
+            })
+        })
     }
 </script>
 {% endblock %}

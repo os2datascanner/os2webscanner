@@ -34,6 +34,7 @@ class FileDomain(Domain):
     """Represents a file domain to be scanned."""
 
     mountpath = models.CharField(max_length=2048, verbose_name='Folder sti', null=True)
+    alias = models.CharField(max_length=64, verbose_name='Drevbogstav', null=True)
 
     # Run error messages
     MOUNT_FAILED = (
