@@ -68,6 +68,7 @@ class FileDomain(Domain):
         """Mounts networkdrive if not already mounted."""
 
         if self.check_mountpoint() is 0:
+            logger.info('{} is already a mount point.'.format(self.mountpath))
             return True
 
         # Make only one scanner able to scan mounted file directory.
@@ -87,12 +88,13 @@ class FileDomain(Domain):
         if self.authentication.domain != '':
             command += ',domain=' + self.authentication.domain
 
-        logger.debug('Mount command: {0}'.format(command))
         response = call(command, shell=True)
 
         if response is not 0:
             logger.error('Mount failed: {0}'.format(response))
             return False
+
+        logger.info('{} is mounted.'.format(self.mountpath))
 
         return True
 
@@ -101,6 +103,7 @@ class FileDomain(Domain):
         if self.check_mountpoint() is 0:
             call('sudo umount -l ' + self.mountpath, shell=True)
             call('sudo umount -f ' + self.mountpath, shell=True)
+            logger.info('{} is unmounted.'.format(self.mountpath))
 
     def __str__(self):
         """Return the URL for the domain."""

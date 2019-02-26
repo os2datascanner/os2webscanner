@@ -6,11 +6,11 @@ from urllib.parse import urlparse
 
 from twisted.internet import reactor, defer
 
+from run import StartScan
+
 from scanners.spiders.sitemap import SitemapURLGathererSpider
 from scanners.scanner_types.webscanner import WebScanner
 from scanners.spiders.webspider import WebSpider
-
-from run import StartScan
 
 
 class StartWebScan(StartScan, multiprocessing.Process):
@@ -24,11 +24,12 @@ class StartWebScan(StartScan, multiprocessing.Process):
 
         super().__init__(scan_id, logfile, last_started)
         multiprocessing.Process.__init__(self)
-        self.scanner = WebScanner(self.scan_id)
 
     def run(self):
         """Updates the scan status and sets the pid.
         Run the scanner, blocking until finished."""
+        super().run()
+        self.scanner = WebScanner(self.scan_id)
         if self.scanner.scan_object.status is not "STARTED":
             self.scanner.scan_object.set_scan_status_start()
 

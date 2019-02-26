@@ -127,7 +127,5 @@ class Scanner(object):
                 for item in rule_matches:
                     match['matched_data'] += ', ' + item['matched_data']
 
-                print('-------Match: {0}-------'.format(match))
-
                 matches.append(match)
         return matches

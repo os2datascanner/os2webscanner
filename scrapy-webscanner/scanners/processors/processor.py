@@ -343,9 +343,6 @@ class Processor(object):
         self.convert to run the actual conversion. After converting,
         adds all files produced in the conversion directory to the queue.
         """
-        with open(item.file_path, "rb") as f:
-            data = f.read()
-
         tmp_dir = item.tmp_dir
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
@@ -373,7 +370,6 @@ class Processor(object):
         ignored_ocr_count = 0
         for root, dirnames, filenames in os.walk(tmp_dir):
             for fname in filenames:
-                # TODO: How do we decide which types are supported?
                 try:
                     # Guess the mime type from the file name
                     mime_type, encoding = mimetypes.guess_type(fname)
