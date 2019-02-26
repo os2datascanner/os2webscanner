@@ -68,6 +68,13 @@ class LibreOfficeProcessor(Processor):
         assert self.instance.poll() is None, """\
 couldn't create a LibreOffice process"""
 
+    def teardown_queue_processing(self):
+        if self.instance:
+            self.instance.terminate()
+            self.instance.wait()
+            self.instance = None
+        super(LibreOfficeProcessor, self).teardown_queue_processing()
+
     def handle_spider_item(self, data, url_object):
         """Add the item to the queue."""
         return self.add_to_queue(data, url_object)
