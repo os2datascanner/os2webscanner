@@ -96,7 +96,7 @@ couldn't create a LibreOffice process"""
             output_filter = "csv"
         else:
             # Default to converting to HTML
-            output_filter = "htm:HTML"
+            output_filter = "html"
 
         if output_filter == "csv":
             # TODO: Input type to filter mapping?
