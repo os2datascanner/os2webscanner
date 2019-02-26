@@ -55,8 +55,6 @@ class CPRRule(Rule):
                              whitelist=self.whitelist)
         return matches
 
-# TODO: Improve
-
 
 cpr_regex = regex.compile(
     r"\b(\d{2}[\s]?\d{2}[\s]?\d{2})(?:[\s\-/\.]|\s\-\s)?(\d{4})\b"
