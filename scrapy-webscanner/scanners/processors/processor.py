@@ -358,7 +358,6 @@ class Processor(object):
         if result:
             if os.path.exists(item.file_path):
                 os.remove(item.file_path)
-
             self.add_processed_files(item, tmp_dir)
 
         return result
@@ -375,6 +374,7 @@ class Processor(object):
     def add_processed_files(self, item, tmp_dir):
         """Recursively add all files in the temp dir to the queue."""
         ignored_ocr_count = 0
+        found_items = 0
         for root, dirnames, filenames in os.walk(tmp_dir):
             for fname in filenames:
                 # TODO: How do we decide which types are supported?
@@ -420,6 +420,7 @@ class Processor(object):
                         if processor_type == 'ocr':
                             new_item.page_no = get_ocr_page_no(fname)
 
+                        found_items += 1
                         new_item.save()
                     else:
                         os.remove(file_path)
@@ -432,6 +433,10 @@ class Processor(object):
                   "height must be >= %d))" % (ignored_ocr_count,
                                               MIN_OCR_DIMENSION_BOTH,
                                               MIN_OCR_DIMENSION_EITHER))
+        if found_items == 0:
+            datetime_print(
+                    "warning: conversion seems to have succeeded for " +
+                    "{0}, but no converted items were found".format(item.url.url))
 
     @classmethod
     def register_processor(cls, processor_type, processor):
