@@ -227,6 +227,10 @@ class Processor(object):
         """Setup the queue processor with additional arguments."""
         self.pid = pid
 
+    def teardown_queue_processing(self):
+        """Clean up any resources acquired by setup_queue_processing."""
+        self.pid = None
+
     def process_queue(self):
         """Process items in the queue in an infinite loop.
 
