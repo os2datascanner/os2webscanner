@@ -119,7 +119,7 @@ couldn't create a LibreOffice process"""
                 project_dir + "/scrapy-webscanner/unoconv",
                 "--pipe", "cnv_{0}".format(self.instance_name), "--no-launch",
                 "--format", output_filter,
-                "--output", tmp_dir, "-vvv",
+                "--output", tmp_dir + "/", "-vvv",
                 item.file_path
             ])
 
