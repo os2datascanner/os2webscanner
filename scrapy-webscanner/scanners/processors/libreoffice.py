@@ -45,31 +45,35 @@ class LibreOfficeProcessor(Processor):
         """Initialize the processor, setting an empty home directory."""
         super(Processor, self).__init__()
         self.home_dir = None
-
-    def setup_home_dir(self):
-        """Make a random unique home directory for LibreOffice."""
-        while True:
-            self.instance_name = hashlib.md5(str(random.random())).hexdigest()
-            home_dir = os.path.join(home_root_dir, self.instance_name)
-
-            if not os.path.exists(home_dir):
-                self.set_home_dir(home_dir)
-                break
-
-    def set_home_dir(self, home_dir):
-        """Set the LibreOffice home directory to the given directory."""
-        self.home_dir = home_dir
-        self.env = os.environ.copy()
-        self.env['HOME'] = self.home_dir
-        if not os.path.exists(self.home_dir):
-            os.makedirs(self.home_dir)
+        self.instance = None
+        self.instance_name = None
 
     def setup_queue_processing(self, pid, *args):
         """Setup the home directory as the first argument."""
         super(LibreOfficeProcessor, self).setup_queue_processing(
             pid, *args
         )
-        self.set_home_dir(os.path.join(home_root_dir, args[0]))
+        self.instance_name = args[0]
+        dummy_home = os.path.join(home_root_dir, self.instance_name)
+        if not os.path.exists(dummy_home):
+            os.makedirs(dummy_home)
+
+        args = [
+            "/usr/lib/libreoffice/program/soffice.bin",
+            "-env:UserInstallation=file://{0}".format(dummy_home),
+            "--accept=pipe,name=cnv_{0};urp".format(self.instance_name),
+            "--headless", "--nologo", "--quickstart=no"
+            ]
+        self.instance = subprocess.Popen(args)
+        assert self.instance.poll() is None, """\
+couldn't create a LibreOffice process"""
+
+    def teardown_queue_processing(self):
+        if self.instance:
+            self.instance.terminate()
+            self.instance.wait()
+            self.instance = None
+        super(LibreOfficeProcessor, self).teardown_queue_processing()
 
     def handle_spider_item(self, data, url_object):
         """Add the item to the queue."""
@@ -81,9 +85,6 @@ class LibreOfficeProcessor(Processor):
 
     def convert(self, item, tmp_dir):
         """Convert the item."""
-        if self.home_dir is None:
-            self.setup_homedir()
-
         # TODO: Use the mime-type detected by the scanner
         mime_type, encoding = mimetypes.guess_type(item.file_path)
         if not mime_type:
@@ -95,7 +96,7 @@ class LibreOfficeProcessor(Processor):
             output_filter = "csv"
         else:
             # Default to converting to HTML
-            output_filter = "htm:HTML"
+            output_filter = "html"
 
         if output_filter == "csv":
             # TODO: Input type to filter mapping?
@@ -105,17 +106,22 @@ class LibreOfficeProcessor(Processor):
             )
 
             return_code = subprocess.call([
-                project_dir + "/scrapy-webscanner/unoconv", "-f", output_filter, "-e",
-                'FilterOptions="59,34,0,1"', "-o", output_file,
+                project_dir + "/scrapy-webscanner/unoconv",
+                "--pipe", "cnv_{0}".format(self.instance_name), "--no-launch",
+                "--format", output_filter,
+                "-e", 'FilterOptions="59,34,0,1"',
+                "--output", output_file, "-vvv",
                 item.file_path
-            ], env=self.env)
+            ])
         else:
             # HTML
             return_code = subprocess.call([
-                "libreoffice", "--headless",
-                "--convert-to", output_filter,
-                item.file_path, "--outdir", tmp_dir
-            ], env=self.env)
+                project_dir + "/scrapy-webscanner/unoconv",
+                "--pipe", "cnv_{0}".format(self.instance_name), "--no-launch",
+                "--format", output_filter,
+                "--output", tmp_dir + "/", "-vvv",
+                item.file_path
+            ])
 
         return return_code == 0
 
