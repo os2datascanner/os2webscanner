@@ -350,6 +350,13 @@ class ZIPTest(unittest.TestCase):
             return
         self.assertEqual(result, False)
 
+    def test_unzip(self):
+        filename = "contains.zip"
+        result = self.create_ressources(filename)
+        if result is None:
+            self.fail("File does not exist")
+            return
+        self.assertEqual(result, True)
 
 class StoreStatsTest(unittest.TestCase):
 
