@@ -59,7 +59,7 @@ class LibreOfficeProcessor(Processor):
             os.makedirs(dummy_home)
 
         args = [
-            "/usr/lib/libreoffice/program/soffice.bin",
+            "/usr/lib/libreoffice/program/soffice",
             "-env:UserInstallation=file://{0}".format(dummy_home),
             "--accept=pipe,name=cnv_{0};urp".format(self.instance_name),
             "--headless", "--nologo", "--quickstart=no"
