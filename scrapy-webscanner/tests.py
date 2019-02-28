@@ -344,11 +344,9 @@ class ZIPTest(unittest.TestCase):
 
     def test_unzip_on_password_zip(self):
         filename = 'Nye_Ejere_6.zip'
-        from django.conf import settings
-        settings.DO_USE_MD5 = False
         result = self.create_ressources(filename)
         if result is None:
-            self.fail("File does not exists")
+            self.fail("File does not exist")
             return
         self.assertEqual(result, False)
 
