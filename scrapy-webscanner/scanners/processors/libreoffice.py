@@ -105,25 +105,36 @@ couldn't create a LibreOffice process"""
                 os.path.basename(item.file_path).split(".")[0] + ".csv"
             )
 
-            return_code = subprocess.call([
+            unoconv_args = [
                 project_dir + "/scrapy-webscanner/unoconv",
                 "--pipe", "cnv_{0}".format(self.instance_name), "--no-launch",
                 "--format", output_filter,
                 "-e", 'FilterOptions="59,34,0,1"',
                 "--output", output_file, "-vvv",
                 item.file_path
-            ])
+            ]
         else:
             # HTML
-            return_code = subprocess.call([
+            unoconv_args = [
                 project_dir + "/scrapy-webscanner/unoconv",
                 "--pipe", "cnv_{0}".format(self.instance_name), "--no-launch",
                 "--format", output_filter,
                 "--output", tmp_dir + "/", "-vvv",
                 item.file_path
-            ])
+            ]
 
-        return return_code == 0
+        attempts = 0
+        while attempts < 4:
+            return_code = subprocess.call(unoconv_args)
+            # unoconv returns 113 if the connection failed; if that happens and
+            # the instance is still running, then it's probably starting up, so
+            # try a few more times over the course of a minute
+            if return_code == 113 and self.instance.poll() is None:
+                sleep(15)
+                attempts += 1
+            else:
+                return return_code == 0
+        return False
 
 
 Processor.register_processor(LibreOfficeProcessor.item_type,
