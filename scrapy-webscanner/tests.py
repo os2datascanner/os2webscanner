@@ -36,26 +36,26 @@ import linkchecker
 
 import unittest
 
-from scanner.scanner.scanner import Scanner
+from scanners.scanner_types.scanner import Scanner
 
-from scanner.rules import cpr, name, regexrule
+from scanners.rules import cpr, name, regexrule
 
-from scanner.spiders import scanner_spider
-from scanner.processors import pdf, libreoffice, html, zip
+from scanners.spiders import scanner_spider
+from scanners.processors import pdf, libreoffice, html, zip
 
 from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
 from os2webscanner.models.url_model import Url
-from os2webscanner.models.scan_model import Scan
 
-from os2webscanner.models.webscan_model import WebScan
-from os2webscanner.models.webscanner_model import WebScanner
-from os2webscanner.models.webdomain_model import WebDomain
+from os2webscanner.models.scans.scan_model import Scan
+from os2webscanner.models.scans.webscan_model import WebScan
+from os2webscanner.models.scannerjobs.webscanner_model import WebScanner
+from os2webscanner.models.domains.webdomain_model import WebDomain
 
 from os2webscanner.models.regexrule_model import RegexRule
 from os2webscanner.models.organization_model import Organization
 
 
-from scanner.scanner.analysis_scan import get_dir_files_and_bytes_count
+from scanners.scanner_types.pre_analysis import PreDataScanner
 
 
 class AnalysisScanTest(unittest.TestCase):
