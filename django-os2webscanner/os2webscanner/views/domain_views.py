@@ -55,10 +55,6 @@ class DomainCreate(RestrictedCreateView):
 
         form = super().get_form(form_class)
 
-        for fname in form.fields:
-            f = form.fields[fname]
-            f.widget.attrs['class'] = 'form-control'
-
         return domain_form_manipulate(form)
 
     def form_valid(self, form):
@@ -113,9 +109,10 @@ class DomainUpdate(RestrictedUpdateView):
 
         self.old_url = self.get_object().url
 
-        for fname in form.fields:
-            f = form.fields[fname]
-            f.widget.attrs['class'] = 'form-control'
+        # Adding the form-control class to the elements of the validation form
+        # breaks it completely, so we need to do that (by calling
+        # domain_form_manipulate) before we create the validation UI
+        domain_form_manipulate(form)
 
         if 'validation_method' in form.fields:
             vm_field = form.fields['validation_method']
@@ -125,7 +122,7 @@ class DomainUpdate(RestrictedUpdateView):
                 )
                 vm_field.widget.attrs['class'] = 'validateradio'
 
-        return domain_form_manipulate(form)
+        return form
 
     def form_valid(self, form):
         """Validate the submitted form."""
