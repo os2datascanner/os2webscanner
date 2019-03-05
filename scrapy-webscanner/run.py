@@ -27,6 +27,7 @@ from scrapy.crawler import CrawlerProcess
 from scrapy.exceptions import DontCloseSpider
 
 import os
+from sys import stderr
 os.umask(0o007)
 os.environ["SCRAPY_SETTINGS_MODULE"] = "scanners.settings"
 
@@ -55,14 +56,25 @@ class StartScan(object):
         self.sitemap_crawler = None
         self.scanner_crawler = None
 
-        logging.basicConfig(filename=self.logfile, level=logging.DEBUG)
-
         self.settings = get_project_settings()
-        self.crawler_process = CrawlerProcess(self.settings)
+        self.crawler_process = None
 
     def run(self):
         """Updates the scan status and sets the pid.
         Run the scanner, blocking until finished."""
+
+        # Each scanner process should set up logging separately, writing to
+        # both the log file and to the scanner manager's standard error stream
+        logging.basicConfig(level=logging.DEBUG, handlers=[
+                logging.FileHandler(self.logfile),
+                logging.StreamHandler(stderr)
+        ])
+
+        # Scrapy expects to be able to log things, so this call should always
+        # happen after we've initialised the root logging handler
+        self.crawler_process = \
+            CrawlerProcess(self.settings, install_root_handler=False)
+
         # A new instance of django setup needs to be loaded for the scan process,
         # so the django db connection is not shared between processors.
         from utils import run_django_setup
