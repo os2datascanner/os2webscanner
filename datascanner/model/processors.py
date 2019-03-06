@@ -30,12 +30,20 @@ def html_processor(r, **kwargs):
                 stdout=PIPE,
                 stderr=DEVNULL, **kwargs).stdout.strip()
 
-def libreoffice_processor(r, **kwargs):
+def libreoffice_txt_processor(r, **kwargs):
     with r.make_path() as f:
-        return run(["libreoffice", "--cat", f],
+        return run(["unoconv", "--stdout", "-v", "-v", "-v", "--format", "txt", f],
                 universal_newlines=True,
                 stdout=PIPE,
-                stderr=DEVNULL, **kwargs).stdout.strip()
+                stderr=sys.stderr, **kwargs).stdout.strip()
+
+def libreoffice_csv_processor(r, **kwargs):
+    with r.make_path() as f:
+        return run(["unoconv", "--stdout", "-v", "-v", "-v", "--format", "csv",
+                    "--export", "FilterOptions=59,34,0,1", f],
+                 universal_newlines=True,
+                 stdout=PIPE,
+                 stderr=DEVNULL, **kwargs).stdout.strip()
 
 processors = {
     "text/plain": plain_text_processor,
@@ -43,8 +51,8 @@ processors = {
     "image/jpeg": image_processor,
     "application/pdf": pdf_processor,
     "text/html": html_processor,
-    "application/vnd.oasis.opendocument.spreadsheet": libreoffice_processor,
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": libreoffice_processor,
-    "application/vnd.oasis.opendocument.text": libreoffice_processor,
-    "application/vnd.ms-excel": libreoffice_processor
+    "application/vnd.oasis.opendocument.text": libreoffice_txt_processor,
+    "application/vnd.oasis.opendocument.spreadsheet": libreoffice_txt_processor,
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": libreoffice_csv_processor,
+    "application/vnd.ms-excel": libreoffice_csv_processor
 }
