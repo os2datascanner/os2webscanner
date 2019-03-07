@@ -37,7 +37,7 @@ class ZipProcessor(Processor):
         """Extract the item using unzip."""
         try:
             zip_item = zipfile.ZipFile(item.file_path)
-            zip_item.extract(tmp_dir)
+            zip_item.extractall(tmp_dir)
             return True
         except (RuntimeError, KeyError) as re:
             print('Extracting zip file {} failed.'.format(item.file_path))
