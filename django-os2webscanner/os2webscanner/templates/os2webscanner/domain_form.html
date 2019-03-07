@@ -341,13 +341,13 @@
                     <p class="form-control-static">
                       Indsæt følgende
                     </p>
-                    <div id="validation_method_desc_0" class="tab-pane active schedule-pane" >
+                    <div id="validation_method_desc_0" class="tab-pane {% if form.validation_method.value == 0 %} active {% endif %} schedule-pane" >
                       <pre style="margin-top:.7em;">{{valid_txt_0|escape}}</pre>
                     </div>
-                    <div id="validation_method_desc_1" class="tab-pane schedule-pane" >
+                    <div id="validation_method_desc_1" class="tab-pane {% if form.validation_method.value == 1 %} active {% endif %} schedule-pane" >
                       <pre style="margin-top:.7em;">{{valid_txt_1|escape}}</pre>
                     </div>
-                    <div id="validation_method_desc_2" class="tab-pane schedule-pane" >
+                    <div id="validation_method_desc_2" class="tab-pane {% if form.validation_method.value == 2 %} active {% endif %} schedule-pane" >
                       <pre style="margin-top:.7em;">{{valid_txt_2|escape}}</pre>
                     </div>
                   </div>
