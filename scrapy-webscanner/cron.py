@@ -35,7 +35,7 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 django.setup()
 
 
-from os2webscanner.models.scanner_model import Scanner
+from os2webscanner.models.scannerjobs.scanner_model import Scanner
 
 
 def strip_seconds(d):
