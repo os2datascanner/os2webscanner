@@ -28,11 +28,9 @@ def callback(ch, method, properties, body):
     ch.basic_ack(delivery_tag=method.delivery_tag)
     # Collect scan object and map properties
     if body['type'] == 'WebScanner':
-        scan_job_list.append(StartWebScan(
-                body['id'], body['logfile'], body['last_started']))
+        scan_job_list.append(StartWebScan(body))
     else:
-        scan_job_list.append(StartFileScan(
-            body['id'], body['logfile'], body['last_started']))
+        scan_job_list.append(StartFileScan(body))
     scan_job_list[-1].start()
 
 

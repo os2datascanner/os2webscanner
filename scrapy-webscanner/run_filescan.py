@@ -12,13 +12,13 @@ from scanners.scanner_types.filescanner import FileScanner
 class StartFileScan(StartScan, multiprocessing.Process):
     """A scanner application which can be run."""
 
-    def __init__(self, scan_id, logfile=None, last_started=None):
+    def __init__(self, configuration):
         """
         Initialize the scanner application.
-        Takes scan id as input, which is directly related to the scan job id in the database.
+        Takes the JSON descriptor of this scan as its argument.
         """
 
-        super().__init__(scan_id, logfile, last_started)
+        super().__init__(configuration)
         multiprocessing.Process.__init__(self)
 
     def run(self):

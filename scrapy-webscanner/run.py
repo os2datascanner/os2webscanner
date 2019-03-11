@@ -44,11 +44,17 @@ timezone.activate(timezone.get_default_timezone())
 class StartScan(object):
     """A scanner application which can be run."""
 
-    def __init__(self, scan_id, logfile=None, last_started=None):
+    def __init__(self, configuration):
         """
         Initialize the scanner application.
-        Takes scan id as input, which is directly related to the scan job id in the database.
+        Takes the JSON descriptor of this scan as its argument.
         """
+        self.configuration = configuration
+
+        scan_id = configuration['id']
+        logfile = configuration['logfile']
+        last_started = configuration['last_started']
+
         self.scan_id = scan_id
         self.logfile = logfile
         self.last_started = \
