@@ -85,4 +85,4 @@ for scanner in Scanner.objects.exclude(schedule="").select_subclasses():
         continue
 
     print("Running scanner %s" % scanner)
-    scanner.run()
+    scanner.run(type(scanner).__name__)
