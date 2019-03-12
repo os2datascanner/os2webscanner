@@ -120,14 +120,14 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
             this_scan.get_number_of_failed_conversions()
         )
         try:
-            stats = Statistic.objects.get(scan=self.get_object())
+            stats = Statistic.objects.get(scan=this_scan)
             context['files_scraped_count'] = stats.files_scraped_count
             context['files_is_dir_count'] = stats.files_is_dir_count
             context['files_skipped_count'] = stats.files_skipped_count
         except ObjectDoesNotExist:
             pass
 
-        if hasattr(self.get_object(), 'filescan'):
+        if hasattr(this_scan.scanner, 'filescanner'):
             # Patch all of the context's match model objects to have paths and
             # not encoded URLs. (This should be fine, since we don't save
             # them, and it keeps this complexity out of the browser and
