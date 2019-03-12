@@ -25,6 +25,8 @@ import hashlib
 import pathlib
 from django.conf import settings
 
+from time import sleep
+
 base_dir = settings.BASE_DIR
 var_dir = settings.VAR_DIR
 project_dir = settings.PROJECT_DIR
