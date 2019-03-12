@@ -25,7 +25,7 @@ class StartFileScan(StartScan, multiprocessing.Process):
         """Updates the scan status and sets the pid.
         Run the scanner, blocking until finished."""
         super().run()
-        self.scanner = FileScanner(self.scan_id)
+        self.scanner = FileScanner(self.configuration)
         if self.scanner.scan_object.status is not "STARTED":
             self.scanner.scan_object.set_scan_status_start()
 

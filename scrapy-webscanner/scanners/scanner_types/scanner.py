@@ -28,14 +28,26 @@ from ..processors.processor import Processor
 class Scanner(object):
     """Represents a scanner which can scan data using configured rules."""
 
-    def __init__(self, scan_id):
-        """Load the scanner settings from the given scan ID."""
+    def __init__(self, configuration):
+        """\
+Loads the scanner settings from the scan ID specified in the configuration \
+dictionary."""
+        self.configuration = configuration
+        scan_id = configuration['id']
+
         # Get scan object from DB
         from os2webscanner.models.scans.scan_model import Scan
         self.scan_object = Scan.objects.get(pk=scan_id)
 
         self.rules = self._load_rules()
         self.valid_domains = self.scan_object.get_valid_domains
+
+    @staticmethod
+    def from_scan_id(scan_id):
+        """\
+Creates a new Scanner, the settings of which will be loaded from the given \
+scan ID."""
+        return Scanner(dict(id=scan_id))
 
     def _load_rules(self):
         """Load rules based on WebScanner settings."""

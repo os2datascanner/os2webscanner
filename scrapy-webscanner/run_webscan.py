@@ -29,7 +29,7 @@ class StartWebScan(StartScan, multiprocessing.Process):
         """Updates the scan status and sets the pid.
         Run the scanner, blocking until finished."""
         super().run()
-        self.scanner = WebScanner(self.scan_id)
+        self.scanner = WebScanner(self.configuration)
         if self.scanner.scan_object.status is not "STARTED":
             self.scanner.scan_object.set_scan_status_start()
 
