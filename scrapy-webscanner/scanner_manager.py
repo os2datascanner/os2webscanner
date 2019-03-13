@@ -18,10 +18,9 @@ channel = connection.channel()
 
 channel.queue_declare(queue=queue_name)
 
-scan_job_list = []
-
 
 def callback(ch, method, properties, body):
+    scan_job_list = []
     body = body.decode('utf-8')
     body = json.loads(body)
     print(" [x] Received %r" % body)
