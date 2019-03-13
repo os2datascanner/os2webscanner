@@ -25,6 +25,8 @@ import hashlib
 import pathlib
 from django.conf import settings
 
+from time import sleep
+
 base_dir = settings.BASE_DIR
 var_dir = settings.VAR_DIR
 project_dir = settings.PROJECT_DIR
@@ -72,12 +74,15 @@ couldn't create a LibreOffice process"""
 
     def teardown_queue_processing(self):
         if self.instance:
-            # Tell the existing instance to stop listening on the pipe (this
-            # subprocess will send that instruction and then stop immediately)
-            subprocess.run(self._make_args(accept=False))
-            # ... and *now* stop it
-            self.instance.terminate()
-            self.instance.wait()
+            if self.instance.poll() is None:
+                # Tell the existing instance to stop listening on the pipe
+                # (this subprocess will send that instruction and then stop
+                # immediately)
+                subprocess.run(
+                    self._make_args(accept=False) + ['--terminate_after_init'])
+                # ... and *now* stop it
+                self.instance.terminate()
+                self.instance.wait()
             self.instance = None
 
         # Also remove the Unix domain socket used to control access to the
