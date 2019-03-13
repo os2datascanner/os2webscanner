@@ -52,7 +52,7 @@ processors = {
     "application/pdf": pdf_processor,
     "text/html": html_processor,
     "application/vnd.oasis.opendocument.text": libreoffice_txt_processor,
-    "application/vnd.oasis.opendocument.spreadsheet": libreoffice_txt_processor,
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": libreoffice_csv_processor,
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": libreoffice_txt_processor,
+    "application/vnd.oasis.opendocument.spreadsheet": libreoffice_csv_processor,
     "application/vnd.ms-excel": libreoffice_csv_processor
 }
