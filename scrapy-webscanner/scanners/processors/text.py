@@ -49,8 +49,7 @@ class TextProcessor(Processor):
 
         from ..scanner_types.scanner import Scanner
 
-        scanner = Scanner(url_object.scan.pk)
-
+        scanner = Scanner.from_scan_id(url_object.scan.pk)
         matches = scanner.execute_rules(data)
         for match in matches[:10]:
             match['url'] = url_object

@@ -5,8 +5,13 @@ from .scanner import Scanner
 
 class WebScanner(Scanner):
 
-    def __init__(self, scan_id):
-        """Load the scanner settings from the given scan ID."""
+    def __init__(self, configuration):
+        """\
+Loads the scanner settings from the scan ID specified in the configuration \
+dictionary."""
+        self.configuration = configuration
+        scan_id = configuration['id']
+
         # Get scan object from DB
         from os2webscanner.models.scans.webscan_model import WebScan
         self.scan_object = WebScan.objects.get(pk=scan_id)
