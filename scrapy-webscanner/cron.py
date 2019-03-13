@@ -36,6 +36,9 @@ django.setup()
 
 
 from os2webscanner.models.scannerjobs.scanner_model import Scanner
+from os2webscanner.models.scannerjobs.webscanner_model import WebScanner
+from os2webscanner.models.scannerjobs.filescanner_model import FileScanner
+from os2webscanner.models.scannerjobs.exchangescanner_model import ExchangeScanner
 
 
 def strip_seconds(d):
