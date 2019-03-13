@@ -1,6 +1,5 @@
 #!/bin/sh
 
-import sys
 import argparse
 
 from model.core import Source, SourceManager
