@@ -1,4 +1,4 @@
-from model.core import Source, Handle, Resource
+from model.core import Source, Handle, Resource, EMPTY_COOKIE
 
 from io import BytesIO
 from os import remove
@@ -20,7 +20,7 @@ class DataSource(Source):
         return "DataSource(content=..., mime={0})".format(self._mime)
 
     def _open(self, sm):
-        pass
+        return EMPTY_COOKIE
 
     def _close(self, sm):
         pass
