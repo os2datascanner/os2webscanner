@@ -56,31 +56,30 @@ def generator(start, urls, sources):
         per_sec = float(count) / now
         print("generator signing off after finding {0} sources in {1} seconds ({2} sources/sec)".format(count, now, per_sec))
 
-def explorer(start, sources, handles):
+def explorer(start, sm, sources, handles):
     count = 0
     total = 0
     own_sources = []
     try:
-        with SourceManager() as sm:
-            while True:
-                source = None
-                if own_sources:
-                    source = own_sources[0]
-                    own_sources = own_sources[1:]
+        while True:
+            source = None
+            if own_sources:
+                source = own_sources[0]
+                own_sources = own_sources[1:]
+            else:
+                source = take(sources)
+                if source == done:
+                    break
+            for handle in source.handles(sm):
+                derived_source = Source.from_handle(handle)
+                if derived_source:
+                    own_sources.append(derived_source)
                 else:
-                    source = take(sources)
-                    if source == done:
-                        break
-                for handle in source.handles(sm):
-                    derived_source = Source.from_handle(handle)
-                    if derived_source:
-                        own_sources.append(derived_source)
-                    else:
-                        t = handle.guess_type()
-                        if t in processors:
-                            put(handles, handle)
-                            count += 1
-                    total += 1
+                    t = handle.guess_type()
+                    if t in processors:
+                        put(handles, handle)
+                        count += 1
+                total += 1
     finally:
         now = (datetime.now() - start).total_seconds()
         per_sec = float(count) / now
@@ -90,13 +89,13 @@ def explorer(start, sources, handles):
 def hs_pair(t):
     return "<text from {0}>".format(t[0])
 
-def processor(start, handles, texts, peers):
+def processor(start, parent, handles, texts, peers):
     with peers.get_lock():
         peers.value += 1
     me = current_process().name
     count = 0
     try:
-        with SourceManager() as sm:
+        with SourceManager(parent) as sm:
             while True:
                 handle = take(handles)
                 if handle == done:
@@ -162,27 +161,29 @@ if __name__ == '__main__':
         processor_c = Value(c_ulong, 0)
 
         start = datetime.now()
-        # Collect all of the handles in advance so that downloading file
-        # content doesn't starve other parts of the system
-        generator(start, args.urls, sources)
-        explorer(start, sources, handles)
 
-        start = datetime.now()
-        proPs = [Process(target=processor, name="processor{0}".format(i), args=(start, handles, texts, processor_c,)) for i in range(0, 3)]
-        priP = Process(target=printer, name="printer", args=(start, texts,))
+        with SourceManager() as sm:
+            # Collect all of the handles in advance so that downloading file
+            # content doesn't starve other parts of the system
+            generator(start, args.urls, sources)
+            explorer(start, sm, sources, handles)
 
-        priP.start()
-        [proP.start() for proP in proPs]
+            start = datetime.now()
+            proPs = [Process(target=processor, name="processor{0}".format(i), args=(start, sm.share(), handles, texts, processor_c,)) for i in range(0, 3)]
+            priP = Process(target=printer, name="printer", args=(start, texts,))
 
-        def wait_on(p):
-            while True:
-                print("waiting on {0}".format(p))
-                p.join()
-                if p.exitcode != None:
-                    print("joined {0}".format(p))
-                    break
+            priP.start()
+            [proP.start() for proP in proPs]
 
-        [wait_on(proP) for proP in proPs]
-        wait_on(priP)
-        duration = (datetime.now() - start).total_seconds()
-        print("Everything finished after {0} seconds.".format(duration))
+            def wait_on(p):
+                while True:
+                    print("waiting on {0}".format(p))
+                    p.join()
+                    if p.exitcode != None:
+                        print("joined {0}".format(p))
+                        break
+
+            [wait_on(proP) for proP in proPs]
+            wait_on(priP)
+            duration = (datetime.now() - start).total_seconds()
+            print("Everything finished after {0} seconds.".format(duration))
