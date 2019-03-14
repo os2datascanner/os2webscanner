@@ -1,4 +1,4 @@
-from model.core import Source, Handle
+from model.core import Source, Handle, ShareableCookie
 from model.file import FilesystemResource
 
 from os import rmdir
@@ -39,7 +39,7 @@ class SMBSource(Source):
         try:
             print(args)
             assert run(args).returncode == 0
-            return Path(mntdir)
+            return ShareableCookie(Path(mntdir))
         except:
             rmdir(mntdir)
             raise
