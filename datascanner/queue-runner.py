@@ -172,18 +172,26 @@ if __name__ == '__main__':
             proPs = [Process(target=processor, name="processor{0}".format(i), args=(start, sm.share(), handles, texts, processor_c,)) for i in range(0, 3)]
             priP = Process(target=printer, name="printer", args=(start, texts,))
 
-            priP.start()
-            [proP.start() for proP in proPs]
+            try:
+                priP.start()
+                [proP.start() for proP in proPs]
 
-            def wait_on(p):
-                while True:
-                    print("waiting on {0}".format(p))
-                    p.join()
-                    if p.exitcode != None:
-                        print("joined {0}".format(p))
-                        break
+                def wait_on(p):
+                    while True:
+                        print("waiting on {0}".format(p))
+                        p.join()
+                        if p.exitcode != None:
+                            print("joined {0}".format(p))
+                            break
 
-            [wait_on(proP) for proP in proPs]
-            wait_on(priP)
-            duration = (datetime.now() - start).total_seconds()
-            print("Everything finished after {0} seconds.".format(duration))
+                [wait_on(proP) for proP in proPs]
+                wait_on(priP)
+                duration = (datetime.now() - start).total_seconds()
+                print("Everything finished after {0} seconds.".format(duration))
+            except:
+                print("Uncaught exception: joining all children to shut down context manager cleanly.")
+                [wait_on(proP) for proP in proPs]
+                wait_on(priP)
+                duration = (datetime.now() - start).total_seconds()
+                print("Unclean shutdown after {0} seconds.".format(duration))
+                raise
