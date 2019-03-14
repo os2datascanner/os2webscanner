@@ -47,8 +47,7 @@ them.)
         """\
 Opens this Source in the given SourceManager. Returns a cookie of some kind
 that can be used to interact with the opened state, and which SourceManager
-will later pass to _close.
-"""
+will later pass to _close."""
         raise NotImplemented("Source._open")
 
     def _close(self, cookie):
@@ -129,10 +128,9 @@ contexts are also nested; child SourceManagers will not try to open Sources
 that their antecedents have already opened, and the nesting ensures that their
 own state will be cleaned up before that of their antecedents.
 
-SourceManagers are not serialisable. (They're /supposed/ to be not
-serialisable! They track all of the state that would otherwise make Sources and
-Handles unserialisable!)
-"""
+As SourceManagers track (potentially process-specific) state, they are not
+usefully serialisable. See, however, the SourceManager.share function and the
+ShareableCookie class below."""
     def __init__(self, parent=None):
         """\
 Initialises this SourceManager.
@@ -142,11 +140,28 @@ context manager in a containing scope."""
         self._order = []
         self._opened = {}
         self._parent = parent
+        self._ro = False
+
+    def share(self):
+        """\
+Returns a copy of this SourceManager that contains only ShareableCookies. (The
+resulting SourceManager can only safely be used as a parent.)"""
+        r = SourceManager()
+        r._ro = True
+        for v in self._order:
+            cookie = self._opened[v]
+            if isinstance(cookie, ShareableCookie):
+                r._order.append(cookie)
+                r._opened[v] = cookie
+        return r
 
     def open(self, source, try_open=True):
         """\
 Returns the cookie returned by opening the given Source. If @try_open is True,
 the Source will be opened in this SourceManager if necessary."""
+        assert not (self._ro and try_open), """\
+BUG: open(try_open=True) called on a read-only SourceManager!"""
+        rv = None
         if not source in self._opened:
             cookie = None
             if self._parent:
@@ -155,11 +170,17 @@ the Source will be opened in this SourceManager if necessary."""
                 cookie = source._open(self)
                 self._order.append(source)
                 self._opened[source] = cookie
-            return cookie
+            rv = cookie
         else:
-            return self._opened[source]
+            rv = self._opened[source]
+        if isinstance(rv, ShareableCookie):
+            return rv.get()
+        else:
+            return rv
 
     def __enter__(self):
+        assert not self._ro, """\
+BUG: __enter__ called on a read-only SourceManager!"""
         return self
 
     def __exit__(self, exc_type, exc_value, backtrace):
@@ -168,10 +189,37 @@ Closes all of the cookies returned by Sources that were opened in this
 SourceManager."""
         try:
             for k in reversed(self._order):
-                k._close(self._opened[k])
+                cookie = self._opened[k]
+                if isinstance(cookie, ShareableCookie):
+                    cookie = cookie.get()
+                k._close(cookie)
         finally:
             self._order = []
             self._opened = {}
+
+class ShareableCookie:
+    """\
+A Source's cookie represents the fact that it has been opened somehow.
+Precisely what this means is not defined: it might represent a mount operation
+on a remote drive, or a connection to a server, or even nothing at all.
+
+The Source._open function can return a ShareableCookie to indicate that a
+cookie can (for the duration of its SourceManager's context) meaningfully be
+shared across processes, because the operations that it has performed are not
+specific to a single process.
+
+SourceManager will otherwise try to hide the existence of this class from the
+outside world -- the value contained in this cookie, rather than the cookie
+itself, will be returned from SourceManager.open and passed to
+Source._close."""
+    def __init__(self, value):
+        self.value = value
+
+    def get(self):
+        return self.value
+
+EMPTY_COOKIE = ShareableCookie(None)
+"""A contentless (and therefore trivially shareable) cookie."""
 
 class Handle(_TypPropEq):
     """\
