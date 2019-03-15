@@ -6,7 +6,6 @@ import urllib.request
 import urllib.error
 import urllib.parse
 import http.client
-from os2webscanner.utils import capitalize_first
 import regex
 import logging
 
@@ -24,6 +23,7 @@ def check_url(url, method="HEAD"):
     :param method:
     :return:
     """
+    from os2webscanner.utils import capitalize_first
     try:
         logging.info("Checking %s" % url)
         request = urllib.request.Request(url, headers={"User-Agent":

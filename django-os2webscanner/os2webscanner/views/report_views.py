@@ -17,15 +17,16 @@
 """Contains Django views."""
 import csv
 
+from urllib.parse import unquote
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 
 from .views import LoginRequiredMixin, RestrictedListView, \
     DeleteView, UpdateView
-
 from ..models.match_model import Match
 from ..models.referrerurl_model import ReferrerUrl
-from ..models.scan_model import Scan
+from ..models.scans.scan_model import Scan
 from ..models.statistic_model import Statistic
 from ..models.url_model import Url
 from ..models.userprofile_model import UserProfile
@@ -95,16 +96,18 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
 
     def get_context_data(self, **kwargs):
         """Add the scan's matches to the report context data."""
+        this_scan = self.get_object()
+
         context = super().get_context_data(**kwargs)
         all_matches = Match.objects.filter(
-            scan=self.get_object()
+            scan=this_scan
         ).order_by('-sensitivity', 'url', 'matched_rule', 'matched_data')
 
         broken_urls = Url.objects.filter(
-            scan=self.get_object()
+            scan=this_scan
         ).exclude(status_code__isnull=True).order_by('url')
 
-        referrer_urls = ReferrerUrl.objects.filter(scan=self.get_object())
+        referrer_urls = ReferrerUrl.objects.filter(scan=this_scan)
 
         context['full_report'] = self.full
         context['broken_urls'] = broken_urls[:100]
@@ -114,15 +117,42 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
         context['all_matches'] = all_matches
         context['no_of_matches'] = all_matches.count() + broken_urls.count()
         context['failed_conversions'] = (
-            self.object.get_number_of_failed_conversions()
+            this_scan.get_number_of_failed_conversions()
         )
         try:
-            stats = Statistic.objects.get(scan=self.get_object())
+            stats = Statistic.objects.get(scan=this_scan)
             context['files_scraped_count'] = stats.files_scraped_count
             context['files_is_dir_count'] = stats.files_is_dir_count
             context['files_skipped_count'] = stats.files_skipped_count
         except ObjectDoesNotExist:
             pass
+
+        if hasattr(this_scan.scanner, 'filescanner'):
+            # Patch all of the context's match model objects to have paths and
+            # not encoded URLs. (This should be fine, since we don't save
+            # them, and it keeps this complexity out of the browser and
+            # template: the database genuinely shouldn't have URLs here, so
+            # let's pretend that it doesn't...)
+            for k in ['matches', 'all_matches']:
+                for m in context[k]:
+                    path = unquote(m.url.url)
+                    # While we're at it, if we have an alias for whichever
+                    # domain this path came from, then convert the path into a
+                    # Windows-style path
+                    for domain in this_scan.domains.exclude(
+                            filedomain__alias__isnull=True).exclude(
+                            filedomain__alias__exact=''):
+                        url_with_schema = "file://" + domain.url
+                        if path.startswith(url_with_schema):
+                            everything_else = \
+                                path[len(url_with_schema):].strip('/')
+                            # Windows appears, in my limited testing, to
+                            # support forward slashes in paths nowadays
+                            m.url.url = "file://{0}:/{1}".format(
+                                    domain.filedomain.alias, everything_else)
+                            break
+                    else:
+                        m.url.url = path
 
         return context
 

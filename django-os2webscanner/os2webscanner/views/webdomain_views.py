@@ -1,8 +1,8 @@
-from ..models.domain_model import Domain
-from ..models.webdomain_model import WebDomain
-from ..validate import get_validation_str
+from ..models.domains.domain_model import Domain
+from ..models.domains.webdomain_model import WebDomain
+from ..validate import get_validation_str, validate_domain
 from .domain_views import DomainList, DomainCreate, DomainUpdate
-from .views import RestrictedDeleteView
+from .views import RestrictedDeleteView, RestrictedDetailView
 
 
 class WebDomainList(DomainList):
@@ -33,6 +33,14 @@ class WebDomainUpdate(DomainUpdate):
     fields = ['url', 'exclusion_rules', 'download_sitemap',
               'sitemap_url', 'sitemap']
 
+    def get_form_fields(self):
+        fields = super().get_form_fields()
+        if not self.request.user.is_superuser and \
+                not self.object.validation_status:
+            fields.append('validation_method')
+        self.fields = fields
+        return fields
+
     def get_context_data(self, **kwargs):
         """Get the context used when rendering the template."""
         context = super().get_context_data(**kwargs)
@@ -59,3 +67,24 @@ class WebDomainDelete(RestrictedDeleteView):
 
     model = Domain
     success_url = '/webdomains/'
+
+class WebDomainValidate(RestrictedDetailView):
+
+    """View that handles validation of a domain."""
+
+    model = WebDomain
+
+    def get_context_data(self, **kwargs):
+        """Perform validation and populate the template context."""
+        context = super().get_context_data(**kwargs)
+        context['validation_status'] = self.object.validation_status
+        if not self.object.validation_status:
+            result = validate_domain(self.object)
+
+            if result:
+                self.object.validation_status = Domain.VALID
+                self.object.save()
+
+            context['validation_success'] = result
+
+        return context

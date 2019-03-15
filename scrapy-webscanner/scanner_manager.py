@@ -2,7 +2,9 @@
 import pika
 import json
 
-from run import ScannerApp
+from run_webscan import StartWebScan
+from run_filescan import StartFileScan
+
 
 queue_name = 'datascanner'
 
@@ -16,17 +18,20 @@ channel = connection.channel()
 
 channel.queue_declare(queue=queue_name)
 
-scan_job_list = []
-
 
 def callback(ch, method, properties, body):
+    scan_job_list = []
     body = body.decode('utf-8')
     body = json.loads(body)
     print(" [x] Received %r" % body)
     ch.basic_ack(delivery_tag=method.delivery_tag)
     # Collect scan object and map properties
-    scan_job_list.append(ScannerApp(body['id'], body['type'], body["logfile"]))
+    if body['type'] == 'WebScanner':
+        scan_job_list.append(StartWebScan(body))
+    else:
+        scan_job_list.append(StartFileScan(body))
     scan_job_list[-1].start()
+
 
 
 channel.basic_consume(callback, queue=queue_name)

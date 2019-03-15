@@ -1,0 +1,146 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-02-15 15:02+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: django-os2webscanner/os2webscanner/admin.py:86
+msgid "Personal info"
+msgstr ""
+
+#: django-os2webscanner/os2webscanner/admin.py:88
+msgid "Important dates"
+msgstr ""
+
+#: django-os2webscanner/os2webscanner/templates/os2webscanner/scanner_form.html:86
+msgid "Domæner og regler kan ikke ændres efter scannerjobbet er oprettet."
+msgstr ""
+"Domains and rules cannot be changed after a scanner job has been created."
+
+#: django-os2webscanner/os2webscanner/templates/os2webscanner/scanner_form.html:230
+msgid ""
+"Listen af domæner kan ikke redigeres. For at scanne andre domæner, opret da "
+"et nyt scannerjob."
+msgstr ""
+"The list of domains cannot be edited. To scan other domains, create a new "
+"scanner job."
+
+#: django-os2webscanner/os2webscanner/templates/os2webscanner/scanner_form.html:264
+msgid ""
+"Listen af regler kan ikke redigeres. For at scanne med andre regler, opret "
+"da et nyt scannerjob."
+msgstr ""
+"The list of rules cannot be edited. To scan with other rules, create a new "
+"scanner job."
+
+#: django-os2webscanner/os2webscanner/templates/password_change_done.html:5
+#: django-os2webscanner/os2webscanner/templates/password_change_done.html:6
+msgid "Password change successful"
+msgstr ""
+
+#: django-os2webscanner/os2webscanner/templates/password_change_done.html:9
+msgid "Your password was changed."
+msgstr ""
+
+#: django-os2webscanner/os2webscanner/templates/password_reset_complete.html:10
+msgid "Your password has been set.  You may go ahead and log in now."
+msgstr ""
+
+#: django-os2webscanner/os2webscanner/templates/password_reset_complete.html:12
+msgid "Log in"
+msgstr ""
+
+#: django-os2webscanner/os2webscanner/templates/password_reset_confirm.html:10
+msgid ""
+"Please enter your new password twice so we can verify you typed it in "
+"correctly."
+msgstr ""
+
+#: django-os2webscanner/os2webscanner/templates/password_reset_confirm.html:14
+msgid "New password:"
+msgstr ""
+
+#: django-os2webscanner/os2webscanner/templates/password_reset_confirm.html:18
+msgid "Confirm password:"
+msgstr ""
+
+#: django-os2webscanner/os2webscanner/templates/password_reset_confirm.html:20
+msgid "Change my password"
+msgstr ""
+
+#: django-os2webscanner/os2webscanner/templates/password_reset_confirm.html:25
+msgid ""
+"The password reset link was invalid, possibly because it has already been "
+"used.  Please request a new password reset."
+msgstr ""
+
+#: django-os2webscanner/os2webscanner/templates/password_reset_done.html:8
+msgid ""
+"We've emailed you instructions for setting your password, if an account "
+"exists with the email you entered. You should receive them shortly."
+msgstr ""
+
+#: django-os2webscanner/os2webscanner/templates/password_reset_done.html:10
+msgid ""
+"If you don't receive an email, please make sure you've entered the address "
+"you registered with, and check your spam folder."
+msgstr ""
+
+#: django-os2webscanner/os2webscanner/templates/password_reset_email.html:2
+#, python-format
+msgid ""
+"You're receiving this email because you requested a password reset for your "
+"user account at %(site_name)s."
+msgstr ""
+
+#: django-os2webscanner/os2webscanner/templates/password_reset_email.html:4
+msgid "Please go to the following page and choose a new password:"
+msgstr ""
+
+#: django-os2webscanner/os2webscanner/templates/password_reset_email.html:8
+msgid "Your username, in case you've forgotten:"
+msgstr ""
+
+#: django-os2webscanner/os2webscanner/templates/password_reset_email.html:10
+msgid "Thanks for using our site!"
+msgstr ""
+
+#: django-os2webscanner/os2webscanner/templates/password_reset_email.html:12
+#, python-format
+msgid "The %(site_name)s team"
+msgstr ""
+
+#: django-os2webscanner/os2webscanner/templates/password_reset_form.html:8
+msgid ""
+"Forgotten your password? Enter your email address below, and we'll email "
+"instructions for setting a new one."
+msgstr ""
+
+#: django-os2webscanner/os2webscanner/templates/password_reset_form.html:12
+msgid "Email address:"
+msgstr ""
+
+#: django-os2webscanner/os2webscanner/templates/password_reset_form.html:12
+msgid "Reset my password"
+msgstr ""
+
+#: webscanner_site/webscanner/settings.py:138
+msgid "Danish"
+msgstr ""
+
+#: webscanner_site/webscanner/settings.py:139
+msgid "English"
+msgstr ""

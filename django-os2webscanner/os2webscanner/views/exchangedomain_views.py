@@ -1,12 +1,10 @@
 from django import forms
 
-from ..models.domain_model import Domain
-from ..models.exchangedomain_model import ExchangeDomain
-
 from .domain_views import DomainList, DomainCreate, DomainUpdate
 from .views import RestrictedDeleteView
-
 from ..aescipher import decrypt
+from ..models.domains.domain_model import Domain
+from ..models.domains.exchangedomain_model import ExchangeDomain
 
 
 class ExchangeDomainList(DomainList):

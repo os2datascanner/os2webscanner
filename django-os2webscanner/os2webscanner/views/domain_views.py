@@ -1,13 +1,11 @@
 from django import forms
 
-from ..validate import validate_domain
-
 from .views import RestrictedListView, RestrictedCreateView, \
     RestrictedUpdateView, RestrictedDetailView
-
 from ..models.authentication_model import Authentication
-from ..models.domain_model import Domain
+from ..models.domains.domain_model import Domain
 from ..utils import domain_form_manipulate
+from ..validate import validate_domain
 
 
 class DomainList(RestrictedListView):
@@ -57,13 +55,14 @@ class DomainCreate(RestrictedCreateView):
 
         form = super().get_form(form_class)
 
-        for fname in form.fields:
-            f = form.fields[fname]
-            f.widget.attrs['class'] = 'form-control'
-
         return domain_form_manipulate(form)
 
     def form_valid(self, form):
+        if not self.request.user.is_superuser:
+            user_profile = self.request.user.profile
+            self.object = form.save(commit=False)
+            self.object.organization = user_profile.organization
+
         """Makes sure authentication info gets stored in db."""
         filedomain = form.save(commit=False)
         authentication = Authentication()
@@ -96,8 +95,6 @@ class DomainUpdate(RestrictedUpdateView):
 
         if self.request.user.is_superuser:
             fields.append('validation_status')
-        elif not self.object.validation_status:
-            fields.append('validation_method')
 
         self.fields = fields
         return fields
@@ -112,9 +109,10 @@ class DomainUpdate(RestrictedUpdateView):
 
         self.old_url = self.get_object().url
 
-        for fname in form.fields:
-            f = form.fields[fname]
-            f.widget.attrs['class'] = 'form-control'
+        # Adding the form-control class to the elements of the validation form
+        # breaks it completely, so we need to do that (by calling
+        # domain_form_manipulate) before we create the validation UI
+        domain_form_manipulate(form)
 
         if 'validation_method' in form.fields:
             vm_field = form.fields['validation_method']
@@ -124,7 +122,7 @@ class DomainUpdate(RestrictedUpdateView):
                 )
                 vm_field.widget.attrs['class'] = 'validateradio'
 
-        return domain_form_manipulate(form)
+        return form
 
     def form_valid(self, form):
         """Validate the submitted form."""
@@ -149,24 +147,3 @@ class DomainUpdate(RestrictedUpdateView):
 
         return super().form_valid(form)
 
-
-class DomainValidate(RestrictedDetailView):
-
-    """View that handles validation of a domain."""
-
-    model = Domain
-
-    def get_context_data(self, **kwargs):
-        """Perform validation and populate the template context."""
-        context = super().get_context_data(**kwargs)
-        context['validation_status'] = self.object.validation_status
-        if not self.object.validation_status:
-            result = validate_domain(self.object)
-
-            if result:
-                self.object.validation_status = Domain.VALID
-                self.object.save()
-
-            context['validation_success'] = result
-
-        return context
