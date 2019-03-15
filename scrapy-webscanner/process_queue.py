@@ -30,7 +30,7 @@ sys.path.append(base_dir + "/webscanner_site")
 os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 django.setup()
 
-from scanner.processors.processor import Processor
+from scanners.processors.processor import Processor
 
 pid = os.getpid()
 
@@ -46,3 +46,5 @@ if queued_processor is not None:
         queued_processor.process_queue()
     except KeyboardInterrupt:
         pass
+    finally:
+        queued_processor.teardown_queue_processing()

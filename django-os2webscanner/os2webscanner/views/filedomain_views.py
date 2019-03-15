@@ -1,11 +1,10 @@
 from django import forms
 
 from .domain_views import DomainList, DomainCreate, DomainUpdate
-
-from ..models.domain_model import Domain
-from ..models.filedomain_model import FileDomain
 from .views import RestrictedDeleteView
 from ..aescipher import decrypt
+from ..models.domains.domain_model import Domain
+from ..models.domains.filedomain_model import FileDomain
 
 
 class FileDomainList(DomainList):
@@ -21,7 +20,7 @@ class FileDomainCreate(DomainCreate):
     """File domain create form."""
 
     model = FileDomain
-    fields = ['url', 'exclusion_rules']
+    fields = ['url', 'exclusion_rules', 'alias']
 
     def get_form(self, form_class=None):
         """Adds special field password."""
@@ -32,6 +31,7 @@ class FileDomainCreate(DomainCreate):
         form.fields['username'] = forms.CharField(max_length=1024, required=False)
         form.fields['password'] = forms.CharField(max_length=50, required=False)
         form.fields['domain'] = forms.CharField(max_length=2024, required=False)
+        form.fields['alias'] = forms.CharField(max_length=64, required=False)
         return form
 
     def form_valid(self, form):
@@ -47,7 +47,7 @@ class FileDomainUpdate(DomainUpdate):
     """Update a file domain view."""
 
     model = FileDomain
-    fields = ['url', 'exclusion_rules']
+    fields = ['url', 'exclusion_rules', 'alias']
 
     def get_form(self, form_class=None):
         """Adds special field password and decrypts password."""
@@ -60,6 +60,7 @@ class FileDomainUpdate(DomainUpdate):
         form.fields['username'] = forms.CharField(max_length=1024, required=False)
         form.fields['password'] = forms.CharField(max_length=50, required=False)
         form.fields['domain'] = forms.CharField(max_length=2024, required=False)
+        form.fields['alias'] = forms.CharField(max_length=64, required=False)
         if len(authentication.username) > 0:
             form.fields['username'].initial = authentication.username
         if len(authentication.ciphertext) > 0:

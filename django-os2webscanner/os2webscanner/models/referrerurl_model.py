@@ -1,8 +1,7 @@
+from django.db import models
 from urllib.request import urlopen
 
-from django.db import models
-
-from .webscan_model import WebScan
+from .scans.webscan_model import WebScan
 
 
 class ReferrerUrl(models.Model):

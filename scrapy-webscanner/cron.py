@@ -35,7 +35,10 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 django.setup()
 
 
-from os2webscanner.models.scanner_model import Scanner
+from os2webscanner.models.scannerjobs.scanner_model import Scanner
+from os2webscanner.models.scannerjobs.webscanner_model import WebScanner
+from os2webscanner.models.scannerjobs.filescanner_model import FileScanner
+from os2webscanner.models.scannerjobs.exchangescanner_model import ExchangeScanner
 
 
 def strip_seconds(d):
@@ -85,4 +88,4 @@ for scanner in Scanner.objects.exclude(schedule="").select_subclasses():
         continue
 
     print("Running scanner %s" % scanner)
-    scanner.run()
+    scanner.run(type(scanner).__name__)

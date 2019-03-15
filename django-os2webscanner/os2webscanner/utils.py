@@ -32,8 +32,8 @@ from django.template import loader
 
 from os2webscanner.models.match_model import Match
 from os2webscanner.models.url_model import Url
-from os2webscanner.models.scanner_model import Scanner
-from os2webscanner.models.scan_model import Scan
+from os2webscanner.models.scannerjobs.scanner_model import Scanner
+from os2webscanner.models.scans.scan_model import Scan
 from os2webscanner.models.summary_model import Summary
 
 
