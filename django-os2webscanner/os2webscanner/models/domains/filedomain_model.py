@@ -54,7 +54,7 @@ class FileDomain(Domain):
         if not self.mountpath or not os.path.isdir(self.mountpath):
             self.set_mount_path()
 
-        response = call('mountpoint ' + self.mountpath, shell=True)
+        response = call(['mountpoint', self.mountpath])
         return response
 
     def set_mount_path(self):
@@ -76,20 +76,23 @@ class FileDomain(Domain):
         # Scrapy locks the files while reading, so it is not possible to have two scan jobs
         # running at the same time on the same mount point.
 
-        command = 'sudo mount -t cifs ' + self.root_url + ' ' + self.mountpath + ' -o iocharset=utf8'
+        command = ['sudo', 'mount', '-t', 'cifs',
+                self.root_url, self.mountpath, '-o']
 
+        optarg = 'iocharset=utf8'
         if settings.PRODUCTION_MODE:
             # Mount as apache user (www-data). It will always have uid 33
-            command += ',uid=33,gid=33'
+            optarg += ',uid=33,gid=33'
         if self.authentication.username != '':
-            command += ',username=' + self.authentication.username
+            optarg += ',username=' + self.authentication.username
         if len(self.authentication.ciphertext) > 0:
             password = self.authentication.get_password()
-            command += ',password=' + password
+            optarg += ',password=' + password
         if self.authentication.domain != '':
-            command += ',domain=' + self.authentication.domain
+            optarg += ',domain=' + self.authentication.domain
+        command.append(optarg)
 
-        response = call(command, shell=True)
+        response = call(command)
 
         if response is not 0:
             logger.error('Mount failed: {0}'.format(response))
@@ -102,8 +105,8 @@ class FileDomain(Domain):
     def smb_umount(self):
         """Unmounts networkdrive if mounted."""
         if self.check_mountpoint() is 0:
-            call('sudo umount -l ' + self.mountpath, shell=True)
-            call('sudo umount -f ' + self.mountpath, shell=True)
+            call(['sudo', 'umount', '-l', self.mountpath])
+            call(['sudo', 'umount', '-f', self.mountpath])
             logger.info('{} is unmounted.'.format(self.mountpath))
 
     def __str__(self):
