@@ -34,10 +34,6 @@ class FileDomainCreate(DomainCreate):
         form.fields['alias'] = forms.CharField(max_length=64, required=False)
         return form
 
-    def form_valid(self, form):
-        """Makes sure password gets encrypted before stored in db."""
-        return super().form_valid(form)
-
     def get_success_url(self):
         """The URL to redirect to after successful creation."""
         return '/filedomains/%s/created/' % self.object.pk
@@ -70,10 +66,6 @@ class FileDomainUpdate(DomainUpdate):
         if len(authentication.domain) > 0:
             form.fields['domain'].initial = authentication.domain
         return form
-
-    def form_valid(self, form):
-        """Makes sure password gets encrypted before stored in db."""
-        return super().form_valid(form)
 
     def get_success_url(self):
         """The URL to redirect to after successful updating.
