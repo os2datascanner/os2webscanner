@@ -5,6 +5,10 @@ from .domain_views import DomainList, DomainCreate, DomainUpdate
 from .views import RestrictedDeleteView, RestrictedDetailView
 
 
+def url_contains_spaces(form):
+    return form['url'].value() and ' ' in form['url'].value()
+
+
 class WebDomainList(DomainList):
 
     """Displays list of domains."""
@@ -14,12 +18,17 @@ class WebDomainList(DomainList):
 
 
 class WebDomainCreate(DomainCreate):
-
     """Web domain create form."""
 
     model = WebDomain
     fields = ['url', 'exclusion_rules', 'download_sitemap', 'sitemap_url',
               'sitemap']
+
+    def form_valid(self, form):
+        if url_contains_spaces(form):
+            form.add_error('url', u'Mellemrum er ikke tilladt i web-domænenavnet.')
+            return self.form_invalid(form)
+        return super(WebDomainCreate, self).form_valid(form)
 
     def get_success_url(self):
         """The URL to redirect to after successful creation."""
@@ -32,6 +41,12 @@ class WebDomainUpdate(DomainUpdate):
     model = WebDomain
     fields = ['url', 'exclusion_rules', 'download_sitemap',
               'sitemap_url', 'sitemap']
+
+    def form_valid(self, form):
+        if url_contains_spaces(form):
+            form.add_error('url', u'Mellemrum er ikke tilladt i web-domænenavnet.')
+            return self.form_invalid(form)
+        return super(WebDomainUpdate, self).form_valid(form)
 
     def get_form_fields(self):
         fields = super().get_form_fields()
