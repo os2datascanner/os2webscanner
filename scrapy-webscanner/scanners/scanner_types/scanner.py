@@ -53,6 +53,12 @@ dictionary."""
     def failed(self):
         self.scan_object.set_scan_status_failed()
 
+    def mint_url(self, **kwargs):
+        from os2webscanner.models.url_model import Url
+        u = Url(scan=self.scan_object, **kwargs)
+        u.save()
+        return u
+
     @staticmethod
     def from_scan_id(scan_id):
         """\

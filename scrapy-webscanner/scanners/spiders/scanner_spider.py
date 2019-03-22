@@ -27,7 +27,7 @@ from .base_spider import BaseScannerSpider
 
 from ..processors.processor import Processor
 
-from os2webscanner.utils import capitalize_first, get_codec_and_string, secure_save
+from os2webscanner.utils import capitalize_first, get_codec_and_string
 from os2webscanner.models.url_model import Url
 
 
@@ -78,11 +78,8 @@ class ScannerSpider(BaseScannerSpider):
         status_message = regex.sub("\[.+\] ", "", status_message)
         status_message = capitalize_first(status_message)
         # Add broken URL
-        broken_url = Url(url=url, scan=self.scanner.scan_object,
-                         status_code=status_code,
-                         status_message=status_message)
-        secure_save(broken_url)
-        return broken_url
+        return self.scanner.mint_url(
+            url=url, status_code=status_code, status_message=status_message)
 
     def scan(self, response):
         """Scan a response, returning any matches."""
@@ -103,10 +100,7 @@ class ScannerSpider(BaseScannerSpider):
         self.scanner.scan(data, url_object)
 
     def url_save(self, mime_type, url):
-        url_object = Url(url=url, mime_type=mime_type,
-                         scan=self.scanner.scan_object)
-        url_object.save()
-        return url_object
+        return self.scanner.mint_url(url=url, mime_type=mime_type)
 
     def get_mime_type(self, response):
         content_type = response.headers.get('content-type')
