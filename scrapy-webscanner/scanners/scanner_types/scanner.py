@@ -41,8 +41,17 @@ dictionary."""
             _Model = Scan
         self.scan_object = _Model.objects.get(pk=scan_id)
 
+        if self.scan_object.status is not "STARTED":
+            self.scan_object.set_scan_status_start()
+
         self.rules = self._load_rules()
         self.valid_domains = self.scan_object.get_valid_domains
+
+    def done(self):
+        self.scan_object.set_scan_status_done()
+
+    def failed(self):
+        self.scan_object.set_scan_status_failed()
 
     @staticmethod
     def from_scan_id(scan_id):
