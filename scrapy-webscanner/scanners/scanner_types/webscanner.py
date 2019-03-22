@@ -6,18 +6,8 @@ from .scanner import Scanner
 class WebScanner(Scanner):
 
     def __init__(self, configuration):
-        """\
-Loads the scanner settings from the scan ID specified in the configuration \
-dictionary."""
-        self.configuration = configuration
-        scan_id = configuration['id']
-
-        # Get scan object from DB
         from os2webscanner.models.scans.webscan_model import WebScan
-        self.scan_object = WebScan.objects.get(pk=scan_id)
-
-        self.rules = self._load_rules()
-        self.valid_domains = self.scan_object.get_valid_domains
+        super(WebScanner, self).__init__(configuration, _Model=WebScan)
 
     def get_domain_urls(self):
         """Return a list of valid domain urls."""

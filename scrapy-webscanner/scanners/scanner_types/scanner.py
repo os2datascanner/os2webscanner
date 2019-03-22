@@ -28,7 +28,7 @@ from ..processors.processor import Processor
 class Scanner(object):
     """Represents a scanner which can scan data using configured rules."""
 
-    def __init__(self, configuration):
+    def __init__(self, configuration, _Model=None):
         """\
 Loads the scanner settings from the scan ID specified in the configuration \
 dictionary."""
@@ -36,8 +36,10 @@ dictionary."""
         scan_id = configuration['id']
 
         # Get scan object from DB
-        from os2webscanner.models.scans.scan_model import Scan
-        self.scan_object = Scan.objects.get(pk=scan_id)
+        if not _Model:
+            from os2webscanner.models.scans.scan_model import Scan
+            _Model = Scan
+        self.scan_object = _Model.objects.get(pk=scan_id)
 
         self.rules = self._load_rules()
         self.valid_domains = self.scan_object.get_valid_domains
