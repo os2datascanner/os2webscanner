@@ -39,8 +39,7 @@ class StartWebScan(StartScan, multiprocessing.Process):
         self.crawler_process.start()
         logging.info("Crawler process finished.")
 
-        if (self.scanner.scan_object.do_link_check
-            and self.scanner.scan_object.do_external_link_check):
+        if self.scanner.do_link_check and self.scanner.do_external_link_check:
             # Do external link check
             self.external_link_check(self.scanner_crawler.spider.external_urls)
 

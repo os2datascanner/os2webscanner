@@ -33,13 +33,9 @@ class FileSpider(ScannerSpider):
 
     def setup_spider(self):
         logging.info("Initializing spider of type FileSpider")
-        scan_object = self.scanner.scan_object
         for path in self.allowed_domains:
             path = self.add_correct_file_path_prefix(path)
             self.start_urls.append(path)
-        self.do_last_modified_check = getattr(
-            scan_object, "do_last_modified_check"
-        )
 
     def start_requests(self):
         """Return requests for all starting URLs AND sitemap URLs."""
@@ -137,7 +133,7 @@ class FileSpider(ScannerSpider):
 
         # Save the URL item to the database
         if (Processor.mimetype_to_processor_type(mime_type) == 'ocr'
-            and not self.scanner.scan_object.do_ocr):
+            and not self.scanner.do_ocr):
             # Ignore this URL
             return
 

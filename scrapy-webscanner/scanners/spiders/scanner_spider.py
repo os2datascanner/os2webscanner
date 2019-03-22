@@ -51,8 +51,6 @@ class ScannerSpider(BaseScannerSpider):
 
         self.crawl = False
 
-        self.do_last_modified_check = False
-
         self.setup_spider()
 
     def setup_spider(self):
@@ -88,7 +86,7 @@ class ScannerSpider(BaseScannerSpider):
 
         # Save the URL item to the database
         if (Processor.mimetype_to_processor_type(mime_type) == 'ocr'
-            and not self.scanner.scan_object.do_ocr):
+            and not self.scanner.do_ocr):
             # Ignore this URL
             return
 
