@@ -39,6 +39,17 @@ dictionary."""
             domains.append(domain.webdomain)
         return domains
 
+    def get_sitemap_urls(self):
+        """Return a list of sitemap.xml URLs across all the scanner's domains.
+        """
+        urls = []
+        for domain in self.valid_domains:
+            # Do some normalization of the URL to get the sitemap.xml file
+            sitemap_url = domain.webdomain.get_sitemap_url()
+            if sitemap_url:
+                urls.append(sitemap_url)
+        return urls
+
     def get_uploaded_sitemap_urls(self):
         """Return a list of uploaded sitemap.xml files for all scanner domains.
         """

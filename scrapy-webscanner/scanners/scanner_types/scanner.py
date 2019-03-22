@@ -83,17 +83,6 @@ scan ID."""
             exclusion_rules.extend(domain.exclusion_rule_list())
         return exclusion_rules
 
-    def get_sitemap_urls(self):
-        """Return a list of sitemap.xml URLs across all the scanner's domains.
-        """
-        urls = []
-        for domain in self.valid_domains:
-            # Do some normalization of the URL to get the sitemap.xml file
-            sitemap_url = domain.webdomain.get_sitemap_url()
-            if sitemap_url:
-                urls.append(sitemap_url)
-        return urls
-
     def scan(self, data, url_object):
         """Scan data for matches from a spider.
 
