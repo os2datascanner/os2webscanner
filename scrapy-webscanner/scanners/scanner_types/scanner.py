@@ -53,6 +53,22 @@ dictionary."""
     def failed(self):
         self.scan_object.set_scan_status_failed()
 
+    @property
+    def do_name_scan(self):
+        return self.scan_object.do_name_scan
+
+    @property
+    def do_address_scan(self):
+        return self.scan_object.do_address_scan
+
+    @property
+    def do_ocr(self):
+        return self.scan_object.do_ocr
+
+    @property
+    def do_last_modified_check(self):
+        return self.scan_object.do_last_modified_check
+
     def mint_url(self, **kwargs):
         from os2webscanner.models.url_model import Url
         u = Url(scan=self.scan_object, **kwargs)
@@ -69,12 +85,12 @@ scan ID."""
     def _load_rules(self):
         """Load rules based on WebScanner settings."""
         rules = []
-        if self.scan_object.do_name_scan:
+        if self.do_name_scan:
             rules.append(
                 NameRule(whitelist=self.scan_object.whitelisted_names,
                          blacklist=self.scan_object.blacklisted_names)
             )
-        if self.scan_object.do_address_scan:
+        if self.do_address_scan:
             rules.append(
                 AddressRule(whitelist=self.scan_object.whitelisted_addresses,
                             blacklist=self.scan_object.blacklisted_addresses)

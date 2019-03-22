@@ -9,6 +9,18 @@ class WebScanner(Scanner):
         from os2webscanner.models.scans.webscan_model import WebScan
         super(WebScanner, self).__init__(configuration, _Model=WebScan)
 
+    @property
+    def do_link_check(self):
+        return self.scan_object.do_link_check
+
+    @property
+    def do_external_link_check(self):
+        return self.scan_object.do_external_link_check
+
+    @property
+    def do_last_modified_check_head_request(self):
+        return self.scan_object.do_last_modified_check_head_request
+
     def get_domain_urls(self):
         """Return a list of valid domain urls."""
         domains = []
