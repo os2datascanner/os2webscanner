@@ -69,6 +69,10 @@ dictionary."""
     def do_last_modified_check(self):
         return self.scan_object.do_last_modified_check
 
+    @property
+    def process_urls(self):
+        return self.scan_object.process_urls
+
     def mint_url(self, **kwargs):
         from os2webscanner.models.url_model import Url
         u = Url(scan=self.scan_object, **kwargs)

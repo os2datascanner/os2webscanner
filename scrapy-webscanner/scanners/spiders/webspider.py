@@ -26,11 +26,10 @@ class WebSpider(ScannerSpider):
 
     def setup_spider(self):
         logging.info("Initializing spider of type WebSpider")
-        scan_object = self.scanner.scan_object
         # If the scan is run from a web service, use the starting urls
-        if scan_object.scanner.process_urls:
-            # from the scanner.
-            self.start_urls = scan_object.scanner.process_urls
+        # from the scanner.
+        if self.scanner.process_urls:
+            self.start_urls = self.scanner.process_urls
         else:
             self.crawl = True
             # Otherwise, use the roots of the domains as starting URLs
