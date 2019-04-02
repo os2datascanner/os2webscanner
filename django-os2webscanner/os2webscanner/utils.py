@@ -276,14 +276,9 @@ def secure_save(object):
 def domain_form_manipulate(form):
     """ Manipulates domain form fields.
     All form widgets will have added the css class 'form-control'.
-    All domain names must be without spaces.
     """
     for fname in form.fields:
         f = form.fields[fname]
         f.widget.attrs['class'] = 'form-control'
-
-    if form['url'].value():
-        if ' ' in form['url'].value():
-            form.add_error('url', u'Mellemrum er ikke tilladt i domænenavnet.')
 
     return form
