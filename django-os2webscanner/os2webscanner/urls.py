@@ -20,6 +20,7 @@ from django.conf import settings
 from django.conf.urls import url
 from django.views.i18n import javascript_catalog
 
+from .models.scans.scan_model import Scan
 from .models.scannerjobs.exchangescanner_model import ExchangeScanner
 from .models.scannerjobs.filescanner_model import FileScanner
 from .models.scannerjobs.webscanner_model import WebScanner
@@ -120,6 +121,9 @@ urlpatterns = [
     url(r"^rules/organization/$", OrganizationUpdate.as_view(),
         name='organization_update'),
     url(r'^reports/$', ReportList.as_view(), name='reports'),
+    url(r'^reports/web/$', ReportList.as_view(active='web', queryset=Scan.objects.filter(scanner__webscanner__isnull=False)), name='reports'),
+    url(r'^reports/file/$', ReportList.as_view(active='file', queryset=Scan.objects.filter(scanner__filescanner__isnull=False)), name='reports'),
+    url(r'^reports/exchange/$', ReportList.as_view(active='exchange', queryset=Scan.objects.filter(scanner__exchangescanner__isnull=False)), name='reports'),
     url(r'^report/(?P<pk>[0-9]+)/$', ReportDetails.as_view(),
         name='report'),
     url(r'^report/(?P<pk>[0-9]+)/full/$', ReportDetails.as_view(full=True),
