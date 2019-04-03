@@ -39,6 +39,8 @@ class ReportList(RestrictedListView):
     template_name = 'os2webscanner/reports.html'
     paginate_by = 15
 
+    active = 'all'
+
     def get_queryset(self):
         """Restrict to the organization of the logged-in user."""
         user = self.request.user
@@ -65,6 +67,11 @@ class ReportList(RestrictedListView):
                 )
         reports = reports.filter(is_visible=True)
         return reports.order_by('-start_time')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active'] = self.active
+        return context
 
 
 # Reports stuff
