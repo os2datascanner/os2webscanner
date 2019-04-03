@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-02-15 15:02+0100\n"
+"POT-Creation-Date: 2019-04-03 16:39+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,11 +17,11 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: django-os2webscanner/os2webscanner/admin.py:86
+#: django-os2webscanner/os2webscanner/admin.py:84
 msgid "Personal info"
 msgstr ""
 
-#: django-os2webscanner/os2webscanner/admin.py:88
+#: django-os2webscanner/os2webscanner/admin.py:86
 msgid "Important dates"
 msgstr ""
 
@@ -45,6 +45,26 @@ msgid ""
 msgstr ""
 "The list of rules cannot be edited. To scan with other rules, create a new "
 "scanner job."
+
+#: django-os2webscanner/os2webscanner/templates/os2webscanner/summaries_above_content.html:3
+msgid "Alle rapporter"
+msgstr "All reports"
+
+#: django-os2webscanner/os2webscanner/templates/os2webscanner/summaries_above_content.html:5
+msgid "Web rapporter"
+msgstr "Web reports"
+
+#: django-os2webscanner/os2webscanner/templates/os2webscanner/summaries_above_content.html:8
+msgid "Fil rapporter"
+msgstr "File reports"
+
+#: django-os2webscanner/os2webscanner/templates/os2webscanner/summaries_above_content.html:11
+msgid "Exchange rapporter"
+msgstr "Exchange reports"
+
+#: django-os2webscanner/os2webscanner/templates/os2webscanner/summaries_above_content.html:13
+msgid "Overblik"
+msgstr "Summary"
 
 #: django-os2webscanner/os2webscanner/templates/password_change_done.html:5
 #: django-os2webscanner/os2webscanner/templates/password_change_done.html:6
