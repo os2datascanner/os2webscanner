@@ -26,12 +26,8 @@ class StartFileScan(StartScan, multiprocessing.Process):
         Run the scanner, blocking until finished."""
         super().run()
         self.scanner = FileScanner(self.configuration)
-        if self.scanner.scan_object.status is not "STARTED":
-            self.scanner.scan_object.set_scan_status_start()
-
         self.start_filescan_crawlers()
-
-        self.scanner.scan_object.set_scan_status_done()
+        self.scanner.done()
 
     def start_filescan_crawlers(self):
         """Start a file scan."""

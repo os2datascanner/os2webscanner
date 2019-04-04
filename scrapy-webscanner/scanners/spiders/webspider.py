@@ -26,11 +26,10 @@ class WebSpider(ScannerSpider):
 
     def setup_spider(self):
         logging.info("Initializing spider of type WebSpider")
-        scan_object = self.scanner.scan_object
         # If the scan is run from a web service, use the starting urls
-        if scan_object.scanner.process_urls:
-            # from the scanner.
-            self.start_urls = scan_object.scanner.process_urls
+        # from the scanner.
+        if self.scanner.process_urls:
+            self.start_urls = self.scanner.process_urls
         else:
             self.crawl = True
             # Otherwise, use the roots of the domains as starting URLs
@@ -46,12 +45,6 @@ class WebSpider(ScannerSpider):
                 logging.info("Start url %s" % str(url))
                 self.start_urls.append(url)
 
-            self.do_last_modified_check = getattr(
-                scan_object, "do_last_modified_check"
-            )
-            self.do_last_modified_check_head_request = getattr(
-                scan_object, "do_last_modified_check_head_request"
-            )
             self.link_extractor = LxmlLinkExtractor(
                 deny_extensions=(),
                 tags=('a', 'area', 'frame', 'iframe', 'script'),
@@ -99,12 +92,12 @@ class WebSpider(ScannerSpider):
 
         self.scan(response)
 
-        if self.scanner.scan_object.do_link_check:
+        if self.scanner.do_link_check:
             source_url = response.request.url
             for request in requests:
                 target_url = request.url
                 self.referrers.setdefault(target_url, []).append(source_url)
-                if (self.scanner.scan_object.do_external_link_check and
+                if (self.scanner.do_external_link_check and
                         self.is_offsite(request)):
                     # Save external URLs for later checking
                     self.external_urls.add(target_url)
@@ -131,7 +124,7 @@ class WebSpider(ScannerSpider):
 
         # If we should not do link check or failure is ignore request
         # and it is not a http error we know it is a last-modified check.
-        if (not self.scanner.scan_object.do_link_check or
+        if (not self.scanner.do_link_check or
                 (isinstance(failure.value, IgnoreRequest) and not isinstance(
                     failure.value, HttpError))):
             logging.info("We do not do link check or failure is an instance of "

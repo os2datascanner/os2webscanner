@@ -21,11 +21,11 @@ class FileScanLastModifiedCheckMiddleware(LastModifiedCheckMiddleware):
 
     def process_response(self, request, response, spider):
         """Process a spider response."""
-        # Don't run the check if it's not specified by the spider
+        # Don't run the check if it's not specified by the spider...
         if request.meta.get('skip_modified_check', False):
             return response
-        # if do_last_modified_check equals True, last_modified is disabled.
-        if not getattr(spider, 'do_last_modified_check', False):
+        # ... or by the scanner
+        if not spider.scanner.do_last_modified_check:
             return response
 
         # Check the Last-Modified header to see if the content has been

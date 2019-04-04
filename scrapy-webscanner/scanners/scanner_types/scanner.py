@@ -28,7 +28,7 @@ from ..processors.processor import Processor
 class Scanner(object):
     """Represents a scanner which can scan data using configured rules."""
 
-    def __init__(self, configuration):
+    def __init__(self, configuration, _Model=None):
         """\
 Loads the scanner settings from the scan ID specified in the configuration \
 dictionary."""
@@ -36,11 +36,48 @@ dictionary."""
         scan_id = configuration['id']
 
         # Get scan object from DB
-        from os2webscanner.models.scans.scan_model import Scan
-        self.scan_object = Scan.objects.get(pk=scan_id)
+        if not _Model:
+            from os2webscanner.models.scans.scan_model import Scan
+            _Model = Scan
+        self.scan_object = _Model.objects.get(pk=scan_id)
+
+        if self.scan_object.status is not "STARTED":
+            self.scan_object.set_scan_status_start()
 
         self.rules = self._load_rules()
         self.valid_domains = self.scan_object.get_valid_domains
+
+    def done(self):
+        self.scan_object.set_scan_status_done()
+
+    def failed(self):
+        self.scan_object.set_scan_status_failed()
+
+    @property
+    def do_name_scan(self):
+        return self.scan_object.do_name_scan
+
+    @property
+    def do_address_scan(self):
+        return self.scan_object.do_address_scan
+
+    @property
+    def do_ocr(self):
+        return self.scan_object.do_ocr
+
+    @property
+    def do_last_modified_check(self):
+        return self.scan_object.do_last_modified_check
+
+    @property
+    def process_urls(self):
+        return self.scan_object.process_urls
+
+    def mint_url(self, **kwargs):
+        from os2webscanner.models.url_model import Url
+        u = Url(scan=self.scan_object, **kwargs)
+        u.save()
+        return u
 
     @staticmethod
     def from_scan_id(scan_id):
@@ -52,12 +89,12 @@ scan ID."""
     def _load_rules(self):
         """Load rules based on WebScanner settings."""
         rules = []
-        if self.scan_object.do_name_scan:
+        if self.do_name_scan:
             rules.append(
                 NameRule(whitelist=self.scan_object.whitelisted_names,
                          blacklist=self.scan_object.blacklisted_names)
             )
-        if self.scan_object.do_address_scan:
+        if self.do_address_scan:
             rules.append(
                 AddressRule(whitelist=self.scan_object.whitelisted_addresses,
                             blacklist=self.scan_object.blacklisted_addresses)
@@ -82,17 +119,6 @@ scan ID."""
         for domain in self.valid_domains:
             exclusion_rules.extend(domain.exclusion_rule_list())
         return exclusion_rules
-
-    def get_sitemap_urls(self):
-        """Return a list of sitemap.xml URLs across all the scanner's domains.
-        """
-        urls = []
-        for domain in self.valid_domains:
-            # Do some normalization of the URL to get the sitemap.xml file
-            sitemap_url = domain.webdomain.get_sitemap_url()
-            if sitemap_url:
-                urls.append(sitemap_url)
-        return urls
 
     def scan(self, data, url_object):
         """Scan data for matches from a spider.
