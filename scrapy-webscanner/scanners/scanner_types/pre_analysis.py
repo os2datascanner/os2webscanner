@@ -1,5 +1,7 @@
 import time
 import magic
+from xattr import xattr
+from struct import unpack
 import mimetypes
 import logging
 import numpy as np
@@ -258,6 +260,19 @@ def _to_filesize(filesize):
     return formatted_size
 
 
+_HIDDEN = 0x02
+def _is_hidden(path):
+    try:
+        if path.name.startswith("."):
+            return True
+        else:
+            attr_bitmap = \
+                unpack("<I", xattr(path).get("user.cifs.dosattrib"))[0]
+            return bool(attr_bitmap & _HIDDEN)
+    except IOError:
+        return False
+
+
 class PreDataScanner(object):
     def __init__(self, path, detection_method='fast-magic'):
         if detection_method not in ['fast-magic', 'magic', 'mime']:
@@ -349,6 +364,8 @@ class PreDataScanner(object):
                 if statcache.is_dir(item):
                     continue
                 if statcache.is_symlink(item):
+                    continue
+                if _is_hidden(item):
                     continue
                 new_nodes[item] = {'size': 0}
         self.nodes.update(new_nodes)
