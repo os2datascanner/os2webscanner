@@ -92,8 +92,7 @@ class StartWebScan(StartScan, multiprocessing.Process):
 
             result = linkchecker.check_url(url)
             if result is not None:
-                broken_url = Url(url=url, scan=self.scanner.scan_object.webscan,
+                broken_url = self.scanner.mint_url(url=url,
                                  status_code=result["status_code"],
                                  status_message=result["status_message"])
-                broken_url.save()
                 self.scanner_crawler.spider.associate_url_referrers(broken_url)
