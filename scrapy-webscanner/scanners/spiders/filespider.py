@@ -87,6 +87,24 @@ class FileSpider(ScannerSpider):
         relevant_files = 0
         relevant_file_size = 0
 
+        files.update_stats()
+        self.scanner.set_statistics(
+            files.stats['supported_file_count'],
+            files.stats['supported_file_size'],
+            files.stats['relevant_file_count'],
+            files.stats['relevant_file_size'],
+            files.stats['relevant_unsupported_count'],
+            files.stats['relevant_unsupported_size'])
+        summaries = files.summarize_file_types()
+        for k, v in summaries["super"].items():
+            self.scanner.add_type_statistics(k, v["count"], sum(v["sizedist"]))
+        for k, v in summaries["sub"].items():
+            if "supergroup" in v:
+                group_name = v["supergroup"] + "/" + k
+            else:
+                group_name = k
+            self.scanner.add_type_statistics(group_name, v["count"], sum(v["sizedist"]))
+
         logging.info('Starting folder analysis...')
         for path, info in files.nodes.items():
             if info['filetype']['relevant'] and info['filetype']['supported']:
