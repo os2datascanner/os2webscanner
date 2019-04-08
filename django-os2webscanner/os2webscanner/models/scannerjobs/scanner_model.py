@@ -201,14 +201,12 @@ class Scanner(models.Model):
         """Return the name of the scanner."""
         return self.__unicode__()
 
-    def run(self, type, test_only=False, blocking=False, user=None):
+    def run(self, type, blocking=False, user=None):
         """Run a scan with the Scanner.
 
         Return the Scan object if we started the scanner.
         Return None if there is already a scanner running,
         or if there was a problem running the scanner.
-        If test_only is True, only check if we can run a scan, don't actually
-        run one.
         """
         if self.is_running:
             return Scanner.ALREADY_RUNNING
