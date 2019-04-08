@@ -222,7 +222,13 @@ class Scanner(models.Model):
             return scan
         # Add user as recipient on scan
         if user:
-            scan.recipients.add(user.profile)
+            try:
+                profile = user.profile
+            except UserProfile.DoesNotExist:
+                profile = None
+
+            if profile is not None:
+                scan.recipients.add(user.profile)
 
         import json
         from os2webscanner.amqp_communication import amqp_connection_manager
