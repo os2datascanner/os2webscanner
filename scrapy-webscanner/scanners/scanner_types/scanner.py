@@ -71,7 +71,7 @@ dictionary."""
 
     @property
     def process_urls(self):
-        return self.scan_object.process_urls
+        return self.scan_object.scanner.process_urls
 
     def mint_url(self, **kwargs):
         from os2webscanner.models.url_model import Url
