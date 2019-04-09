@@ -142,6 +142,10 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
             # them, and it keeps this complexity out of the browser and
             # template: the database genuinely shouldn't have URLs here, so
             # let's pretend that it doesn't...)
+            #
+            # TODO: as is, this code is rather hard to understand; we
+            # should probably refactor it to use urllib and/or pathlib
+            # instead.
             for k in ['matches', 'all_matches']:
                 for m in context[k]:
                     path = unquote(m.url.url)

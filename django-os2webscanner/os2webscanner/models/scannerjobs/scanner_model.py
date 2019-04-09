@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 # encoding: utf-8
 # The contents of this file are subject to the Mozilla Public License
 # Version 2.0 (the "License"); you may not use this file except in
@@ -201,14 +201,12 @@ class Scanner(models.Model):
         """Return the name of the scanner."""
         return self.__unicode__()
 
-    def run(self, type, test_only=False, blocking=False, user=None):
+    def run(self, type, blocking=False, user=None):
         """Run a scan with the Scanner.
 
         Return the Scan object if we started the scanner.
         Return None if there is already a scanner running,
         or if there was a problem running the scanner.
-        If test_only is True, only check if we can run a scan, don't actually
-        run one.
         """
         if self.is_running:
             return Scanner.ALREADY_RUNNING
@@ -222,7 +220,13 @@ class Scanner(models.Model):
             return scan
         # Add user as recipient on scan
         if user:
-            scan.recipients.add(user.profile)
+            try:
+                profile = user.profile
+            except UserProfile.DoesNotExist:
+                profile = None
+
+            if profile is not None:
+                scan.recipients.add(user.profile)
 
         import json
         from os2webscanner.amqp_communication import amqp_connection_manager

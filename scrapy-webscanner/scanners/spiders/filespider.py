@@ -7,6 +7,7 @@ from scrapy.http import Request, HtmlResponse
 from scrapy.exceptions import IgnoreRequest
 from os2webscanner.utils import capitalize_first, get_codec_and_string, secure_save
 
+from ...utils import as_file_uri, as_path
 from ..processors.processor import Processor
 from ..scanner_types.pre_analysis import PreDataScanner
 from .scanner_spider import ScannerSpider
@@ -55,9 +56,7 @@ class FileSpider(ScannerSpider):
         :return: path with prefix file://
         """
         logging.info("Start path {0}".format(path))
-        if not path.startswith('file://'):
-            path = 'file://%s' % path
-        return path
+        return as_file_uri(path)
 
     def append_file_request(self, url):
         files = self.file_extractor(url)
@@ -81,7 +80,7 @@ class FileSpider(ScannerSpider):
         :return: filemap
         """
 
-        path = Path(filepath.replace('file://', ''))
+        path = as_path(filepath)
         files = PreDataScanner(path, detection_method='mime')
         filemap = []
         relevant_files = 0
@@ -110,7 +109,7 @@ class FileSpider(ScannerSpider):
             if info['filetype']['relevant'] and info['filetype']['supported']:
                 relevant_files += 1
                 relevant_file_size += info['size']
-                filemap.append('file://' + str(path))
+                filemap.append(as_file_uri(path))
         logging.info('Found {0} relevant files ({1} bytes).'.format(
             relevant_files, relevant_file_size))
         logging.info('Folder analysis completed...')
@@ -138,7 +137,8 @@ class FileSpider(ScannerSpider):
                     failure.value.filename))
 
                 return self.append_file_request(
-                    'file://' + failure.value.filename)
+                    as_file_uri(failure.value.filename),
+                )
             elif isinstance(failure.value, IOError):
                 status_message = str(failure.value.errno)
 
@@ -164,7 +164,7 @@ class FileSpider(ScannerSpider):
                 old = domain.filedomain.mountpath
                 new = domain.filedomain.url
             elif scanner_type == 'ExchangeScanner':
-                old = 'file://' + domain.exchangedomain.dir_to_scan
+                old = as_file_uri(domain.exchangedomain.dir_to_scan)
                 new = domain.exchangedomain.url
 
         url_object = self.url_save(mime_type,

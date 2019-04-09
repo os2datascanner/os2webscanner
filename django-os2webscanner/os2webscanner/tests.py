@@ -23,10 +23,10 @@ import pep8
 from django.test import TestCase
 from django.conf import settings
 
-from os2webscanner.models.webdomain_model import WebDomain
+from os2webscanner.models.domains.webdomain_model import WebDomain
 from os2webscanner.models.organization_model import Organization
-from os2webscanner.models.webscanner_model import WebScanner
-from os2webscanner.models.scan_model import Scan
+from os2webscanner.models.scannerjobs.webscanner_model import WebScanner
+from os2webscanner.models.scans.scan_model import Scan
 from .validate import validate_domain
 
 install_directory = os.path.abspath(os.path.join(settings.BASE_DIR, '..'))
@@ -81,8 +81,8 @@ class ScannerTest(TestCase):
         scanner.save()
         domain.save()
         scanner.domains.add(domain)
-        self.assertTrue(isinstance(scanner.run(test_only=True), Scan))
-        self.assertFalse(isinstance(scanner.run(test_only=True), Scan))
+        self.assertTrue(isinstance(scanner.run('kaflaflibob'), Scan))
+        self.assertFalse(isinstance(scanner.run('kaflaflibob'), Scan))
 
 
 def pep8_test(filepath):

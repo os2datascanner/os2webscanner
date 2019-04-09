@@ -28,7 +28,7 @@ class WebDomainCreate(DomainCreate):
         if url_contains_spaces(form):
             form.add_error('url', u'Mellemrum er ikke tilladt i web-domænenavnet.')
             return self.form_invalid(form)
-        return super(WebDomainCreate, self).form_valid(form)
+        return super().form_valid(form)
 
     def get_success_url(self):
         """The URL to redirect to after successful creation."""
@@ -46,7 +46,7 @@ class WebDomainUpdate(DomainUpdate):
         if url_contains_spaces(form):
             form.add_error('url', u'Mellemrum er ikke tilladt i web-domænenavnet.')
             return self.form_invalid(form)
-        return super(WebDomainUpdate, self).form_valid(form)
+        return super().form_valid(form)
 
     def get_form_fields(self):
         fields = super().get_form_fields()

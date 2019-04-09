@@ -28,7 +28,6 @@ import sys
 import subprocess
 import time
 import signal
-import settings as scanner_settings
 
 import logging
 
@@ -38,6 +37,8 @@ from django.utils import timezone
 from django.db import transaction, IntegrityError, DatabaseError
 from django import db
 from django.conf import settings as django_settings
+
+from . import settings as scanner_settings
 
 
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))

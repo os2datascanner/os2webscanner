@@ -24,6 +24,8 @@ import time
 import datetime
 import chardet
 import logging
+import pathlib
+import typing
 
 from django.db import IntegrityError
 from django.conf import settings
@@ -282,3 +284,11 @@ def domain_form_manipulate(form):
         f.widget.attrs['class'] = 'form-control'
 
     return form
+
+
+def as_file_uri(path: typing.Union[str, pathlib.Path]) -> str:
+    # TODO: consolidate with `scrapy-webscanner/utils.py`
+    if not isinstance(path, pathlib.Path):
+        path = pathlib.Path(path)
+
+    return path.as_uri()

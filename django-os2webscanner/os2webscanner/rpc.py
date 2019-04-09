@@ -25,7 +25,7 @@ from django_xmlrpc.decorators import xmlrpc_func
 
 from .models.match_model import Match
 from .models.scans.scan_model import Scan
-from .utils import do_scan
+from .utils import do_scan, as_file_uri
 
 
 @xmlrpc_func(returns='string', args=['string', 'string', 'string', 'dict'])
@@ -87,8 +87,7 @@ def scan_documents(username, password, data, params={}):
             f.write(binary.data)
         return full_path
     documents = map(writefile, data)
-    file_url = lambda f: 'file://{0}'.format(f)
-    scan = do_scan(user, map(file_url, documents), params, add_domains=False)
+    scan = do_scan(user, map(as_file_uri, documents), params, add_domains=False)
     # map(os.remove, documents)
 
     url = scan.get_absolute_url()
@@ -227,8 +226,7 @@ def do_scan_documents(user, data, params={}):
             f.write(binary_decoder.data)
         return full_path
     documents = list(map(writefile, data))
-    file_url = lambda f: 'file://{0}'.format(f)
-    scan = do_scan(user, list(map(file_url, documents)), params, blocking=True)
+    scan = do_scan(user, list(map(as_file_uri, documents)), params, blocking=True)
     # map(os.remove, documents)
     if not isinstance(scan, Scan):
         raise RuntimeError("Unable to perform scan - check user has" +

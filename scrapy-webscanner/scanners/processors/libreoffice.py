@@ -46,7 +46,7 @@ class LibreOfficeProcessor(Processor):
 
     def __init__(self):
         """Initialize the processor, setting an empty home directory."""
-        super(Processor, self).__init__()
+        super().__init__()
         self.home_dir = None
         self.instance = None
         self.instance_name = None
@@ -64,7 +64,7 @@ class LibreOfficeProcessor(Processor):
 
     def setup_queue_processing(self, pid, *args):
         """Setup the home directory as the first argument."""
-        super(LibreOfficeProcessor, self).setup_queue_processing(
+        super().setup_queue_processing(
             pid, *args
         )
         self.instance_name = args[0]
@@ -90,7 +90,7 @@ couldn't create a LibreOffice process"""
         # implementation details, but the alternative is to rewrite the
         # whole processor to use PyUNO...)
         dummy_home_uri = \
-            "file://" + os.path.join(home_root_dir, self.instance_name)
+            (pathlib.Path(home_root_dir) / self.instance_name).as_uri()
         # LibreOffice represents (most of...) its strings as UTF-16 strings in
         # system byte order. (Remember to remove the BOM!)
         home_hash = hashlib.md5(dummy_home_uri.encode("UTF-16")[2:])
@@ -108,7 +108,7 @@ couldn't create a LibreOffice process"""
             # This instance is not running; remove the socket
             lock_path.unlink()
 
-        super(LibreOfficeProcessor, self).teardown_queue_processing()
+        super().teardown_queue_processing()
 
     def handle_spider_item(self, data, url_object):
         """Add the item to the queue."""
