@@ -461,7 +461,8 @@ class PreDataScanner(object):
                 types['sub'][subgroup]['sizedist'].append(node_info['size'])
             else:
                 types['sub'][subgroup] = {'count': 1,
-                                          'sizedist': [node_info['size']]}
+                                          'sizedist': [node_info['size']],
+                                          'supergroup': supergroup}
         return types
 
     def update_stats(self, print_output=True):

@@ -124,6 +124,15 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
             context['files_scraped_count'] = stats.files_scraped_count
             context['files_is_dir_count'] = stats.files_is_dir_count
             context['files_skipped_count'] = stats.files_skipped_count
+
+            context["supported_size"] = stats.supported_size
+            context["supported_count"] = stats.supported_count
+            context["relevant_size"] = stats.relevant_size
+            context["relevant_count"] = stats.relevant_count
+            context["relevant_unsupported_size"] = \
+                stats.relevant_unsupported_size
+            context["relevant_unsupported_count"] = \
+                stats.relevant_unsupported_count
         except ObjectDoesNotExist:
             pass
 

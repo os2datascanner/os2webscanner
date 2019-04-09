@@ -33,17 +33,26 @@ from .models.regexpattern_model import RegexPattern
 from .models.regexrule_model import RegexRule
 from .models.scans.scan_model import Scan
 from .models.scannerjobs.scanner_model import Scanner
-from .models.statistic_model import Statistic
+from .models.statistic_model import Statistic, TypeStatistics
 from .models.url_model import Url
 from .models.urllastmodified_model import UrlLastModified
 from .models.userprofile_model import UserProfile
 from .models.domains.webdomain_model import WebDomain
 
+
+class TypeStatisticsInline(admin.TabularInline):
+    model = TypeStatistics
+
+
+class StatisticAdmin(admin.ModelAdmin):
+    inlines = (TypeStatisticsInline,)
+
 ar = admin.site.register
 classes = [Authentication, Organization, WebDomain, FileDomain, ExchangeDomain,
            RegexRule, Scanner, Scan, Match, Url, ConversionQueueItem, ReferrerUrl,
-           UrlLastModified, Group, Statistic, RegexPattern]
+           UrlLastModified, Group, RegexPattern]
 list(map(ar, classes))
+admin.site.register(Statistic, StatisticAdmin)
 
 
 class ProfileInline(admin.TabularInline):
