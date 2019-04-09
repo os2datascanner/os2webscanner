@@ -6,5 +6,5 @@ BASE_DIR=$(dirname "${FULL_DIR}")
 
 source "${BASE_DIR}/python-env/bin/activate"
 VAR_DIR=$(${BASE_DIR}/webscanner_site/manage.py get_var_dir)
-python "${FULL_DIR}/process_manager.py" >"${VAR_DIR}/logs/process_manager.log" 2>&1
+python "${FULL_DIR}/process_manager.py" "${VAR_DIR}/logs/process_manager.log"
 
