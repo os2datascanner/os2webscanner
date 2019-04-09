@@ -90,7 +90,7 @@ couldn't create a LibreOffice process"""
         # implementation details, but the alternative is to rewrite the
         # whole processor to use PyUNO...)
         dummy_home_uri = \
-            "file://" + os.path.join(home_root_dir, self.instance_name)
+            (pathlib.Path(home_root_dir) / self.instance_name).as_uri()
         # LibreOffice represents (most of...) its strings as UTF-16 strings in
         # system byte order. (Remember to remove the BOM!)
         home_hash = hashlib.md5(dummy_home_uri.encode("UTF-16")[2:])

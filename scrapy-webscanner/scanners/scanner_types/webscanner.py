@@ -1,5 +1,6 @@
 from urllib.parse import urlparse
 
+from ..utils import as_file_uri
 from .scanner import Scanner
 
 
@@ -58,5 +59,5 @@ class WebScanner(Scanner):
         urls = []
         for domain in self.valid_domains:
             if domain.webdomain.sitemap != '':
-                urls.append('file://' + domain.webdomain.sitemap_full_path)
+                urls.append(as_file_uri(domain.webdomain.sitemap_full_path))
         return urls
