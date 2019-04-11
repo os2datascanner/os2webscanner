@@ -11,17 +11,16 @@ Domæner
     <div role="tabpanel" class="tab-pane active" id="{{view.type}}scan">
         <p class="h2" style="display:inline-block;">
             {% if view.type == 'web' %}
-                Web
+                Webdomæne
             {% elif view.type == 'file' %}
-                Fil
+                Fildomæne
             {% elif view.type == 'exchange' %}
-                Exchange
+                Exchangedomæne
             {% endif %}
-                domæne
         </p>
         <span class="page-action">
             <button type="button" class="btn btn-default" data-toggle="modal" data-target="#create-domain-modal">
-              Tilføj ny
+              Tilføj nyt
               <span style="position:relative;top:.15em;" class="glyphicon glyphicon-plus-sign"></span>
             </button>
           </span>

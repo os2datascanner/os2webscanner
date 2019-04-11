@@ -22,7 +22,7 @@ class ConversionQueueItem(models.Model):
     status_choices = (
         (NEW, "Ny"),
         (PROCESSING, "I gang"),
-        (FAILED, "Fejlet"),
+        (FAILED, "Mislykket"),
     )
 
     status = models.CharField(max_length=10, choices=status_choices,

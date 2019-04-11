@@ -129,8 +129,8 @@ class Scan(models.Model):
     status_choices = (
         (NEW, "Ny"),
         (STARTED, "I gang"),
-        (DONE, "OK"),
-        (FAILED, "Fejlet"),
+        (DONE, "Færdig"),
+        (FAILED, "Mislykket"),
     )
 
     status = models.CharField(max_length=10, choices=status_choices,
