@@ -32,6 +32,6 @@ def as_file_uri(path: typing.Union[str, pathlib.Path]) -> str:
 
 def as_path(path: str) -> str:
     if path.startswith('file://'):
-        return urllib.url2pathname(urllib.urlparse(path).path)
-    else:
-        return path
+        path = urllib.request.url2pathname(urllib.parse.urlparse(path).path)
+
+    return pathlib.Path(path)

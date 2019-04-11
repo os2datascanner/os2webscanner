@@ -1,7 +1,6 @@
 import logging
 import errno
 import magic
-from pathlib import Path
 
 from scrapy.http import Request, HtmlResponse
 from scrapy.exceptions import IgnoreRequest

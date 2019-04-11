@@ -288,7 +288,9 @@ def domain_form_manipulate(form):
 
 def as_file_uri(path: typing.Union[str, pathlib.Path]) -> str:
     # TODO: consolidate with `scrapy-webscanner/utils.py`
-    if not isinstance(path, pathlib.Path):
+    if isinstance(path, str) and path.startswith('file://'):
+        return path
+    elif not isinstance(path, pathlib.Path):
         path = pathlib.Path(path)
 
     return path.as_uri()
