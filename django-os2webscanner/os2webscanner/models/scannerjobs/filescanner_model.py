@@ -27,7 +27,7 @@ class FileScanner(Scanner):
     """File scanner for scanning network drives and folders"""
 
     domains = models.ManyToManyField(FileDomain, related_name='filedomains',
-                                     verbose_name='Fil Domæner')
+                                     verbose_name='Fildomæner')
 
     def create_scan(self):
         """

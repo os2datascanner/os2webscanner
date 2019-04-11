@@ -26,7 +26,7 @@ class ExchangeScanner(Scanner):
     """File scanner for scanning network drives and folders"""
     # TODO: ExchangeScanner should only be able to have one domain attached
     domains = models.ManyToManyField(ExchangeDomain, related_name='exchangedomains',
-                                     verbose_name='Exchange Domæner')
+                                     verbose_name='Exchangedomæner')
 
     is_exporting = models.BooleanField(default=False)
 

@@ -10,7 +10,7 @@ class Authentication(models.Model):
 
     # User login for websites, network drives etc.
     username = models.CharField(max_length=1024, unique=False, blank=True, default='',
-                                verbose_name='Bruger navn')
+                                verbose_name='Brugernavn')
 
     # One of the two encryption keys for decrypting the password
     iv = models.BinaryField(max_length=32, unique=False, blank=True,
@@ -21,7 +21,7 @@ class Authentication(models.Model):
                                     verbose_name='Password')
 
     domain = models.CharField(max_length=2024, unique=False, blank=True, default='',
-                              verbose_name='Bruger domæne')
+                              verbose_name='Brugerdomæne')
 
     models.ForeignKey(AuthenticationMethods,
                       null=True,

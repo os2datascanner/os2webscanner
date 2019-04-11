@@ -61,8 +61,10 @@ class Scanner(models.Model):
 
     do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder')
 
-    do_last_modified_check = models.BooleanField(default=True,
-                                                 verbose_name='Tjek sidst ændret dato')
+    do_last_modified_check = models.BooleanField(
+        default=True,
+        verbose_name='Tjek dato for sidste ændring',
+    )
 
     columns = models.CharField(validators=[validate_comma_separated_integer_list],
                                max_length=128,
@@ -72,7 +74,7 @@ class Scanner(models.Model):
 
     regex_rules = models.ManyToManyField(RegexRule,
                                          blank=True,
-                                         verbose_name='Regex regler')
+                                         verbose_name='Regex-regler')
 
     recipients = models.ManyToManyField(UserProfile, blank=True,
                                         verbose_name='Modtagere')

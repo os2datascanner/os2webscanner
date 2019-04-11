@@ -46,7 +46,7 @@ class Domain(models.Model):
     authentication = models.OneToOneField(Authentication,
                                           null=True,
                                           related_name='%(app_label)s_%(class)s_authentication',
-                                          verbose_name='Bruger navn')
+                                          verbose_name='Brugernavn')
 
     organization = models.ForeignKey(Organization,
                                      null=False,
