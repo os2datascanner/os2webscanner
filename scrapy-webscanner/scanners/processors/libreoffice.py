@@ -74,6 +74,20 @@ class LibreOfficeProcessor(Processor):
 couldn't create a LibreOffice process"""
 
     def teardown_queue_processing(self):
+        if self.unoconv:
+            # If we were interrupted in the middle of trying to run
+            # unoconv, then kill it off: a stuck unoconv instance might
+            # remain attached to the pipe, corrupting messages sent by
+            # future LibreOffice processors
+            self.unoconv.terminate()
+            try:
+                self.unoconv.wait(10)
+            except subprocess.TimeoutExpired:
+                self.unoconv.kill()
+                self.unoconv.wait()
+            finally:
+                self.unoconv = None
+
         if self.instance:
             if self.instance.poll() is None:
                 # Tell the existing instance to stop listening on the pipe
