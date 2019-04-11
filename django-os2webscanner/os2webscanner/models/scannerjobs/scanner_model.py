@@ -174,7 +174,7 @@ class Scanner(models.Model):
 
     @property
     def has_valid_domains(self):
-        return len([d for d in self.domains.all() if d.validation_status]) > 0
+        return self.organization.os2webscanner_domain_organization.filter(validation_status=True).exists()
 
     @classmethod
     def modulo_for_starttime(cls, time):
