@@ -305,7 +305,7 @@ class PreDataScanner(object):
         t = t0
         for item in all_dirs:
             processed += 1
-            if processed % 2500 == 0:
+            if not processed % 2500:
                 now = time.time()
                 delta_t = now - t0
                 avg_speed = processed / delta_t
@@ -329,7 +329,7 @@ class PreDataScanner(object):
         t = t0
         for node in self.nodes.keys():
             dirs_processed += 1
-            if dirs_processed % 2500 == 0:
+            if not dirs_processed % 2500:
                 now = time.time()
                 delta_t = now - t0
                 avg_speed = dirs_processed / delta_t
@@ -404,7 +404,7 @@ class PreDataScanner(object):
         t = t0
         for node in self.nodes.keys():
             processed += 1
-            if processed % 2500 == 0:
+            if not processed % 2500:
                 now = time.time()
                 delta_t = now - t0
                 avg_speed = processed / delta_t

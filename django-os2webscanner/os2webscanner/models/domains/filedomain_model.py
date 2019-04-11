@@ -68,7 +68,7 @@ class FileDomain(Domain):
     def smb_mount(self):
         """Mounts networkdrive if not already mounted."""
 
-        if self.check_mountpoint() is 0:
+        if not self.check_mountpoint():
             logger.info('{} is already a mount point.'.format(self.mountpath))
             return True
 
@@ -83,18 +83,18 @@ class FileDomain(Domain):
         if settings.PRODUCTION_MODE:
             # Mount as apache user (www-data). It will always have uid 33
             optarg += ',uid=33,gid=33'
-        if self.authentication.username != '':
+        if self.authentication.username:
             optarg += ',username=' + self.authentication.username
-        if len(self.authentication.ciphertext) > 0:
+        if self.authentication.ciphertext:
             password = self.authentication.get_password()
             optarg += ',password=' + password
-        if self.authentication.domain != '':
+        if self.authentication.domain:
             optarg += ',domain=' + self.authentication.domain
         command.append(optarg)
 
         response = call(command)
 
-        if response is not 0:
+        if response:
             logger.error('Mount failed: {0}'.format(response))
             return False
 
@@ -104,7 +104,7 @@ class FileDomain(Domain):
 
     def smb_umount(self):
         """Unmounts networkdrive if mounted."""
-        if self.check_mountpoint() is 0:
+        if not self.check_mountpoint():
             call(['sudo', 'umount', '-l', self.mountpath])
             call(['sudo', 'umount', '-f', self.mountpath])
             logger.info('{} is unmounted.'.format(self.mountpath))

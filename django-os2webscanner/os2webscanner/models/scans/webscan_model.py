@@ -85,7 +85,7 @@ class WebScan(Scan):
         cookie_counts = {}
         lines = raw_log.split('\n')
         for l in lines:
-            if len(l) == 0:
+            if not l:
                 continue
             domain = l.split('|')[0]
             cookie = l.split('|')[1]

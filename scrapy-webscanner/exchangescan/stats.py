@@ -191,7 +191,7 @@ class Stats(multiprocessing.Process):
         self.amqp_update()
         self.init_logging()
         processes = self.number_of_threads()[1]
-        while processes is not 0:
+        while processes:
             self.amqp_update()
             thread_info = self.number_of_threads()
             processes = thread_info[1]

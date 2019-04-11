@@ -44,14 +44,14 @@ def check_url(url, method="HEAD"):
             return result
 
         reason = str(getattr(e, "reason", ""))
-        if reason == "":
+        if not reason:
             reason = str(e)
 
         # Strip [Errno: -2] stuff
         reason = regex.sub("\[.+\] ", "", reason)
         reason = capitalize_first(reason)
 
-        if code != 0:
+        if code:
             reason = "%d %s" % (code, reason)
 
         return {"status_code": code, "status_message": reason}

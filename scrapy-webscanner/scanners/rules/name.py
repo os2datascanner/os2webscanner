@@ -45,7 +45,7 @@ def match_full_name(text):
             middle = m.group("middle")
         except IndexError:
             middle = ''
-        if middle != '':
+        if middle:
             middle_split = tuple(
                 regex.split('\s+', middle.lstrip(), regex.UNICODE))
         else:
@@ -72,7 +72,7 @@ def load_name_file(file_name):
     names = []
     for line in codecs.open(file_name, "r", "latin-1"):
         # Skip beginning lines which are not in uppercase
-        if len(line) > 0 and not line[1].isupper():
+        if line and not line[1].isupper():
             continue
         names.append(str(line[:line.index('\t')]))
     return names

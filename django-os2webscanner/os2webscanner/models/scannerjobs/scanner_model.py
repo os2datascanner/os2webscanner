@@ -114,7 +114,7 @@ class Scanner(models.Model):
         """A lambda for creating schedule description strings."""
         rules = [r for r in self.schedule.rrules]  # Use r.to_text() to render
         dates = [d for d in self.schedule.rdates]
-        if len(rules) > 0 or len(dates) > 0:
+        if rules or dates:
             return u"Ja"
         else:
             return u"Nej"
@@ -238,7 +238,7 @@ class Scanner(models.Model):
                     end_time__isnull=False).order_by('pk')
         last_scan_started_at = \
             completed_scans.last().start_time.isoformat() \
-            if len(completed_scans) > 0 else None
+            if completed_scans else None
         message = {
             'type': type,
             'id': scan.pk,

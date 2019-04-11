@@ -448,7 +448,7 @@ def read_users(user_queue, user_file):
     with user_path.open('r') as f:
         users = f.read().split('\n')
     for user in users:
-        if len(user.strip()) == 0:
+        if not user.strip():
             users.remove(user)
     for user in users:
         user_queue.put(user)
