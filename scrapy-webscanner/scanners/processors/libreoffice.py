@@ -50,6 +50,7 @@ class LibreOfficeProcessor(Processor):
         self.home_dir = None
         self.instance = None
         self.instance_name = None
+        self.unoconv = None
 
     def _make_args(self, accept=True):
         assert self.instance_name
@@ -160,7 +161,12 @@ couldn't create a LibreOffice process"""
 
         attempts = 0
         while attempts < 4:
-            return_code = subprocess.call(unoconv_args)
+            return_code = 113
+            self.unoconv = subprocess.Popen(unoconv_args)
+            try:
+                return_code = self.unoconv.wait()
+            finally:
+                self.unoconv = None
             # unoconv returns 113 if the connection failed; if that happens and
             # the instance is still running, then it's probably starting up, so
             # try a few more times over the course of a minute
