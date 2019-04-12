@@ -24,6 +24,7 @@ import json
 
 from django.core.validators import validate_comma_separated_integer_list
 from django.db import models
+from django.contrib.postgres.fields import JSONField
 
 from model_utils.managers import InheritanceManager
 from recurrence.fields import RecurrenceField
@@ -136,29 +137,11 @@ class Scanner(models.Model):
         " fordi der er en exchange export igang."
     )
 
-    # DON'T USE DIRECTLY !!!
-    # Use process_urls property instead.
-    encoded_process_urls = models.CharField(
-        max_length=262144,
-        null=True,
-        blank=True
-    )
+    process_urls = JSONField(null=True, blank=True)
+
     # Booleans for control of scanners run from web service.
     do_run_synchronously = models.BooleanField(default=False)
     is_visible = models.BooleanField(default=True)
-
-    def _get_process_urls(self):
-        s = self.encoded_process_urls
-        if s:
-            urls = json.loads(s)
-        else:
-            urls = []
-        return urls
-
-    def _set_process_urls(self, urls):
-        self.encoded_process_urls = json.dumps(urls)
-
-    process_urls = property(_get_process_urls, _set_process_urls)
 
     # First possible start time
     FIRST_START_TIME = datetime.time(18, 0)
