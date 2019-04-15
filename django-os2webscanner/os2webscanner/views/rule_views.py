@@ -68,7 +68,7 @@ class RuleCreate(RestrictedCreateView):
                     r_.save()
 
                 return super().form_valid(form)
-        except:
+        except Exception:
             return super().form_invalid(form)
 
     def get_pattern_fields(self):
@@ -165,7 +165,7 @@ class RuleUpdate(RestrictedUpdateView):
                     r_.save()
 
                 return super().form_valid(form)
-        except:
+        except Exception:
             return super().form_invalid(form)
 
     def get_pattern_fields(self):

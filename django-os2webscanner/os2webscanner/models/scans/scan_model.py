@@ -233,7 +233,7 @@ class Scan(models.Model):
         """Return the name of the scan's scanner."""
         try:
             return "SCAN: " + self.scanner.name
-        except:
+        except Exception:
             return "ORPHANED SCAN: " + str(self.id)
 
     def __str__(self):

@@ -262,7 +262,7 @@ class Processor(object):
                         item.url.scan.log_occurrence(
                                 lm.format(item.file, item.type, item.url.url)
                                 )
-                    except:
+                    except Exception:
                         item.url.scan.log_occurrence(
                                 lm2.format(item.type, item.url.url)
                                 )
@@ -281,7 +281,7 @@ class Processor(object):
                             item.url.url,
                             "success" if result else "fail"
                             ))
-                except:
+                except Exception:
                     datetime_print("success" if result else "fail")
 
                 sys.stdout.flush()

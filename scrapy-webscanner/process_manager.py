@@ -99,7 +99,7 @@ def stop_process(p):
                     item.url.url
                 )
             )
-        except:
+        except Exception:
             item.url.scan.log_occurrence(
                 "QUEUE STOPPING: url <{0}>".format(
                     item.url.url,
@@ -229,7 +229,7 @@ def main():
                             p.url.url
                         )
                     )
-                except:
+                except Exception:
                     p.url.scan.log_occurrence(
                         "PROCESS STUCK: url <{0}>".format(
                             p.url.url,

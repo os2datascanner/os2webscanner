@@ -139,7 +139,7 @@ class NameTest(unittest.TestCase):
         matches = None
         try:
             matches = name.NameRule().execute(text)
-        except:
+        except Exception:
             print('Something went wrong...')
 
         if matches is None:

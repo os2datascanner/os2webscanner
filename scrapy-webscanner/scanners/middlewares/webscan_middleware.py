@@ -107,7 +107,7 @@ class WebScanLastModifiedCheckMiddleware(LastModifiedCheckMiddleware):
             if content_type_header.startswith("text/html"):
                 try:
                     body_html = html.fromstring(response.body)
-                except:
+                except Exception:
                     logging.info('Error occured while trying to extract string from response body.')
 
                 meta_dict = {list(el.values())[0]: list(el.values())[1]
@@ -116,7 +116,7 @@ class WebScanLastModifiedCheckMiddleware(LastModifiedCheckMiddleware):
                     lm = meta_dict['last-modified']
                     try:
                         last_modified_header_date = arrow.get(lm).datetime
-                    except:
+                    except Exception:
                         logging.error(
                             "Date format error on last modied: {0}".format(lm)
                         )
