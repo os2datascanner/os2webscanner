@@ -1,22 +1,15 @@
 #!/usr/bin/env python
-import pika
+
 import json
+import time
+
+import pika
 
 from run_webscan import StartWebScan
 from run_filescan import StartFileScan
 
 
-queue_name = 'datascanner'
-
-
-connection = pika.BlockingConnection(
-    pika.ConnectionParameters('localhost',
-                              heartbeat_interval=6000)
-)
-
-channel = connection.channel()
-
-channel.queue_declare(queue=queue_name)
+QUEUE_NAME = 'datascanner'
 
 
 def callback(ch, method, properties, body):
@@ -34,8 +27,23 @@ def callback(ch, method, properties, body):
 
 
 
-channel.basic_consume(callback, queue=queue_name)
-
-
 print(' [*] Waiting for messages. To exit press CTRL+C')
-channel.start_consuming()
+while True:
+    try:
+        connection = pika.BlockingConnection(
+            pika.ConnectionParameters('localhost',
+                                      heartbeat_interval=6000)
+        )
+
+        channel = connection.channel()
+
+        channel.queue_declare(queue=QUEUE_NAME)
+        channel.basic_consume(callback, queue=QUEUE_NAME)
+
+        channel.start_consuming()
+    except pika.exceptions.ConnectionClosed as exc:
+        # the most frequent cause of sudden closures is VM
+        # suspensions, but just in case, log it, back off a bit, and
+        # resume
+        print('AMQP connection closed:', exc)
+        time.sleep(1)
