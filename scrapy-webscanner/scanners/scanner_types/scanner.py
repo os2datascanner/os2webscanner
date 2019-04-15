@@ -45,7 +45,7 @@ dictionary."""
         self.valid_domains = self.scan_object.get_valid_domains
 
     def ensure_started(self):
-        if self.scan_object.status is not "STARTED":
+        if self.scan_object.status != "STARTED":
             self.scan_object.set_scan_status_start()
 
     def done(self):
