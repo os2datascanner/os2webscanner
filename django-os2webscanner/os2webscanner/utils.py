@@ -34,8 +34,8 @@ from django.template import loader
 
 from os2webscanner.models.match_model import Match
 from os2webscanner.models.url_model import Url
-from os2webscanner.models.scannerjobs.scanner_model import Scanner
-from os2webscanner.models.scans.scan_model import Scan
+from os2webscanner.models.scannerjobs.webscanner_model import WebScanner
+from os2webscanner.models.scans.webscan_model import WebScan
 from os2webscanner.models.summary_model import Summary
 
 
@@ -99,7 +99,7 @@ def get_supported_rpc_params():
             "do_address_replace", "address_replace_text", "columns"]
 
 
-def do_scan(user, urls, params={}, blocking=False, visible=False, add_domains=True):
+def do_scan(user, urls, params={}, blocking=False, visible=False):
     """Create a scanner to scan a list of URLs.
 
     The 'urls' parameter may be either http:// or file:// URLS - we expect the
@@ -110,7 +110,7 @@ def do_scan(user, urls, params={}, blocking=False, visible=False, add_domains=Tr
     The 'params' parameter should be a dict of supported Scanner
     parameters and values. Defaults are used for unspecified parameters.
     """
-    scanner = Scanner()
+    scanner = WebScanner()
     scanner.organization = user.profile.organization
 
     scanner.name = user.username + '-' + str(time.time())
@@ -132,10 +132,7 @@ def do_scan(user, urls, params={}, blocking=False, visible=False, add_domains=Tr
 
     scanner.save()
 
-    if add_domains:
-        for domain in scanner.organization.domains.all():
-            scanner.domains.add(domain)
-    scan = scanner.run(user=user, blocking=blocking)
+    scan = scanner.run('xmlrpc', user=user, blocking=blocking)
     # NOTE: Running scan may have failed.
     # Pass the error message or empty scan in that case.
 
@@ -156,7 +153,7 @@ def scans_for_summary_report(summary, from_date=None, to_date=None):
     if not to_date:
         to_date = datetime.datetime.today()
 
-    relevant_scans = Scan.objects.filter(
+    relevant_scans = WebScan.objects.filter(
         scanner__in=summary.scanners.all(),
         scanner__organization=summary.organization,
         start_time__gte=from_date,
