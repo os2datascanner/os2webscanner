@@ -39,6 +39,7 @@ from ..models.scannerjobs.filescanner_model import FileScanner
 from ..models.group_model import Group
 from ..models.organization_model import Organization
 from ..models.referrerurl_model import ReferrerUrl
+from ..models.rules.cprrule_model import CPRRule
 from ..models.rules.regexrule_model import RegexRule
 from ..models.scans.scan_model import Scan
 from ..models.summary_model import Summary
@@ -419,12 +420,14 @@ class DialogSuccess(TemplateView):
         'webscanners': WebScanner,
         'filescanners': FileScanner,
         'exchangescanners': ExchangeScanner,
+        'rules/cpr': CPRRule,
         'rules/regex': RegexRule,
         'groups': Group,
         'reports/summaries': Summary,
     }
 
     reload_map = {
+        'rules/cpr': 'rules',
         'rules/regex': 'rules'
     }
 

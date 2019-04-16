@@ -27,6 +27,7 @@ from .models.group_model import Group
 from .models.match_model import Match
 from .models.organization_model import Organization
 from .models.referrerurl_model import ReferrerUrl
+from .models.rules.cprrule_model import CPRRule
 from .models.rules.regexrule_model import RegexRule, RegexPattern
 from .models.scans.scan_model import Scan
 from .models.scans.webscan_model import WebScan
@@ -59,6 +60,12 @@ class RegexRuleAdmin(admin.ModelAdmin):
 @admin.register(RegexPattern)
 class RegexPatternAdmin(admin.ModelAdmin):
     list_display = ('pattern_string', 'regex')
+
+
+@admin.register(CPRRule)
+class RegexRuleAdmin(admin.ModelAdmin):
+    list_filter = ('sensitivity',)
+    list_display = ('name', 'organization', 'group', 'sensitivity')
 
 
 @admin.register(WebScan)

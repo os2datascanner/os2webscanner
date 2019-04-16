@@ -29,7 +29,9 @@ from .views.exchangescanner_views import ExchangeScannerList, ExchangeScannerCre
 from .views.filescanner_views import FileScannerCreate, FileScannerRun, FileScannerAskRun, FileScannerUpdate, \
     FileScannerDelete, FileScannerList
 from .views.report_views import ScanReportLog, CSVReportDetails, ReportDetails, ReportList, ReportDelete
-from .views.rule_views import RuleList, RegexRuleCreate, RegexRuleUpdate, RuleDelete
+from .views.rule_views import RuleList, \
+    CPRRuleCreate, CPRRuleUpdate, CPRRuleDelete, \
+    RegexRuleCreate, RegexRuleUpdate, RegexRuleDelete
 from .views.views import GroupList, GroupCreate, GroupUpdate, GroupDelete
 from .views.views import MainPageView
 from .views.views import OrganizationUpdate, OrganizationList
@@ -86,6 +88,11 @@ urlpatterns = [
             model=FileScanner),
         name='filescanner_askrun'),
     url(r'^rules/$', RuleList.as_view(), name='rules'),
+    url(r'^rules/cpr/add/$', CPRRuleCreate.as_view(), name='cprrule_add'),
+    url(r'^rules/cpr/(?P<pk>\d+)/$', CPRRuleUpdate.as_view(),
+        name='rule_update'),
+    url(r'^rules/cpr/(?P<pk>\d+)/delete/$', CPRRuleDelete.as_view(),
+        name='rule_delete'),
     url(r'^rules/regex/add/$', RegexRuleCreate.as_view(), name='regexrule_add'),
     url(r'^rules/regex/(?P<pk>\d+)/$', RegexRuleUpdate.as_view(),
         name='rule_update'),
@@ -169,9 +176,9 @@ urlpatterns = [
         DialogSuccess.as_view()),
     url(r'^(webscanners|filescanners|exchangescanners)/(\d+)/(saved)/$',
         DialogSuccess.as_view()),
-    url(r'^(rules/regex|groups|reports/summaries)/(\d+)/(created)/$',
+    url(r'^(rules/regex|rules/cpr|groups|reports/summaries)/(\d+)/(created)/$',
         DialogSuccess.as_view()),
-    url(r'^(rules/regex|groups|reports/summaries)/(\d+)/(saved)/$',
+    url(r'^(rules/regex|rules/cpr|groups|reports/summaries)/(\d+)/(saved)/$',
         DialogSuccess.as_view()),
 
     url(r'^jsi18n/$', JavaScriptCatalog.as_view(
