@@ -139,7 +139,7 @@ LANGUAGES = (
     ('en', _('English')),
 )
 
-TIME_ZONE = 'CET'
+TIME_ZONE = 'Europe/Copenhagen'
 
 USE_I18N = True
 
