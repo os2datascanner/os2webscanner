@@ -39,10 +39,9 @@ class CPRRule(Rule):
 
     """Represents a rule which scans for CPR numbers."""
 
-    name = 'cpr'
-
-    def __init__(self, do_modulus11, ignore_irrelevant, whitelist=None):
+    def __init__(self, name, do_modulus11, ignore_irrelevant, whitelist=None):
         """Initialize the CPR Rule."""
+        self.name = name
         self.ignore_irrelevant = ignore_irrelevant
         self.do_modulus11 = do_modulus11
         self.whitelist = load_whitelist(whitelist)

@@ -103,13 +103,13 @@ class RegexRule(Rule):
         matches = set()
 
         if self._is_cpr_only():
-            cpr_rule = CPRRule(self.do_modulus11, self.ignore_irrelevant, whitelist=None)
+            cpr_rule = CPRRule(self.name, self.do_modulus11, self.ignore_irrelevant, whitelist=None)
             temp_matches = cpr_rule.execute(text)
             matches.update(temp_matches)
         else:
             re_matches = self.regex.finditer(text)
             if self.cpr_enabled:
-                cpr_rule = CPRRule(self.do_modulus11, self.ignore_irrelevant, whitelist=None)
+                cpr_rule = CPRRule(self.name, self.do_modulus11, self.ignore_irrelevant, whitelist=None)
                 matches.update(cpr_rule.execute(text))
 
             for match in re_matches:
