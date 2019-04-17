@@ -350,7 +350,7 @@ class GroupCreate(RestrictedCreateView):
     def get_form(self, form_class=None):
         """Get the form for the view.
 
-        Querysets used for choices in the 'domains' and 'regex_rules' fields
+        Querysets used for choices in the 'domains' and 'rules' fields
         will be limited by the user's organiztion unless the user is a
         superuser.
         """
@@ -380,7 +380,7 @@ class GroupUpdate(RestrictedUpdateView):
     def get_form(self, form_class=None):
         """Get the form for the view.
 
-        Querysets used for choices in the 'domains' and 'regex_rules' fields
+        Querysets used for choices in the 'domains' and 'rules' fields
         will be limited by the user's organiztion unless the user is a
         superuser.
         """

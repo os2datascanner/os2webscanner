@@ -24,7 +24,7 @@ class WebScannerCreate(ScannerCreate):
               'do_name_scan', 'do_ocr', 'do_address_scan',
               'do_link_check', 'do_external_link_check', 'do_collect_cookies',
               'do_last_modified_check', 'do_last_modified_check_head_request',
-              'regex_rules', 'recipients']
+              'rules', 'recipients']
 
     def form_valid(self, form):
         if url_contains_spaces(form):
@@ -47,7 +47,7 @@ class WebScannerUpdate(ScannerUpdate):
               'do_name_scan', 'do_ocr', 'do_address_scan',
               'do_link_check', 'do_external_link_check', 'do_collect_cookies',
               'do_last_modified_check', 'do_last_modified_check_head_request',
-              'regex_rules', 'recipients']
+              'rules', 'recipients']
 
     def form_valid(self, form):
         if url_contains_spaces(form):

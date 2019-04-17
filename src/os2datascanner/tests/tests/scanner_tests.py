@@ -76,7 +76,7 @@ class ScannerTest(unittest.TestCase):
 
         scanner = WebScanner(name='MagentaTestScan', organization=self.magenta_org, pk=1)
         scanner.save()
-        scanner.regex_rules.add(self.tr_set1)
+        scanner.rules.add(self.tr_set1)
         scanner.domains.add(self.magenta_domain)
 
         SCRAPY_WEBSCANNER_DIR = os.path.join(settings.PROJECT_DIR, "scrapy-webscanner")

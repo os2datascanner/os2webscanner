@@ -52,7 +52,7 @@ class ScannerCreate(ScannerBase, RestrictedCreateView):
     def get_form(self, form_class=None):
         """Get the form for the view.
 
-        Querysets used for choices in the 'domains' and 'regex_rules' fields
+        Querysets used for choices in the 'domains' and 'rules' fields
         will be limited by the user's organization unless the user is a
         superuser.
         """
@@ -83,7 +83,7 @@ class ScannerCreate(ScannerBase, RestrictedCreateView):
         return fields
 
     def filter_queryset(self, form, groups, organization):
-        for field_name in ['regex_rules', 'recipients']:
+        for field_name in ['rules', 'recipients']:
             queryset = form.fields[field_name].queryset
             queryset = queryset.filter(organization=organization)
             if (self.request.user.profile.is_group_admin or
@@ -136,7 +136,7 @@ class ScannerUpdate(ScannerBase, RestrictedUpdateView):
     def get_form(self, form_class=None):
         """Get the form for the view.
 
-        Querysets used for choices in the 'domains' and 'regex_rules' fields
+        Querysets used for choices in the 'domains' and 'rules' fields
         will be limited by the user's organization unless the user is a
         superuser.
         """
@@ -153,7 +153,7 @@ class ScannerUpdate(ScannerBase, RestrictedUpdateView):
         return form
 
     def filter_queryset(self, form, scanner):
-        for field_name in ['regex_rules', 'recipients']:
+        for field_name in ['rules', 'recipients']:
             queryset = form.fields[field_name].queryset
             queryset = queryset.filter(organization=scanner.organization)
 

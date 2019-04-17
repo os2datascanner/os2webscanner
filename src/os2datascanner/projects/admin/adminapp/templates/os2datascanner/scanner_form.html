@@ -44,7 +44,7 @@ iframe-modal
       {% endif %}
 
       // set up selected rules based on the form values
-      {% for val in form.regex_rules.value %}
+      {% for val in form.rules.value %}
         $("#available_rules li[data-rule-id=\"{{ val }}\"").trigger("click");
       {% endfor %}
 
@@ -52,7 +52,7 @@ iframe-modal
       //  * Rules
       //  * Settings
       // But the user shall still be able to view them and edit interval and Recepients
-      {% if form.regex_rules.field.disabled %}
+      {% if form.rules.field.disabled %}
         $("#selected_rules .remove-rule").addClass('disabled')
         $("#selected_rules span").addClass('disabled')
         $("#select_scan_rules_container").css('opacity', '.35')
@@ -521,15 +521,15 @@ iframe-modal
             <div id="rules_list" class="dropup">
               <button class="btn btn-default dropdown-toggle" type="button"
                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"
-                      {% if form.regex_rules.field.disabled %} disabled {% endif %}>
+                      {% if form.rules.field.disabled %} disabled {% endif %}>
                 Tilføj regler
                 <span class="caret"></span>
               </button>
               <ul class="dropdown-menu-right dropdown-menu" id="available_rules" aria-labelledby="rules_list">
                 <li class="dropdown-header">Filtrer</li>
                 <li><input type="text" id="rule-filter" placeholder="Indtast mindst tre bogstaver"></li>
-                <li class="dropdown-header">{{ form.regex_rules.label }}</li>
-                {% for value, tag in form.regex_rules.field.choices %}
+                <li class="dropdown-header">{{ form.rules.label }}</li>
+                {% for value, tag in form.rules.field.choices %}
                     <li class="rule" data-rule-id="{{ value }}">
                         <a href="#" data-toggle="tooltip" data-placement="left" title="{{ description }}">{{ tag }}</a>
                     </li>

@@ -119,17 +119,18 @@ scan ID."""
                             blacklist=self.scan_object.blacklisted_addresses)
             )
         # Add Regex Rules
-        for rule in self.scan_object.regex_rules.all():
-            rules.append(
-                RegexRule(
-                    name=rule.name,
-                    pattern_strings=rule.patterns.all(),
-                    sensitivity=rule.sensitivity,
-                    cpr_enabled=rule.cpr_enabled,
-                    ignore_irrelevant=rule.ignore_irrelevant,
-                    do_modulus11=rule.do_modulus11
+        for rule in self.scan_object.rules.all():
+            if hasattr(rule, "regexrule"):
+                rules.append(
+                    RegexRule(
+                        name=rule.name,
+                        pattern_strings=rule.regexrule.patterns.all(),
+                        sensitivity=rule.sensitivity,
+                        cpr_enabled=rule.regexrule.cpr_enabled,
+                        ignore_irrelevant=rule.regexrule.ignore_irrelevant,
+                        do_modulus11=rule.regexrule.do_modulus11
+                    )
                 )
-            )
         return rules
 
     def get_exclusion_rules(self):

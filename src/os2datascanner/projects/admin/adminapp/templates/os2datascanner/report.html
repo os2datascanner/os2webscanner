@@ -150,9 +150,9 @@ Rapport
             <td></td>
         </tr>
           <tr>
-              <td {% if not scan.regex_rules.all %} class="text-muted" {% endif %} colspan="3">
+              <td {% if not scan.rules.all %} class="text-muted" {% endif %} colspan="3">
                   <b>Ad hoc-regler: </b>
-                  {% for rule in scan.regex_rules.all %}
+                  {% for rule in scan.rules.all %}
                     {{rule.name}}{% if not forloop.last %},{% endif %}
                   {% endfor %}
               </td>

@@ -30,7 +30,7 @@ from model_utils.fields import MonitorField, StatusField
 
 from ..conversionqueueitem_model import ConversionQueueItem
 from ..match_model import Match
-from ..rules.regexrule_model import RegexRule
+from ..rules.rule_model import Rule
 from ..scannerjobs.scanner_model import Scanner
 from ..sensitivity_level import Sensitivity
 from ..userprofile_model import UserProfile
@@ -106,10 +106,10 @@ class Scan(models.Model):
                                blank=True
                                )
 
-    regex_rules = models.ManyToManyField(RegexRule,
-                                         blank=True,
-                                         verbose_name='Regex-regler',
-                                         related_name='scans')
+    rules = models.ManyToManyField(Rule,
+                                   blank=True,
+                                   verbose_name='Regler',
+                                   related_name='scans')
     recipients = models.ManyToManyField(UserProfile, blank=True)
 
     # Spreadsheet annotation and replacement parameters
@@ -495,7 +495,7 @@ class Scan(models.Model):
         self.status = Scan.NEW
         self.scanner = scanner
         self.save()
-        self.regex_rules.add(*scanner.regex_rules.all())
+        self.rules.add(*scanner.rules.all())
         self.recipients.add(*scanner.recipients.all())
 
     class Meta:
