@@ -131,6 +131,11 @@ scan ID."""
                         do_modulus11=rule.regexrule.do_modulus11
                     )
                 )
+            elif hasattr(rule, "cprrule"):
+                rules.append(
+                    CPRRule(name=rule.name,
+                            ignore_irrelevant=rule.cprrule.ignore_irrelevant,
+                            do_modulus11=rule.cprrule.do_modulus11))
         return rules
 
     def get_exclusion_rules(self):
