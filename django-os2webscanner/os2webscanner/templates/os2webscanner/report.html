@@ -1,10 +1,15 @@
-{% extends 'os2webscanner/base_report.html' %}
+{% extends 'os2webscanner/base.html' %}
 {% block rendertype %}regular{% endblock %}
 {%  block title %}
-Rapport &dash; {{scan.scanner.name}}
+Rapport: {{scan.scanner.name}}
+{% endblock %}
+
+{% block heading %}
+Rapport: {{scan.scanner.name}}
 {% endblock %}
 
 {% block body %}
+<div class="container">
 
       <p class="lead">
 	<a href="/reports">&larr; Klik her for at vise listen over rapporter</a>
@@ -346,10 +351,7 @@ Rapport &dash; {{scan.scanner.name}}
         </pre>
     </div>
     {% endif %}
-{% endblock %}
-
-{% block heading %}
-Rapport &dash; {{scan.scanner.name}}
+</div>
 {% endblock %}
 
 {% block modal %}
