@@ -366,7 +366,6 @@ class Scan(models.Model):
 
     def set_scan_status_start(self):
         # Update start_time to now and status to STARTED
-        self.set_scanner_status(True)
         self.start_time = datetime.datetime.now(tz=timezone.utc)
         self.status = Scan.STARTED
         self.reason = ""
@@ -376,7 +375,6 @@ class Scan(models.Model):
         self.save()
 
     def set_scan_status_done(self):
-        self.set_scanner_status()
         self.status = Scan.DONE
         self.pid = None
         self.reason = ""
@@ -385,7 +383,6 @@ class Scan(models.Model):
     def set_scan_status_failed(self, reason):
         self.pid = None
         self.status = Scan.FAILED
-        self.set_scanner_status()
         if reason is None:
             self.reason = "Killed"
         else:
@@ -396,11 +393,6 @@ class Scan(models.Model):
         )
         # TODO: Remove all non-processed conversion queue items.
         self.save()
-
-    def set_scanner_status(self, status=False):
-        scanner = self.scanner
-        scanner.is_running = status
-        scanner.save()
 
     # Create method - copies fields from scanner
     def create(self, scanner):
@@ -428,8 +420,6 @@ class Scan(models.Model):
         return self
 
     def set_status_new(self, scanner):
-        scanner.is_running = True
-        scanner.save()
         self.status = Scan.NEW
         self.scanner = scanner
         self.save()

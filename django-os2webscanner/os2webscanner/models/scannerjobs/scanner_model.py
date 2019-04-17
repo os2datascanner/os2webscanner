@@ -107,7 +107,12 @@ class Scanner(models.Model):
     address_replace_text = models.CharField(max_length=2048, null=True,
                                             blank=True)
 
-    is_running = models.BooleanField(default=False)
+    @property
+    def is_running(self) -> bool:
+        '''Are any scans currently running against this scanner?'''
+        # using a string for the status is kind of ugly, but necessary
+        # to avoid circular imports
+        return self.webscans.filter(status="STARTED").exists()
 
     @property
     def schedule_description(self):
