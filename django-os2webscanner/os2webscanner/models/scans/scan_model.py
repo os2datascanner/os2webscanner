@@ -229,16 +229,14 @@ class Scan(models.Model):
         """Return the number of *critical* matches, <= no_of_matches."""
         return self.matches.filter(sensitivity=Sensitivity.HIGH).count()
 
-    def __unicode__(self):
-        """Return the name of the scan's scanner."""
-        try:
-            return "SCAN: " + self.scanner.name
-        except Exception:
-            return "ORPHANED SCAN: " + str(self.id)
-
     def __str__(self):
-        """Return the name of the scan's scanner."""
-        return self.__unicode__()
+        """Return the name of the scan's scanner combined with a timestamp."""
+        ts = (
+            self.start_time
+            .astimezone(dateutil.tz.tzlocal())
+            .replace(microsecond=0, tzinfo=None)
+        )
+        return "{} — {}".format(self.scanner, ts)
 
     def save(self, *args, **kwargs):
         """Save changes to the scan.
