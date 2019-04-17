@@ -94,7 +94,8 @@ class Scan(models.Model):
 
     regex_rules = models.ManyToManyField(RegexRule,
                                          blank=True,
-                                         verbose_name='Regex regler')
+                                         verbose_name='Regex-regler',
+                                         related_name='scans')
     recipients = models.ManyToManyField(UserProfile, blank=True)
 
     # Spreadsheet annotation and replacement parameters

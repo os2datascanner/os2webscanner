@@ -77,7 +77,8 @@ class Scanner(models.Model):
 
     regex_rules = models.ManyToManyField(RegexRule,
                                          blank=True,
-                                         verbose_name='Regex-regler')
+                                         verbose_name='Regex-regler',
+                                         related_name='scanners')
 
     recipients = models.ManyToManyField(UserProfile, blank=True,
                                         verbose_name='Modtagere')

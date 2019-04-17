@@ -1,12 +1,26 @@
 {% extends "os2webscanner/base.html" %}
 
 {% block heading %}
-Slet scanner?
+Slet {{ object }}?
 {% endblock %}
 
 {% block body %}
   <div class="container">
-    <p>Ønsker du virkelig at slette?</p>
+    <p>
+      Ønsker du virkelig at slette denne scanner? Handlingen kan ikke
+      fortrydes.
+    </p>
+    {% if object.webscans.all %}
+    <p>
+      Bemærk venligst at {{ object.webscans.all.count }} rapporter er
+      knyttet til dette scannerjob. Disse rapporter vil fremover
+      fremstå uden tilknyttet scanner og organisation.
+    </p>
+    {% else %}
+    <p>
+      Denne scanner har ingen tilknyttede rapporter.
+    </p>
+    {% endif %}
     <form action="" method="post">{% csrf_token %}
       {{ form.as_p }}
       <input class="btn btn-primary" type="submit" value="Ja" />
