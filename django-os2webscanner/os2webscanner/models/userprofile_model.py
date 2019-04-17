@@ -14,10 +14,12 @@ class UserProfile(models.Model):
 
     organization = models.ForeignKey(Organization,
                                      null=False,
-                                     verbose_name='Organisation')
+                                     verbose_name='Organisation',
+                                     on_delete=models.PROTECT)
     user = models.OneToOneField(User,
                                 related_name='profile',
-                                verbose_name='Bruger')
+                                verbose_name='Bruger',
+                                on_delete=models.PROTECT)
     is_group_admin = models.BooleanField(default=False)
     is_upload_only = models.BooleanField(default=False)
 

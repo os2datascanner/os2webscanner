@@ -53,7 +53,8 @@ class Scan(models.Model):
     # Begin setup copied from scanner
     scanner = models.ForeignKey(Scanner,
                                 null=True, verbose_name='webscanner',
-                                related_name='webscans')
+                                related_name='webscans',
+                                on_delete=models.SET_NULL)
 
     domains = models.ManyToManyField(Domain,
                                      verbose_name='Domæner')

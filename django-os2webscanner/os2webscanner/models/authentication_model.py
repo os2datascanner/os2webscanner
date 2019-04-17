@@ -26,7 +26,8 @@ class Authentication(models.Model):
     models.ForeignKey(AuthenticationMethods,
                       null=True,
                       related_name='authentication_method',
-                      verbose_name='Login Metode')
+                      verbose_name='Login Metode',
+                      on_delete=models.CASCADE)
 
     def get_password(self):
         return decrypt(bytes(self.iv), bytes(self.ciphertext))

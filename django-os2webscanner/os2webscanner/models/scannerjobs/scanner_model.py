@@ -47,10 +47,12 @@ class Scanner(models.Model):
                             verbose_name='Navn')
 
     organization = models.ForeignKey(Organization, null=False,
-                                     verbose_name='Organisation')
+                                     verbose_name='Organisation',
+                                     on_delete=models.PROTECT)
 
     group = models.ForeignKey(Group, null=True, blank=True,
-                              verbose_name='Gruppe')
+                              verbose_name='Gruppe',
+                              on_delete=models.SET_NULL)
 
     schedule = RecurrenceField(max_length=1024,
                                verbose_name='Planlagt afvikling')
