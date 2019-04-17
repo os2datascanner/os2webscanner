@@ -18,7 +18,7 @@
 import django.contrib.auth.views
 from django.conf import settings
 from django.conf.urls import url
-from django.views.i18n import javascript_catalog
+from django.views.i18n import JavaScriptCatalog
 
 from .models.scannerjobs.exchangescanner_model import ExchangeScanner
 from .models.scannerjobs.filescanner_model import FileScanner
@@ -42,9 +42,6 @@ from .views.webdomain_views import WebDomainList, WebDomainCreate, WebDomainUpda
 from .views.webscanner_views import WebScannerCreate, WebScannerUpdate, WebScannerDelete, WebScannerRun, \
     WebScannerAskRun, WebScannerList
 
-js_info_dict = {
-    'packages': ('os2webscanner', 'recurrence')
-}
 
 urlpatterns = [
     # App URLs
@@ -139,39 +136,51 @@ urlpatterns = [
     url(r'^reports/summary/(?P<pk>\d+)/delete/$', SummaryDelete.as_view(),
         name='summary_delete'),
     # Login/logout stuff
-    url(r'^accounts/login/', django.contrib.auth.views.login,
-        {'template_name': 'login.html'}, name='login'),
-    url(r'^accounts/logout/', django.contrib.auth.views.logout,
-        {'template_name': 'logout.html'}, name='logout'),
+    url(r'^accounts/login/',
+        django.contrib.auth.views.LoginView.as_view(
+            template_name='login.html',
+        ),
+        name='login'),
+    url(r'^accounts/logout/',
+        django.contrib.auth.views.LogoutView.as_view(
+            template_name='logout.html',
+        ),
+        name='logout'),
     url(r'^accounts/password_change/',
-        django.contrib.auth.views.password_change,
-        {'template_name': 'password_change.html'},
+        django.contrib.auth.views.PasswordChangeView.as_view(
+            template_name='password_change.html',
+        ),
         name='password_change'
         ),
     url(r'^accounts/password_change_done/',
-        django.contrib.auth.views.password_change_done,
-        {'template_name': 'password_change_done.html'},
+        django.contrib.auth.views.PasswordChangeDoneView.as_view(
+            template_name='password_change_done.html',
+        ),
         name='password_change_done'
         ),
     url(r'^accounts/password_reset/$',
-        django.contrib.auth.views.password_reset,
-        {'template_name': 'password_reset_form.html'},
+        django.contrib.auth.views.PasswordResetView.as_view(
+            template_name='password_reset_form.html',
+        ),
         name='password_reset'
         ),
     url(r'^accounts/password_reset/done/',
-        django.contrib.auth.views.password_reset_done,
-        {'template_name': 'password_reset_done.html'},
+        django.contrib.auth.views.PasswordResetDoneView.as_view(
+            template_name='password_reset_done.html',
+        ),
         name='password_reset_done'
         ),
     url(r'^accounts/reset/(?P<uidb64>[0-9A-Za-z_\-]+)/' +
         '(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
-        django.contrib.auth.views.password_reset_confirm,
-        {'template_name': 'password_reset_confirm.html'},
+        django.contrib.auth.views.PasswordResetConfirmView.as_view(
+            template_name='password_reset_confirm.html',
+        ),
         name='password_reset_confirm'
         ),
     url(r'^accounts/reset/complete',
-        django.contrib.auth.views.password_reset_complete,
-        {'template_name': 'password_reset_complete.html'},
+        django.contrib.auth.views.PasswordResetCompleteView.as_view(
+            template_name='password_reset_complete.html',
+        ),
         name='password_reset_complete'
         ),
 
@@ -190,7 +199,9 @@ urlpatterns = [
         DialogSuccess.as_view()),
     url(r'^(exchangescanners|exchangedomains|rules|groups|reports/summaries)/(\d+)/(saved)/$',
         DialogSuccess.as_view()),
-    url(r'^jsi18n/$', javascript_catalog, js_info_dict),
+    url(r'^jsi18n/$', JavaScriptCatalog.as_view(
+        packages=('os2webscanner', 'recurrence'),
+    )),
     # System functions
     url(r'^system/status/?$', SystemStatusView.as_view()),
     url(r'^system/orgs_and_domains/$', OrganizationList.as_view(),

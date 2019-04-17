@@ -91,7 +91,7 @@ XMLRPC_METHODS = (
     ('os2webscanner.rpc.get_status', 'get_status'),
     ('os2webscanner.rpc.get_report', 'get_report'),
 )
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
