@@ -109,21 +109,29 @@ scan ID."""
     def _load_rules(self):
         """Load rules based on WebScanner settings."""
         rules = []
-        if self.do_name_scan:
-            rules.append(
-                NameRule(name='name', sensitivity=Sensitivity.HIGH,
-                         whitelist=self.scan_object.whitelisted_names,
-                         blacklist=self.scan_object.blacklisted_names)
-            )
-        if self.do_address_scan:
-            rules.append(
-                AddressRule(name='address', sensitivity=Sensitivity.HIGH,
-                            whitelist=self.scan_object.whitelisted_addresses,
-                            blacklist=self.scan_object.blacklisted_addresses)
-            )
         # Add Regex Rules
         for rule in self.scan_object.rules.all():
-            if hasattr(rule, "regexrule"):
+            if hasattr(rule, "namerule"):
+                rules.append(
+                    NameRule(
+                        name=rule.name,
+                        sensitivity=rule.sensitivity,
+                        database=rule.namerule.database,
+                        whitelist=self.scan_object.whitelisted_names,
+                        blacklist=self.scan_object.blacklisted_names
+                    )
+                )
+            elif hasattr(rule, "addressrule"):
+                rules.append(
+                    AddressRule(
+                        name=rule.name,
+                        sensitivity=rule.sensitivity,
+                        database=rule.addressrule.database,
+                        whitelist=self.scan_object.whitelisted_addresses,
+                        blacklist=self.scan_object.blacklisted_addresses
+                    )
+                )
+            elif hasattr(rule, "regexrule"):
                 rules.append(
                     RegexRule(
                         name=rule.name, sensitivity=rule.sensitivity,

@@ -17,7 +17,8 @@
 """Rules for name scanning."""
 
 import regex
-import os
+
+from os2datascanner.projects.admin.adminapp.models.rules.namerule_model import NameRule as DjangoModel
 
 from .rule import Rule
 from ...utils import get_data
@@ -76,13 +77,7 @@ class NameRule(Rule):
     Matches against full, capitalized, names with up to 2 middle names.
     """
 
-    _data_dir = os.path.dirname(
-        os.path.dirname(os.path.dirname(os.path.realpath(__file__)))) + '/data'
-    _last_name_file = 'efternavne_2014.txt'
-    _first_name_files = ['fornavne_2014_-_kvinder.txt',
-                         'fornavne_2014_-_mænd.txt']
-
-    def __init__(self, name, sensitivity=Sensitivity.HIGH,
+    def __init__(self, name, sensitivity, database,
             whitelist=None, blacklist=None):
         """Initialize the rule with optional whitelist and blacklist.
 
@@ -91,11 +86,18 @@ class NameRule(Rule):
         """
         super().__init__(name, sensitivity)
 
+        if database == DjangoModel.DATABASE_DST_2014:
+            last_name_file = 'efternavne_2014.txt'
+            first_name_files = ['fornavne_2014_-_kvinder.txt',
+                                'fornavne_2014_-_mænd.txt']
+        else:
+            raise Exception("Unrecognised database")
+
         # Load first and last names from data files
-        self.last_names = get_data(self._last_name_file)
+        self.last_names = get_data(last_name_file)
         self.first_names = set()
 
-        for f in self._first_name_files:
+        for f in first_name_files:
             self.first_names |= get_data(f)
 
         self.all_names = self.last_names | self.first_names
