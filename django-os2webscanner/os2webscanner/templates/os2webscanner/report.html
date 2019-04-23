@@ -1,11 +1,19 @@
 {% extends 'os2webscanner/base.html' %}
 {% block rendertype %}regular{% endblock %}
 {%  block title %}
-Rapport: {{scan.scanner.name}}
+{% if scan.scanner %}
+Rapport: {{scan.scanner}}
+{% else %}
+Rapport
+{% endif %}
 {% endblock %}
 
 {% block heading %}
-Rapport: {{scan.scanner.name}}
+{% if scan.scanner %}
+Rapport: {{scan.scanner}}
+{% else %}
+Rapport
+{% endif %}
 {% endblock %}
 
 {% block body %}
