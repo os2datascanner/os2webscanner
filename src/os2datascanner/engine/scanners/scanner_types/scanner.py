@@ -125,10 +125,7 @@ scan ID."""
                     RegexRule(
                         name=rule.name,
                         pattern_strings=rule.regexrule.patterns.all(),
-                        sensitivity=rule.sensitivity,
-                        cpr_enabled=rule.regexrule.cpr_enabled,
-                        ignore_irrelevant=rule.regexrule.ignore_irrelevant,
-                        do_modulus11=rule.regexrule.do_modulus11
+                        sensitivity=rule.sensitivity
                     )
                 )
             elif hasattr(rule, "cprrule"):
