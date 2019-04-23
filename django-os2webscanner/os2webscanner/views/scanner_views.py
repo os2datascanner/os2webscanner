@@ -87,6 +87,13 @@ class ScannerUpdate(ScannerBase, RestrictedUpdateView):
     """View for editing an existing scannerjob."""
     edit = True
 
+    editable_fields = (
+        'name',
+        'organisation',
+        'recipients',
+        'schedule',
+    )
+
     def get_form(self, form_class=None):
         """Get the form for the view.
 
@@ -95,6 +102,10 @@ class ScannerUpdate(ScannerBase, RestrictedUpdateView):
         superuser.
         """
         form = super().get_form(form_class)
+
+        for field_name, field in form.fields.items():
+            if field_name not in self.editable_fields:
+                form.fields[field_name].disabled = True
 
         scanner = self.get_scanner_object()
 
