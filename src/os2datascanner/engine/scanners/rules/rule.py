@@ -24,3 +24,13 @@ class Rule:
         Return a list of MatchItem's.
         """
         raise NotImplementedError
+
+    def is_all_match(self, matches):
+        """
+        Checks if each rule is matched with the provided list of matches
+        :param matches: List of matches
+        :return: {True | false}
+        """
+        # Most rules represent a single search, so the default implementation
+        # of this method returns true if there were any matches
+        return bool(matches)
