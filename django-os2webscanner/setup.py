@@ -17,12 +17,18 @@
 """Setup for package django-os2webscanner."""
 
 import os
+import pathlib
+
 from setuptools import setup
 
-README = open(os.path.join(os.path.dirname(__file__), 'README.rst')).read()
+srcdir = pathlib.Path(__file__).absolute().parent
+basedir = srcdir.parent
+readme_text = basedir.joinpath('README').read_text()
+
+requires = basedir.joinpath('doc', 'requirements.txt').read_text().split()
 
 # allow setup.py to be run from any path
-os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
+os.chdir(str(srcdir))
 
 setup(
     name='django-os2webscanner',
@@ -31,10 +37,12 @@ setup(
     include_package_data=True,
     license='MPL',  # example license
     description='OS2Webscanner for Danish municipalities',
-    long_description=README,
+    long_description=readme_text,
     url='http:///magenta.dk',
     author='Magenta ApS',
     author_email='os2webscanner@magenta.dk',
+    setup_requires=['setuptools'],
+    install_requires=requires,
     classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',
