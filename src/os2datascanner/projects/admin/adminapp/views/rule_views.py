@@ -10,8 +10,16 @@ from django.db import transaction
 class RuleList(RestrictedListView):
     """Displays list of scanners."""
 
-    model = RegexRule
+    model = Rule
     template_name = 'os2datascanner/rules.html'
+
+    def get_context_data(self):
+        context = super().get_context_data()
+
+        context["cprrule_list"] = self.get_queryset().filter(cprrule__isnull=False)
+        context["regexrule_list"] = self.get_queryset().filter(regexrule__isnull=False)
+
+        return context
 
 
 class RuleCreate(RestrictedCreateView):
@@ -233,6 +241,9 @@ class CPRRuleUpdate(RuleUpdate):
     model = CPRRule
     fields = RuleUpdate.fields + ['do_modulus11', 'ignore_irrelevant']
 
+    def get_success_url(self):
+        """The URL to redirect to after successful update."""
+        return '/rules/cpr/%s/saved/' % self.object.pk
 
 class RuleDelete(RestrictedDeleteView):
     """Delete a rule view."""
