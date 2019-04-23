@@ -15,8 +15,17 @@
 # source municipalities ( http://www.os2web.dk/ )
 """Base classes for rules."""
 
+from os2datascanner.projects.admin.adminapp.models.sensitivity_level import Sensitivity
+
 
 class Rule:
+    def __init__(self, name, sensitivity=Sensitivity.HIGH):
+        self.name = name
+        self.sensitivity = sensitivity
+
+    def _clamp_sensitivity(self, sensitivity_value):
+        return min(sensitivity_value, self.sensitivity)
+
     """Represents a rule which can be executed on text and returns matches."""
     def execute(self, text):
         """Execute the rule on the given text.

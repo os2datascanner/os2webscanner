@@ -76,19 +76,21 @@ class NameRule(Rule):
     Matches against full, capitalized, names with up to 2 middle names.
     """
 
-    name = 'name'
     _data_dir = os.path.dirname(
         os.path.dirname(os.path.dirname(os.path.realpath(__file__)))) + '/data'
     _last_name_file = 'efternavne_2014.txt'
     _first_name_files = ['fornavne_2014_-_kvinder.txt',
                          'fornavne_2014_-_mænd.txt']
 
-    def __init__(self, whitelist=None, blacklist=None):
+    def __init__(self, name, sensitivity=Sensitivity.HIGH,
+            whitelist=None, blacklist=None):
         """Initialize the rule with optional whitelist and blacklist.
 
         The whitelist should contains a multi-line string, with one name per
         line.
         """
+        super().__init__(name, sensitivity)
+
         # Load first and last names from data files
         self.last_names = get_data(self._last_name_file)
         self.first_names = set()
@@ -178,7 +180,8 @@ class NameRule(Rule):
             unmatched_text = unmatched_text.replace(matched_text, "", 1)
 
             matches.add(
-                MatchItem(matched_data=matched_text, sensitivity=sensitivity)
+                MatchItem(matched_data=matched_text,
+                          sensitivity=self._clamp_sensitivity(sensitivity))
             )
         # Full name match done. Now check if there's any standalone names in
         # the remaining, i.e. so far unmatched string.
@@ -191,9 +194,9 @@ class NameRule(Rule):
                 if matched.upper() in self.blacklist:
                     sensitivity = Sensitivity.HIGH
                 else:
-                    sensitivity = Sensitivity.HIGH
+                    sensitivity = Sensitivity.LOW
                 matches.add(
                     MatchItem(matched_data=matched,
-                              sensitivity=Sensitivity.LOW)
+                              sensitivity=self._clamp_sensitivity(sensitivity))
                 )
         return matches

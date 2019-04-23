@@ -24,18 +24,22 @@ import regex
 from .rule import Rule
 from ..items import MatchItem
 
+from os2datascanner.projects.admin.adminapp.models.sensitivity_level import (
+        Sensitivity)
+
 logger = structlog.get_logger()
 
 
 class RegexRule(Rule):
     """Represents a rule which matches using a regular expression."""
 
-    def __init__(self, name, pattern_strings, sensitivity, *args, **kwargs):
+    def __init__(self, name, sensitivity, pattern_strings, *args, **kwargs):
         """Initialize the rule.
         The sensitivity is used to assign a sensitivity value to matches.
         """
+        super().__init__(name, sensitivity)
+
         # Convert QuerySet to list
-        super().__init__(*args, **kwargs)
         self.regex_patterns = list(pattern_strings.all())
 
         self.name = name
@@ -96,7 +100,7 @@ class RegexRule(Rule):
                 # TODO: Get rid of magic number
                 matched_data = match.group(1)
             matches.add(MatchItem(matched_data=matched_data,
-                                  sensitivity=self.sensitivity))
+                                  sensitivity=self._clamp_sensitivity(Sensitivity.HIGH)))
         return matches
 
     def is_all_match(self, matches):

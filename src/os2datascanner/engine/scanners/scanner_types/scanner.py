@@ -21,6 +21,7 @@ import structlog
 from os2datascanner.projects.admin.adminapp.models.location_model import Location
 from os2datascanner.projects.admin.adminapp.models.scans.scan_model import Scan
 from os2datascanner.projects.admin.adminapp.models.version_model import Version
+from os2datascanner.projects.admin.adminapp.models.sensitivity_level import Sensitivity
 
 from ..rules.name import NameRule
 from ..rules.address import AddressRule
@@ -110,12 +111,14 @@ scan ID."""
         rules = []
         if self.do_name_scan:
             rules.append(
-                NameRule(whitelist=self.scan_object.whitelisted_names,
+                NameRule(name='name', sensitivity=Sensitivity.HIGH,
+                         whitelist=self.scan_object.whitelisted_names,
                          blacklist=self.scan_object.blacklisted_names)
             )
         if self.do_address_scan:
             rules.append(
-                AddressRule(whitelist=self.scan_object.whitelisted_addresses,
+                AddressRule(name='address', sensitivity=Sensitivity.HIGH,
+                            whitelist=self.scan_object.whitelisted_addresses,
                             blacklist=self.scan_object.blacklisted_addresses)
             )
         # Add Regex Rules
@@ -123,14 +126,13 @@ scan ID."""
             if hasattr(rule, "regexrule"):
                 rules.append(
                     RegexRule(
-                        name=rule.name,
-                        pattern_strings=rule.regexrule.patterns.all(),
-                        sensitivity=rule.sensitivity
+                        name=rule.name, sensitivity=rule.sensitivity,
+                        pattern_strings=rule.regexrule.patterns.all()
                     )
                 )
             elif hasattr(rule, "cprrule"):
                 rules.append(
-                    CPRRule(name=rule.name,
+                    CPRRule(name=rule.name, sensitivity=rule.sensitivity,
                             ignore_irrelevant=rule.cprrule.ignore_irrelevant,
                             do_modulus11=rule.cprrule.do_modulus11))
         return rules
