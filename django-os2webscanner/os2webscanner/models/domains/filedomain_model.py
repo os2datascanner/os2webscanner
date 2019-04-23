@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 # encoding: utf-8
 # The contents of this file are subject to the Mozilla Public License
 # Version 2.0 (the "License"); you may not use this file except in
@@ -48,18 +48,17 @@ class FileDomain(Domain):
         url = self.url.replace('*.', '')
         return url
 
-    def check_mountpoint(self):
+    @property
+    def is_mounted(self):
         """Checks if networkdrive is already mounted."""
 
         if not self.mountpath or not os.path.isdir(self.mountpath):
             self.set_mount_path()
 
-        response = call(['mountpoint', self.mountpath])
-        return response
+        return os.path.ismount(self.mountpath)
 
     def set_mount_path(self):
-        if not os.path.isdir(settings.NETWORKDRIVE_TMP_PREFIX):
-            os.makedirs(settings.NETWORKDRIVE_TMP_PREFIX)
+        os.makedirs(settings.NETWORKDRIVE_TMP_PREFIX, exist_ok=True)
 
         tempdir = tempfile.mkdtemp(dir=settings.NETWORKDRIVE_TMP_PREFIX)
         self.mountpath = tempdir
@@ -68,7 +67,7 @@ class FileDomain(Domain):
     def smb_mount(self):
         """Mounts networkdrive if not already mounted."""
 
-        if self.check_mountpoint() is 0:
+        if self.is_mounted:
             logger.info('{} is already a mount point.'.format(self.mountpath))
             return True
 
@@ -83,18 +82,18 @@ class FileDomain(Domain):
         if settings.PRODUCTION_MODE:
             # Mount as apache user (www-data). It will always have uid 33
             optarg += ',uid=33,gid=33'
-        if self.authentication.username != '':
+        if self.authentication.username:
             optarg += ',username=' + self.authentication.username
-        if len(self.authentication.ciphertext) > 0:
+        if self.authentication.ciphertext:
             password = self.authentication.get_password()
             optarg += ',password=' + password
-        if self.authentication.domain != '':
+        if self.authentication.domain:
             optarg += ',domain=' + self.authentication.domain
         command.append(optarg)
 
         response = call(command)
 
-        if response is not 0:
+        if response:
             logger.error('Mount failed: {0}'.format(response))
             return False
 
@@ -104,7 +103,7 @@ class FileDomain(Domain):
 
     def smb_umount(self):
         """Unmounts networkdrive if mounted."""
-        if self.check_mountpoint() is 0:
+        if self.is_mounted:
             call(['sudo', 'umount', '-l', self.mountpath])
             call(['sudo', 'umount', '-f', self.mountpath])
             logger.info('{} is unmounted.'.format(self.mountpath))

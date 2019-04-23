@@ -24,6 +24,7 @@ import json
 
 from django.core.validators import validate_comma_separated_integer_list
 from django.db import models
+from django.contrib.postgres.fields import JSONField
 
 from model_utils.managers import InheritanceManager
 from recurrence.fields import RecurrenceField
@@ -107,14 +108,17 @@ class Scanner(models.Model):
     address_replace_text = models.CharField(max_length=2048, null=True,
                                             blank=True)
 
-    is_running = models.BooleanField(default=False)
+    @property
+    def is_running(self) -> bool:
+        '''Are any scans currently running against this scanner?'''
+        # using a string for the status is kind of ugly, but necessary
+        # to avoid circular imports
+        return self.webscans.filter(status="STARTED").exists()
 
     @property
     def schedule_description(self):
         """A lambda for creating schedule description strings."""
-        rules = [r for r in self.schedule.rrules]  # Use r.to_text() to render
-        dates = [d for d in self.schedule.rdates]
-        if len(rules) > 0 or len(dates) > 0:
+        if any(self.schedule.occurrences()):
             return u"Ja"
         else:
             return u"Nej"
@@ -133,29 +137,11 @@ class Scanner(models.Model):
         " fordi der er en exchange export igang."
     )
 
-    # DON'T USE DIRECTLY !!!
-    # Use process_urls property instead.
-    encoded_process_urls = models.CharField(
-        max_length=262144,
-        null=True,
-        blank=True
-    )
+    process_urls = JSONField(null=True, blank=True)
+
     # Booleans for control of scanners run from web service.
     do_run_synchronously = models.BooleanField(default=False)
     is_visible = models.BooleanField(default=True)
-
-    def _get_process_urls(self):
-        s = self.encoded_process_urls
-        if s:
-            urls = json.loads(s)
-        else:
-            urls = []
-        return urls
-
-    def _set_process_urls(self, urls):
-        self.encoded_process_urls = json.dumps(urls)
-
-    process_urls = property(_get_process_urls, _set_process_urls)
 
     # First possible start time
     FIRST_START_TIME = datetime.time(18, 0)
@@ -174,7 +160,7 @@ class Scanner(models.Model):
 
     @property
     def has_valid_domains(self):
-        return len([d for d in self.domains.all() if d.validation_status]) > 0
+        return self.organization.os2webscanner_domain_organization.filter(validation_status=True).exists()
 
     @classmethod
     def modulo_for_starttime(cls, time):
@@ -238,7 +224,7 @@ class Scanner(models.Model):
                     end_time__isnull=False).order_by('pk')
         last_scan_started_at = \
             completed_scans.last().start_time.isoformat() \
-            if len(completed_scans) > 0 else None
+            if completed_scans else None
         message = {
             'type': type,
             'id': scan.pk,

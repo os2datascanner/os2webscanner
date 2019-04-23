@@ -57,13 +57,13 @@ class FileDomainUpdate(DomainUpdate):
         form.fields['password'] = forms.CharField(max_length=50, required=False)
         form.fields['domain'] = forms.CharField(max_length=2024, required=False)
         form.fields['alias'] = forms.CharField(max_length=64, required=False)
-        if len(authentication.username) > 0:
+        if authentication.username:
             form.fields['username'].initial = authentication.username
-        if len(authentication.ciphertext) > 0:
+        if authentication.ciphertext:
             password = decrypt(bytes(authentication.iv),
                                bytes(authentication.ciphertext))
             form.fields['password'].initial = password
-        if len(authentication.domain) > 0:
+        if authentication.domain:
             form.fields['domain'].initial = authentication.domain
         return form
 

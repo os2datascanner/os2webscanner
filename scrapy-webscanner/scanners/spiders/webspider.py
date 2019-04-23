@@ -119,7 +119,7 @@ class WebSpider(ScannerSpider):
             logging.info("Handle error response status code: {}".format(failure.value.response))
             logging.info("Url that failed: {}".format(
                 failure.value.response.request.url))
-        except:
+        except Exception:
             logging.error("Could not print handle error status code.")
 
         # If we should not do link check or failure is ignore request

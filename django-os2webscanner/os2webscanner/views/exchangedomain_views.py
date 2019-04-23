@@ -53,9 +53,9 @@ class ExchangeDomainUpdate(DomainUpdate):
         authentication = exchangedomain.authentication
         form.fields['username'] = forms.CharField(max_length=1024, required=False)
         form.fields['password'] = forms.CharField(max_length=50, required=False)
-        if len(authentication.username) > 0:
+        if authentication.username:
             form.fields['username'].initial = authentication.username
-        if len(authentication.ciphertext) > 0:
+        if authentication.ciphertext:
             password = decrypt(bytes(authentication.iv),
                                bytes(authentication.ciphertext))
             form.fields['password'].initial = password

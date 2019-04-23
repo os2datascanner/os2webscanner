@@ -234,7 +234,7 @@ class OrgRestrictedMixin(ModelFormMixin, LoginRequiredMixin):
 
     def get_form_fields(self):
         """Get the list of fields to use in the form for the view."""
-        if not self.fields or len(self.fields) == 0:
+        if not self.fields:
             return []
         fields = [f for f in self.fields]
         user = self.request.user

@@ -49,8 +49,8 @@ class StartWebScan(StartScan, multiprocessing.Process):
     def run_crawlers(self):
         # Don't sitemap scan when running over RPC or if no sitemap is set on
         if not self.scanner.process_urls:
-            if len(self.scanner.get_sitemap_urls()) is not 0 \
-                    or len(self.scanner.get_uploaded_sitemap_urls()) is not 0:
+            if self.scanner.get_sitemap_urls() \
+                    or self.scanner.get_uploaded_sitemap_urls():
                 yield self.crawler_process.crawl(self.make_sitemap_crawler(),
                                                  scanner=self.scanner,
                                                  runner=self,

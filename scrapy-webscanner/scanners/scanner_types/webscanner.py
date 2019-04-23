@@ -58,6 +58,6 @@ class WebScanner(Scanner):
         """
         urls = []
         for domain in self.valid_domains:
-            if domain.webdomain.sitemap != '':
+            if domain.webdomain.sitemap:
                 urls.append(as_file_uri(domain.webdomain.sitemap_full_path))
         return urls
