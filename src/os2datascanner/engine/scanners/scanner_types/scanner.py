@@ -64,14 +64,6 @@ dictionary."""
         self.scan_object.set_scan_status_failed(arg)
 
     @property
-    def do_name_scan(self):
-        return self.scan_object.do_name_scan
-
-    @property
-    def do_address_scan(self):
-        return self.scan_object.do_address_scan
-
-    @property
     def do_ocr(self):
         return self.scan_object.do_ocr
 

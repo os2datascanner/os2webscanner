@@ -63,11 +63,6 @@ class Scanner(models.Model):
     schedule = RecurrenceField(max_length=1024,
                                verbose_name='Planlagt afvikling')
 
-    do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
-
-    do_address_scan = models.BooleanField(default=False,
-                                          verbose_name='Adresse')
-
     do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder')
 
     do_last_modified_check = models.BooleanField(

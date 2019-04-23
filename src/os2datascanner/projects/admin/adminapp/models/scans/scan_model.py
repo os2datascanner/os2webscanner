@@ -87,9 +87,6 @@ class Scan(models.Model):
     whitelisted_cprs = models.TextField(max_length=4096, blank=True,
                                         default="",
                                         verbose_name='Godkendte CPR-numre')
-    do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
-    do_address_scan = models.BooleanField(default=False,
-                                          verbose_name='Adresse')
     do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder')
 
 
@@ -475,8 +472,6 @@ class Scan(models.Model):
         self.whitelisted_addresses = scanner.organization.address_whitelist
         self.blacklisted_addresses = scanner.organization.address_blacklist
         self.whitelisted_cprs = scanner.organization.cpr_whitelist
-        self.do_name_scan = scanner.do_name_scan
-        self.do_address_scan = scanner.do_address_scan
         self.do_ocr = scanner.do_ocr
         self.do_last_modified_check = scanner.do_last_modified_check
         self.columns = scanner.columns

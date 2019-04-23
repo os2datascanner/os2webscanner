@@ -15,9 +15,8 @@ class ExchangeScannerCreate(ScannerCreate):
     """Create a exchange scanner view."""
 
     model = ExchangeScanner
-    fields = ['name', 'schedule',
-              'do_name_scan', 'do_ocr', 'do_address_scan', 'do_last_modified_check',
-              'rules', 'recipients']
+    fields = ['name', 'schedule', 'do_ocr',
+              'do_last_modified_check', 'rules', 'recipients']
 
     def get_success_url(self):
         """The URL to redirect to after successful creation."""
@@ -37,8 +36,7 @@ class ExchangeScannerUpdate(ScannerUpdate):
     """Update a scanner view."""
 
     model = ExchangeScanner
-    fields = ['name', 'schedule',
-              'do_name_scan', 'do_ocr', 'do_address_scan', 'do_last_modified_check',
+    fields = ['name', 'schedule', 'do_ocr', 'do_last_modified_check',
               'rules', 'recipients', 'url', 'userlist']
 
     def get_success_url(self):
