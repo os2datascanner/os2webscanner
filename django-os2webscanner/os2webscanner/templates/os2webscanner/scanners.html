@@ -118,10 +118,12 @@ class="active"
                     </span>
 
                   </button>
+                  {% if not scanner.scans %}
                   <a href="/{{ view.type }}scanners/{{scanner.pk}}/delete/" class="btn btn-default btn-xs">
                       <span class="glyphicon glyphicon-remove"></span>
                       <span>Slet</span>
                   </a>
+                  {% endif %}
                   </span>
                 </td>
                   </tr>

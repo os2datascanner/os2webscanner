@@ -60,7 +60,7 @@ Rapport
             </tr>
             <tr>
                 <td>Sluttidspunkt:</td>
-                <td>{{ scan.end_time }}</td>
+                <td>{{ scan.end_time | default:"&mdash;" }}</td>
             </tr>
             <tr>
                 <td>Status:</td>
