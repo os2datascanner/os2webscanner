@@ -48,18 +48,17 @@ class FileDomain(Domain):
         url = self.url.replace('*.', '')
         return url
 
-    def check_mountpoint(self):
+    @property
+    def is_mounted(self):
         """Checks if networkdrive is already mounted."""
 
         if not self.mountpath or not os.path.isdir(self.mountpath):
             self.set_mount_path()
 
-        response = call(['mountpoint', self.mountpath])
-        return response
+        return os.path.ismount(self.mountpath)
 
     def set_mount_path(self):
-        if not os.path.isdir(settings.NETWORKDRIVE_TMP_PREFIX):
-            os.makedirs(settings.NETWORKDRIVE_TMP_PREFIX)
+        os.makedirs(settings.NETWORKDRIVE_TMP_PREFIX, exist_ok=True)
 
         tempdir = tempfile.mkdtemp(dir=settings.NETWORKDRIVE_TMP_PREFIX)
         self.mountpath = tempdir
@@ -68,7 +67,7 @@ class FileDomain(Domain):
     def smb_mount(self):
         """Mounts networkdrive if not already mounted."""
 
-        if not self.check_mountpoint():
+        if self.is_mounted:
             logger.info('{} is already a mount point.'.format(self.mountpath))
             return True
 
@@ -104,7 +103,7 @@ class FileDomain(Domain):
 
     def smb_umount(self):
         """Unmounts networkdrive if mounted."""
-        if not self.check_mountpoint():
+        if self.is_mounted:
             call(['sudo', 'umount', '-l', self.mountpath])
             call(['sudo', 'umount', '-f', self.mountpath])
             logger.info('{} is unmounted.'.format(self.mountpath))
