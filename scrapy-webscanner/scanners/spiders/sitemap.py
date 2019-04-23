@@ -1,18 +1,18 @@
 """Sitemap spider which gathers URLs contained in sitemap files."""
 
+import datetime
+import logging
+
 from scrapy.spiders import SitemapSpider
 from scrapy.spiders.sitemap import iterloc
 from scrapy.utils.sitemap import Sitemap, sitemap_urls_from_robots
 
 from scrapy.http import Request
 
-from .base_spider import BaseScannerSpider
-
 import dateutil.parser
-import datetime
-import pytz
+import dateutil.tz
 
-import logging
+from .base_spider import BaseScannerSpider
 
 
 class SitemapURLGathererSpider(BaseScannerSpider, SitemapSpider):
@@ -92,4 +92,4 @@ def parse_w3c_datetime(date_str):
     return dateutil.parser.parse(date_str,
                                  default=datetime.datetime.now().
                                  replace(hour=0, minute=0, second=0,
-                                         microsecond=0, tzinfo=pytz.UTC))
+                                         microsecond=0, tzinfo=dateutil.tz.UTC))

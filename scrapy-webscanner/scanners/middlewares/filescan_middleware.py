@@ -1,7 +1,7 @@
 import os
 import logging
 import datetime
-import pytz
+import dateutil.tz
 
 from urllib.parse import unquote
 
@@ -53,8 +53,8 @@ class FileScanLastModifiedCheckMiddleware(LastModifiedCheckMiddleware):
             file_path = unquote(file_path)
             # Retrieves file timestamp from mounted drive
             last_modified = datetime.datetime.fromtimestamp(
-                os.path.getmtime(
-                    file_path), tz=pytz.utc
+                os.path.getmtime(file_path),
+                tz=dateutil.tz.UTC,
             )
         except OSError as e:
             logging.error('Error occured while getting last modified for file %s' % file_path)

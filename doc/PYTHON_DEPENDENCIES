@@ -28,9 +28,8 @@ pycodestyle==2.4.0
 pycparser==2.18
 pycrypto==2.6.1
 pyOpenSSL==17.3.0
-python-dateutil==2.6.1
+python-dateutil==2.8.0
 python-magic==0.4.13
-pytz==2017.3
 queuelib==1.4.2
 regex==2017.09.23
 service-identity==17.0.0

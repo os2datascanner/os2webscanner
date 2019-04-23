@@ -1,6 +1,6 @@
 import logging
 import datetime
-import pytz
+import dateutil.tz
 import arrow
 
 from lxml import html
@@ -95,7 +95,8 @@ class WebScanLastModifiedCheckMiddleware(LastModifiedCheckMiddleware):
         last_modified_header = response.headers.get("Last-Modified", None)
         if last_modified_header is not None:
             last_modified_header_date = datetime.datetime.fromtimestamp(
-                mktime_tz(parsedate_tz(last_modified_header.decode('utf-8'))), tz=pytz.utc
+                mktime_tz(parsedate_tz(last_modified_header.decode('utf-8'))),
+                tz=dateutil.tz.UTC,
             )
         else:
             last_modified_header_date = None
