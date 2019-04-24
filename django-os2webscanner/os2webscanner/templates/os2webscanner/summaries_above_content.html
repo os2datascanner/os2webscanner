@@ -1,15 +1,25 @@
 <p class="lead">Se rapporter for specifikke scannerjob eller få en overbliksrapport for flere scannerjob.</p>
   <ul class="nav nav-tabs" role="tablist">
-    <li role="presentation"{% if active == 'all' %} class="active"{% endif %}><a href="/reports/" role="tab">{% trans "Alle rapporter" %}</a></li>
+    <li role="presentation"{% if active == 'all' %} class="active"{% endif %}>
+      <a href="/reports/" role="tab">{% trans "Alle rapporter" %}</a>
+    </li>
     {% if settings.ENABLE_WEBSCAN %}
-    <li role="presentation"{% if active == 'web' %} class="active"{% endif %}><a href="/reports/web/" role="tab">{% trans "Web rapporter" %}</a></li>
+    <li role="presentation"{% if active == 'web' %} class="active"{% endif %}>
+      <a href="/reports/web/" role="tab">{% trans "Webrapporter" %}</a>
+    </li>
     {% endif %}
     {% if settings.ENABLE_FILESCAN %}
-    <li role="presentation"{% if active == 'file' %} class="active"{% endif %}><a href="/reports/file/" role="tab">{% trans "Fil rapporter" %}</a></li>
+    <li role="presentation"{% if active == 'file' %} class="active"{% endif %}>
+      <a href="/reports/file/" role="tab">{% trans "Filrapporter" %}</a>
+    </li>
     {% endif %}
     {% if settings.ENABLE_EXCHANGESCAN %}
-    <li role="presentation"{% if active == 'exchange' %} class="active"{% endif %}><a href="/reports/exchange/" role="tab">{% trans "Exchange rapporter" %}</a></li>
+    <li role="presentation"{% if active == 'exchange' %} class="active"{% endif %}>
+      <a href="/reports/exchange/" role="tab">{% trans "Exchangerapporter" %}</a>
+    </li>
     {% endif %}
-    <li role="presentation"{% if active == 'summaries' %} class="active"{% endif %}><a href="/reports/summaries/" role="tab">{% trans "Overblik" %}</a></li>
+    <li role="presentation"{% if active == 'summaries' %} class="active"{% endif %}>
+      <a href="/reports/summaries/" role="tab">{% trans "Overblik" %}</a>
+    </li>
   </ul>
 

@@ -50,15 +50,15 @@ msgid "Alle rapporter"
 msgstr ""
 
 #: django-os2webscanner/os2webscanner/templates/os2webscanner/summaries_above_content.html:5
-msgid "Web rapporter"
+msgid "Webrapporter"
 msgstr ""
 
 #: django-os2webscanner/os2webscanner/templates/os2webscanner/summaries_above_content.html:8
-msgid "Fil rapporter"
+msgid "Filrapporter"
 msgstr ""
 
 #: django-os2webscanner/os2webscanner/templates/os2webscanner/summaries_above_content.html:11
-msgid "Exchange rapporter"
+msgid "Exchangerapporter"
 msgstr ""
 
 #: django-os2webscanner/os2webscanner/templates/os2webscanner/summaries_above_content.html:13
