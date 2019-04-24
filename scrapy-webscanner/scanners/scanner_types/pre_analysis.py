@@ -267,7 +267,7 @@ def _is_hidden(path):
             return True
         else:
             attr_bitmap = \
-                unpack("<I", xattr(path).get("user.cifs.dosattrib"))[0]
+                unpack("<I", xattr(str(path)).get("user.cifs.dosattrib"))[0]
             return bool(attr_bitmap & _HIDDEN)
     except IOError:
         return False
