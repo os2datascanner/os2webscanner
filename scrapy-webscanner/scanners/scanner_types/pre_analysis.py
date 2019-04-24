@@ -366,6 +366,10 @@ class PreDataScanner(object):
                 if statcache.is_symlink(item):
                     continue
                 if _is_hidden(item):
+                    if 'hidden_file_count' not in self.stats:
+                        self.stats['hidden_file_count'] = 1
+                    else:
+                        self.stats['hidden_file_count'] += 1
                     continue
                 new_nodes[item] = {'size': 0}
         self.nodes.update(new_nodes)
