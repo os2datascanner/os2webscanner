@@ -41,9 +41,11 @@ class Summary(models.Model):
     scanners = models.ManyToManyField(WebScanner, blank=True,
                                       verbose_name="Scannere")
     organization = models.ForeignKey(Organization, null=False,
-                                     verbose_name='Organisation')
+                                     verbose_name='Organisation',
+                                     on_delete=models.PROTECT)
     group = models.ForeignKey(Group, null=True, blank=True,
-                              verbose_name='Gruppe')
+                              verbose_name='Gruppe',
+                              on_delete=models.SET_NULL)
     do_email_recipients = models.BooleanField(default=False,
                                               verbose_name="Udsend mails")
 

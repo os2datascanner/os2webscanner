@@ -1,5 +1,7 @@
 {% load staticfiles %}
+{% load i18n %}
 <!DOCTYPE html>
+{% language 'da' %}
 <html lang="da" class="{% block rendertype %}{% endblock %}">
 <head>
   <meta charset="utf-8" />
@@ -135,3 +137,4 @@
   {% block jquery_script %}{% endblock %}
 </body>
 </html>
+{% endlanguage %}

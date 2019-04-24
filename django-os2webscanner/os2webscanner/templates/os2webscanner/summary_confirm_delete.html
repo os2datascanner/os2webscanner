@@ -1,12 +1,15 @@
 {% extends "os2webscanner/base.html" %}
 {% block rendertype %}regular{% endblock %}
 {% block heading %}
-Slet opsummeringsrapport?
+Slet {{ object }}?
 {% endblock %}
 
 {% block body %}
   <div class="container">
-    <p>Ønsker du virkelig at slette?</p>
+    <p>
+      Ønsker du virkelig at slette denne opsummeringsrapport?
+      Handlingen kan ikke fortrydes.
+    </p>
     <form action="" method="post">{% csrf_token %}
       {{ form.as_p }}
       <input class="btn btn-primary" type="submit" value="Ja" />

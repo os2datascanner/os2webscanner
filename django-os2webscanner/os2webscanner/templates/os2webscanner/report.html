@@ -1,14 +1,29 @@
-{% extends 'os2webscanner/base_report.html' %}
+{% extends 'os2webscanner/base.html' %}
 {% block rendertype %}regular{% endblock %}
 {%  block title %}
-Rapport &dash; {{scan.scanner.name}}
+{% if scan.scanner %}
+Rapport: {{scan.scanner}}
+{% else %}
+Rapport
+{% endif %}
+{% endblock %}
+
+{% block heading %}
+{% if scan.scanner %}
+Rapport: {{scan.scanner}}
+{% else %}
+Rapport
+{% endif %}
 {% endblock %}
 
 {% block body %}
+<div class="container">
 
-      <p class="lead">
-	<a href="/reports">&larr; Klik her for at vise listen over rapporter</a>
-      </p>
+  <p class="lead">
+	<a href="/reports" class="hidden-print">
+      &larr; Klik her for at vise listen over rapporter
+    </a>
+  </p>
 
     {% if scan.domains.all %}
         <div class="table-responsive">
@@ -45,7 +60,7 @@ Rapport &dash; {{scan.scanner.name}}
             </tr>
             <tr>
                 <td>Sluttidspunkt:</td>
-                <td>{{ scan.end_time }}</td>
+                <td>{{ scan.end_time | default:"&mdash;" }}</td>
             </tr>
             <tr>
                 <td>Status:</td>
@@ -149,7 +164,14 @@ Rapport &dash; {{scan.scanner.name}}
 
   {% if matches %}
   <h2>Resultater</h2>
-  <p>{% if no_of_matches > 100 %}Kun de f&oslash;rste 100 resultater vises.{% endif %} <a href="./csv/" class="download-csv">Klik her for at downloade hele rapporten</a></p>
+  <p>
+    {% if no_of_matches > 100 %}
+    Kun de f&oslash;rste 100 resultater vises.
+    {% endif %}
+    <a href="./csv/" class="download-csv hidden-print">
+      Klik her for at downloade hele rapporten
+    </a>
+  </p>
   <div class="table-responsive">
             <table class="table table-striped">
       <thead>
@@ -346,10 +368,7 @@ Rapport &dash; {{scan.scanner.name}}
         </pre>
     </div>
     {% endif %}
-{% endblock %}
-
-{% block heading %}
-Rapport &dash; {{scan.scanner.name}}
+</div>
 {% endblock %}
 
 {% block modal %}

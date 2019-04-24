@@ -53,7 +53,8 @@ class Scan(models.Model):
     # Begin setup copied from scanner
     scanner = models.ForeignKey(Scanner,
                                 null=True, verbose_name='webscanner',
-                                related_name='webscans')
+                                related_name='webscans',
+                                on_delete=models.SET_NULL)
 
     domains = models.ManyToManyField(Domain,
                                      verbose_name='Domæner')
@@ -93,7 +94,8 @@ class Scan(models.Model):
 
     regex_rules = models.ManyToManyField(RegexRule,
                                          blank=True,
-                                         verbose_name='Regex regler')
+                                         verbose_name='Regex-regler',
+                                         related_name='scans')
     recipients = models.ManyToManyField(UserProfile, blank=True)
 
     # Spreadsheet annotation and replacement parameters
@@ -229,16 +231,14 @@ class Scan(models.Model):
         """Return the number of *critical* matches, <= no_of_matches."""
         return self.matches.filter(sensitivity=Sensitivity.HIGH).count()
 
-    def __unicode__(self):
-        """Return the name of the scan's scanner."""
-        try:
-            return "SCAN: " + self.scanner.name
-        except Exception:
-            return "ORPHANED SCAN: " + str(self.id)
-
     def __str__(self):
-        """Return the name of the scan's scanner."""
-        return self.__unicode__()
+        """Return the name of the scan's scanner combined with a timestamp."""
+        ts = (
+            self.start_time
+            .astimezone(dateutil.tz.tzlocal())
+            .replace(microsecond=0, tzinfo=None)
+        )
+        return "{} — {}".format(self.scanner, ts)
 
     def save(self, *args, **kwargs):
         """Save changes to the scan.

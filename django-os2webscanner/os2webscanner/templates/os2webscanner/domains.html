@@ -35,6 +35,15 @@ Domæner
                   </small>
                 </strong>
               </td>
+              {% if view.type == 'file' %}
+              <td>
+                <strong>
+                  <small>
+                    Drev
+                  </small>
+                </strong>
+              </td>
+              {% endif %}
               {% if user.is_superuser %}
               <td>
                 <strong>
@@ -75,6 +84,13 @@ Domæner
                     {{domain.url}}
                 </span>
               </td>
+              {% if view.type == 'file' %}
+              <td class="domain-letter">
+                {% if domain.alias %}
+                {{ domain.alias }}:
+                {% endif %}
+              </td>
+              {% endif %}
               {% if user.is_superuser %}
               <td class="domain-organization">
                 <span>

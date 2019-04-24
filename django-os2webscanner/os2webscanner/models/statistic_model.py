@@ -8,11 +8,13 @@ class Statistic(models.Model):
     Model for statistics. Statistics contains different counts for a scan.
     """
     # Statistics
-    scan = models.ForeignKey(Scan,
-                             null=True,
-                             verbose_name='scanjob',
-                             related_name='scanjob'
-                             )
+    scan = models.ForeignKey(
+        Scan,
+        null=True,
+        verbose_name='scanjob',
+        related_name='scanjob',
+        on_delete=models.CASCADE,
+    )
 
     # Total number of files scraped.
     files_scraped_count = models.IntegerField(default=0)
@@ -37,8 +39,13 @@ class Statistic(models.Model):
 
 
 class TypeStatistics(models.Model):
-    statistic = models.ForeignKey(Statistic, null=False,
-            verbose_name='Statistics', related_name='types')
+    statistic = models.ForeignKey(
+        Statistic,
+        null=False,
+        verbose_name='Statistics',
+        related_name='types',
+        on_delete=models.CASCADE,
+    )
 
     type_name = models.CharField(max_length=256)
     count = models.IntegerField(default=0)

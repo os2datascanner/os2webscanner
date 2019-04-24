@@ -12,7 +12,12 @@ class UrlLastModified(models.Model):
                                          verbose_name='Last-modified')
     links = models.ManyToManyField("self", symmetrical=False,
                                    verbose_name='Links')
-    scanner = models.ForeignKey(Scanner, null=False, verbose_name='WebScanner')
+    scanner = models.ForeignKey(
+        Scanner,
+        null=False,
+        verbose_name='WebScanner',
+        on_delete=models.CASCADE,
+    )
 
     def __unicode__(self):
         """Return the URL and last modified date."""

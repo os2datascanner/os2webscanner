@@ -227,40 +227,43 @@ class CSVReportDetails(ReportDetails):
         all_matches = context['all_matches']
 
         # CSV utilities
-        def e(fields):
-            return ([f.encode('utf-8') for f in fields])
-
         # Print summary header
-        writer.writerow(e(['Starttidspunkt', 'Sluttidspunkt', 'Status',
-                           'Totalt antal matches', 'Total antal broken links']))
+        writer.writerow(['Starttidspunkt', 'Sluttidspunkt', 'Status',
+                         'Totalt antal matches', 'Total antal broken links'])
         # Print summary
         writer.writerow(
-            e(
-                [str(scan.start_time),
-                 str(scan.end_time), scan.get_status_display(),
-                 str(context['no_of_matches']),
-                 str(context['no_of_broken_links'])]
-            )
+            [
+                scan.start_time,
+                scan.end_time,
+                scan.get_status_display(),
+                context['no_of_matches'],
+                context['no_of_broken_links'],
+            ],
         )
+
         if all_matches:
             # Print match header
-            writer.writerow(e(['URL', 'Regel', 'Match', 'Følsomhed']))
+            writer.writerow(['URL', 'Regel', 'Match', 'Følsomhed'])
+
             for match in all_matches:
-                writer.writerow(
-                    e([match.url.url,
-                       match.get_matched_rule_display(),
-                       match.matched_data.replace('\n', '').replace('\r', ' '),
-                       match.get_sensitivity_display()])
-                )
+                writer.writerow([
+                    match.url.url,
+                    match.get_matched_rule_display(),
+                    match.matched_data.replace('\n', '').replace('\r', ' '),
+                    match.get_sensitivity_display()
+                ])
+
         broken_urls = context['broken_urls']
+
         if broken_urls:
             # Print broken link header
-            writer.writerow(e(['Referrers', 'URL', 'Status']))
+            writer.writerow(['Referrers', 'URL', 'Status'])
             for url in broken_urls:
                 for referrer in url.referrers.all():
-                    writer.writerow(
-                        e([referrer.url,
-                           url.url,
-                           url.status_message])
-                    )
+                    writer.writerow([
+                        referrer.url,
+                        url.url,
+                        url.status_message,
+                    ])
+
         return response
