@@ -196,10 +196,8 @@ folder."""
         while attempts < 4:
             return_code = 113
             self.unoconv = subprocess.Popen(unoconv_args)
-            try:
-                return_code = self.unoconv.wait()
-            finally:
-                self.unoconv = None
+            return_code = self.unoconv.wait()
+            self.unoconv = None
             # unoconv returns 113 if the connection failed; if that happens and
             # the instance is still running, then it's probably starting up, so
             # try a few more times over the course of a minute
