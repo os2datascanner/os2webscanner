@@ -8,14 +8,13 @@ Rapporter
 
 
 <div class="container">
-{% include 'os2webscanner/summaries_above_content.html' with active='reports' %}
+{% include 'os2webscanner/summaries_above_content.html' with active=active %}
   <div class="tab-content">
     <div role="tabpanel" class="tab-pane active" id="reports">
-    <p class="h2">Scannerjob</p>
       {% if is_paginated %}
       <ul class="reports-pager pager">
         {% if page_obj.has_previous %}
-        <li><a href="/reports?page={{ page_obj.previous_page_number }}">&larr; Forrige</a></li>
+        <li><a href="?page={{ page_obj.previous_page_number }}">&larr; Forrige</a></li>
         {% endif %}
         <li class="disabled">
           Side
@@ -24,7 +23,7 @@ Rapporter
           {{ page_obj.paginator.num_pages }}
         </li>
         {% if page_obj.has_next %}
-        <li><a href="/reports?page={{ page_obj.next_page_number }}">Næste &rarr;</a></li>
+        <li><a href="?page={{ page_obj.next_page_number }}">Næste &rarr;</a></li>
         {% endif %}
       </ul>
       {% endif %}

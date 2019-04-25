@@ -39,32 +39,44 @@ class ReportList(RestrictedListView):
     template_name = 'os2webscanner/reports.html'
     paginate_by = 15
 
+    active = 'all'
+
     def get_queryset(self):
         """Restrict to the organization of the logged-in user."""
         user = self.request.user
+        if self.queryset is not None:
+            objects = self.queryset
+        else:
+            objects = self.model.objects.all()
+
         if user.is_superuser:
-            reports = self.model.objects.all()
+            reports = objects
         else:
             try:
                 profile = user.profile
                 # TODO: Filter by group here if relevant.
                 if (
-                            profile.is_group_admin or not
+                        profile.is_group_admin or not
                         profile.organization.do_use_groups
                 ):
-                    reports = self.model.objects.filter(
+                    reports = objects.filter(
                         scanner__organization=profile.organization
                     )
                 else:
-                    reports = self.model.objects.filter(
+                    reports = objects.filter(
                         scanner__group__in=profile.groups.all()
                     )
             except UserProfile.DoesNotExist:
-                reports = self.model.objects.filter(
+                reports = objects.filter(
                     scanner__organization=None
                 )
         reports = reports.filter(is_visible=True)
         return reports.order_by('-start_time')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active'] = self.active
+        return context
 
 
 # Reports stuff
