@@ -65,6 +65,7 @@ ENABLE_EXCHANGESCAN = True
 
 # Add settings here to make them accessible from templates
 SETTINGS_EXPORT = [
+    'DEBUG',
     'ENABLE_FILESCAN',
     'ENABLE_EXCHANGESCAN',
     'ENABLE_WEBSCAN',
@@ -80,7 +81,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    'os2webscanner',
+    'os2webscanner.apps.OS2WebScanner',
     'recurrence',
     'django_xmlrpc',
 )

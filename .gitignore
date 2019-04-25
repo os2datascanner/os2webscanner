@@ -1,6 +1,7 @@
 password.py
+/.secret
 *.pyc
-python-env
+/python-env*
 *.komodoproject
 webscanner_site/static
 webscanner_site/uploads

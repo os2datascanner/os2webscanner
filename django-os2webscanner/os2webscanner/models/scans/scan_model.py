@@ -83,8 +83,10 @@ class Scan(models.Model):
     do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder')
 
 
-    do_last_modified_check = models.BooleanField(default=True,
-                                                 verbose_name='Tjek sidst ændret dato')
+    do_last_modified_check = models.BooleanField(
+        default=True,
+        verbose_name='Tjek dato for sidste ændring',
+    )
 
     columns = models.CharField(validators=[validate_comma_separated_integer_list],
                                max_length=128,
@@ -430,3 +432,5 @@ class Scan(models.Model):
     class Meta:
         abstract = False
         db_table = 'os2webscanner_scan'
+
+        verbose_name = 'Report'
