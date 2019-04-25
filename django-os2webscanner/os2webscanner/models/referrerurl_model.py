@@ -8,6 +8,9 @@ class ReferrerUrl(models.Model):
 
     """A representation of a referrer URL."""
 
+    class Meta:
+        verbose_name = 'Referer URL'
+
     url = models.CharField(max_length=2048, verbose_name='Url')
     scan = models.ForeignKey(
         WebScan,

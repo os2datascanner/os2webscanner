@@ -34,3 +34,9 @@ class Authentication(models.Model):
 
     def set_password(self, password):
         self.iv, self.ciphertext = encrypt(password)
+
+    def __str__(self):
+        if self.domain:
+            return '{}@{}'.format(self.username, self.domain)
+        else:
+            return self.username

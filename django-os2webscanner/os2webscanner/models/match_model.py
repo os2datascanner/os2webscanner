@@ -85,3 +85,5 @@ class Match(models.Model):
     class Meta:
         abstract = False
 
+        verbose_name = 'Match'
+        verbose_name_plural = 'Matches'

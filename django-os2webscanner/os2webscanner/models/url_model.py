@@ -64,3 +64,5 @@ class Url(models.Model):
 
     class Meta:
         abstract = False
+
+        verbose_name = 'URL'

@@ -81,7 +81,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    'os2webscanner',
+    'os2webscanner.apps.OS2WebScanner',
     'recurrence',
     'django_xmlrpc',
 )

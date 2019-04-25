@@ -25,6 +25,9 @@ class RegexPattern(models.Model):
     Represents a regular expression pattern to be added to a RegexRule.
     """
 
+    class Meta:
+        verbose_name = 'Pattern'
+
     regex = models.ForeignKey(RegexRule, null=True, on_delete=models.CASCADE,
                               related_name='patterns', verbose_name='Regex')
 
