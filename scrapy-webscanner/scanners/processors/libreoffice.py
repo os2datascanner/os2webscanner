@@ -50,6 +50,7 @@ class LibreOfficeProcessor(Processor):
         self.home_dir = None
         self.instance = None
         self.instance_name = None
+        self.unoconv = None
 
     def _make_args(self, accept=True):
         assert self.instance_name
@@ -73,22 +74,57 @@ class LibreOfficeProcessor(Processor):
 couldn't create a LibreOffice process"""
 
     def teardown_queue_processing(self):
-        if self.instance:
-            if self.instance.poll() is None:
-                # Tell the existing instance to stop listening on the pipe
-                # (this subprocess will send that instruction and then stop
-                # immediately)
-                subprocess.run(
-                    self._make_args(accept=False) + ['--terminate_after_init'])
-                # ... and *now* stop it
-                self.instance.terminate()
-                self.instance.wait()
-            self.instance = None
+        try:
+            if self.unoconv:
+                # If we were interrupted in the middle of trying to run
+                # unoconv, then kill it off: a stuck unoconv instance might
+                # remain attached to the pipe, corrupting messages sent by
+                # future LibreOffice processors
+                self.unoconv.terminate()
+                try:
+                    self.unoconv.wait(10)
+                except subprocess.TimeoutExpired:
+                    self.unoconv.kill()
+                    self.unoconv.wait()
+                finally:
+                    self.unoconv = None
+            if self.instance and self.instance.poll() is None:
+                # LibreOffice is still running; try to shut it down cleanly,
+                # but do so messily if necessary
 
-        # Also remove the Unix domain socket used to control access to the
-        # LibreOffice home folder. (Yes, this depends on a whole host of tiny
-        # implementation details, but the alternative is to rewrite the
-        # whole processor to use PyUNO...)
+                # Try to convince the existing instance to stop listening on
+                # the pipe (this subprocess will send that instruction and then
+                # stop immediately)...
+                terminator = subprocess.Popen(self._make_args(accept=False) +
+                        ['--terminate_after_init'])
+                try:
+                    terminator.wait(10)
+                except subprocess.TimeoutExpired:
+                    # (... unless it, too, got stuck, in which case we kill it
+                    # and keep going...)
+                    terminator.kill()
+                    terminator.wait()
+                finally:
+                    # ... and now kill the underlying LibreOffice process off
+                    self.instance.terminate()
+                    try:
+                        self.instance.wait(10)
+                    except subprocess.TimeoutExpired:
+                        self.instance.kill()
+                        self.instance.wait()
+                    finally:
+                        self.instance = None
+        finally:
+            self._unlink_home_socket()
+            super().teardown_queue_processing()
+
+    def _unlink_home_socket(self):
+        """\
+Remove the Unix domain socket used to control access to the LibreOffice home
+folder."""
+        # (Yes, this depends on a whole host of tiny implementation details,
+        # but the alternative is to rewrite the whole processor to use
+        # PyUNO...)
         dummy_home_uri = \
             (pathlib.Path(home_root_dir) / self.instance_name).as_uri()
         # LibreOffice represents (most of...) its strings as UTF-16 strings in
@@ -107,8 +143,6 @@ couldn't create a LibreOffice process"""
         if lock_path.is_socket():
             # This instance is not running; remove the socket
             lock_path.unlink()
-
-        super().teardown_queue_processing()
 
     def handle_spider_item(self, data, url_object):
         """Add the item to the queue."""
@@ -160,7 +194,10 @@ couldn't create a LibreOffice process"""
 
         attempts = 0
         while attempts < 4:
-            return_code = subprocess.call(unoconv_args)
+            return_code = 113
+            self.unoconv = subprocess.Popen(unoconv_args)
+            return_code = self.unoconv.wait()
+            self.unoconv = None
             # unoconv returns 113 if the connection failed; if that happens and
             # the instance is still running, then it's probably starting up, so
             # try a few more times over the course of a minute
