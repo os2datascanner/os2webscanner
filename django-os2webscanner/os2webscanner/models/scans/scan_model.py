@@ -19,6 +19,9 @@
 import datetime
 import os
 import shutil
+
+import dateutil.tz
+
 from django.conf import settings
 from django.core.validators import validate_comma_separated_integer_list
 from django.db import models
@@ -235,12 +238,15 @@ class Scan(models.Model):
 
     def __str__(self):
         """Return the name of the scan's scanner combined with a timestamp."""
-        ts = (
-            self.start_time
-            .astimezone(dateutil.tz.tzlocal())
-            .replace(microsecond=0, tzinfo=None)
-        )
-        return "{} — {}".format(self.scanner, ts)
+        if self.start_time:
+            ts = (
+                self.start_time
+                .astimezone(dateutil.tz.tzlocal())
+                .replace(microsecond=0, tzinfo=None)
+            )
+            return "{} — {}".format(self.scanner, ts)
+        else:
+            return str(self.scanner)
 
     def save(self, *args, **kwargs):
         """Save changes to the scan.
