@@ -30,6 +30,8 @@ import time
 import signal
 import settings as scanner_settings
 
+import logging
+
 import django
 from datetime import timedelta
 from django.utils import timezone
@@ -68,7 +70,7 @@ process_list = []
 def stop_process(p):
     """Stop the process."""
     if 'process_handle' not in p:
-        print("Process %s already stopped" % p['name'])
+        logging.log(logging.DEBUG, "Process %s already stopped" % p['name'])
         return
 
     phandle = p['process_handle']
@@ -76,7 +78,7 @@ def stop_process(p):
     pid = phandle.pid
     # If running, stop it
     if phandle.poll() is None:
-        print("Terminating process %s" % p['name'])
+        logging.log(logging.DEBUG, "Terminating process %s" % p['name'])
         phandle.terminate()
         phandle.wait()
     # Remove pid from process map
@@ -97,7 +99,7 @@ def stop_process(p):
                     item.url.url
                 )
             )
-        except:
+        except Exception:
             item.url.scan.log_occurrence(
                 "QUEUE STOPPING: url <{0}>".format(
                     item.url.url,
@@ -125,7 +127,7 @@ def start_process(p):
             "Program %s is already running" % p['name']
         )
 
-    print(("Starting process %s, (%s)" % (
+    logging.log(logging.DEBUG, ("Starting process %s, (%s)" % (
         p['name'], " ".join(p['program_args'])
     )))
 
@@ -141,11 +143,11 @@ def start_process(p):
     pid = process_handle.pid
 
     if process_handle.poll() is None:
-        print(("Process %s started successfully, pid = %s" % (
+        logging.log(logging.DEBUG, ("Process %s started successfully, pid = %s" % (
             p['name'], pid
         )))
     else:
-        print("Failed to start process %s, exiting" % p['name'])
+        logging.log(logging.ERROR, "Failed to start process %s, exiting" % p['name'])
         exit_handler()
 
     p['log_fh'] = log_fh
@@ -200,7 +202,7 @@ def main():
         db.reset_queries()
         for pdata in process_list:
             if pdata['process_handle'].poll() is not None:
-                print(("Process %s has terminated, restarting it" % (
+                logging.log(logging.WARNING, ("Process %s has terminated, restarting it" % (
                     pdata['name']
                 )))
                 restart_process(pdata)
@@ -215,7 +217,7 @@ def main():
         for p in stuck_processes:
             pid = p.process_id
             if pid in process_map:
-                print("Process with pid %s is stuck, restarting" % pid)
+                logging.log(logging.WARNING, "Process with pid %s is stuck, restarting" % pid)
                 stuck_process = process_map[pid]
                 restart_process(stuck_process)
             else:
@@ -227,7 +229,7 @@ def main():
                             p.url.url
                         )
                     )
-                except:
+                except Exception:
                     p.url.scan.log_occurrence(
                         "PROCESS STUCK: url <{0}>".format(
                             p.url.url,
@@ -241,24 +243,27 @@ def main():
                 p.delete_tmp_dir()
 
         try:
+            logging.log(logging.DEBUG, "Checking running scans...")
             with transaction.atomic():
                 running_scans = Scan.objects.filter(
                     status=Scan.STARTED
                 ).select_for_update(nowait=True)
                 for scan in running_scans:
-                    print('Scan has pid {}'.format(scan.pid))
                     if not scan.pid \
                             and not hasattr(scan, 'exchangescan'):
                         continue
                     try:
                         # Check if process is still running
                         os.kill(scan.pid, 0)
-                    except OSError:
+                        logging.log(logging.DEBUG, 'Scan {} (with PID {}): OK'.format(scan.pk, scan.pid))
+                    except OSError as ex:
+                        logging.log(logging.DEBUG, 'Scan {} (with PID {}): FAILED ({})'.format(scan.pk, scan.pid, str(ex)))
                         scan.set_scan_status_failed(
                             "SCAN FAILED: Process died with pid {}".format(scan.pid))
+                logging.log(logging.DEBUG, "Checked {} scans.".format(len(running_scans)))
         except (DatabaseError, IntegrityError) as ex:
-            print('Error occured while trying to kill process %s' % scan.pid)
-            print('Error message %s' % ex)
+            logging.log(logging.ERROR, 'Error occured while trying to kill process {}'.format(scan.pid))
+            logging.log(logging.ERROR, 'Error message {}'.format(str(ex)))
             pass
 
         # Cleanup finished scans from the last minute
@@ -268,10 +273,21 @@ def main():
 
         time.sleep(10)
 
+if __name__ == '__main__':
+    assert sys.argv[1]
+    logfile = sys.argv[1]
 
-try:
-    main()
-except KeyboardInterrupt:
-    pass
-except django.db.utils.InternalError as e:
-    print('django internal errror %s' % e)
+    logging.basicConfig(
+            level=logging.DEBUG,
+            format="""\
+%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s""",
+            handlers=[
+                logging.FileHandler(logfile),
+                logging.StreamHandler(sys.stderr)
+            ])
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass
+    except django.db.utils.InternalError as e:
+        logging.log(logging.ERROR, 'django internal errror %s' % e)

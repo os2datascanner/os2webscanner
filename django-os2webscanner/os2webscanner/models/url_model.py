@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 # encoding: utf-8
 # The contents of this file are subject to the Mozilla Public License
 # Version 2.0 (the "License"); you may not use this file except in
@@ -29,7 +29,8 @@ class Url(models.Model):
 
     url = models.CharField(max_length=2048, verbose_name='Url')
     scan = models.ForeignKey(Scan, null=False, verbose_name='Scan',
-                             related_name='urls')
+                             related_name='urls',
+                             on_delete=models.CASCADE)
     mime_type = models.CharField(max_length=256, verbose_name='Mime-type', null=True)
 
     status_code = models.IntegerField(blank=True, null=True,
@@ -63,3 +64,5 @@ class Url(models.Model):
 
     class Meta:
         abstract = False
+
+        verbose_name = 'URL'

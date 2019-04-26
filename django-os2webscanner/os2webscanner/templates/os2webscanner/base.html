@@ -1,21 +1,21 @@
 {% load staticfiles %}
+{% load i18n %}
 <!DOCTYPE html>
+{% language 'da' %}
 <html lang="da" class="{% block rendertype %}{% endblock %}">
 <head>
   <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="" />
   <meta name="author" content="" />
   <title>{% block title %}{% endblock %} | OS2datascanner</title>
   <!-- Bootstrap core CSS -->
+  {% if not settings.DEBUG %}
   <link href="{% static "css/bootstrap.min.css" %}" rel="stylesheet" />
+  {% else %}
+  <link href="{% static "css/bootstrap.css" %}" rel="stylesheet" />
+  {% endif %}
   <link href="{% static "css/webscanner.css" %}" rel="stylesheet" />
-  <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
-  <!--[if lt IE 9]>
-  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-  <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-  <![endif]-->
   {% block extra_head_html %}{% endblock %}
 </head>
 <body>
@@ -128,10 +128,15 @@
   <!-- Bootstrap core JavaScript
   ================================================== -->
   <!-- Placed at the end of the document so the pages load faster -->
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+  {% if not settings.DEBUG %}
+  <script src="{% static "js/jquery-1.12.4.min.js" %} "></script>
   <script src="{% static "js/bootstrap.min.js" %}"></script>
-  <script src="{% static "js/bootstrap.file-input.js" %}"></script>
+  {% else %}
+  <script src="{% static "js/jquery-1.12.4.js" %} "></script>
+  <script src="{% static "js/bootstrap.js" %}"></script>
+  {% endif %}
   <script src="{% static "js/main.js" %}"></script>
   {% block jquery_script %}{% endblock %}
 </body>
 </html>
+{% endlanguage %}

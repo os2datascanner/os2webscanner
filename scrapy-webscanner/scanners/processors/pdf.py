@@ -59,7 +59,7 @@ class PDFProcessor(Processor):
             p = Popen(command, stdin=PIPE, stdout=DEVNULL, stderr=PIPE)
             output, err = p.communicate(b"input data that is passed to subprocess' stdin")
 
-            if 'Error' in err.decode('utf-8') and err.decode('utf-8') != '':
+            if err and 'Error' in err.decode('utf-8'):
                 print('pdftohtml convertion error: %s' % err)
                 return False
         except TimeoutExpired as te:

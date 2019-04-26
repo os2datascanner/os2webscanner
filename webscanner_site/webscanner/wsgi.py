@@ -25,7 +25,7 @@ sys.path[0:0] = [site_dir, lib_dir, webscanner_dir]
 
 try:
     import os2webscanner
-except:
+except Exception:
     raise RuntimeError("Path: " + str(sys.path))
 
 from django.core.wsgi import get_wsgi_application

@@ -43,3 +43,4 @@ xmltodict==0.11.0
 idna<2.7
 numpy==1.16.1
 matplotlib==3.0.2
+xattr==0.9.6

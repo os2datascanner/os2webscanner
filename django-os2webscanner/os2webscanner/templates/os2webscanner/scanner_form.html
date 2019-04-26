@@ -53,7 +53,7 @@ iframe-modal
       //  * Rules
       //  * Settings
       // But the user shall still be able to view them and edit interval and Recepients
-      {% if view.edit %}
+      {% if form.regex_rules.field.disabled %}
         $("#selected_rules .remove-rule").addClass('disabled')
         $("#selected_rules span").addClass('disabled')
         $("#select_scan_rules_container").css('opacity', '.35')
@@ -269,7 +269,7 @@ iframe-modal
           <div class="checkbox-group">
             <input type="checkbox" id="id_{{ form.do_ocr.name }}"
                    name="{{ form.do_ocr.name }}" value="{{ form.do_ocr.name }}"
-            {% if view.edit %}
+            {% if form.do_ocr.field.disabled %}
                 disabled
             {% endif %}
             {% if form.do_ocr.value %}
@@ -286,7 +286,7 @@ iframe-modal
             <input type="checkbox" id="id_{{ form.do_last_modified_check.name }}"
                    name="{{ form.do_last_modified_check.name }}"
                    value="{{ form.do_last_modified_check.name }}"
-            {% if view.edit %}
+            {% if form.do_last_modified_check.field.disabled %}
                 disabled
             {% endif %}
             {% if form.do_last_modified_check.value %}
@@ -302,7 +302,7 @@ iframe-modal
             <input type="checkbox" id="id_{{ form.do_last_modified_check_head_request.name }}"
                    name="{{ form.do_last_modified_check_head_request.name }}"
                    value="{{ form.do_last_modified_check_head_request.name }}"
-            {% if view.edit %}
+            {% if form.do_last_modified_check_head_request.field.disabled %}
                 disabled
             {% endif %}
             {% if form.do_last_modified_check_head_request.value %}
@@ -321,7 +321,7 @@ iframe-modal
                 <input type="checkbox" id="id_{{ form.do_link_check.name }}"
                        name="{{ form.do_link_check.name }}"
                        value="{{ form.do_link_check.name }}"
-                {% if view.edit %}
+                {% if form.do_link_check.field.disabled %}
                     disabled
                 {% endif %}
                 {% if form.do_link_check.value %}
@@ -336,7 +336,7 @@ iframe-modal
                 <input type="checkbox" id="id_{{ form.do_external_link_check.name }}"
                        name="{{ form.do_external_link_check.name }}"
                        value="{{ form.do_external_link_check.name }}"
-                {% if view.edit %}
+                {% if form.do_external_link_check.field.disabled %}
                     disabled
                 {% endif %}
                 {% if form.do_external_link_check.value %}
@@ -353,7 +353,7 @@ iframe-modal
                 <input type="checkbox" id="id_{{ form.do_collect_cookies.name }}"
                        name="{{ form.do_collect_cookies.name }}"
                        value="{{ form.do_collect_cookies.name }}"
-                {% if view.edit %}
+                {% if form.do_collect_cookies.field.disabled %}
                     disabled
                 {% endif %}
                 {% if form.do_collect_cookies.value %}
@@ -374,7 +374,7 @@ iframe-modal
             <div id="rules_list" class="dropup">
               <button class="btn btn-default dropdown-toggle" type="button"
                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"
-                      {% if view.edit %} disabled {% endif %}>
+                      {% if form.regex_rules.field.disabled %} disabled {% endif %}>
                 Tilføj regler
                 <span class="caret"></span>
               </button>
@@ -458,7 +458,7 @@ iframe-modal
         function(e) {
             SelectFilter.init("id_domains",
               "domæner", 0, "{% static 'admin/' %}");
-            {% if view.edit %}
+            {% if form.domains.field.disabled %}
                 /*$("[id^=id_domains]").attr('disabled', true)
                 $("[id^=id_domains]").unbind()*/
                 $("#id_domains_container").css('opacity', '.35')

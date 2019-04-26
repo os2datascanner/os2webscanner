@@ -9,7 +9,13 @@ from .url_model import Url
 class ConversionQueueItem(models.Model):
 
     """Represents an item in the conversion queue."""
-    url = models.ForeignKey(Url, null=False, verbose_name='Url')
+    url = models.ForeignKey(
+        Url,
+        null=False,
+        verbose_name='Url',
+        on_delete=models.CASCADE,
+    )
+
     file = models.CharField(max_length=4096, verbose_name='Fil')
     type = models.CharField(max_length=256, verbose_name='Type')
     page_no = models.IntegerField(null=True, verbose_name='Side')
@@ -22,7 +28,7 @@ class ConversionQueueItem(models.Model):
     status_choices = (
         (NEW, "Ny"),
         (PROCESSING, "I gang"),
-        (FAILED, "Fejlet"),
+        (FAILED, "Mislykket"),
     )
 
     status = models.CharField(max_length=10, choices=status_choices,

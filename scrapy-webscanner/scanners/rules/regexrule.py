@@ -82,7 +82,7 @@ class RegexRule(Rule):
             compound_rule = '('
             for _ in self.regex_patterns:
                 compound_rule += rule_set.pop().pattern_string
-                if len(rule_set) <= 0:
+                if not rule_set:
                     compound_rule += ')'
                 else:
                     compound_rule += '|'

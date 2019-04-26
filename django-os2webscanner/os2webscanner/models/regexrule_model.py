@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 # encoding: utf-8
 # The contents of this file are subject to the Mozilla Public License
 # Version 2.0 (the "License"); you may not use this file except in
@@ -29,9 +29,11 @@ class RegexRule(models.Model):
     name = models.CharField(max_length=256, unique=True, null=False,
                             verbose_name='Navn')
     organization = models.ForeignKey(Organization, null=False,
-                                     verbose_name='Organisation')
+                                     verbose_name='Organisation',
+                                     on_delete=models.PROTECT)
     group = models.ForeignKey(Group, null=True, blank=True,
-                              verbose_name='Gruppe')
+                              verbose_name='Gruppe',
+                              on_delete=models.SET_NULL)
 
     description = models.TextField(verbose_name='Beskrivelse')
     sensitivity = models.IntegerField(choices=Sensitivity.choices,

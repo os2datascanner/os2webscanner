@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 # encoding: utf-8
 # The contents of this file are subject to the Mozilla Public License
 # Version 2.0 (the "License"); you may not use this file except in
@@ -26,9 +26,19 @@ from .url_model import Url
 class Match(models.Model):
 
     """The data associated with a single match in a single URL."""
-    url = models.ForeignKey(Url, null=False, verbose_name='Url')
-    scan = models.ForeignKey(Scan, null=False, verbose_name='Scan',
-                             related_name='matches')
+    url = models.ForeignKey(
+        Url,
+        null=False,
+        verbose_name='Url',
+        on_delete=models.CASCADE,
+    )
+    scan = models.ForeignKey(
+        Scan,
+        null=False,
+        verbose_name='Scan',
+        related_name='matches',
+        on_delete=models.CASCADE,
+    )
     matched_data = models.TextField(verbose_name='Data match')
     matched_rule = models.CharField(max_length=256, verbose_name='Regel match')
     sensitivity = models.IntegerField(choices=Sensitivity.choices,
@@ -75,3 +85,5 @@ class Match(models.Model):
     class Meta:
         abstract = False
 
+        verbose_name = 'Match'
+        verbose_name_plural = 'Matches'

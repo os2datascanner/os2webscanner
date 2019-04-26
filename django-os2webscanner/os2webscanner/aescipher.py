@@ -82,9 +82,9 @@ def key_file_handling(data, command, filename, create):
         if create and not os.path.isfile(filename):
             os.mknod(filename)
         file = open(filename, command)
-        if command is 'rb':
+        if command == 'rb':
             data = file.read()
-        elif command is 'ab':
+        elif command == 'ab':
             file.write(data)
     except (OSError, IOError) as ex:
         logger.error('An error occured while trying to {0} {1} file. {2}'.format(command, filename, ex))

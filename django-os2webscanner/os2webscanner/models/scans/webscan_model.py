@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 # encoding: utf-8
 # The contents of this file are subject to the Mozilla Public License
 # Version 2.0 (the "License"); you may not use this file except in
@@ -85,7 +85,7 @@ class WebScan(Scan):
         cookie_counts = {}
         lines = raw_log.split('\n')
         for l in lines:
-            if len(l) == 0:
+            if not l:
                 continue
             domain = l.split('|')[0]
             cookie = l.split('|')[1]

@@ -153,7 +153,7 @@ class Processor(object):
 
         file_name = os.path.basename(url_object.url)
 
-        if file_name == '':
+        if not file_name:
             file_name = url_object.pk + ".data"
         tmp_file_path = os.path.join(tmp_dir, file_name)
 
@@ -262,7 +262,7 @@ class Processor(object):
                         item.url.scan.log_occurrence(
                                 lm.format(item.file, item.type, item.url.url)
                                 )
-                    except:
+                    except Exception:
                         item.url.scan.log_occurrence(
                                 lm2.format(item.type, item.url.url)
                                 )
@@ -281,7 +281,7 @@ class Processor(object):
                             item.url.url,
                             "success" if result else "fail"
                             ))
-                except:
+                except Exception:
                     datetime_print("success" if result else "fail")
 
                 sys.stdout.flush()
@@ -429,7 +429,7 @@ class Processor(object):
                   "height must be >= %d))" % (ignored_ocr_count,
                                               MIN_OCR_DIMENSION_BOTH,
                                               MIN_OCR_DIMENSION_EITHER))
-        if found_items == 0:
+        if not found_items:
             datetime_print(
                     "warning: conversion seems to have succeeded for " +
                     "{0}, but no converted items were found".format(item.url.url))

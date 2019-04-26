@@ -32,10 +32,6 @@ class ExchangeDomainCreate(DomainCreate):
         form.fields['password'] = forms.CharField(max_length=50, required=False)
         return form
 
-    def form_valid(self, form):
-        """Makes sure password gets encrypted before stored in db."""
-        return super().form_valid(form)
-
     def get_success_url(self):
         """The URL to redirect to after successful creation."""
         return '/exchangedomains/%s/created/' % self.object.pk
@@ -57,17 +53,13 @@ class ExchangeDomainUpdate(DomainUpdate):
         authentication = exchangedomain.authentication
         form.fields['username'] = forms.CharField(max_length=1024, required=False)
         form.fields['password'] = forms.CharField(max_length=50, required=False)
-        if len(authentication.username) > 0:
+        if authentication.username:
             form.fields['username'].initial = authentication.username
-        if len(authentication.ciphertext) > 0:
+        if authentication.ciphertext:
             password = decrypt(bytes(authentication.iv),
                                bytes(authentication.ciphertext))
             form.fields['password'].initial = password
         return form
-
-    def form_valid(self, form):
-        """Makes sure password gets encrypted before stored in db."""
-        return super().form_valid(form)
 
     def get_success_url(self):
         """The URL to redirect to after successful updating.

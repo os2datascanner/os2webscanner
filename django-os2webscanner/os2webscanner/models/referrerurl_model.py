@@ -8,8 +8,16 @@ class ReferrerUrl(models.Model):
 
     """A representation of a referrer URL."""
 
+    class Meta:
+        verbose_name = 'Referer URL'
+
     url = models.CharField(max_length=2048, verbose_name='Url')
-    scan = models.ForeignKey(WebScan, null=False, verbose_name='Scan')
+    scan = models.ForeignKey(
+        WebScan,
+        null=False,
+        verbose_name='Scan',
+        on_delete=models.CASCADE,
+    )
 
     def __unicode__(self):
         """Return the URL."""
