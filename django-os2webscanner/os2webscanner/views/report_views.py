@@ -39,32 +39,44 @@ class ReportList(RestrictedListView):
     template_name = 'os2webscanner/reports.html'
     paginate_by = 15
 
+    active = 'all'
+
     def get_queryset(self):
         """Restrict to the organization of the logged-in user."""
         user = self.request.user
+        if self.queryset is not None:
+            objects = self.queryset
+        else:
+            objects = self.model.objects.all()
+
         if user.is_superuser:
-            reports = self.model.objects.all()
+            reports = objects
         else:
             try:
                 profile = user.profile
                 # TODO: Filter by group here if relevant.
                 if (
-                            profile.is_group_admin or not
+                        profile.is_group_admin or not
                         profile.organization.do_use_groups
                 ):
-                    reports = self.model.objects.filter(
+                    reports = objects.filter(
                         scanner__organization=profile.organization
                     )
                 else:
-                    reports = self.model.objects.filter(
+                    reports = objects.filter(
                         scanner__group__in=profile.groups.all()
                     )
             except UserProfile.DoesNotExist:
-                reports = self.model.objects.filter(
+                reports = objects.filter(
                     scanner__organization=None
                 )
         reports = reports.filter(is_visible=True)
         return reports.order_by('-start_time')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active'] = self.active
+        return context
 
 
 # Reports stuff
@@ -124,6 +136,15 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
             context['files_scraped_count'] = stats.files_scraped_count
             context['files_is_dir_count'] = stats.files_is_dir_count
             context['files_skipped_count'] = stats.files_skipped_count
+
+            context["supported_size"] = stats.supported_size
+            context["supported_count"] = stats.supported_count
+            context["relevant_size"] = stats.relevant_size
+            context["relevant_count"] = stats.relevant_count
+            context["relevant_unsupported_size"] = \
+                stats.relevant_unsupported_size
+            context["relevant_unsupported_count"] = \
+                stats.relevant_unsupported_count
         except ObjectDoesNotExist:
             pass
 
@@ -133,6 +154,10 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
             # them, and it keeps this complexity out of the browser and
             # template: the database genuinely shouldn't have URLs here, so
             # let's pretend that it doesn't...)
+            #
+            # TODO: as is, this code is rather hard to understand; we
+            # should probably refactor it to use urllib and/or pathlib
+            # instead.
             for k in ['matches', 'all_matches']:
                 for m in context[k]:
                     path = unquote(m.url.url)
@@ -214,40 +239,43 @@ class CSVReportDetails(ReportDetails):
         all_matches = context['all_matches']
 
         # CSV utilities
-        def e(fields):
-            return ([f.encode('utf-8') for f in fields])
-
         # Print summary header
-        writer.writerow(e(['Starttidspunkt', 'Sluttidspunkt', 'Status',
-                           'Totalt antal matches', 'Total antal broken links']))
+        writer.writerow(['Starttidspunkt', 'Sluttidspunkt', 'Status',
+                         'Totalt antal matches', 'Total antal broken links'])
         # Print summary
         writer.writerow(
-            e(
-                [str(scan.start_time),
-                 str(scan.end_time), scan.get_status_display(),
-                 str(context['no_of_matches']),
-                 str(context['no_of_broken_links'])]
-            )
+            [
+                scan.start_time,
+                scan.end_time,
+                scan.get_status_display(),
+                context['no_of_matches'],
+                context['no_of_broken_links'],
+            ],
         )
+
         if all_matches:
             # Print match header
-            writer.writerow(e(['URL', 'Regel', 'Match', 'Følsomhed']))
+            writer.writerow(['URL', 'Regel', 'Match', 'Følsomhed'])
+
             for match in all_matches:
-                writer.writerow(
-                    e([match.url.url,
-                       match.get_matched_rule_display(),
-                       match.matched_data.replace('\n', '').replace('\r', ' '),
-                       match.get_sensitivity_display()])
-                )
+                writer.writerow([
+                    match.url.url,
+                    match.get_matched_rule_display(),
+                    match.matched_data.replace('\n', '').replace('\r', ' '),
+                    match.get_sensitivity_display()
+                ])
+
         broken_urls = context['broken_urls']
+
         if broken_urls:
             # Print broken link header
-            writer.writerow(e(['Referrers', 'URL', 'Status']))
+            writer.writerow(['Referrers', 'URL', 'Status'])
             for url in broken_urls:
                 for referrer in url.referrers.all():
-                    writer.writerow(
-                        e([referrer.url,
-                           url.url,
-                           url.status_message])
-                    )
+                    writer.writerow([
+                        referrer.url,
+                        url.url,
+                        url.status_message,
+                    ])
+
         return response

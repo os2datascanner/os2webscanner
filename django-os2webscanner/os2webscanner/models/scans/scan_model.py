@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 # encoding: utf-8
 # The contents of this file are subject to the Mozilla Public License
 # Version 2.0 (the "License"); you may not use this file except in
@@ -19,6 +19,9 @@
 import datetime
 import os
 import shutil
+
+import dateutil.tz
+
 from django.conf import settings
 from django.core.validators import validate_comma_separated_integer_list
 from django.db import models
@@ -53,7 +56,8 @@ class Scan(models.Model):
     # Begin setup copied from scanner
     scanner = models.ForeignKey(Scanner,
                                 null=True, verbose_name='webscanner',
-                                related_name='webscans')
+                                related_name='webscans',
+                                on_delete=models.SET_NULL)
 
     domains = models.ManyToManyField(Domain,
                                      verbose_name='Domæner')
@@ -82,8 +86,10 @@ class Scan(models.Model):
     do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder')
 
 
-    do_last_modified_check = models.BooleanField(default=True,
-                                                 verbose_name='Tjek sidst ændret dato')
+    do_last_modified_check = models.BooleanField(
+        default=True,
+        verbose_name='Tjek dato for sidste ændring',
+    )
 
     columns = models.CharField(validators=[validate_comma_separated_integer_list],
                                max_length=128,
@@ -93,7 +99,8 @@ class Scan(models.Model):
 
     regex_rules = models.ManyToManyField(RegexRule,
                                          blank=True,
-                                         verbose_name='Regex regler')
+                                         verbose_name='Regex-regler',
+                                         related_name='scans')
     recipients = models.ManyToManyField(UserProfile, blank=True)
 
     # Spreadsheet annotation and replacement parameters
@@ -129,8 +136,8 @@ class Scan(models.Model):
     status_choices = (
         (NEW, "Ny"),
         (STARTED, "I gang"),
-        (DONE, "OK"),
-        (FAILED, "Fejlet"),
+        (DONE, "Færdig"),
+        (FAILED, "Mislykket"),
     )
 
     status = models.CharField(max_length=10, choices=status_choices,
@@ -229,16 +236,17 @@ class Scan(models.Model):
         """Return the number of *critical* matches, <= no_of_matches."""
         return self.matches.filter(sensitivity=Sensitivity.HIGH).count()
 
-    def __unicode__(self):
-        """Return the name of the scan's scanner."""
-        try:
-            return "SCAN: " + self.scanner.name
-        except:
-            return "ORPHANED SCAN: " + str(self.id)
-
     def __str__(self):
-        """Return the name of the scan's scanner."""
-        return self.__unicode__()
+        """Return the name of the scan's scanner combined with a timestamp."""
+        if self.start_time:
+            ts = (
+                self.start_time
+                .astimezone(dateutil.tz.tzlocal())
+                .replace(microsecond=0, tzinfo=None)
+            )
+            return "{} — {}".format(self.scanner, ts)
+        else:
+            return str(self.scanner)
 
     def save(self, *args, **kwargs):
         """Save changes to the scan.
@@ -366,7 +374,6 @@ class Scan(models.Model):
 
     def set_scan_status_start(self):
         # Update start_time to now and status to STARTED
-        self.set_scanner_status(True)
         self.start_time = datetime.datetime.now(tz=timezone.utc)
         self.status = Scan.STARTED
         self.reason = ""
@@ -376,7 +383,6 @@ class Scan(models.Model):
         self.save()
 
     def set_scan_status_done(self):
-        self.set_scanner_status()
         self.status = Scan.DONE
         self.pid = None
         self.reason = ""
@@ -385,7 +391,6 @@ class Scan(models.Model):
     def set_scan_status_failed(self, reason):
         self.pid = None
         self.status = Scan.FAILED
-        self.set_scanner_status()
         if reason is None:
             self.reason = "Killed"
         else:
@@ -396,11 +401,6 @@ class Scan(models.Model):
         )
         # TODO: Remove all non-processed conversion queue items.
         self.save()
-
-    def set_scanner_status(self, status=False):
-        scanner = self.scanner
-        scanner.is_running = status
-        scanner.save()
 
     # Create method - copies fields from scanner
     def create(self, scanner):
@@ -428,8 +428,6 @@ class Scan(models.Model):
         return self
 
     def set_status_new(self, scanner):
-        scanner.is_running = True
-        scanner.save()
         self.status = Scan.NEW
         self.scanner = scanner
         self.save()
@@ -440,3 +438,5 @@ class Scan(models.Model):
     class Meta:
         abstract = False
         db_table = 'os2webscanner_scan'
+
+        verbose_name = 'Report'

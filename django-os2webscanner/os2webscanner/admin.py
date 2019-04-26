@@ -33,17 +33,60 @@ from .models.regexpattern_model import RegexPattern
 from .models.regexrule_model import RegexRule
 from .models.scans.scan_model import Scan
 from .models.scannerjobs.scanner_model import Scanner
-from .models.statistic_model import Statistic
+from .models.statistic_model import Statistic, TypeStatistics
 from .models.url_model import Url
 from .models.urllastmodified_model import UrlLastModified
 from .models.userprofile_model import UserProfile
 from .models.domains.webdomain_model import WebDomain
 
-ar = admin.site.register
-classes = [Authentication, Organization, WebDomain, FileDomain, ExchangeDomain,
-           RegexRule, Scanner, Scan, Match, Url, ConversionQueueItem, ReferrerUrl,
-           UrlLastModified, Group, Statistic, RegexPattern]
-list(map(ar, classes))
+
+@admin.register(Authentication)
+class AuthenticationAdmin(admin.ModelAdmin):
+    list_display = ('username', 'domain')
+
+
+@admin.register(Match)
+class MatchAdmin(admin.ModelAdmin):
+    list_display = ('scan', 'sensitivity', 'url',)
+    list_filter = ('sensitivity',)
+
+
+@admin.register(RegexRule)
+class RegexRuleAdmin(admin.ModelAdmin):
+    list_filter = ('sensitivity',)
+    list_display = ('name', 'organization', 'group', 'sensitivity')
+
+
+@admin.register(RegexPattern)
+class RegexPatternAdmin(admin.ModelAdmin):
+    list_display = ('pattern_string', 'regex')
+
+
+@admin.register(Scan)
+class ScanAdmin(admin.ModelAdmin):
+    date_hierarchy = 'start_time'
+    list_display = ('scanner', 'status', 'start_time', 'end_time', 'is_visible')
+    list_filter = ('status', 'is_visible')
+
+
+class TypeStatisticsInline(admin.TabularInline):
+    model = TypeStatistics
+
+
+@admin.register(Statistic)
+class StatisticAdmin(admin.ModelAdmin):
+    inlines = (TypeStatisticsInline,)
+    list_display = ('scan', 'files_scraped_count')
+
+
+@admin.register(Url)
+class UrlAdmin(admin.ModelAdmin):
+    list_filter = ('scan',)
+    list_display = ('url', 'scan')
+
+for _cls in [Organization, WebDomain, FileDomain, ExchangeDomain, Scanner,
+             ConversionQueueItem, ReferrerUrl, UrlLastModified, Group]:
+    admin.site.register(_cls)
 
 
 class ProfileInline(admin.TabularInline):

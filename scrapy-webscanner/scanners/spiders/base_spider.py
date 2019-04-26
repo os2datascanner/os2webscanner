@@ -31,7 +31,7 @@ class BaseScannerSpider(Spider):
 
         The configuration will be loaded from the WebScanner.
         """
-        super(BaseScannerSpider, self).__init__(*a, **kw)
+        super().__init__(*a, **kw)
 
         self.scanner = scanner
 
@@ -50,9 +50,9 @@ class BaseScannerSpider(Spider):
         # present, the query and fragment as well.
         url = urlparse_cached(request)
         match_against = url.netloc + url.path
-        if url.query != '':
+        if url.query:
             match_against += "?" + url.query
-        if url.fragment != '':
+        if url.fragment:
             match_against += "#" + url.fragment
 
         for rule in self.exclusion_rules:

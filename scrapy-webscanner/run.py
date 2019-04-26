@@ -92,9 +92,7 @@ class StartScan(object):
 
     def handle_killed(self):
         """Handle being killed by updating the scan status."""
-        from os2webscanner.models.scans.scan_model import Scan
-        self.scanner.scan_object = Scan.objects.get(pk=self.scan_id)
-        self.scanner.scan_object.set_scan_status_failed()
+        self.scanner.failed()
         self.scan.logging_occurrence("SCANNER FAILED: Killed")
         logging.error("Killed")
 

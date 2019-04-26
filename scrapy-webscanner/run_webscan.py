@@ -30,12 +30,9 @@ class StartWebScan(StartScan, multiprocessing.Process):
         Run the scanner, blocking until finished."""
         super().run()
         self.scanner = WebScanner(self.configuration)
-        if self.scanner.scan_object.status is not "STARTED":
-            self.scanner.scan_object.set_scan_status_start()
-
+        self.scanner.ensure_started()
         self.start_webscan_crawlers()
-
-        self.scanner.scan_object.set_scan_status_done()
+        self.scanner.done()
 
     def start_webscan_crawlers(self):
         logging.info("Beginning crawler process.")
@@ -43,8 +40,7 @@ class StartWebScan(StartScan, multiprocessing.Process):
         self.crawler_process.start()
         logging.info("Crawler process finished.")
 
-        if (self.scanner.scan_object.do_link_check
-            and self.scanner.scan_object.do_external_link_check):
+        if self.scanner.do_link_check and self.scanner.do_external_link_check:
             # Do external link check
             self.external_link_check(self.scanner_crawler.spider.external_urls)
 
@@ -52,9 +48,9 @@ class StartWebScan(StartScan, multiprocessing.Process):
     @defer.inlineCallbacks
     def run_crawlers(self):
         # Don't sitemap scan when running over RPC or if no sitemap is set on
-        if not self.scanner.scan_object.scanner.process_urls:
-            if len(self.scanner.get_sitemap_urls()) is not 0 \
-                    or len(self.scanner.get_uploaded_sitemap_urls()) is not 0:
+        if not self.scanner.process_urls:
+            if self.scanner.get_sitemap_urls() \
+                    or self.scanner.get_uploaded_sitemap_urls():
                 yield self.crawler_process.crawl(self.make_sitemap_crawler(),
                                                  scanner=self.scanner,
                                                  runner=self,
@@ -97,8 +93,7 @@ class StartWebScan(StartScan, multiprocessing.Process):
 
             result = linkchecker.check_url(url)
             if result is not None:
-                broken_url = Url(url=url, scan=self.scanner.scan_object.webscan,
+                broken_url = self.scanner.mint_url(url=url,
                                  status_code=result["status_code"],
                                  status_message=result["status_message"])
-                broken_url.save()
                 self.scanner_crawler.spider.associate_url_referrers(broken_url)

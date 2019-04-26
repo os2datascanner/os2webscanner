@@ -67,14 +67,14 @@ class DomainCreate(RestrictedCreateView):
         filedomain = form.save(commit=False)
         authentication = Authentication()
         if 'username' in form.cleaned_data and \
-                        len(form.cleaned_data['username']) > 0:
+                        form.cleaned_data['username']:
             username = str(form.cleaned_data['username'])
             authentication.username = username
         if 'password' in form.cleaned_data and \
-                        len(form.cleaned_data['password']) > 0:
+                        form.cleaned_data['password']:
             authentication.set_password(str(form.cleaned_data['password']))
         if 'domain' in form.cleaned_data and \
-                        len(form.cleaned_data['domain']) > 0:
+                        form.cleaned_data['domain']:
             domain = str(form.cleaned_data['domain'])
             authentication.domain = domain
         authentication.save()

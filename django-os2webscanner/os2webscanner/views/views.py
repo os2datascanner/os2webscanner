@@ -48,7 +48,7 @@ from ..models.summary_model import Summary
 from ..models.userprofile_model import UserProfile
 from ..models.domains.webdomain_model import WebDomain
 from ..models.scannerjobs.webscanner_model import WebScanner
-from ..utils import scans_for_summary_report, do_scan
+from ..utils import scans_for_summary_report, do_scan, as_file_uri
 
 
 class LoginRequiredMixin(View):
@@ -234,7 +234,7 @@ class OrgRestrictedMixin(ModelFormMixin, LoginRequiredMixin):
 
     def get_form_fields(self):
         """Get the list of fields to use in the form for the view."""
-        if not self.fields or len(self.fields) == 0:
+        if not self.fields:
             return []
         fields = [f for f in self.fields]
         user = self.request.user
@@ -660,7 +660,7 @@ def file_upload(request):
             file_path = os.path.join(dirname,
                                      upload_file.name).encode('utf-8')
             copyfile(path, file_path)
-            file_url = 'file://{0}'.format(file_path)
+            file_url = as_file_uri(file_path)
             scan = do_scan(request.user, [file_url], params, blocking=True,
                            visible=True)
             scan.scanner.is_visible = False

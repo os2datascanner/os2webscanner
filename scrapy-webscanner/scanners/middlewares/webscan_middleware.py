@@ -25,8 +25,7 @@ class WebScanLastModifiedCheckMiddleware(LastModifiedCheckMiddleware):
         # Make the request into a HEAD request instead of a GET request,
         # if the spider says we should and if we haven't
         # already checked the last modified date.
-        if (getattr(spider, 'do_last_modified_check_head_request', True) and
-                getattr(spider, 'do_last_modified_check_head_request', True)
+        if (spider.scanner.do_last_modified_check_head_request
             and not request.meta.get('skip_modified_check', False) and
                     request.method != "HEAD" and
                     self.get_stored_last_modified_date(request.url, spider) is not
@@ -39,11 +38,11 @@ class WebScanLastModifiedCheckMiddleware(LastModifiedCheckMiddleware):
     def process_response(self, request, response, spider):
         """Process a spider response."""
         logging.info("Process response for url {}".format(request.url))
-        # Don't run the check if it's not specified by the spider
+        # Don't run the check if it's not specified by the spider...
         if request.meta.get('skip_modified_check', False):
             return response
-        # if do_last_modified_check equals True, last_modified is disabled.
-        if not getattr(spider, 'do_last_modified_check', False):
+        # ... or by the scanner
+        if not spider.scanner.do_last_modified_check:
             return response
         # We only handle HTTP status OK responses
         if response.status != 200:
@@ -108,7 +107,7 @@ class WebScanLastModifiedCheckMiddleware(LastModifiedCheckMiddleware):
             if content_type_header.startswith("text/html"):
                 try:
                     body_html = html.fromstring(response.body)
-                except:
+                except Exception:
                     logging.info('Error occured while trying to extract string from response body.')
 
                 meta_dict = {list(el.values())[0]: list(el.values())[1]
@@ -117,7 +116,7 @@ class WebScanLastModifiedCheckMiddleware(LastModifiedCheckMiddleware):
                     lm = meta_dict['last-modified']
                     try:
                         last_modified_header_date = arrow.get(lm).datetime
-                    except:
+                    except Exception:
                         logging.error(
                             "Date format error on last modied: {0}".format(lm)
                         )

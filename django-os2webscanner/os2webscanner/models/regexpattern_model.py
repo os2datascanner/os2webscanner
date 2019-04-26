@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 # encoding: utf-8
 # The contents of this file are subject to the Mozilla Public License
 # Version 2.0 (the "License"); you may not use this file except in
@@ -24,6 +24,9 @@ class RegexPattern(models.Model):
     """
     Represents a regular expression pattern to be added to a RegexRule.
     """
+
+    class Meta:
+        verbose_name = 'Pattern'
 
     regex = models.ForeignKey(RegexRule, null=True, on_delete=models.CASCADE,
                               related_name='patterns', verbose_name='Regex')

@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 # encoding: utf-8
 # The contents of this file are subject to the Mozilla Public License
 # Version 2.0 (the "License"); you may not use this file except in
@@ -26,7 +26,7 @@ class ExchangeScanner(Scanner):
     """File scanner for scanning network drives and folders"""
     # TODO: ExchangeScanner should only be able to have one domain attached
     domains = models.ManyToManyField(ExchangeDomain, related_name='exchangedomains',
-                                     verbose_name='Exchange Domæner')
+                                     verbose_name='Exchangedomæner')
 
     is_exporting = models.BooleanField(default=False)
 

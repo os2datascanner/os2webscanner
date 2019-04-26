@@ -117,7 +117,7 @@
   {% if form.domain %}    
    <div id="{{ form.domain.auto_id }}_container" class="col-sm-12{% if form.domain.errors %} has-error{% endif %}">
         <div class="form-group">
-            <label class="control-label col-sm-3" for="id_{{ form.domain.name }}">Bruger domæne</label>
+            <label class="control-label col-sm-3" for="id_{{ form.domain.name }}">Brugerdomæne</label>
             <div class="col-sm-9">
                 <input type="text" class="form-control" name="{{ form.domain.name }}" id="id_{{ form.domain.name }}" {% if form.domain.value %}value="{{ form.domain.value }}"{% endif %}>
                 {% if form.domain.help_text %}
@@ -134,7 +134,7 @@
   {% if form.username %}
     <div id="{{ form.username.auto_id }}_container" class="col-sm-12{% if form.username.errors %} has-error{% endif %}">
         <div class="form-group">
-            <label class="control-label col-sm-3" for="id_{{ form.username.name }}">Bruger navn</label>
+            <label class="control-label col-sm-3" for="id_{{ form.username.name }}">Brugernavn</label>
             <div class="col-sm-9">
                 <input type="text" class="form-control" name="{{ form.username.name }}" id="id_{{ form.username.name }}" {% if form.username.value %}value="{{ form.username.value }}"{% endif %}>
                 {% if form.username.help_text %}

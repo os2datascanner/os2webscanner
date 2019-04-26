@@ -47,7 +47,7 @@ class OCRProcessor(Processor):
             "tesseract", item.file_path, txt_file,
             "-psm", "1", "-l", "dan+eng"
         ])
-        if return_code != 0:
+        if return_code:
             logging.info("OCR failed for file {}".format(item.file_path))
             return False
 

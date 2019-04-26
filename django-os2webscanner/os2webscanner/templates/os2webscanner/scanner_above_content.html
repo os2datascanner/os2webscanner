@@ -1,11 +1,12 @@
+<p class="lead">Gennemgår indholdet af domænerne med de opsatte regler.</p>
 <ul class="nav nav-tabs" role="tablist">
     {% if settings.ENABLE_WEBSCAN %}
-    <li role="presentation"{% if active == 'web' %} class="active"{% endif %}><a href="/webscanners/" role="tab">Web scan</a></li>
+    <li role="presentation"{% if active == 'web' %} class="active"{% endif %}><a href="/webscanners/" role="tab">Webscannere</a></li>
     {% endif %}
     {% if settings.ENABLE_FILESCAN %}
-        <li role="presentation"{% if active == 'file' %} class="active"{% endif %}><a href="/filescanners/" role="tab">Fil scan</a></li>
+        <li role="presentation"{% if active == 'file' %} class="active"{% endif %}><a href="/filescanners/" role="tab">Filscannere</a></li>
     {% endif %}
     {% if settings.ENABLE_EXCHANGESCAN %}
-        <li role="presentation"{% if active == 'exchange' %} class="active"{% endif %}><a href="/exchangescanners/" role="tab">Exchange scan</a></li>
+        <li role="presentation"{% if active == 'exchange' %} class="active"{% endif %}><a href="/exchangescanners/" role="tab">Exchangescannere</a></li>
     {% endif %}
 </ul>

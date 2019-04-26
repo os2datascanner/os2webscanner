@@ -1,5 +1,7 @@
 import time
 import magic
+from xattr import xattr
+from struct import unpack
 import mimetypes
 import logging
 import numpy as np
@@ -258,6 +260,19 @@ def _to_filesize(filesize):
     return formatted_size
 
 
+_HIDDEN = 0x02
+def _is_hidden(path):
+    try:
+        if path.name.startswith("."):
+            return True
+        else:
+            attr_bitmap = \
+                unpack("<I", xattr(str(path)).get("user.cifs.dosattrib"))[0]
+            return bool(attr_bitmap & _HIDDEN)
+    except IOError:
+        return False
+
+
 class PreDataScanner(object):
     def __init__(self, path, detection_method='fast-magic'):
         if detection_method not in ['fast-magic', 'magic', 'mime']:
@@ -305,7 +320,7 @@ class PreDataScanner(object):
         t = t0
         for item in all_dirs:
             processed += 1
-            if processed % 2500 == 0:
+            if not processed % 2500:
                 now = time.time()
                 delta_t = now - t0
                 avg_speed = processed / delta_t
@@ -329,7 +344,7 @@ class PreDataScanner(object):
         t = t0
         for node in self.nodes.keys():
             dirs_processed += 1
-            if dirs_processed % 2500 == 0:
+            if not dirs_processed % 2500:
                 now = time.time()
                 delta_t = now - t0
                 avg_speed = dirs_processed / delta_t
@@ -349,6 +364,12 @@ class PreDataScanner(object):
                 if statcache.is_dir(item):
                     continue
                 if statcache.is_symlink(item):
+                    continue
+                if _is_hidden(item):
+                    if 'hidden_file_count' not in self.stats:
+                        self.stats['hidden_file_count'] = 1
+                    else:
+                        self.stats['hidden_file_count'] += 1
                     continue
                 new_nodes[item] = {'size': 0}
         self.nodes.update(new_nodes)
@@ -404,7 +425,7 @@ class PreDataScanner(object):
         t = t0
         for node in self.nodes.keys():
             processed += 1
-            if processed % 2500 == 0:
+            if not processed % 2500:
                 now = time.time()
                 delta_t = now - t0
                 avg_speed = processed / delta_t
@@ -461,7 +482,8 @@ class PreDataScanner(object):
                 types['sub'][subgroup]['sizedist'].append(node_info['size'])
             else:
                 types['sub'][subgroup] = {'count': 1,
-                                          'sizedist': [node_info['size']]}
+                                          'sizedist': [node_info['size']],
+                                          'supergroup': supergroup}
         return types
 
     def update_stats(self, print_output=True):

@@ -52,7 +52,7 @@ class RuleCreate(RestrictedCreateView):
         """
         form_cleaned_data = form.cleaned_data
         form_patterns = [form.cleaned_data[field_name] for field_name in form.cleaned_data if
-                         field_name.startswith('pattern_') and form.cleaned_data[field_name] != '']
+                         field_name.startswith('pattern_') and form.cleaned_data[field_name]]
 
         try:
             with transaction.atomic():
@@ -68,7 +68,7 @@ class RuleCreate(RestrictedCreateView):
                     r_.save()
 
                 return super().form_valid(form)
-        except:
+        except Exception:
             return super().form_invalid(form)
 
     def get_pattern_fields(self):
@@ -112,7 +112,7 @@ class RuleUpdate(RestrictedUpdateView):
             else:
                 is_cpr_enabled = False
 
-            if len(regex_patterns) == 0: # if we have no patterns already, we should at least render one field
+            if not regex_patterns: # if we have no patterns already, we should at least render one field
                 form.fields['pattern_0'] = forms.CharField(required=False if is_cpr_enabled else True, initial='', label='Udtryk')
             else: # otherwise, render the appropriate number of fields
                 for i in range(len(regex_patterns)):
@@ -148,7 +148,7 @@ class RuleUpdate(RestrictedUpdateView):
         """
         form_cleaned_data = form.cleaned_data
         form_patterns = [form.cleaned_data[field_name] for field_name in form.cleaned_data if
-                         field_name.startswith('pattern_') and form.cleaned_data[field_name] != '']
+                         field_name.startswith('pattern_') and form.cleaned_data[field_name]]
 
         try:
             with transaction.atomic():
@@ -165,7 +165,7 @@ class RuleUpdate(RestrictedUpdateView):
                     r_.save()
 
                 return super().form_valid(form)
-        except:
+        except Exception:
             return super().form_invalid(form)
 
     def get_pattern_fields(self):

@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 # encoding: utf-8
 # The contents of this file are subject to the Mozilla Public License
 # Version 2.0 (the "License"); you may not use this file except in
@@ -27,7 +27,7 @@ class WebScanner(Scanner):
     """Web scanner for scanning websites."""
 
     domains = models.ManyToManyField(WebDomain, related_name='webdomains',
-                                     verbose_name='Web Domæner')
+                                     verbose_name='Webdomæner')
 
     do_link_check = models.BooleanField(default=False,
                                         verbose_name='Tjek links')
@@ -37,7 +37,7 @@ class WebScanner(Scanner):
     )
     do_last_modified_check_head_request = models.BooleanField(
         default=True,
-        verbose_name='Brug HTTP HEAD request'
+        verbose_name='Brug HTTP HEAD-forespørgsler'
     )
     do_collect_cookies = models.BooleanField(
         default=False,

@@ -1,12 +1,12 @@
 import logging
 import errno
 import magic
-from pathlib import Path
 
 from scrapy.http import Request, HtmlResponse
 from scrapy.exceptions import IgnoreRequest
 from os2webscanner.utils import capitalize_first, get_codec_and_string, secure_save
 
+from utils import as_file_uri, as_path
 from ..processors.processor import Processor
 from ..scanner_types.pre_analysis import PreDataScanner
 from .scanner_spider import ScannerSpider
@@ -33,13 +33,9 @@ class FileSpider(ScannerSpider):
 
     def setup_spider(self):
         logging.info("Initializing spider of type FileSpider")
-        scan_object = self.scanner.scan_object
         for path in self.allowed_domains:
             path = self.add_correct_file_path_prefix(path)
             self.start_urls.append(path)
-        self.do_last_modified_check = getattr(
-            scan_object, "do_last_modified_check"
-        )
 
     def start_requests(self):
         """Return requests for all starting URLs AND sitemap URLs."""
@@ -59,9 +55,7 @@ class FileSpider(ScannerSpider):
         :return: path with prefix file://
         """
         logging.info("Start path {0}".format(path))
-        if not path.startswith('file://'):
-            path = 'file://%s' % path
-        return path
+        return as_file_uri(path)
 
     def append_file_request(self, url):
         files = self.file_extractor(url)
@@ -85,18 +79,36 @@ class FileSpider(ScannerSpider):
         :return: filemap
         """
 
-        path = Path(filepath.replace('file://', ''))
+        path = as_path(filepath)
         files = PreDataScanner(path, detection_method='mime')
         filemap = []
         relevant_files = 0
         relevant_file_size = 0
+
+        files.update_stats()
+        self.scanner.set_statistics(
+            files.stats['supported_file_count'],
+            files.stats['supported_file_size'],
+            files.stats['relevant_file_count'],
+            files.stats['relevant_file_size'],
+            files.stats['relevant_unsupported_count'],
+            files.stats['relevant_unsupported_size'])
+        summaries = files.summarize_file_types()
+        for k, v in summaries["super"].items():
+            self.scanner.add_type_statistics(k, v["count"], sum(v["sizedist"]))
+        for k, v in summaries["sub"].items():
+            if "supergroup" in v:
+                group_name = v["supergroup"] + "/" + k
+            else:
+                group_name = k
+            self.scanner.add_type_statistics(group_name, v["count"], sum(v["sizedist"]))
 
         logging.info('Starting folder analysis...')
         for path, info in files.nodes.items():
             if info['filetype']['relevant'] and info['filetype']['supported']:
                 relevant_files += 1
                 relevant_file_size += info['size']
-                filemap.append('file://' + str(path))
+                filemap.append(as_file_uri(path))
         logging.info('Found {0} relevant files ({1} bytes).'.format(
             relevant_files, relevant_file_size))
         logging.info('Folder analysis completed...')
@@ -124,7 +136,8 @@ class FileSpider(ScannerSpider):
                     failure.value.filename))
 
                 return self.append_file_request(
-                    'file://' + failure.value.filename)
+                    as_file_uri(failure.value.filename),
+                )
             elif isinstance(failure.value, IOError):
                 status_message = str(failure.value.errno)
 
@@ -137,7 +150,7 @@ class FileSpider(ScannerSpider):
 
         # Save the URL item to the database
         if (Processor.mimetype_to_processor_type(mime_type) == 'ocr'
-            and not self.scanner.scan_object.do_ocr):
+            and not self.scanner.do_ocr):
             # Ignore this URL
             return
 
@@ -150,7 +163,7 @@ class FileSpider(ScannerSpider):
                 old = domain.filedomain.mountpath
                 new = domain.filedomain.url
             elif scanner_type == 'ExchangeScanner':
-                old = 'file://' + domain.exchangedomain.dir_to_scan
+                old = as_file_uri(domain.exchangedomain.dir_to_scan)
                 new = domain.exchangedomain.url
 
         url_object = self.url_save(mime_type,

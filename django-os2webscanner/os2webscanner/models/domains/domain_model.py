@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 # encoding: utf-8
 # The contents of this file are subject to the Mozilla Public License
 # Version 2.0 (the "License"); you may not use this file except in
@@ -46,18 +46,21 @@ class Domain(models.Model):
     authentication = models.OneToOneField(Authentication,
                                           null=True,
                                           related_name='%(app_label)s_%(class)s_authentication',
-                                          verbose_name='Bruger navn')
+                                          verbose_name='Brugernavn',
+                                          on_delete=models.SET_NULL)
 
     organization = models.ForeignKey(Organization,
                                      null=False,
                                      related_name='%(app_label)s_%(class)s_organization',
-                                     verbose_name='Organisation')
+                                     verbose_name='Organisation',
+                                     on_delete=models.PROTECT)
 
     group = models.ForeignKey(Group,
                               null=True,
                               blank=True,
                               related_name='%(app_label)s_%(class)s_groups',
-                              verbose_name='Gruppe')
+                              verbose_name='Gruppe',
+                              on_delete=models.SET_NULL)
 
     validation_status = models.IntegerField(choices=validation_choices,
                                             default=INVALID,

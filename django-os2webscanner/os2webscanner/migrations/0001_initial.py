@@ -100,8 +100,8 @@ class Migration(migrations.Migration):
                 ('match_string', models.CharField(max_length=1024, verbose_name=b'Udtryk')),
                 ('description', models.TextField(verbose_name=b'Beskrivelse')),
                 ('sensitivity', models.IntegerField(default=2, verbose_name=b'F\xc3\xb8lsomhed', choices=[(0, 'Gr\xf8n'), (1, 'Gul'), (2, 'R\xf8d')])),
-                ('group', models.ForeignKey(verbose_name=b'Gruppe', blank=True, to='os2webscanner.Group', null=True)),
-                ('organization', models.ForeignKey(verbose_name=b'Organisation', to='os2webscanner.Organization')),
+                ('group', models.ForeignKey(verbose_name=b'Gruppe', blank=True, to='os2webscanner.Group', null=True, on_delete=models.CASCADE)),
+                ('organization', models.ForeignKey(verbose_name=b'Organisation', to='os2webscanner.Organization', on_delete=models.CASCADE)),
             ],
         ),
         migrations.CreateModel(
@@ -168,8 +168,8 @@ class Migration(migrations.Migration):
                 ('do_run_synchronously', models.BooleanField(default=False)),
                 ('is_visible', models.BooleanField(default=True)),
                 ('domains', models.ManyToManyField(related_name='scanners', verbose_name=b'Dom\xc3\xa6ner', to='os2webscanner.Domain')),
-                ('group', models.ForeignKey(verbose_name=b'Gruppe', blank=True, to='os2webscanner.Group', null=True)),
-                ('organization', models.ForeignKey(verbose_name=b'Organisation', to='os2webscanner.Organization')),
+                ('group', models.ForeignKey(verbose_name=b'Gruppe', blank=True, to='os2webscanner.Group', null=True, on_delete=models.CASCADE)),
+                ('organization', models.ForeignKey(verbose_name=b'Organisation', to='os2webscanner.Organization', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['name'],
@@ -184,8 +184,8 @@ class Migration(migrations.Migration):
                 ('schedule', recurrence.fields.RecurrenceField(max_length=1024, verbose_name=b'Planlagt afvikling')),
                 ('last_run', models.DateTimeField(null=True, verbose_name=b'Sidste k\xc3\xb8rsel', blank=True)),
                 ('do_email_recipients', models.BooleanField(default=False, verbose_name=b'Udsend mails')),
-                ('group', models.ForeignKey(verbose_name=b'Gruppe', blank=True, to='os2webscanner.Group', null=True)),
-                ('organization', models.ForeignKey(verbose_name=b'Organisation', to='os2webscanner.Organization')),
+                ('group', models.ForeignKey(verbose_name=b'Gruppe', blank=True, to='os2webscanner.Group', null=True, on_delete=models.CASCADE)),
+                ('organization', models.ForeignKey(verbose_name=b'Organisation', to='os2webscanner.Organization', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['name'],
@@ -200,7 +200,7 @@ class Migration(migrations.Migration):
                 ('status_code', models.IntegerField(null=True, verbose_name=b'Status code', blank=True)),
                 ('status_message', models.CharField(max_length=256, null=True, verbose_name=b'Status Message', blank=True)),
                 ('referrers', models.ManyToManyField(related_name='linked_urls', verbose_name=b'Referrers', to='os2webscanner.ReferrerUrl')),
-                ('scan', models.ForeignKey(related_name='urls', verbose_name=b'Scan', to='os2webscanner.Scan')),
+                ('scan', models.ForeignKey(related_name='urls', verbose_name=b'Scan', to='os2webscanner.Scan', on_delete=models.CASCADE)),
             ],
         ),
         migrations.CreateModel(
@@ -210,7 +210,7 @@ class Migration(migrations.Migration):
                 ('url', models.CharField(max_length=2048, verbose_name=b'Url')),
                 ('last_modified', models.DateTimeField(null=True, verbose_name=b'Last-modified', blank=True)),
                 ('links', models.ManyToManyField(to='os2webscanner.UrlLastModified', verbose_name=b'Links')),
-                ('scanner', models.ForeignKey(verbose_name=b'Scanner', to='os2webscanner.Scanner')),
+                ('scanner', models.ForeignKey(verbose_name=b'Scanner', to='os2webscanner.Scanner', on_delete=models.CASCADE)),
             ],
         ),
         migrations.CreateModel(
@@ -219,8 +219,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('is_group_admin', models.BooleanField(default=False)),
                 ('is_upload_only', models.BooleanField(default=False)),
-                ('organization', models.ForeignKey(verbose_name=b'Organisation', to='os2webscanner.Organization')),
-                ('user', models.OneToOneField(related_name='profile', verbose_name=b'Bruger', to=settings.AUTH_USER_MODEL)),
+                ('organization', models.ForeignKey(verbose_name=b'Organisation', to='os2webscanner.Organization', on_delete=models.CASCADE)),
+                ('user', models.OneToOneField(related_name='profile', verbose_name=b'Bruger', to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
         ),
         migrations.AddField(
@@ -256,32 +256,32 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='scan',
             name='scanner',
-            field=models.ForeignKey(related_name='scans', verbose_name=b'Scanner', to='os2webscanner.Scanner'),
+            field=models.ForeignKey(related_name='scans', verbose_name=b'Scanner', to='os2webscanner.Scanner', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='referrerurl',
             name='scan',
-            field=models.ForeignKey(verbose_name=b'Scan', to='os2webscanner.Scan'),
+            field=models.ForeignKey(verbose_name=b'Scan', to='os2webscanner.Scan', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='md5sum',
             name='organization',
-            field=models.ForeignKey(verbose_name=b'Organisation', to='os2webscanner.Organization'),
+            field=models.ForeignKey(verbose_name=b'Organisation', to='os2webscanner.Organization', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='match',
             name='scan',
-            field=models.ForeignKey(related_name='matches', verbose_name=b'Scan', to='os2webscanner.Scan'),
+            field=models.ForeignKey(related_name='matches', verbose_name=b'Scan', to='os2webscanner.Scan', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='match',
             name='url',
-            field=models.ForeignKey(verbose_name=b'Url', to='os2webscanner.Url'),
+            field=models.ForeignKey(verbose_name=b'Url', to='os2webscanner.Url', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='group',
             name='organization',
-            field=models.ForeignKey(related_name='groups', verbose_name=b'Organisation', to='os2webscanner.Organization'),
+            field=models.ForeignKey(related_name='groups', verbose_name=b'Organisation', to='os2webscanner.Organization', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='group',
@@ -291,17 +291,17 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='domain',
             name='group',
-            field=models.ForeignKey(related_name='domains', verbose_name=b'Gruppe', blank=True, to='os2webscanner.Group', null=True),
+            field=models.ForeignKey(related_name='domains', verbose_name=b'Gruppe', blank=True, to='os2webscanner.Group', null=True, on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='domain',
             name='organization',
-            field=models.ForeignKey(related_name='domains', verbose_name=b'Organisation', to='os2webscanner.Organization'),
+            field=models.ForeignKey(related_name='domains', verbose_name=b'Organisation', to='os2webscanner.Organization', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='conversionqueueitem',
             name='url',
-            field=models.ForeignKey(verbose_name=b'Url', to='os2webscanner.Url'),
+            field=models.ForeignKey(verbose_name=b'Url', to='os2webscanner.Url', on_delete=models.CASCADE),
         ),
         migrations.AlterUniqueTogether(
             name='md5sum',

@@ -193,7 +193,7 @@ class LastModifiedLinkStorageMiddleware(object):
 
     def process_spider_output(self, response, result, spider):
         """Process spider output."""
-        if not getattr(spider, "do_last_modified_check", False):
+        if not spider.scanner.do_last_modified_check:
             return result
         last_modified_header = response.headers.get("Last-Modified", None)
         if last_modified_header is None:

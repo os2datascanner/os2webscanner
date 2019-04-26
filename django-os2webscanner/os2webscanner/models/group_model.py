@@ -15,7 +15,8 @@ class Group(models.Model):
     organization = models.ForeignKey(Organization,
                                      null=False,
                                      related_name='groups',
-                                     verbose_name='Organisation')
+                                     verbose_name='Organisation',
+                                     on_delete=models.PROTECT)
 
     def __unicode__(self):
         """Return the name of the group."""
