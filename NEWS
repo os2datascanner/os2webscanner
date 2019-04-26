@@ -1,3 +1,14 @@
+* Version 2.2.0, April 26. 2019
+
+New in this version:
+- Bugfix: File scans sometimes contained broken links due to files being removed or deleted during scan.
+- Bugfix: Some file paths contained URL encoded characters which the scanner could not handle. It can now.
+- Enhancement: File scans now ignore hidden files, like the lock file `~okument1.docx`. Statistics are gathered on the number of these files.
+- Bugfix: Editing a scanner job would sometimes corrupt its values.
+- Enhancement: File domains can now contain spaces.
+- Enhancement: Reports are now divided into tabs.
+- Enhancement: Better error handling for LibreOffice processors.
+
 * Version 2.1.0, March 15. 2019
 
 New in this version:
