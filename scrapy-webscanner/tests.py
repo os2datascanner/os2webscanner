@@ -290,6 +290,7 @@ class LibreOfficeTest(unittest.TestCase):
     def test_libreoffice_teardown(self):
         self.libreoffice_processor.teardown_queue_processing()
         self.assertEqual(self.libreoffice_processor.unoconv, None)
+        self.assertEqual(self.libreoffice_processor.instance, None)
 
 class HTMLTest(unittest.TestCase):
 
