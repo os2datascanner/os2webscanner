@@ -21,9 +21,13 @@ Pass extra arguments to the processor after the first argument.
 """
 
 import signal
-class SigTerm(SystemExit): pass
-def sigterm(sig,frm): raise SigTerm
-signal.signal(15,sigterm)
+
+def sigterm_handler(sig, frm):
+    sys.exit(1)
+
+# process needs to listen on
+# signal.SIGTERM in order to tear down ressources.
+signal.signal(signal.SIGTERM, sigterm_handler)
 
 import os
 import sys
