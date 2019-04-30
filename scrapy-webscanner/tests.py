@@ -55,9 +55,6 @@ from os2webscanner.models.regexrule_model import RegexRule
 from os2webscanner.models.organization_model import Organization
 
 
-from scanners.scanner_types.pre_analysis import PreDataScanner
-
-
 class AnalysisScanTest(unittest.TestCase):
 
     @staticmethod
@@ -253,9 +250,16 @@ class PDF2HTMLTest(unittest.TestCase):
         self.assertEqual(result, True)
 
 
-class LibreofficeTest(unittest.TestCase):
+class LibreOfficeTest(unittest.TestCase):
 
     test_dir = base_dir + '/scrapy-webscanner/tests/data/'
+    libreoffice_processor = None
+
+    @classmethod
+    def setUpClass(self):
+        print('Starting libreoffice ressource...')
+        self.libreoffice_processor = libreoffice.LibreOfficeProcessor()
+        self.libreoffice_processor.setup_queue_processing(1111, 'libreoffice0')
 
     def create_ressources(self, filename):
         try:
@@ -271,9 +275,7 @@ class LibreofficeTest(unittest.TestCase):
                                    status=ConversionQueueItem.NEW)
 
         with tempfile.TemporaryDirectory(dir=self.test_dir + 'tmp/') as temp_dir:
-            libreoffice_processor = libreoffice.LibreOfficeProcessor()
-            libreoffice_processor.set_home_dir(self.test_dir + 'libreoffice/home_dir/')
-            result = libreoffice_processor.convert(item, temp_dir)
+            result = self.libreoffice_processor.convert(item, temp_dir)
 
         return result
 
@@ -285,6 +287,9 @@ class LibreofficeTest(unittest.TestCase):
         result = self.create_ressources(filename)
         self.assertEqual(result, True)
 
+    def test_libreoffice_teardown(self):
+        self.libreoffice_processor.teardown_queue_processing()
+        self.assertEqual(self.libreoffice_processor.unoconv, None)
 
 class HTMLTest(unittest.TestCase):
 
