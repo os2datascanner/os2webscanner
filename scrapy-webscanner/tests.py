@@ -36,6 +36,8 @@ import linkchecker
 
 import unittest
 
+import process_manager
+
 from scanners.scanner_types.scanner import Scanner
 
 from scanners.rules import cpr, name, regexrule
@@ -416,6 +418,33 @@ class StoreStatsTest(unittest.TestCase):
         statistic = Statistic.objects.get(scan=webscan)
         self.assertEqual(statistic.files_skipped_count, files_skipped_count*2)
         self.assertEqual(statistic.files_scraped_count, files_scraped_count*2)
+
+
+class ProcessManagerTest(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        process_manager.prepare_processors()
+        process_manager.start_all_processors()
+
+    @classmethod
+    def tearDownClass(self):
+        for pdata in process_manager.process_list:
+            process_manager.stop_process(pdata)
+
+    def test_processors_are_prepared(self):
+        self.assertEqual(len(process_manager.process_list), 16)
+
+    def test_processors_are_started(self):
+        self.assertEqual(len(process_manager.process_map), 32)
+
+    def test_processors_restart(self):
+        for pdata in process_manager.process_list:
+            process_manager.stop_process(pdata)
+        self.assertEqual(len(process_manager.process_map), 16)
+        for pdata in process_manager.process_list:
+            process_manager.start_process(pdata)
+        self.assertEqual(len(process_manager.process_map), 32)
 
 
 class CreateWebScan(object):
