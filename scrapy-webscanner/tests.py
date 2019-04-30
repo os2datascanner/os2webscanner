@@ -22,6 +22,7 @@ import os
 import sys
 import shutil
 import tempfile
+import time
 
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(base_dir + "/webscanner_site")
@@ -439,12 +440,18 @@ class ProcessManagerTest(unittest.TestCase):
         self.assertEqual(len(process_manager.process_map), 32)
 
     def test_processors_restart(self):
+        # Enable time sleep if you want to make sure libreoffice
+        # sub-processors(soffice, oopsplash) are started,
+        # before trying to stop them again.
+
+        # time.sleep(120)
         for pdata in process_manager.process_list:
             process_manager.stop_process(pdata)
         self.assertEqual(len(process_manager.process_map), 16)
         for pdata in process_manager.process_list:
             process_manager.start_process(pdata)
         self.assertEqual(len(process_manager.process_map), 32)
+        # time.sleep(120)
 
 
 class CreateWebScan(object):
