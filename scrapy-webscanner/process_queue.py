@@ -20,9 +20,15 @@
 Pass extra arguments to the processor after the first argument.
 """
 
+import signal
+class SigTerm(SystemExit): pass
+def sigterm(sig,frm): raise SigTerm
+signal.signal(15,sigterm)
+
 import os
 import sys
 import django
+import logging
 
 # Include the Django app
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -43,8 +49,10 @@ if len(sys.argv) > 2:
 if queued_processor is not None:
     queued_processor.setup_queue_processing(*setup_args)
     try:
+        logging.info('Ready to process queue for type: {}'.format(sys.argv[1]))
         queued_processor.process_queue()
     except KeyboardInterrupt:
         pass
     finally:
+        logging.info('Tearing down process queue for type: {}'.format(sys.argv[1]))
         queued_processor.teardown_queue_processing()
