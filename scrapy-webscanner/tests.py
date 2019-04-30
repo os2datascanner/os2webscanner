@@ -22,6 +22,7 @@ import os
 import sys
 import shutil
 import tempfile
+import time
 
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(base_dir + "/webscanner_site")
@@ -35,6 +36,8 @@ import re
 import linkchecker
 
 import unittest
+
+import process_manager
 
 from scanners.scanner_types.scanner import Scanner
 
@@ -53,9 +56,6 @@ from os2webscanner.models.domains.webdomain_model import WebDomain
 
 from os2webscanner.models.regexrule_model import RegexRule
 from os2webscanner.models.organization_model import Organization
-
-
-from scanners.scanner_types.pre_analysis import PreDataScanner
 
 
 class AnalysisScanTest(unittest.TestCase):
@@ -253,9 +253,16 @@ class PDF2HTMLTest(unittest.TestCase):
         self.assertEqual(result, True)
 
 
-class LibreofficeTest(unittest.TestCase):
+class LibreOfficeTest(unittest.TestCase):
 
     test_dir = base_dir + '/scrapy-webscanner/tests/data/'
+    libreoffice_processor = None
+
+    @classmethod
+    def setUpClass(self):
+        print('Starting libreoffice ressource...')
+        self.libreoffice_processor = libreoffice.LibreOfficeProcessor()
+        self.libreoffice_processor.setup_queue_processing(1111, 'libreoffice0')
 
     def create_ressources(self, filename):
         try:
@@ -271,9 +278,7 @@ class LibreofficeTest(unittest.TestCase):
                                    status=ConversionQueueItem.NEW)
 
         with tempfile.TemporaryDirectory(dir=self.test_dir + 'tmp/') as temp_dir:
-            libreoffice_processor = libreoffice.LibreOfficeProcessor()
-            libreoffice_processor.set_home_dir(self.test_dir + 'libreoffice/home_dir/')
-            result = libreoffice_processor.convert(item, temp_dir)
+            result = self.libreoffice_processor.convert(item, temp_dir)
 
         return result
 
@@ -285,6 +290,10 @@ class LibreofficeTest(unittest.TestCase):
         result = self.create_ressources(filename)
         self.assertEqual(result, True)
 
+    def test_libreoffice_teardown(self):
+        self.libreoffice_processor.teardown_queue_processing()
+        self.assertEqual(self.libreoffice_processor.unoconv, None)
+        self.assertEqual(self.libreoffice_processor.instance, None)
 
 class HTMLTest(unittest.TestCase):
 
@@ -410,6 +419,39 @@ class StoreStatsTest(unittest.TestCase):
         statistic = Statistic.objects.get(scan=webscan)
         self.assertEqual(statistic.files_skipped_count, files_skipped_count*2)
         self.assertEqual(statistic.files_scraped_count, files_scraped_count*2)
+
+
+class ProcessManagerTest(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        process_manager.prepare_processors()
+        process_manager.start_all_processors()
+
+    @classmethod
+    def tearDownClass(self):
+        for pdata in process_manager.process_list:
+            process_manager.stop_process(pdata)
+
+    def test_processors_are_prepared(self):
+        self.assertEqual(len(process_manager.process_list), 16)
+
+    def test_processors_are_started(self):
+        self.assertEqual(len(process_manager.process_map), 32)
+
+    def test_processors_restart(self):
+        # Enable time sleep if you want to make sure libreoffice
+        # sub-processors(soffice, oopsplash) are started,
+        # before trying to stop them again.
+
+        # time.sleep(120)
+        for pdata in process_manager.process_list:
+            process_manager.stop_process(pdata)
+        self.assertEqual(len(process_manager.process_map), 16)
+        for pdata in process_manager.process_list:
+            process_manager.start_process(pdata)
+        self.assertEqual(len(process_manager.process_map), 32)
+        # time.sleep(120)
 
 
 class CreateWebScan(object):
