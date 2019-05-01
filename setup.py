@@ -21,19 +21,19 @@ import pathlib
 
 from setuptools import setup
 
-srcdir = pathlib.Path(__file__).absolute().parent
-basedir = srcdir.parent
+basedir = pathlib.Path(__file__).absolute().parent
 readme_text = basedir.joinpath('README').read_text()
 
 requires = basedir.joinpath('doc', 'requirements.txt').read_text().split()
 
 # allow setup.py to be run from any path
-os.chdir(str(srcdir))
+os.chdir(str(basedir))
 
 setup(
-    name='django-os2webscanner',
+    name='os2datascanner',
     version='1.0',
-    packages=['os2webscanner'],
+    package_dir={'': 'src'},
+    packages=['os2webscanner', 'webscanner'],
     include_package_data=True,
     license='MPL',  # example license
     description='OS2Webscanner for Danish municipalities',
