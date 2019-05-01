@@ -222,7 +222,7 @@ Next, start the _process manager_ background process in order to get scans
 which scan non-text files (e.g. PDF files or Office documents) to work.
 
 ```
-sudo -u www-data -b /home/os2/os2webscanner/scrapy-webscanner/start_process_manager.sh
+sudo -u www-data -b /home/os2/os2webscanner/bin/start_process_manager.sh
 ```
 
 *Note:* You may want to have the scanners `var` dir somewhere else, e.g. in

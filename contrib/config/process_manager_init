@@ -15,7 +15,7 @@ WEBSCANNER_DIR=/home/os2/os2webscanner
 case "$1" in
 
 start) 
-    sudo -u www-data -b $WEBSCANNER_DIR/scrapy-webscanner/start_process_manager.sh
+    sudo -u www-data -b $WEBSCANNER_DIR/bin/start_process_manager.sh
     ;;
 *)
     echo "Usage: process_manager {start}" >&2

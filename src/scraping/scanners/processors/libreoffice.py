@@ -180,7 +180,7 @@ folder."""
             )
 
             unoconv_args = [
-                project_dir + "/scrapy-webscanner/unoconv",
+                project_dir + "/bin/unoconv",
                 "--pipe", "cnv_{0}".format(self.instance_name), "--no-launch",
                 "--format", output_filter,
                 "-e", 'FilterOptions="59,34,0,1"',
@@ -190,7 +190,7 @@ folder."""
         else:
             # HTML
             unoconv_args = [
-                project_dir + "/scrapy-webscanner/unoconv",
+                project_dir + "/bin/unoconv",
                 "--pipe", "cnv_{0}".format(self.instance_name), "--no-launch",
                 "--format", output_filter,
                 "--output", tmp_dir + "/", "-vvv",

@@ -23,5 +23,5 @@ ps aux | grep process_manager.py
 sudo kill $PID
 
 # Start the process manager again
-sudo -u www-data -b ./scrapy-webscanner/start_process_manager.sh
+sudo -u www-data -b ./bin/start_process_manager.sh
 

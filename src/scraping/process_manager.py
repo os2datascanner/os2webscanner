@@ -39,11 +39,7 @@ from django import db
 from django.conf import settings as django_settings
 
 
-base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-sys.path.append(base_dir + "/webscanner_site")
-os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 django.setup()
-
 os.umask(0o007)
 
 from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
@@ -281,12 +277,8 @@ def prepare_processors():
     for ptype in process_types:
         for i in range(processes_per_type):
             name = '%s%d' % (ptype, i)
-            program = [
-                'python',
-                os.path.join(base_dir, 'scrapy-webscanner',
-                             'process_queue.py'),
-                ptype
-            ]
+            program = [sys.executable, '-m', 'scraping.process_queue', ptype]
+
             # Libreoffice takes the homedir name as second arg
             if "libreoffice" == ptype:
                 program.append(name)

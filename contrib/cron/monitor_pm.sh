@@ -11,7 +11,7 @@ PSS=$(pgrep -f process_)
 if [ -z "${PSS}" ]; 
 then
     echo "Not running, starting ..."
-    "${BASE_DIR}/scrapy-webscanner/start_process_manager.sh" &
+    "${BASE_DIR}/bin/start_process_manager.sh" &
     sleep 30
     cat | mail -t ${RECIPIENTS} -s "Process manager genstartet"  << EOF 
 
