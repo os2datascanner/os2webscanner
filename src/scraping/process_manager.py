@@ -28,7 +28,6 @@ import sys
 import subprocess
 import time
 import signal
-import settings as scanner_settings
 
 import logging
 
@@ -49,6 +48,8 @@ os.umask(0o007)
 
 from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
 from os2webscanner.models.scans.scan_model import Scan
+
+from . import settings as scanner_settings
 
 
 var_dir = django_settings.VAR_DIR

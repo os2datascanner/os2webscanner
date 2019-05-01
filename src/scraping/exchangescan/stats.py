@@ -7,7 +7,7 @@ import subprocess
 import multiprocessing
 import psutil
 try:
-    from settings import export_path
+    from ..settings import export_path
 except ImportError:
     from .settings import export_path
 

@@ -37,14 +37,14 @@ import linkchecker
 
 import unittest
 
-import process_manager
+from . import process_manager
 
-from scanners.scanner_types.scanner import Scanner
+from .scanners.scanner_types.scanner import Scanner
 
-from scanners.rules import cpr, name, regexrule
+from .scanners.rules import cpr, name, regexrule
 
-from scanners.spiders import scanner_spider
-from scanners.processors import pdf, libreoffice, html, zip
+from .scanners.spiders import scanner_spider
+from .scanners.processors import pdf, libreoffice, html, zip
 
 from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
 from os2webscanner.models.url_model import Url
@@ -395,7 +395,7 @@ class StoreStatsTest(unittest.TestCase):
         scan_id = webscan.pk
         args = ['does not matter', scan_id]
         with patch.object(sys, 'argv', args):
-            from run import ScannerApp, get_project_settings
+            from .run import ScannerApp, get_project_settings
             scannerapp = ScannerApp(scan_id, type(webscan).__name__)
             settings = get_project_settings()
             from scrapy.crawler import CrawlerProcess

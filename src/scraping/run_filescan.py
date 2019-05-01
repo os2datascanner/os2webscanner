@@ -3,10 +3,10 @@ import multiprocessing
 
 from twisted.internet import reactor, defer
 
-from run import StartScan
+from .run import StartScan
 
-from scanners.spiders.filespider import FileSpider
-from scanners.scanner_types.filescanner import FileScanner
+from .scanners.spiders.filespider import FileSpider
+from .scanners.scanner_types.filescanner import FileScanner
 
 
 class StartFileScan(StartScan, multiprocessing.Process):

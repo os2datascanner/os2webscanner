@@ -5,8 +5,8 @@ import time
 
 import pika
 
-from run_webscan import StartWebScan
-from run_filescan import StartFileScan
+from .run_webscan import StartWebScan
+from .run_filescan import StartFileScan
 
 
 QUEUE_NAME = 'datascanner'

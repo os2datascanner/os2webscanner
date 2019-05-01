@@ -40,7 +40,7 @@ sys.path.append(base_dir + "/webscanner_site")
 os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
 django.setup()
 
-from scanners.processors.processor import Processor
+from .scanners.processors.processor import Processor
 
 pid = os.getpid()
 

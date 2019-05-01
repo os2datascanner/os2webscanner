@@ -1,16 +1,16 @@
 import logging
-import linkchecker
 import multiprocessing
 
 from urllib.parse import urlparse
 
 from twisted.internet import reactor, defer
 
-from run import StartScan
+from .run import StartScan
+from . import linkchecker
 
-from scanners.spiders.sitemap import SitemapURLGathererSpider
-from scanners.scanner_types.webscanner import WebScanner
-from scanners.spiders.webspider import WebSpider
+from .scanners.spiders.sitemap import SitemapURLGathererSpider
+from .scanners.scanner_types.webscanner import WebScanner
+from .scanners.spiders.webspider import WebSpider
 
 
 class StartWebScan(StartScan, multiprocessing.Process):

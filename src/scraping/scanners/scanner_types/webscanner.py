@@ -1,6 +1,6 @@
 from urllib.parse import urlparse
 
-from utils import as_file_uri
+from ...utils import as_file_uri
 from .scanner import Scanner
 
 
