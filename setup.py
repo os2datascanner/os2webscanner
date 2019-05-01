@@ -33,7 +33,7 @@ setup(
     name='os2datascanner',
     version='1.0',
     package_dir={'': 'src'},
-    packages=['os2webscanner', 'webscanner'],
+    packages=['os2webscanner', 'webscanner', 'scraping'],
     include_package_data=True,
     license='MPL',  # example license
     description='OS2Webscanner for Danish municipalities',
