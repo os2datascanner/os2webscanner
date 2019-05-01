@@ -1,5 +1,5 @@
-from model.core import Source, Handle, Resource
-from model.utilities import NamedTemporaryResource
+from .core import Source, Handle, Resource
+from .utilities import NamedTemporaryResource
 
 from io import BytesIO
 from urllib.parse import urlsplit, urlunsplit

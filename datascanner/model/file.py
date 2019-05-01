@@ -1,4 +1,4 @@
-from model.core import Source, Handle, Resource, ShareableCookie
+from .core import Source, Handle, Resource, ShareableCookie
 
 from urllib.parse import quote, unquote, urlsplit, urlunsplit
 from hashlib import md5

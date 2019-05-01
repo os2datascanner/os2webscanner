@@ -1,4 +1,4 @@
-from model.core import Source, Handle, Resource, EMPTY_COOKIE
+from .core import Source, Handle, Resource, EMPTY_COOKIE
 
 from io import BytesIO
 from os import remove

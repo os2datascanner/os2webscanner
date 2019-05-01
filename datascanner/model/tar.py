@@ -1,5 +1,5 @@
-from model.core import Source, Handle, Resource
-from model.utilities import NamedTemporaryResource
+from .core import Source, Handle, Resource
+from .utilities import NamedTemporaryResource
 
 from pathlib import Path
 from tarfile import open as open_tar

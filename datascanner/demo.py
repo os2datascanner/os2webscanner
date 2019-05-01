@@ -6,7 +6,7 @@
 # these files to cat(1). All of the temporary files created as part of this
 # process are automatically cleaned up.
 
-from model.core import Source, SourceManager
+from .model.core import Source, SourceManager
 
 from subprocess import run
 

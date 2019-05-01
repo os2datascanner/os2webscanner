@@ -1,5 +1,5 @@
-from model.core import Source, Handle, ShareableCookie
-from model.file import FilesystemResource
+from .core import Source, Handle, ShareableCookie
+from .file import FilesystemResource
 
 from os import rmdir
 from regex import compile, match

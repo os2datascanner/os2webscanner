@@ -23,9 +23,9 @@ appear on the filesystem when you ask the model for its path.
 """
 
 # Import everything that provides a URL or MIME type handler
-import model.smb
-import model.tar
-import model.zip
-import model.data
-import model.http
-import model.filtered
+from . import smb
+from . import tar
+from . import zip
+from . import data
+from . import http
+from . import filtered

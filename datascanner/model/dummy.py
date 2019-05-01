@@ -1,4 +1,4 @@
-from model.core import Source, Handle, Resource
+from .core import Source, Handle, Resource
 
 class DummySource(Source):
     def __init__(self, *handles):

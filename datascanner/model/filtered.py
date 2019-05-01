@@ -1,5 +1,5 @@
-from model.core import Source, Handle, Resource
-from model.utilities import NamedTemporaryResource
+from .core import Source, Handle, Resource
+from .utilities import NamedTemporaryResource
 
 from bz2 import BZ2File
 from gzip import GzipFile
