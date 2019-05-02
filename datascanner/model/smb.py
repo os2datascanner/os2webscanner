@@ -33,10 +33,9 @@ class SMBSource(Source):
 
     def _open(self, sm):
         mntdir = mkdtemp()
-        args = ["mount", "-t", "cifs", self._unc, mntdir, '-o']
-        args.append(self._make_optarg(display=False))
-
         try:
+            args = ["mount", "-t", "cifs", self._unc, mntdir, '-o']
+            args.append(self._make_optarg(display=False))
             print(args)
             assert run(args).returncode == 0
             return ShareableCookie(Path(mntdir))
