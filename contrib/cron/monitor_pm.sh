@@ -15,14 +15,14 @@ then
     sleep 30
     cat | mail -t ${RECIPIENTS} -s "Process manager genstartet"  << EOF 
 
-    Process manager kørte ikke på $HOSTNAME og er genstartet.
+    Process manager kÃ¸rte ikke pÃ¥ $HOSTNAME og er genstartet.
 
-    I øjeblikket kører følgende process_manager-processer:
+    I Ã¸jeblikket kÃ¸rer fÃ¸lgende process_manager-processer:
 
     $(ps aux | grep process_)
 
     med venlig hilsen
-    Kron-dæmonen på ${HOSTNAME}.
+    Kron-dÃ¦monen pÃ¥ ${HOSTNAME}.
 
 EOF
 
