@@ -1,4 +1,4 @@
-from .core import Source, Handle, Resource, EMPTY_COOKIE
+from .core import Source, Handle, FileResource, EMPTY_COOKIE
 
 from io import BytesIO
 from os import remove
@@ -47,7 +47,7 @@ class DataHandle(Handle):
     def follow(self, sm):
         return DataResource(self, sm)
 
-class DataResource(Resource):
+class DataResource(FileResource):
     def __init__(self, handle, sm):
         super(DataResource, self).__init__(handle, sm)
         self._hash = None

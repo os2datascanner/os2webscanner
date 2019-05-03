@@ -1,4 +1,4 @@
-from .core import Source, Handle, Resource
+from .core import Source, Handle, FileResource
 from .utilities import NamedTemporaryResource
 
 from pathlib import Path
@@ -38,7 +38,7 @@ class ZipHandle(Handle):
     def follow(self, sm):
         return ZipResource(self, sm)
 
-class ZipResource(Resource):
+class ZipResource(FileResource):
     def __init__(self, handle, sm):
         super(ZipResource, self).__init__(handle, sm)
         self._info = None

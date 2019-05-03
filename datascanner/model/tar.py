@@ -1,4 +1,4 @@
-from .core import Source, Handle, Resource
+from .core import Source, Handle, FileResource
 from .utilities import NamedTemporaryResource
 
 from pathlib import Path
@@ -38,7 +38,7 @@ class TarHandle(Handle):
     def follow(self, sm):
         return TarResource(self, sm)
 
-class TarResource(Resource):
+class TarResource(FileResource):
     def __init__(self, handle, sm):
         super(TarResource, self).__init__(handle, sm)
         self._info = None

@@ -1,4 +1,4 @@
-from .core import Source, Handle, Resource
+from .core import Source, Handle, FileResource
 from .utilities import NamedTemporaryResource
 
 from io import BytesIO
@@ -66,7 +66,7 @@ class WebHandle(Handle):
     def follow(self, sm):
         return WebResource(self, sm)
 
-class WebResource(Resource):
+class WebResource(FileResource):
     def __init__(self, handle, sm):
         super(WebResource, self).__init__(handle, sm)
         self._header = None

@@ -1,4 +1,4 @@
-from .core import Source, Handle, Resource, ShareableCookie
+from .core import Source, Handle, FileResource, ShareableCookie
 
 from urllib.parse import quote, unquote, urlsplit, urlunsplit
 from hashlib import md5
@@ -44,7 +44,7 @@ class FilesystemHandle(Handle):
     def follow(self, sm):
         return FilesystemResource(self, sm)
 
-class FilesystemResource(Resource):
+class FilesystemResource(FileResource):
     def __init__(self, handle, sm):
         super(FilesystemResource, self).__init__(handle, sm)
         self._full_path = \
