@@ -221,7 +221,7 @@ def check_running_scanjobs():
                         "SCAN FAILED: Process died with pid {}".format(scan.pid))
             logging.log(logging.DEBUG, "Checked {} scans.".format(len(running_scans)))
     except (DatabaseError, IntegrityError) as ex:
-        logging.log(logging.ERROR, 'Error occured while trying to kill process {}'.format(scan.pid))
+        logging.log(logging.ERROR, 'Error occured while trying to select and update running scans.')
         logging.log(logging.ERROR, 'Error message {}'.format(str(ex)))
         pass
 
