@@ -21,9 +21,9 @@ sources_and_urls = [
     (SMBSource("//10.0.0.30/Share$/Documents", "FaithfullA", None, "SYSGRP"),
         "smb://SYSGRP;FaithfullA@10.0.0.30/Share%24/Documents"),
 
-    (WebSource("www.example.com"),
+    (WebSource("http://www.example.com"),
         "http://www.example.com"),
-    (SecureWebSource("www.example.com"),
+    (SecureWebSource("https://www.example.com"),
         "https://www.example.com"),
 
     (DataSource(b"This is a test", "text/plain"),

@@ -2,62 +2,38 @@ from .core import Source, Handle, FileResource
 from .utilities import NamedTemporaryResource
 
 from io import BytesIO
-from urllib.parse import urlsplit, urlunsplit
-from urllib3 import HTTPConnectionPool, HTTPSConnectionPool
+from requests.sessions import Session
 from dateutil.parser import parse
 from contextlib import contextmanager
 
 class WebSource(Source):
-    def __init__(self, host, port=80):
-        self._host = host
-        self._port = port
+    def __init__(self, url):
+        assert url.startswith("http:") or url.startswith("https:")
+        self._url = url
 
     def __str__(self):
-        return "WebSource({0}:{1})".format(self._host, self._port)
+        return "WebSource({0})".format(self._url)
 
     def _open(self, sm):
-        return HTTPConnectionPool(self._host, self._port)
+        return Session()
 
-    def _close(self, pool):
-        pool.close()
+    def _close(self, session):
+        session.close()
+
+    def handles(self, sm):
+        pass
 
     def to_url(self):
-        netloc = \
-            self._host + ((':' + self._port) if not self._port == 80 else '')
-        return urlunsplit(('http', netloc, '', None, None))
+        return self._url
 
     @staticmethod
     def from_url(url):
-        scheme, netloc, path, _, _ = urlsplit(url)
-        assert not path
-        host = netloc.split(':', maxsplit=1)
-        return WebSource(host[0], 80 if len(host) == 1 else int(host[1]))
+        return WebSource(url)
+
+SecureWebSource = WebSource
 
 Source._register_url_handler("http", WebSource.from_url)
-
-class SecureWebSource(WebSource):
-    def __init__(self, host, port=443):
-        super(SecureWebSource, self).__init__(host, port)
-
-    def __str__(self):
-        return "SecureWebSource({0}:{1})".format(self._host, self._port)
-
-    def _open(self, sm):
-        return HTTPSConnectionPool(self._host, self._port)
-
-    def to_url(self):
-        netloc = \
-            self._host + ((':' + self._port) if not self._port == 443 else '')
-        return urlunsplit(('https', netloc, '', None, None))
-
-    @staticmethod
-    def from_url(url):
-        scheme, netloc, path, _, _ = urlsplit(url)
-        assert not path
-        host = netloc.split(':', maxsplit=1)
-        return SecureWebSource(host[0], 443 if len(host) == 1 else int(host[1]))
-
-Source._register_url_handler("https", SecureWebSource.from_url)
+Source._register_url_handler("https", WebSource.from_url)
 
 class WebHandle(Handle):
     def __init__(self, source, path):
@@ -71,10 +47,14 @@ class WebResource(FileResource):
         super(WebResource, self).__init__(handle, sm)
         self._header = None
 
+    def _make_url(self):
+        handle = self.get_handle()
+        base = handle.get_source().to_url()
+        return base + str(handle.get_relative_path())
+
     def get_header(self):
         if not self._header:
-            response = self._open_source().request(
-                    "HEAD", str(self._handle.get_relative_path()))
+            response = self._open_source().head(self._make_url())
             self._header = dict(response.headers)
         return self._header
 
@@ -99,7 +79,6 @@ class WebResource(FileResource):
 
     @contextmanager
     def make_stream(self):
-        response = self._open_source().request(
-                "GET", str(self._handle.get_relative_path()))
-        with BytesIO(response.data) as s:
+        response = self._open_source().get(self._make_url())
+        with BytesIO(response.content) as s:
             yield s
