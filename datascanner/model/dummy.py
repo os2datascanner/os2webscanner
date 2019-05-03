@@ -7,3 +7,9 @@ class DummySource(Source):
     def handles(self, sm):
         for h in self._handles:
             yield h
+
+    def _open(self, sm):
+        pass
+
+    def _close(self, cookie):
+        pass

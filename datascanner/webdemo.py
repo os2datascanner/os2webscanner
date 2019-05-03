@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from model.core import Source, SourceManager
-from model.http import WebHandle
-from model.dummy import DummySource
+from .model.core import Source, SourceManager
+from .model.http import WebHandle
+from .model.dummy import DummySource
 
 from subprocess import run
 
