@@ -2,8 +2,8 @@
 
 import argparse
 
-from model.core import Source, SourceManager
-from model.core import UnknownSchemeError
+from .model.core import Source, SourceManager
+from .model.core import UnknownSchemeError
 
 guess_mime = True
 
