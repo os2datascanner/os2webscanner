@@ -177,6 +177,106 @@ def main():
     # Delete all inactive scan's queue items to start with
     Scan.cleanup_finished_scans(timedelta(days=10000), log=True)
 
+    prepare_processors()
+
+    start_all_processors()
+
+    while True:
+        sys.stdout.flush()
+        sys.stderr.flush()
+        db.reset_queries()
+
+        restart_terminated_processors()
+
+        restart_stuck_processors()
+
+        check_running_scanjobs()
+
+        # Cleanup finished scans from the last minute
+        Scan.cleanup_finished_scans(timedelta(minutes=1), log=True)
+
+        Scan.pause_non_ocr_conversions_on_scans_with_too_many_ocr_items()
+
+        time.sleep(10)
+
+
+def check_running_scanjobs():
+    try:
+        logging.log(logging.DEBUG, "Checking running scans...")
+        with transaction.atomic():
+            running_scans = Scan.objects.filter(
+                status=Scan.STARTED
+            ).select_for_update(nowait=True)
+            for scan in running_scans:
+                if not scan.pid \
+                        and not hasattr(scan, 'exchangescan'):
+                    continue
+                try:
+                    # Check if process is still running
+                    os.kill(scan.pid, 0)
+                    logging.log(logging.DEBUG, 'Scan {} (with PID {}): OK'.format(scan.pk, scan.pid))
+                except OSError as ex:
+                    logging.log(logging.DEBUG, 'Scan {} (with PID {}): FAILED ({})'.format(scan.pk, scan.pid, str(ex)))
+                    scan.set_scan_status_failed(
+                        "SCAN FAILED: Process died with pid {}".format(scan.pid))
+            logging.log(logging.DEBUG, "Checked {} scans.".format(len(running_scans)))
+    except (DatabaseError, IntegrityError) as ex:
+        logging.log(logging.ERROR, 'Error occured while trying to select and update running scans.')
+        logging.log(logging.ERROR, 'Error message {}'.format(str(ex)))
+        pass
+
+
+def restart_stuck_processors():
+    stuck_processes = ConversionQueueItem.objects.filter(
+        status=ConversionQueueItem.PROCESSING,
+        process_start_time__lt=(
+            timezone.localtime(timezone.now()) - processing_timeout
+        ),
+    )
+    for p in stuck_processes:
+        pid = p.process_id
+        if pid in process_map:
+            logging.log(logging.WARNING, "Process with pid %s is stuck, restarting" % pid)
+            stuck_process = process_map[pid]
+            restart_process(stuck_process)
+        else:
+            p.status = ConversionQueueItem.FAILED
+            try:
+                p.url.scan.log_occurrence(
+                    "PROCESS STUCK: type <{0}>, URL: {1}".format(
+                        p.type,
+                        p.url.url
+                    )
+                )
+            except Exception:
+                p.url.scan.log_occurrence(
+                    "PROCESS STUCK: url <{0}>".format(
+                        p.url.url,
+                    )
+                )
+            # Clean up failed conversion temp dir
+            if os.access(p.tmp_dir, os.W_OK):
+                shutil.rmtree(p.tmp_dir, True)
+            p.save()
+            # Clean up failed conversion temp dir
+            p.delete_tmp_dir()
+
+
+def restart_terminated_processors():
+    for pdata in process_list:
+        if pdata['process_handle'].poll() is not None:
+            logging.log(logging.WARNING, ("Process %s has terminated, restarting it" % (
+                pdata['name']
+            )))
+            restart_process(pdata)
+
+
+def start_all_processors():
+    for p in process_list:
+        start_process(p)
+
+
+def prepare_processors():
     for ptype in process_types:
         for i in range(processes_per_type):
             name = '%s%d' % (ptype, i)
@@ -193,85 +293,6 @@ def main():
             process_map[name] = p
             process_list.append(p)
 
-    for p in process_list:
-        start_process(p)
-
-    while True:
-        sys.stdout.flush()
-        sys.stderr.flush()
-        db.reset_queries()
-        for pdata in process_list:
-            if pdata['process_handle'].poll() is not None:
-                logging.log(logging.WARNING, ("Process %s has terminated, restarting it" % (
-                    pdata['name']
-                )))
-                restart_process(pdata)
-
-        stuck_processes = ConversionQueueItem.objects.filter(
-            status=ConversionQueueItem.PROCESSING,
-            process_start_time__lt=(
-                timezone.localtime(timezone.now()) - processing_timeout
-            ),
-        )
-
-        for p in stuck_processes:
-            pid = p.process_id
-            if pid in process_map:
-                logging.log(logging.WARNING, "Process with pid %s is stuck, restarting" % pid)
-                stuck_process = process_map[pid]
-                restart_process(stuck_process)
-            else:
-                p.status = ConversionQueueItem.FAILED
-                try:
-                    p.url.scan.log_occurrence(
-                        "PROCESS STUCK: type <{0}>, URL: {1}".format(
-                            p.type,
-                            p.url.url
-                        )
-                    )
-                except Exception:
-                    p.url.scan.log_occurrence(
-                        "PROCESS STUCK: url <{0}>".format(
-                            p.url.url,
-                        )
-                    )
-                # Clean up failed conversion temp dir
-                if os.access(p.tmp_dir, os.W_OK):
-                    shutil.rmtree(p.tmp_dir, True)
-                p.save()
-                # Clean up failed conversion temp dir
-                p.delete_tmp_dir()
-
-        try:
-            logging.log(logging.DEBUG, "Checking running scans...")
-            with transaction.atomic():
-                running_scans = Scan.objects.filter(
-                    status=Scan.STARTED
-                ).select_for_update(nowait=True)
-                for scan in running_scans:
-                    if not scan.pid \
-                            and not hasattr(scan, 'exchangescan'):
-                        continue
-                    try:
-                        # Check if process is still running
-                        os.kill(scan.pid, 0)
-                        logging.log(logging.DEBUG, 'Scan {} (with PID {}): OK'.format(scan.pk, scan.pid))
-                    except OSError as ex:
-                        logging.log(logging.DEBUG, 'Scan {} (with PID {}): FAILED ({})'.format(scan.pk, scan.pid, str(ex)))
-                        scan.set_scan_status_failed(
-                            "SCAN FAILED: Process died with pid {}".format(scan.pid))
-                logging.log(logging.DEBUG, "Checked {} scans.".format(len(running_scans)))
-        except (DatabaseError, IntegrityError) as ex:
-            logging.log(logging.ERROR, 'Error occured while trying to kill process {}'.format(scan.pid))
-            logging.log(logging.ERROR, 'Error message {}'.format(str(ex)))
-            pass
-
-        # Cleanup finished scans from the last minute
-        Scan.cleanup_finished_scans(timedelta(minutes=1), log=True)
-
-        Scan.pause_non_ocr_conversions_on_scans_with_too_many_ocr_items()
-
-        time.sleep(10)
 
 if __name__ == '__main__':
     assert sys.argv[1]

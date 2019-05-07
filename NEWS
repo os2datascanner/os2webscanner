@@ -1,3 +1,9 @@
+* Version 2.2.1, May 7. 2019
+
+New in this version:
+- Bugfix: Processors closed with SigTerm signal is now being teared down properly.
+- Enhancement: Extra logging added to libreoffice processor and process manager.
+
 * Version 2.2.0, April 26. 2019
 
 New in this version:
