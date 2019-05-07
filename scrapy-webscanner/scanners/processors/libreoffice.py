@@ -20,9 +20,9 @@ from .processor import Processor
 import os
 import os.path
 import subprocess
-import random
 import hashlib
 import pathlib
+import logging
 from django.conf import settings
 
 from time import sleep
@@ -74,8 +74,12 @@ class LibreOfficeProcessor(Processor):
 couldn't create a LibreOffice process"""
 
     def teardown_queue_processing(self):
+        logging.info('Tearing down libreoffice queue processor: {}'.format(
+            self.instance_name)
+        )
         try:
             if self.unoconv:
+                logging.info('Terminating unoconv...')
                 # If we were interrupted in the middle of trying to run
                 # unoconv, then kill it off: a stuck unoconv instance might
                 # remain attached to the pipe, corrupting messages sent by
@@ -89,6 +93,7 @@ couldn't create a LibreOffice process"""
                 finally:
                     self.unoconv = None
             if self.instance and self.instance.poll() is None:
+                logging.info('Terminating instance...')
                 # LibreOffice is still running; try to shut it down cleanly,
                 # but do so messily if necessary
 
