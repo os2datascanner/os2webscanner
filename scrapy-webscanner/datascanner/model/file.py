@@ -72,5 +72,5 @@ class FilesystemResource(FileResource):
 
     @contextmanager
     def make_stream(self):
-        with open(self._full_path, "rb") as s:
+        with open(str(self._full_path), "rb") as s:
             yield s
