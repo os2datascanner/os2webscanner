@@ -8,5 +8,5 @@ export DJANGO_SETTINGS_MODULE="webscanner.settings"
 
 source "${BASE_DIR}/python-env/bin/activate"
 VAR_DIR=$(${BASE_DIR}/manage.py get_var_dir)
-python -m scraping.process_manager "${VAR_DIR}/logs/process_manager.log"
+python -m os2datascanner.engine.scrape.process_manager "${VAR_DIR}/logs/process_manager.log"
 

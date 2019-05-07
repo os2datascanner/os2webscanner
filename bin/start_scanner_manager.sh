@@ -9,4 +9,4 @@ export DJANGO_SETTINGS_MODULE="webscanner.settings"
 source "${BASE_DIR}/python-env/bin/activate"
 VAR_DIR=$(${BASE_DIR}/manage.py get_var_dir)
 
-exec python -m scraping.scanner_manager
+exec python -m os2datascanner.engine.scrape.scanner_manager

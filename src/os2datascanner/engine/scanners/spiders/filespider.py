@@ -18,10 +18,10 @@ class FileSpider(ScannerSpider):
     name = 'filescanner'
     magic = magic.Magic(mime=True)
     custom_settings = {
-        'DOWNLOADER_MIDDLEWARES': {'scraping.scanners.middlewares.middlewares.ExclusionRuleDownloaderMiddleware': 1100,
-                                   'scraping.scanners.middlewares.filescan_middleware.FileScanLastModifiedCheckMiddleware': 1200
+        'DOWNLOADER_MIDDLEWARES': {'os2datascanner.engine.scanners.middlewares.middlewares.ExclusionRuleDownloaderMiddleware': 1100,
+                                   'os2datascanner.engine.scanners.middlewares.filescan_middleware.FileScanLastModifiedCheckMiddleware': 1200
                                    },
-        'SPIDER_MIDDLEWARES': {'scraping.scanners.middlewares.middlewares.ExclusionRuleMiddleware': 1000}
+        'SPIDER_MIDDLEWARES': {'os2datascanner.engine.scanners.middlewares.middlewares.ExclusionRuleMiddleware': 1000}
     }
 
     def __init__(self, scanner, runner, *a, **kw):
