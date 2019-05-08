@@ -1,7 +1,7 @@
 from .core import Source, Handle, FileResource, EMPTY_COOKIE
 
 from io import BytesIO
-from os import remove
+from os import fsync
 from base64 import b64decode, b64encode
 from hashlib import md5
 from pathlib import Path
@@ -63,14 +63,12 @@ class DataResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        ntf = NamedTemporaryFile(delete=False)
-        try:
-            with ntf as res:
-                with self.make_stream() as s:
-                    res.write(s.read())
-            yield ntf.name
-        finally:
-            remove(ntf.name)
+        with NamedTemporaryFile() as fp, self.make_stream() as s:
+            fp.write(s.read())
+            fp.flush()
+            fsync(fp.fileno())
+
+            yield fp.name
 
     @contextmanager
     def make_stream(self):
