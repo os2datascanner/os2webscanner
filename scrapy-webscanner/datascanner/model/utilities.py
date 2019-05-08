@@ -31,20 +31,20 @@ Secret mixin! Classes inheriting from _TypPropEq compare equal if their types
 and properties -- as determined by __getstate__() or __dict__ -- compare equal.
 """
     @staticmethod
-    def __get_comparator(key):
-        if hasattr(key, '__getstate__'):
-            return key.__getstate__()
+    def __get_state(obj):
+        if hasattr(obj, '__getstate__'):
+            return obj.__getstate__()
         else:
-            return key.__dict__
+            return obj.__dict__
 
-    def __eq__(self, key):
-        return type(self) == type(key) and \
-                _TypPropEq.__get_comparator(self) == \
-                _TypPropEq.__get_comparator(key)
+    def __eq__(self, other):
+        return type(self) == type(other) and \
+                self.__get_state(self) == \
+                self.__get_state(other)
 
     def __hash__(self):
         h = 42 + hash(type(self))
-        for k, v in _TypPropEq.__get_comparator(self).items():
+        for k, v in self.__get_state(self).items():
             h += hash(k) + (hash(v) * 3)
         return h
 
