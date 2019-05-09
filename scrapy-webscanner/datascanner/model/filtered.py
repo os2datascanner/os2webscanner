@@ -1,4 +1,4 @@
-from .core import Source, Handle, Resource
+from .core import Source, Handle, FileResource
 from .utilities import NamedTemporaryResource
 
 from bz2 import BZ2File
@@ -45,7 +45,7 @@ class FilteredHandle(Handle):
     def follow(self, sm):
         return FilteredResource(self, sm)
 
-class FilteredResource(Resource):
+class FilteredResource(FileResource):
     def __init__(self, handle, sm):
         super(FilteredResource, self).__init__(handle, sm)
         self._md5 = None
