@@ -31,14 +31,14 @@ import django
 # Include the Django app
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(base_dir + "/webscanner_site")
-os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
+os.environ["DJANGO_SETTINGS_MODULE"] = "os2datascanner.sites.admin.settings"
 django.setup()
 
 
-from os2webscanner.models.scannerjobs.scanner_model import Scanner
-from os2webscanner.models.scannerjobs.webscanner_model import WebScanner
-from os2webscanner.models.scannerjobs.filescanner_model import FileScanner
-from os2webscanner.models.scannerjobs.exchangescanner_model import ExchangeScanner
+from ..sites.admin.adminapp.models.scannerjobs.scanner_model import Scanner
+from ..sites.admin.adminapp.models.scannerjobs.webscanner_model import WebScanner
+from ..sites.admin.adminapp.models.scannerjobs.filescanner_model import FileScanner
+from ..sites.admin.adminapp.models.scannerjobs.exchangescanner_model import ExchangeScanner
 
 
 def strip_seconds(d):

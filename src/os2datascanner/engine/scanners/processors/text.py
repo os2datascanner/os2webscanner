@@ -14,7 +14,7 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 """Text Processors."""
-from os2webscanner.utils import get_codec_and_string
+from ....sites.admin.adminapp.utils import get_codec_and_string
 
 from .processor import Processor
 import os

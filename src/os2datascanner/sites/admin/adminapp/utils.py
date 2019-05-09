@@ -32,11 +32,11 @@ from django.conf import settings
 from django.core.mail import EmailMessage
 from django.template import loader
 
-from os2webscanner.models.match_model import Match
-from os2webscanner.models.url_model import Url
-from os2webscanner.models.scannerjobs.webscanner_model import WebScanner
-from os2webscanner.models.scans.webscan_model import WebScan
-from os2webscanner.models.summary_model import Summary
+from .models.match_model import Match
+from .models.url_model import Url
+from .models.scannerjobs.webscanner_model import WebScanner
+from .models.scans.webscan_model import WebScan
+from .models.summary_model import Summary
 
 
 def notify_user(scan):

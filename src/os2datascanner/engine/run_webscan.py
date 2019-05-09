@@ -79,7 +79,7 @@ class StartWebScan(StartScan, multiprocessing.Process):
 
     def external_link_check(self, external_urls):
         """Perform external link checking."""
-        from os2webscanner.models.url_model import Url
+        from ..sites.admin.adminapp.models.url_model import Url
         logging.info("Link checking %d external URLs..." % len(external_urls))
 
         for url in external_urls:

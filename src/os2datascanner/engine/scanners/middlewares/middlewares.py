@@ -28,7 +28,7 @@ from scrapy.utils.httpobj import urlparse_cached
 from scrapy.utils.url import canonicalize_url
 
 
-from os2webscanner.models.urllastmodified_model import UrlLastModified
+from ....sites.admin.adminapp.models.urllastmodified_model import UrlLastModified
 
 from django.conf import settings as django_settings
 

@@ -4,7 +4,7 @@ import magic
 
 from scrapy.http import Request, HtmlResponse
 from scrapy.exceptions import IgnoreRequest
-from os2webscanner.utils import capitalize_first, get_codec_and_string, secure_save
+from ....sites.admin.adminapp.utils import capitalize_first, get_codec_and_string, secure_save
 
 from ...utils import as_file_uri, as_path
 from ..processors.processor import Processor

@@ -1,6 +1,6 @@
 from django.contrib.auth.models import AnonymousUser, User
 from django.test import TestCase, RequestFactory
-from os2webscanner.utils import get_codec_and_string
+from ...utils import get_codec_and_string
 
 
 class UnicodeTest(TestCase):

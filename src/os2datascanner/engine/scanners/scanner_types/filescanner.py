@@ -1,5 +1,7 @@
 from .scanner import Scanner
 
+from ....sites.admin.adminapp.models.statistic_model import Statistic, TypeStatistics
+
 
 class FileScanner(Scanner):
 
@@ -24,7 +26,6 @@ class FileScanner(Scanner):
             supported_count, supported_size,
             relevant_count, relevant_size,
             relevant_unsupported_count, relevant_unsupported_size):
-        from os2webscanner.models.statistic_model import Statistic
         stats = Statistic.objects.get_or_create(scan=self.scan_object)[0]
         stats.supported_count = supported_count
         stats.supported_size = supported_size
@@ -35,8 +36,6 @@ class FileScanner(Scanner):
         stats.save()
 
     def add_type_statistics(self, name, count, size):
-        from os2webscanner.models.statistic_model \
-                import Statistic, TypeStatistics
         stats = Statistic.objects.get_or_create(scan=self.scan_object)[0]
         type_stats = TypeStatistics(statistic=stats)
         type_stats.type_name = name

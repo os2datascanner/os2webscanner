@@ -6,11 +6,11 @@ import django
 # Include the Django app
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(os.path.join(__file__, "../../"))))
 sys.path.append(base_dir + "/webscanner_site")
-os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
+os.environ["DJANGO_SETTINGS_MODULE"] = "os2datascanner.sites.admin.settings"
 django.setup()
 
-from os2webscanner.models.organization_model import Organization
-from os2webscanner.models.webdomain_model import WebDomain
+from ...models.organization_model import Organization
+from ...models.webdomain_model import WebDomain
 
 # get organization
 organization = Organization.objects.get(pk=1)

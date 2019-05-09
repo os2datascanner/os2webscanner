@@ -8,7 +8,7 @@ base_dir = os.path.dirname(os.path.dirname(os.path.realpath(os.path.join(__file_
 print('\n===Base dir: ' + base_dir)
 print('\n===Current working dir: ' + os.getcwd())
 sys.path.append(base_dir + "/webscanner_site")
-os.environ["DJANGO_SETTINGS_MODULE"] = "webscanner.settings"
+os.environ["DJANGO_SETTINGS_MODULE"] = "os2datascanner.sites.admin.settings"
 django.setup()
 
 from os2webscanner.models.organization_model import Organization

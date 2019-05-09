@@ -1,7 +1,7 @@
 import unittest
 
-from os2webscanner.aescipher import encrypt, decrypt
-from os2webscanner.models.authentication_model import Authentication
+from ...aescipher import encrypt, decrypt
+from ...models.authentication_model import Authentication
 
 
 class AESCipherTest(unittest.TestCase):

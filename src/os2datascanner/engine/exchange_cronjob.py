@@ -16,8 +16,8 @@ load_webscanner_settings()
 
 run_django_setup()
 
-from os2webscanner.models.domain_model import Domain
-from os2webscanner.models.exchangescanner_model import ExchangeScanner
+from ..sites.admin.adminapp.models.domain_model import Domain
+from ..sites.admin.adminapp.models.exchangescanner_model import ExchangeScanner
 
 
 def start_exchange_export():

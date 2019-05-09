@@ -9,10 +9,12 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+import pathlib
 import os
+
 from django.utils.translation import gettext_lazy as _
 
-BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+BASE_DIR = str(pathlib.Path(__file__).parent.parent.parent.parent.absolute())
 PROJECT_DIR = os.path.dirname(BASE_DIR)
 VAR_DIR = os.path.join(PROJECT_DIR, 'var')
 LOGS_DIR = os.path.join(VAR_DIR, 'logs')
@@ -22,10 +24,6 @@ DEBUG = True
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS':
-        [
-            'BASE_DIR/django-os2webscanner/os2webscanner/templates'
-        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'debug': DEBUG,
@@ -81,16 +79,16 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    'os2webscanner.apps.OS2WebScanner',
+    'os2datascanner.sites.admin.adminapp.apps.OS2WebScanner',
     'recurrence',
     'django_xmlrpc',
 )
 
 XMLRPC_METHODS = (
-    ('os2webscanner.rpc.scan_urls', 'scan_urls'),
-    ('os2webscanner.rpc.scan_documents', 'scan_documents'),
-    ('os2webscanner.rpc.get_status', 'get_status'),
-    ('os2webscanner.rpc.get_report', 'get_report'),
+    ('os2datascanner.sites.admin.adminapp.rpc.scan_urls', 'scan_urls'),
+    ('os2datascanner.sites.admin.adminapp.rpc.scan_documents', 'scan_documents'),
+    ('os2datascanner.sites.admin.adminapp.rpc.get_status', 'get_status'),
+    ('os2datascanner.sites.admin.adminapp.rpc.get_report', 'get_report'),
 )
 MIDDLEWARE = (
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -102,9 +100,9 @@ MIDDLEWARE = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'webscanner.urls'
+ROOT_URLCONF = 'os2datascanner.sites.admin.urls'
 
-WSGI_APPLICATION = 'webscanner.wsgi.application'
+WSGI_APPLICATION = 'os2datascanner.sites.admin.wsgi.application'
 
 
 # Database
@@ -132,7 +130,7 @@ DATABASE_POOL_ARGS = {
 LANGUAGE_CODE = 'da-dk'
 
 LOCALE_PATHS = (
-    os.path.join(PROJECT_DIR, 'django-os2webscanner/os2webscanner/locale/'),
+    os.path.join(BASE_DIR, 'adminapp', 'locale'),
 )
 
 LANGUAGES = (
@@ -155,8 +153,8 @@ USE_THOUSAND_SEPARATOR = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR + '/static'
-AUTH_PROFILE_MODULE = 'os2webscanner.UserProfile'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+AUTH_PROFILE_MODULE = 'os2datascanner.sites.admin.adminapp.UserProfile'
 
 LOGIN_REDIRECT_URL = '/'
 

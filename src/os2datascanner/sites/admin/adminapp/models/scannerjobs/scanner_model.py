@@ -33,6 +33,7 @@ from ..organization_model import Organization
 from ..group_model import Group
 from ..regexrule_model import RegexRule
 from ..userprofile_model import UserProfile
+from ...amqp_communication import amqp_connection_manager
 
 base_dir = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
@@ -219,8 +220,6 @@ class Scanner(models.Model):
             if profile is not None:
                 scan.recipients.add(user.profile)
 
-        import json
-        from os2webscanner.amqp_communication import amqp_connection_manager
         queue_name = 'datascanner'
         completed_scans = \
             self.webscans.all().filter(start_time__isnull=False,

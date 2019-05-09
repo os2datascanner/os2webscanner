@@ -42,8 +42,8 @@ from django.conf import settings as django_settings
 django.setup()
 os.umask(0o007)
 
-from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
-from os2webscanner.models.scans.scan_model import Scan
+from ..sites.admin.adminapp.models.conversionqueueitem_model import ConversionQueueItem
+from ..sites.admin.adminapp.models.scans.scan_model import Scan
 
 from . import settings as scanner_settings
 

@@ -267,7 +267,7 @@ class Scan(models.Model):
         if self.status in [Scan.DONE, Scan.FAILED] and \
                 (self._old_status != self.status):
             # Send email
-            from os2webscanner.utils import notify_user
+            from ...utils import notify_user
             try:
                 notify_user(self)
             except IOError:

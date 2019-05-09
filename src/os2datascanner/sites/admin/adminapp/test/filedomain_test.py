@@ -1,9 +1,9 @@
 from django.contrib.auth.models import AnonymousUser, User
 from django.test import TestCase, RequestFactory
 
-from os2webscanner.test.util import CreateOrganization, CreateFileDomain
-from os2webscanner.models.domain_model import Domain
-from os2webscanner.models.filedomain_model import FileDomain
+from ...test.util import CreateOrganization, CreateFileDomain
+from ...models.domain_model import Domain
+from ...models.filedomain_model import FileDomain
 
 
 class FileDomainTest(TestCase):

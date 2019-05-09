@@ -2,7 +2,7 @@
 
 from django.core.management.base import BaseCommand
 
-from os2webscanner.utils import dispatch_pending_summaries
+from ...utils import dispatch_pending_summaries
 
 
 class Command(BaseCommand):

@@ -7,7 +7,7 @@ from .scanner import Scanner
 class WebScanner(Scanner):
 
     def __init__(self, configuration):
-        from os2webscanner.models.scans.webscan_model import WebScan
+        from ....sites.admin.adminapp.models.scans.webscan_model import WebScan
         super(WebScanner, self).__init__(configuration, _Model=WebScan)
 
     @property

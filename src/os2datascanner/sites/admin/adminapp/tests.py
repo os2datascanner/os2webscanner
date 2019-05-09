@@ -23,10 +23,10 @@ import pep8
 from django.test import TestCase
 from django.conf import settings
 
-from os2webscanner.models.domains.webdomain_model import WebDomain
-from os2webscanner.models.organization_model import Organization
-from os2webscanner.models.scannerjobs.webscanner_model import WebScanner
-from os2webscanner.models.scans.scan_model import Scan
+from .models.domains.webdomain_model import WebDomain
+from .models.organization_model import Organization
+from .models.scannerjobs.webscanner_model import WebScanner
+from .models.scans.scan_model import Scan
 from .validate import validate_domain
 
 install_directory = os.path.abspath(os.path.join(settings.BASE_DIR, '..'))

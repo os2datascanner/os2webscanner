@@ -10,7 +10,7 @@ from scrapy import Request
 from scrapy.exceptions import IgnoreRequest
 from scrapy.utils.url import canonicalize_url
 
-from os2webscanner.models.urllastmodified_model import UrlLastModified
+from ....sites.admin.adminapp.models.urllastmodified_model import UrlLastModified
 
 from .middlewares import LastModifiedCheckMiddleware
 

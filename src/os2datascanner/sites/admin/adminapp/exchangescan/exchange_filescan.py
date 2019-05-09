@@ -17,7 +17,7 @@ from exchangelib import EWSDate
 
 from .mailscan_exchange import ExchangeServerScan, read_users
 from .settings import NUMBER_OF_EMAIL_THREADS
-from os2webscanner.models.domain_model import Domain
+from ...models.domain_model import Domain
 
 
 class ExchangeFilescanner(multiprocessing.Process):
@@ -27,7 +27,7 @@ class ExchangeFilescanner(multiprocessing.Process):
         print('Program started')
         self.scan_id = scan_id
 
-        from os2webscanner.models.scan_model import Scan
+        from ...models.scan_model import Scan
         scan_object = Scan.objects.get(pk=self.scan_id)
         valid_domains = scan_object.domains.filter(
             validation_status=Domain.VALID
@@ -146,7 +146,7 @@ class ExchangeFilescanner(multiprocessing.Process):
     def get_scan_object(self):
         """Gets the scan object from db"""
         try:
-            from os2webscanner.models.exchangescan_model import ExchangeScan
+            from ...models.exchangescan_model import ExchangeScan
             scan_object = ExchangeScan.objects.get(pk=self.scan_id)
         except ObjectDoesNotExist:
             print('Scan object with id {} does not exists.'.format(
