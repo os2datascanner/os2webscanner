@@ -350,11 +350,7 @@ Rapport
     {% if failed_conversions or scan.status == "FAILED" %}
     <div class="failed-conversions">
       <h2>Fejllog</h2>
-      <pre>
-      
-      {{ scan.occurrence_log }}
-      
-      </pre>
+      <pre>{{ scan.occurrence_log }}</pre>
       <a href="/report/{{scan.id}}/log/">Se fuld log</a>
     </div>
     {% endif %}
