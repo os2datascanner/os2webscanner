@@ -22,6 +22,7 @@ import os
 import codecs
 
 from .rule import Rule
+from ...utils import get_data
 from ....sites.admin.adminapp.models.sensitivity_level import Sensitivity
 from ..items import MatchItem
 
@@ -54,28 +55,6 @@ def match_full_name(text):
         matched_text = m.group(0)
         matches.add((first, middle_split, last, matched_text))
     return matches
-
-
-def load_name_file(file_name):
-    r"""Load a data file containing persons names in uppercase.
-
-    The names should be separated by a tab character followed by a number,
-    one name per line.
-
-    The file is of the format:
-    NAME\t12312
-
-    Return a list of all the names in unicode.
-    :param file_name:
-    :return:
-    """
-    names = []
-    for line in codecs.open(file_name, "r", "latin-1"):
-        # Skip beginning lines which are not in uppercase
-        if line and not line[1].isupper():
-            continue
-        names.append(str(line[:line.index('\t')]))
-    return names
 
 
 def load_whitelist(whitelist):
@@ -113,16 +92,14 @@ class NameRule(Rule):
         line.
         """
         # Load first and last names from data files
-        self.last_names = load_name_file(
-            self._data_dir + '/' + self._last_name_file)
-        self.first_names = []
-        for f in self._first_name_files:
-            self.first_names.extend(load_name_file(self._data_dir + '/' + f))
+        self.last_names = get_data(self._last_name_file)
+        self.first_names = set()
 
-        # Convert to sets for efficient lookup
-        self.last_names = set(self.last_names)
-        self.first_names = set(self.first_names)
-        self.all_names = self.last_names.union(self.first_names)
+        for f in self._first_name_files:
+            self.first_names |= get_data(f)
+
+        self.all_names = self.last_names | self.first_names
+
         self.whitelist = load_whitelist(whitelist)
         self.blacklist = load_whitelist(blacklist)
 

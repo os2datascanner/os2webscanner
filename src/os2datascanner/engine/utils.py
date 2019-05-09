@@ -1,5 +1,7 @@
+import functools
 import os
 import pathlib
+import pkgutil
 import sys
 import typing
 import urllib.parse
@@ -29,3 +31,26 @@ def as_path(path: str) -> str:
         path = urllib.request.url2pathname(urllib.parse.urlparse(path).path)
 
     return pathlib.Path(path)
+
+
+@functools.lru_cache()
+def get_data(file_name: str, uppercase=True) -> typing.FrozenSet[str]:
+    '''Obtain the given data file from the package data'''
+
+    data = pkgutil.get_data(__name__, os.path.join('data', file_name))
+
+    assert data is not None
+
+    try:
+        text = data.decode('utf-8')
+    except UnicodeDecodeError:
+        text = data.decode('latin-1')
+
+    if uppercase:
+        text = text.upper()
+
+    return frozenset(
+        line.split('\t', 1)[0]
+        for line in text.splitlines()
+        if line
+    )

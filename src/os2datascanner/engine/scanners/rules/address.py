@@ -22,6 +22,7 @@ import os
 import codecs
 
 from .rule import Rule
+from ...utils import get_data
 from ....sites.admin.adminapp.models.sensitivity_level import Sensitivity
 from ..items import MatchItem
 
@@ -76,25 +77,6 @@ def match_full_address(text):
     return matches
 
 
-def load_name_file(file_name):
-    r"""Load a data file containing persons names in uppercase.
-
-    The names should be separated by a tab character followed by a number,
-    one name per line.
-
-    The file is of the format:
-    NAME\t12312
-
-    Return a list of all the names in unicode.
-    :param file_name:
-    :return:
-    """
-    names = []
-    for line in codecs.open(file_name, "r", "latin-1"):
-        names.append(str(line.strip().upper()))
-    return names
-
-
 def load_whitelist(whitelist):
     """Load a list of names from a multi-line string, one name per line.
 
@@ -116,9 +98,6 @@ class AddressRule(Rule):
     """
 
     name = 'address'
-    _data_dir = os.path.dirname(
-        os.path.dirname(os.path.dirname(os.path.realpath(__file__)))) + '/data'
-    _street_name_file = 'gadenavne.txt'
 
     def __init__(self, whitelist=None, blacklist=None):
         """Initialize the rule with an optional whitelist.
@@ -126,12 +105,10 @@ class AddressRule(Rule):
         The whitelist should contains a multi-line string, with one name per
         line.
         """
-        # Load first and last names from data files
-        self.street_names = load_name_file(
-            self._data_dir + '/' + self._street_name_file
-        )
+        # Load street names from data file
+        self.street_names = get_data('gadenavne.txt')
+
         # Convert to sets for efficient lookup
-        self.street_names = set(self.street_names)
         self.whitelist = load_whitelist(whitelist)
         self.blacklist = load_whitelist(blacklist)
 
