@@ -76,6 +76,7 @@ class SMBSource(Source):
 
     netloc_regex = compile(r"^(((\w+);)?(\w+)(:(\w+))?@)?([\w.]+)$")
     @staticmethod
+    @Source.url_handler("smb")
     def from_url(url):
         scheme, netloc, path, _, _ = urlsplit(url)
         match = SMBSource.netloc_regex.match(netloc)
@@ -85,8 +86,6 @@ class SMBSource(Source):
                 username or None, password or None, domain or None)
         else:
             return None
-
-Source._register_url_handler("smb", SMBSource.from_url)
 
 class SMBHandle(Handle):
     def follow(self, sm):

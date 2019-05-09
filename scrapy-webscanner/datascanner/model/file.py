@@ -30,12 +30,11 @@ class FilesystemSource(Source):
         return urlunsplit(('file', '', quote(str(self._path)), None, None))
 
     @staticmethod
+    @Source.url_handler("file")
     def from_url(url):
         scheme, netloc, path, _, _ = urlsplit(url)
         assert not netloc
         return FilesystemSource(unquote(path) if path else None)
-
-Source._register_url_handler("file", FilesystemSource.from_url)
 
 class FilesystemHandle(Handle):
     def follow(self, sm):

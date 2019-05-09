@@ -44,9 +44,13 @@ Handles are generated in an undefined order."""
 
     __url_handlers = {}
     @staticmethod
-    def _register_url_handler(scheme, handler):
-        assert not scheme in Source.__url_handlers
-        Source.__url_handlers[scheme] = handler
+    def url_handler(*schemes):
+        def _url_handler(func):
+            for scheme in schemes:
+                assert not scheme in Source.__url_handlers
+                Source.__url_handlers[scheme] = func
+            return func
+        return _url_handler
 
     @staticmethod
     def from_url(url):
@@ -62,9 +66,13 @@ Parses the given URL to produce a new Source."""
 
     __mime_handlers = {}
     @staticmethod
-    def _register_mime_handler(mime, constructor):
-        assert not mime in Source.__mime_handlers
-        Source.__mime_handlers[mime] = constructor
+    def mime_handler(*mimes):
+        def _mime_handler(func):
+            for mime in mimes:
+                assert not mime in Source.__mime_handlers
+                Source.__mime_handlers[mime] = func
+            return func
+        return _mime_handler
 
     @staticmethod
     def from_handle(handle, sm=None):

@@ -27,13 +27,11 @@ class WebSource(Source):
         return self._url
 
     @staticmethod
+    @Source.url_handler("http", "https")
     def from_url(url):
         return WebSource(url)
 
 SecureWebSource = WebSource
-
-Source._register_url_handler("http", WebSource.from_url)
-Source._register_url_handler("https", WebSource.from_url)
 
 class WebHandle(Handle):
     def follow(self, sm):

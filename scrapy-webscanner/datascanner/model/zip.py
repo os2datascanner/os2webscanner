@@ -6,6 +6,7 @@ from zipfile import ZipFile
 from datetime import datetime
 from contextlib import contextmanager
 
+@Source.mime_handler("application/zip")
 class ZipSource(Source):
     def __init__(self, handle):
         self._handle = handle
@@ -28,8 +29,6 @@ class ZipSource(Source):
         r, zipfile = cookie
         r.__exit__(None, None, None)
         zipfile.close()
-
-Source._register_mime_handler("application/zip", ZipSource)
 
 class ZipHandle(Handle):
     def follow(self, sm):

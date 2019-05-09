@@ -6,6 +6,7 @@ from tarfile import open as open_tar
 from datetime import datetime
 from contextlib import contextmanager
 
+@Source.mime_handler("application/x-tar")
 class TarSource(Source):
     def __init__(self, handle):
         self._handle = handle
@@ -28,8 +29,6 @@ class TarSource(Source):
         r, tarfile = cookie
         r.__exit__(None, None, None)
         tarfile.close()
-
-Source._register_mime_handler("application/x-tar", TarSource)
 
 class TarHandle(Handle):
     def follow(self, sm):

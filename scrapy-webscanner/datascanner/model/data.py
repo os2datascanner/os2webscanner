@@ -29,13 +29,12 @@ class DataSource(Source):
         return "data:{0};base64,{1}".format(self._mime, b64encode(self._content).decode(encoding='ascii'))
 
     @staticmethod
+    @Source.url_handler("data")
     def from_url(url):
         _, rest = url.split(':', maxsplit=1)
         mime, rest = rest.split(';', maxsplit=1)
         _, content = rest.split(',', maxsplit=1)
         return DataSource(b64decode(content), mime)
-
-Source._register_url_handler('data', DataSource.from_url)
 
 class DataHandle(Handle):
     def guess_type(self):
