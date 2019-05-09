@@ -32,9 +32,6 @@ class TarSource(Source):
 Source._register_mime_handler("application/x-tar", TarSource)
 
 class TarHandle(Handle):
-    def __init__(self, source, relpath):
-        super(TarHandle, self).__init__(source, Path(relpath))
-
     def follow(self, sm):
         return TarResource(self, sm)
 

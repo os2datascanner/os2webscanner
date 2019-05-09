@@ -32,9 +32,6 @@ class ZipSource(Source):
 Source._register_mime_handler("application/zip", ZipSource)
 
 class ZipHandle(Handle):
-    def __init__(self, source, relpath):
-        super(ZipHandle, self).__init__(source, Path(relpath))
-
     def follow(self, sm):
         return ZipResource(self, sm)
 

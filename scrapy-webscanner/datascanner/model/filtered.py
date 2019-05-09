@@ -40,10 +40,8 @@ Source._register_mime_handler(
     lambda h: FilteredSource(h,
         lambda stream: LZMAFile(filename=stream, mode='r')))
 
-class FilteredHandle(Handle):
-    def __init__(self, source, relpath):
-        super(FilteredHandle, self).__init__(source, Path(relpath))
 
+class FilteredHandle(Handle):
     def follow(self, sm):
         return FilteredResource(self, sm)
 

@@ -38,9 +38,6 @@ class DataSource(Source):
 Source._register_url_handler('data', DataSource.from_url)
 
 class DataHandle(Handle):
-    def __init__(self, source, relpath):
-        super(DataHandle, self).__init__(source, relpath)
-
     def guess_type(self):
         return self.get_source()._mime
 

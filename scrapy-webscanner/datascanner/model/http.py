@@ -36,9 +36,6 @@ Source._register_url_handler("http", WebSource.from_url)
 Source._register_url_handler("https", WebSource.from_url)
 
 class WebHandle(Handle):
-    def __init__(self, source, path):
-        super(WebHandle, self).__init__(source, path)
-
     def follow(self, sm):
         return WebResource(self, sm)
 

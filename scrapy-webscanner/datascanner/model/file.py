@@ -38,9 +38,6 @@ class FilesystemSource(Source):
 Source._register_url_handler("file", FilesystemSource.from_url)
 
 class FilesystemHandle(Handle):
-    def __init__(self, source, relpath):
-        super(FilesystemHandle, self).__init__(source, relpath)
-
     def follow(self, sm):
         return FilesystemResource(self, sm)
 

@@ -89,8 +89,5 @@ class SMBSource(Source):
 Source._register_url_handler("smb", SMBSource.from_url)
 
 class SMBHandle(Handle):
-    def __init__(self, source, relpath):
-        super(SMBHandle, self).__init__(source, relpath)
-
     def follow(self, sm):
         return FilesystemResource(self, sm)
