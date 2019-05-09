@@ -288,13 +288,17 @@ def prepare_processors():
 
 
 if __name__ == '__main__':
-    assert sys.argv[1]
-    logfile = sys.argv[1]
+    logfile = (
+        sys.argv[1] if len(sys.argv) > 1
+        else os.path.join(log_dir, "process_manager.log")
+    )
 
     logging.basicConfig(
             level=logging.DEBUG,
-            format="""\
-%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s""",
+            format=(
+                "%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d "
+                "%(message)s"
+            ),
             handlers=[
                 logging.FileHandler(logfile),
                 logging.StreamHandler(sys.stderr)
