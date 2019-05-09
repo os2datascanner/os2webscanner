@@ -29,8 +29,6 @@ from .models.scannerjobs.webscanner_model import WebScanner
 from .models.scans.scan_model import Scan
 from .validate import validate_domain
 
-install_directory = os.path.abspath(os.path.join(settings.BASE_DIR, '..'))
-
 
 class ScannerTest(TestCase):
 
@@ -85,6 +83,7 @@ class ScannerTest(TestCase):
         self.assertFalse(isinstance(scanner.run('kaflaflibob'), Scan))
 
 
+# TODO: Make it pep8 version 1.7 compatible
 def pep8_test(filepath):
     """Run a pep8 test on the filepath."""
     def do_test(self):
@@ -105,13 +104,3 @@ def pep8_test(filepath):
 
     return do_test
 
-# TODO: Make it pep8 version 1.7 compatible
-#class Pep8Test(TestCase):
-
-  #  """Test that django app and scrapy webscanner are PEP8-compliant."""
-
- #   j = lambda dir: os.path.join(install_directory, dir)
-
-   # test_os2webscanner = pep8_test(j('django-os2webscanner'))
-   # test_scrapywebscanner = pep8_test(j('scrapy-webscanner'))
-   # test_webscanner_client = pep8_test(j('webscanner_client'))
