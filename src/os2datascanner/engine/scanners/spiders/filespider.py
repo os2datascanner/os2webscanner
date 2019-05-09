@@ -40,10 +40,14 @@ class FileSpider(ScannerSpider):
     def start_requests(self):
         """Return requests for all starting URLs AND sitemap URLs."""
         logging.info("Starting requests")
+
         requests = []
         for url in self.start_urls:
             # Some of the files are directories. We handle them in handle_error method.
-            requests.extend(self.append_file_request(url))
+            try:
+                requests.extend(self.append_file_request(url))
+            except Exception:
+                logging.exception('adding request for url %r failed', url)
 
         return requests
 

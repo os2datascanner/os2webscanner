@@ -74,12 +74,16 @@ class WebSpider(ScannerSpider):
                             # Add the lastmod date from the sitemap
                             meta={"lastmod": url.get("lastmod", None)})
                 )
-            except Exception as e:
-                logging.error("URL failed: {0} ({1})".format(url, str(e)))
+            except Exception:
+                logging.exception('adding request for url %r failed', url)
 
         for url in self.start_urls:
-            requests.append(Request(url, callback=self.parse,
-                                    errback=self.handle_error))
+            try:
+                requests.append(Request(url, callback=self.parse,
+                                        errback=self.handle_error))
+            except Exception:
+                logging.exception('adding request for url %r failed', url)
+
 
         return requests
 

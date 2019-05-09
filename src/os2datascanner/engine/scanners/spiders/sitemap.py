@@ -40,11 +40,15 @@ class SitemapURLGathererSpider(BaseScannerSpider, SitemapSpider):
 
         # Add requests for uploaded sitemap files
         for x in self.uploaded_sitemap_urls:
-            # Specify dont_filter because this is an uploaded sitemap file
-            # with a file:// URL and we don't want it filtered as an offsite
-            # request.
-            requests.append(Request(x, callback=self._parse_sitemap,
-                                    dont_filter=True))
+            try:
+                # Specify dont_filter because this is an uploaded
+                # sitemap file with a file:// URL and we don't want it
+                # filtered as an offsite request.
+                requests.append(Request(x, callback=self._parse_sitemap,
+                                        dont_filter=True))
+            except Exception:
+                logging.exception('adding request for url %r failed', x)
+
         return requests
 
     def _parse_sitemap(self, response):
