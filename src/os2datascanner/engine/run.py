@@ -32,8 +32,8 @@ os.umask(0o007)
 os.environ["SCRAPY_SETTINGS_MODULE"] = "os2datascanner.engine.scanners.settings"
 
 # django_setup needs to be loaded before any imports from django app os2webscanner
-from .utils import load_webscanner_settings, run_django_setup
-load_webscanner_settings()
+from .utils import run_django_setup
+
 run_django_setup()
 
 # Activate timezone from settings
