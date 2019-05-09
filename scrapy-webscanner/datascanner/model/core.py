@@ -6,9 +6,6 @@ from subprocess import run, PIPE, DEVNULL
 
 from .utilities import _TypPropEq
 
-class Error(Exception):
-    pass
-
 class Source(ABC, _TypPropEq):
     """A Source represents the root of a hierarchy to be explored. It
     constructs Handles, which represent the position of an object in the
@@ -85,7 +82,7 @@ class Source(ABC, _TypPropEq):
         else:
             return None
 
-class UnknownSchemeError(Error):
+class UnknownSchemeError(LookupError):
     pass
 
 class SourceManager:
