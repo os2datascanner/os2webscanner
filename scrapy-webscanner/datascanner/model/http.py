@@ -39,7 +39,7 @@ class WebHandle(Handle):
 
 class WebResource(FileResource):
     def __init__(self, handle, sm):
-        super(WebResource, self).__init__(handle, sm)
+        super().__init__(handle, sm)
         self._header = None
 
     def _make_url(self):

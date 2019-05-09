@@ -45,7 +45,7 @@ class DataHandle(Handle):
 
 class DataResource(FileResource):
     def __init__(self, handle, sm):
-        super(DataResource, self).__init__(handle, sm)
+        super().__init__(handle, sm)
         self._hash = None
 
     def get_hash(self):

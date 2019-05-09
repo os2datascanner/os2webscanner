@@ -50,7 +50,7 @@ class FilteredHandle(Handle):
 
 class FilteredResource(FileResource):
     def __init__(self, handle, sm):
-        super(FilteredResource, self).__init__(handle, sm)
+        super().__init__(handle, sm)
         self._md5 = None
 
     def get_hash(self):

@@ -36,7 +36,7 @@ class ZipHandle(Handle):
 
 class ZipResource(FileResource):
     def __init__(self, handle, sm):
-        super(ZipResource, self).__init__(handle, sm)
+        super().__init__(handle, sm)
         self._info = None
 
     def get_info(self):

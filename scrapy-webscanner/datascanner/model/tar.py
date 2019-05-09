@@ -36,7 +36,7 @@ class TarHandle(Handle):
 
 class TarResource(FileResource):
     def __init__(self, handle, sm):
-        super(TarResource, self).__init__(handle, sm)
+        super().__init__(handle, sm)
         self._info = None
 
     def _try_member_operation(self, operation):
