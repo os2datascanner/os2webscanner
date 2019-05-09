@@ -41,7 +41,7 @@ def take(queue, renderer=str):
             seconds += 1
             print("{0} read-spinning for {1} seconds...".format(me, seconds))
 
-def generator(start, urls, sources):
+def generate(start, urls, sources):
     count = 0
     try:
         for url in urls:
@@ -54,9 +54,9 @@ def generator(start, urls, sources):
         sources.put(done)
         now = (datetime.now() - start).total_seconds()
         per_sec = float(count) / now
-        print("generator signing off after finding {0} sources in {1} seconds ({2} sources/sec)".format(count, now, per_sec))
+        print("generate signing off after finding {0} sources in {1} seconds ({2} sources/sec)".format(count, now, per_sec))
 
-def explorer(start, sm, sources, handles):
+def explore(start, sm, sources, handles):
     count = 0
     total = 0
     own_sources = []
@@ -83,13 +83,13 @@ def explorer(start, sm, sources, handles):
     finally:
         now = (datetime.now() - start).total_seconds()
         per_sec = float(count) / now
-        print("explorer signing off after finding {0} handles (out of {3}) in {1} seconds ({2} handles/sec)".format(count, now, per_sec, total))
+        print("explore signing off after finding {0} handles (out of {3}) in {1} seconds ({2} handles/sec)".format(count, now, per_sec, total))
         put(handles, done)
 
-def hs_pair(t):
-    return "<text from {0}>".format(t[0])
+def print_handle_name(tpl):
+    return "<text from {0}>".format(tpl[0])
 
-def processor(start, parent, handles, texts, peers):
+def process(start, parent, handles, texts, peers):
     with peers.get_lock():
         peers.value += 1
     me = current_process().name
@@ -112,7 +112,7 @@ def processor(start, parent, handles, texts, peers):
                         text = None
                     if text:
                         print("{0}: finished {1}, got some text".format(me, handle))
-                        put(texts, ((handle, text)), hs_pair)
+                        put(texts, ((handle, text)), print_handle_name)
                         count += 1
                     else:
                         print("{0}: finished {1}, no good".format(me, handle))
@@ -129,11 +129,11 @@ def processor(start, parent, handles, texts, peers):
             else:
                 print("{0} was not the last processor, {1} remain".format(me, peers.value))
 
-def printer(start, texts):
+def display(start, texts):
     count = 0
     try:
         while True:
-            text = take(texts, hs_pair)
+            text = take(texts, print_handle_name)
             if text == done:
                 finished = True
                 break
@@ -145,7 +145,7 @@ def printer(start, texts):
     finally:
         now = (datetime.now() - start).total_seconds()
         per_sec = float(count) / now
-        print("printer signing off after printing {0} texts in {1} seconds ({2} texts/sec)".format(count, now, per_sec))
+        print("display signing off after printing {0} texts in {1} seconds ({2} texts/sec)".format(count, now, per_sec))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -165,12 +165,12 @@ if __name__ == '__main__':
         with SourceManager() as sm:
             # Collect all of the handles in advance so that downloading file
             # content doesn't starve other parts of the system
-            generator(start, args.urls, sources)
-            explorer(start, sm, sources, handles)
+            generate(start, args.urls, sources)
+            explore(start, sm, sources, handles)
 
             start = datetime.now()
-            proPs = [Process(target=processor, name="processor{0}".format(i), args=(start, sm.share(), handles, texts, processor_c,)) for i in range(0, 3)]
-            priP = Process(target=printer, name="printer", args=(start, texts,))
+            proPs = [Process(target=process, name="processor{0}".format(i), args=(start, sm.share(), handles, texts, processor_c,)) for i in range(0, 3)]
+            priP = Process(target=display, name="display", args=(start, texts,))
 
             try:
                 priP.start()
@@ -188,7 +188,7 @@ if __name__ == '__main__':
                 wait_on(priP)
                 duration = (datetime.now() - start).total_seconds()
                 print("Everything finished after {0} seconds.".format(duration))
-            except:
+            except BaseException:
                 print("Uncaught exception: joining all children to shut down context manager cleanly.")
                 [wait_on(proP) for proP in proPs]
                 wait_on(priP)
