@@ -40,9 +40,20 @@ class TarResource(FileResource):
         super(TarResource, self).__init__(handle, sm)
         self._info = None
 
+    def _try_member_operation(self, operation):
+        path = str(self.get_handle().get_relative_path())
+        try:
+            return operation(path)
+        except KeyError:
+            # Because we use pathlib.Paths as our underlying path abstraction,
+            # if there were a leading "./", it would have been canonicalised
+            # away. Put it back and try the operation again
+            return operation("./" + path)
+
     def get_info(self):
         if not self._info:
-            self._info = self._open_source()[1].gettarinfo(str(self.get_handle().get_relative_path()))
+            self._info = \
+                self._try_member_operation(self._open_source()[1].gettarinfo)
         return self._info
 
     def get_hash(self):
@@ -64,6 +75,7 @@ class TarResource(FileResource):
 
     @contextmanager
     def make_stream(self):
-        with self._open_source()[1].extractfile(str(self.get_handle().get_relative_path())) as s:
+        with self._try_member_operation(
+                self._open_source()[1].extractfile) as s:
             yield s
 
