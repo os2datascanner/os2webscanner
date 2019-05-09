@@ -26,10 +26,9 @@ class NamedTemporaryResource:
         self._dir = None
 
 class _TypPropEq:
-    """\
-Secret mixin! Classes inheriting from _TypPropEq compare equal if their types
-and properties -- as determined by __getstate__() or __dict__ -- compare equal.
-"""
+    """Secret mixin! Classes inheriting from _TypPropEq compare equal if their
+    types and properties -- as determined by __getstate__() or __dict__ --
+    compare equal."""
     @staticmethod
     def __get_state(obj):
         if hasattr(obj, '__getstate__'):
@@ -38,9 +37,8 @@ and properties -- as determined by __getstate__() or __dict__ -- compare equal.
             return obj.__dict__
 
     def __eq__(self, other):
-        return type(self) == type(other) and \
-                self.__get_state(self) == \
-                self.__get_state(other)
+        return (type(self) == type(other) and
+                self.__get_state(self) == self.__get_state(other))
 
     def __hash__(self):
         h = 42 + hash(type(self))

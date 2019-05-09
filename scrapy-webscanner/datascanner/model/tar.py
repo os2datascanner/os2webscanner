@@ -51,8 +51,8 @@ class TarResource(FileResource):
 
     def get_info(self):
         if not self._info:
-            self._info = \
-                self._try_member_operation(self._open_source()[1].gettarinfo)
+            self._info = self._try_member_operation(
+                    self._open_source()[1].gettarinfo)
         return self._info
 
     def get_hash(self):

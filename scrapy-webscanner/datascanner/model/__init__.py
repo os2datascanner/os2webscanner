@@ -1,5 +1,4 @@
-"""\
-An experimental new model for OS2datascanner
+"""An experimental new model for OS2datascanner
 
 This package contains a prototype of a new model for OS2datascanner.
 

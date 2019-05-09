@@ -58,8 +58,7 @@ class WebResource(FileResource):
 
     # override
     def compute_type(self):
-        return self.get_header()["Content-Type"] \
-                or "application/octet-stream"
+        return self.get_header()["Content-Type"] or "application/octet-stream"
 
     @contextmanager
     def make_path(self):
