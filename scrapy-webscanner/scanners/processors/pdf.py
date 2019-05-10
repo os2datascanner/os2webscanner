@@ -20,7 +20,7 @@ import os
 import regex
 
 from .processor import Processor
-from subprocess import Popen, PIPE, DEVNULL, call, TimeoutExpired
+from subprocess import Popen, PIPE, DEVNULL, check_call, call, TimeoutExpired
 
 
 class PDFProcessor(Processor):
@@ -55,31 +55,26 @@ class PDFProcessor(Processor):
         command.extend(extra_options)
         command.append(new_file_path)
 
-        try:
-            p = Popen(command, stdin=PIPE, stdout=DEVNULL, stderr=PIPE)
-            output, err = p.communicate(b"input data that is passed to subprocess' stdin")
+        p = Popen(command, stdin=PIPE, stdout=DEVNULL, stderr=PIPE)
+        output, err = p.communicate(b"input data that is passed to subprocess' stdin")
 
-            if err and 'Error' in err.decode('utf-8'):
-                print('pdftohtml convertion error: %s' % err)
-                return False
-        except TimeoutExpired as te:
-            p.kill()
-            # outs, errs = p.communicate()
-            print('Popen command expired: %s' % te)
+        if err:
+            print('pdftohtml conversion error: {} \non document {}'.format(err.decode('utf-8'), new_file_path))
+
+        # pdftohtml returns 1 if pdf is not type pdf or if pdf could not be converted.
+        if p.returncode:
             return False
 
-        return_code = 0
-
-        # Have to get rid of FEFF marks in the generated files
+        # Have to get rid of FEFF, i.e. the byte order mark, in the
+        # generated files
         result_file = regex.sub("\\.pdf$", ".html", new_file_path)
         if os.path.exists(result_file):
-            print('resul')
-            return_code = call([
+            check_call([
                 'sed', '-i', 's/\\xff//;s/\\xfe//', result_file
             ])
 
         os.remove(new_file_path)
-        return return_code == 0
+        return p.returncode
 
 
 Processor.register_processor(PDFProcessor.item_type, PDFProcessor)
