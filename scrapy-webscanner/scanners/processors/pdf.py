@@ -20,7 +20,7 @@ import os
 import regex
 
 from .processor import Processor
-from subprocess import run, PIPE, check_call,
+from subprocess import run, PIPE, check_call
 
 
 class PDFProcessor(Processor):
@@ -56,10 +56,11 @@ class PDFProcessor(Processor):
         command.append(new_file_path)
 
         completed_process = run(command, stdout=PIPE, stderr=PIPE)
-        err = completed_process.stderr
 
-        if err:
-            print('pdftohtml conversion error: {} \non document {}'.format(err.decode('utf-8'), new_file_path))
+        if completed_process.stderr:
+            print('pdftohtml conversion error: {} \non document {}'.format(
+                  completed_process.stderr.decode('utf-8'), new_file_path)
+            )
 
         # pdftohtml returns 1 if pdf is not type pdf or if pdf could not be converted.
         if completed_process.returncode != 0:
