@@ -20,7 +20,7 @@ import os
 import regex
 
 from .processor import Processor
-from subprocess import Popen, PIPE, DEVNULL, check_call, call, TimeoutExpired
+from subprocess import run, PIPE, DEVNULL, check_call,
 
 
 class PDFProcessor(Processor):
@@ -55,14 +55,14 @@ class PDFProcessor(Processor):
         command.extend(extra_options)
         command.append(new_file_path)
 
-        p = Popen(command, stdin=PIPE, stdout=DEVNULL, stderr=PIPE)
-        output, err = p.communicate(b"input data that is passed to subprocess' stdin")
+        completed_process = run(command, capture_output=True)
+        err = completed_process.stderr
 
-        if err:
+        if err is not None:
             print('pdftohtml conversion error: {} \non document {}'.format(err.decode('utf-8'), new_file_path))
 
         # pdftohtml returns 1 if pdf is not type pdf or if pdf could not be converted.
-        if p.returncode:
+        if completed_process.returncode != 0:
             return False
 
         # Have to get rid of FEFF, i.e. the byte order mark, in the
@@ -74,7 +74,7 @@ class PDFProcessor(Processor):
             ])
 
         os.remove(new_file_path)
-        return p.returncode
+        return True
 
 
 Processor.register_processor(PDFProcessor.item_type, PDFProcessor)
