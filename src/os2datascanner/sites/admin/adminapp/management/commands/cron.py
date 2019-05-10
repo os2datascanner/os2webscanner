@@ -24,21 +24,16 @@ import os
 import sys
 
 import datetime
-from dateutil.rrule import *  # noqa
 
 import django
 
-# Include the Django app
-base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-sys.path.append(base_dir + "/webscanner_site")
-os.environ["DJANGO_SETTINGS_MODULE"] = "os2datascanner.sites.admin.settings"
-django.setup()
+from django.core.management.base import BaseCommand
 
 
-from ..sites.admin.adminapp.models.scannerjobs.scanner_model import Scanner
-from ..sites.admin.adminapp.models.scannerjobs.webscanner_model import WebScanner
-from ..sites.admin.adminapp.models.scannerjobs.filescanner_model import FileScanner
-from ..sites.admin.adminapp.models.scannerjobs.exchangescanner_model import ExchangeScanner
+from ...models.scannerjobs.scanner_model import Scanner
+from ...models.scannerjobs.webscanner_model import WebScanner
+from ...models.scannerjobs.filescanner_model import FileScanner
+from ...models.scannerjobs.exchangescanner_model import ExchangeScanner
 
 
 def strip_seconds(d):
@@ -55,37 +50,41 @@ next_qhr = current_qhr + datetime.timedelta(
     minutes=15, microseconds=-1
 )
 
-# Loop through all scanners
-for scanner in Scanner.objects.exclude(schedule="").select_subclasses():
-    # Skip scanners that should not start now
-    start_time = scanner.get_start_time()
-    if start_time < current_qhr.time() or start_time > next_qhr.time():
-        continue
+class Command(BaseCommand):
+    help = __doc__
 
-    try:
-        # Parse the recurrence rule expression
-        schedule = scanner.schedule
-    except ValueError as e:
-        # This shouldn't happen because we should validate in the UI
-        reason = "Invalid schedule expression: %s" % e
-        print(reason)
-        continue
+    def handle(self, *args, **kwargs):
+        # Loop through all scanners
+        for scanner in Scanner.objects.exclude(schedule="").select_subclasses():
+            # Skip scanners that should not start now
+            start_time = scanner.get_start_time()
+            if start_time < current_qhr.time() or start_time > next_qhr.time():
+                continue
 
-    # We have to set the times of the specific dates to the start time in
-    # order for the recurrence rule check to work
-    for i in range(len(schedule.rdates)):
-        rdate = schedule.rdates[i]
-        schedule.rdates[i] = rdate.replace(hour=start_time.hour,
-                                           minute=start_time.minute)
+            try:
+                # Parse the recurrence rule expression
+                schedule = scanner.schedule
+            except ValueError as e:
+                # This shouldn't happen because we should validate in the UI
+                reason = "Invalid schedule expression: %s" % e
+                print(reason)
+                continue
 
-    # Check if it's time to run the scanner
-    if not schedule.between(
-        current_qhr, next_qhr,
-        # Generate recurrences starting from current quarter 2014/01/01
-        dtstart=datetime.datetime(
-            2014, 1, 1, current_qhr.hour, current_qhr.minute), inc=True
-    ):
-        continue
+            # We have to set the times of the specific dates to the start time in
+            # order for the recurrence rule check to work
+            for i in range(len(schedule.rdates)):
+                rdate = schedule.rdates[i]
+                schedule.rdates[i] = rdate.replace(hour=start_time.hour,
+                                                   minute=start_time.minute)
 
-    print("Running scanner %s" % scanner)
-    scanner.run(type(scanner).__name__)
+            # Check if it's time to run the scanner
+            if not schedule.between(
+                current_qhr, next_qhr,
+                # Generate recurrences starting from current quarter 2014/01/01
+                dtstart=datetime.datetime(
+                    2014, 1, 1, current_qhr.hour, current_qhr.minute), inc=True
+            ):
+                continue
+
+            print("Running scanner %s" % scanner)
+            scanner.run(type(scanner).__name__)

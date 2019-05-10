@@ -38,14 +38,13 @@ from django.db import transaction, IntegrityError, DatabaseError
 from django import db
 from django.conf import settings as django_settings
 
+from django.core.management.base import BaseCommand
 
-django.setup()
-os.umask(0o007)
 
-from ..sites.admin.adminapp.models.conversionqueueitem_model import ConversionQueueItem
-from ..sites.admin.adminapp.models.scans.scan_model import Scan
+from ...models.conversionqueueitem_model import ConversionQueueItem
+from ...models.scans.scan_model import Scan
 
-from . import settings as scanner_settings
+from os2datascanner.engine import settings as scanner_settings
 
 
 var_dir = django_settings.VAR_DIR
@@ -140,7 +139,7 @@ def start_process(p):
     pid = process_handle.pid
 
     if process_handle.poll() is None:
-        logging.log(logging.DEBUG, ("Process %s started successfully, pid = %s" % (
+        logging.log(logging.INFO, ("Process %s started successfully, pid = %s" % (
             p['name'], pid
         )))
     else:
@@ -287,25 +286,43 @@ def prepare_processors():
             process_list.append(p)
 
 
-if __name__ == '__main__':
-    logfile = (
-        sys.argv[1] if len(sys.argv) > 1
-        else os.path.join(log_dir, "process_manager.log")
-    )
+class Command(BaseCommand):
+    help = __doc__
 
-    logging.basicConfig(
+    def add_arguments(self, parser):
+        parser.add_argument(
+            'log_file',
+            nargs='?',
+            type=str,
+            default=os.path.join(log_dir, "process_manager.log"),
+            help='Output file for logging',
+        )
+
+    def handle(self, log_file, verbosity, **kwargs):
+        fh = logging.FileHandler(log_file)
+        fh.setLevel(logging.DEBUG)
+
+        sh = logging.StreamHandler(sys.stderr)
+
+        if verbosity == 0:
+            sh.setLevel(logging.WARNING)
+        elif verbosity == 1:
+            sh.setLevel(logging.INFO)
+        else:
+            sh.setLevel(logging.DEBUG)
+
+        logging.basicConfig(
             level=logging.DEBUG,
             format=(
                 "%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d "
                 "%(message)s"
             ),
-            handlers=[
-                logging.FileHandler(logfile),
-                logging.StreamHandler(sys.stderr)
-            ])
-    try:
-        main()
-    except KeyboardInterrupt:
-        pass
-    except django.db.utils.InternalError as e:
-        logging.log(logging.ERROR, 'django internal errror %s' % e)
+            handlers=[fh, sh],
+        )
+
+        try:
+            main()
+        except KeyboardInterrupt:
+            pass
+        except django.db.utils.InternalError as e:
+            logging.log(logging.ERROR, 'django internal errror %s' % e)

@@ -6,11 +6,11 @@ import logging
 
 import pika
 
-from .run_webscan import StartWebScan
-from .run_filescan import StartFileScan
+from django.core.management.base import BaseCommand
 
+from os2datascanner.engine.run_webscan import StartWebScan
+from os2datascanner.engine.run_filescan import StartFileScan
 
-QUEUE_NAME = 'datascanner'
 
 
 def callback(ch, method, properties, body):
@@ -33,24 +33,43 @@ def callback(ch, method, properties, body):
 
         time.sleep(1)
 
+class Command(BaseCommand):
+    help = __doc__
 
-print(' [*] Waiting for messages. To exit press CTRL+C')
-while True:
-    try:
-        connection = pika.BlockingConnection(
-            pika.ConnectionParameters('localhost',
-                                      heartbeat_interval=6000)
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '-H',
+            '--amqp-host',
+            type=str,
+            default='localhost',
+            help='Host name of the AMQP server',
+        )
+        parser.add_argument(
+            '-Q',
+            '--amqp-queue',
+            type=str,
+            default='datascanner',
+            help='Queue to listen for changes',
         )
 
-        channel = connection.channel()
+    def handle(self, amqp_queue, amqp_host, **kwargs):
+        print(' [*] Waiting for messages. To exit press CTRL+C')
 
-        channel.queue_declare(queue=QUEUE_NAME)
-        channel.basic_consume(callback, queue=QUEUE_NAME)
+        while True:
+            try:
+                connection = pika.BlockingConnection(
+                    pika.ConnectionParameters(amqp_host, heartbeat_interval=6000)
+                )
 
-        channel.start_consuming()
-    except pika.exceptions.ConnectionClosed as exc:
-        # the most frequent cause of sudden closures is VM
-        # suspensions, but just in case, log it, back off a bit, and
-        # resume
-        print('AMQP connection closed:', exc)
-        time.sleep(1)
+                channel = connection.channel()
+
+                channel.queue_declare(queue=amqp_queue)
+                channel.basic_consume(callback, queue=amqp_queue)
+
+                channel.start_consuming()
+            except pika.exceptions.ConnectionClosed as exc:
+                # the most frequent cause of sudden closures is VM
+                # suspensions, but just in case, log it, back off a bit, and
+                # resume
+                print('AMQP connection closed:', exc)
+                time.sleep(1)
