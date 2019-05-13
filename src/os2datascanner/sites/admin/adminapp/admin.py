@@ -66,7 +66,7 @@ class RegexPatternAdmin(admin.ModelAdmin):
 class ScanAdmin(admin.ModelAdmin):
     date_hierarchy = 'start_time'
     list_display = ('scanner', 'status', 'start_time', 'end_time', 'is_visible')
-    list_filter = ('status', 'is_visible')
+    list_filter = ('status', 'is_visible', 'scanner')
 
 
 class TypeStatisticsInline(admin.TabularInline):
