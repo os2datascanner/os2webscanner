@@ -28,10 +28,6 @@ class UserProfile(models.Model):
         """Whether to activate groups in GUI."""
         return settings.DO_USE_GROUPS
 
-    def __unicode__(self):
-        """Return the user's username."""
-        return self.user.username
-
     def __str__(self):
         """Return the user's username."""
         return self.user.username

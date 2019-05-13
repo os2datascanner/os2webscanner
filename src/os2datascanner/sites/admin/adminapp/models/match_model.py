@@ -72,15 +72,11 @@ class Match(models.Model):
         elif self.sensitivity == Sensitivity.OK:
             return "success"
 
-    def __unicode__(self):
-        """Return a string representation of the match."""
-        return u"Match: %s; [%s] %s <%s>" % (self.get_sensitivity_display(),
-                                             self.matched_rule,
-                                             self.matched_data, self.url)
-
     def __str__(self):
         """Return a string representation of the match."""
-        return str(self.__unicode__())
+        return "Match: %s; [%s] %s <%s>" % (self.get_sensitivity_display(),
+                                             self.matched_rule,
+                                             self.matched_data, self.url)
 
     class Meta:
         abstract = False
