@@ -32,7 +32,9 @@ from .models.referrerurl_model import ReferrerUrl
 from .models.regexpattern_model import RegexPattern
 from .models.regexrule_model import RegexRule
 from .models.scans.scan_model import Scan
-from .models.scannerjobs.scanner_model import Scanner
+from .models.scannerjobs.webscanner_model import WebScanner
+from .models.scannerjobs.filescanner_model import FileScanner
+from .models.scannerjobs.exchangescanner_model import ExchangeScanner
 from .models.statistic_model import Statistic, TypeStatistics
 from .models.url_model import Url
 from .models.urllastmodified_model import UrlLastModified
@@ -84,8 +86,27 @@ class UrlAdmin(admin.ModelAdmin):
     list_filter = ('scan',)
     list_display = ('url', 'scan')
 
-for _cls in [Organization, WebDomain, FileDomain, ExchangeDomain, Scanner,
-             ConversionQueueItem, ReferrerUrl, UrlLastModified, Group]:
+@admin.register(UrlLastModified)
+class UrlModifiedAdmin(admin.ModelAdmin):
+    date_hierarchy = 'last_modified'
+    list_filter = ('scanner',)
+    list_display = ('url', 'scanner', 'last_modified')
+
+@admin.register(ConversionQueueItem)
+class ConversionQueueItemAdmin(admin.ModelAdmin):
+    date_hierarchy = 'process_start_time'
+    list_filter = ('status',)
+    list_display = ('file', 'type', 'page_no', 'status',
+                    'process_start_time')
+
+@admin.register(ReferrerUrl)
+class ReferrerUrlAdmin(admin.ModelAdmin):
+    list_display = ('url', 'scan')
+
+for _cls in [
+    Organization, WebDomain, FileDomain, ExchangeDomain,
+    Group, FileScanner, ExchangeScanner, WebScanner,
+]:
     admin.site.register(_cls)
 
 
