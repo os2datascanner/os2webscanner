@@ -3,3 +3,7 @@ LOG_LEVEL = 'DEBUG'
 
 # Set to True in testing to avoid pegging websites, if only testing processing
 #HTTPCACHE_ENABLED = True
+
+# Limit the load to avoid crashing the servers
+#CONCURRENT_REQUESTS_PER_IP = 20
+#DOWNLOAD_DELAY = 0.15
