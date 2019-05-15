@@ -210,6 +210,12 @@ class LastModifiedLinkStorageMiddleware(object):
         except UrlLastModified.DoesNotExist:
             # We never stored the URL for the original request: this
             # shouldn't happen.
+            logging.exception(
+                "no original last modification for URL %s in %s",
+                source_url,
+                self.get_scanner_object(spider),
+            )
+
             return result
 
         logging.debug("Updating links for %s" % url_last_modified)
@@ -224,19 +230,11 @@ class LastModifiedLinkStorageMiddleware(object):
                     continue
                 target_url = canonicalize_url(r.url)
                 # Get or create a URL last modified object
-                try:
-                    link = UrlLastModified.objects.get(
-                        url=target_url,
-                        scanner=self.get_scanner_object(spider)
-                    )
-                except UrlLastModified.DoesNotExist:
-                    # Create new link
-                    link = UrlLastModified(
-                        url=target_url,
-                        last_modified=None,
-                        scanner=self.get_scanner_object(spider)
-                    )
-                    link.save()
+                link, created = UrlLastModified.objects.get_or_create(
+                    url=target_url,
+                    scanner=self.get_scanner_object(spider),
+                )
+
                 # Add the link to the URL last modified object
                 url_last_modified.links.add(link)
                 logging.debug("Added link %s" % link)

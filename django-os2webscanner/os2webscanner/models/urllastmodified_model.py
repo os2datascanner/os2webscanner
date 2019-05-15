@@ -10,6 +10,10 @@ class UrlLastModified(models.Model):
     class Meta:
         verbose_name = 'Last modified URL'
 
+        unique_together = (
+            ('url', 'scanner'),
+        )
+
     url = models.CharField(max_length=2048, verbose_name='Url')
     last_modified = models.DateTimeField(blank=True, null=True,
                                          verbose_name='Last-modified')
