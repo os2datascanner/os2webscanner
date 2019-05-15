@@ -16,15 +16,6 @@ from .scanners.spiders.webspider import WebSpider
 class StartWebScan(StartScan, multiprocessing.Process):
     """A scanner application which can be run."""
 
-    def __init__(self, configuration):
-        """
-        Initialize the scanner application.
-        Takes the JSON descriptor of this scan as its argument.
-        """
-
-        super().__init__(configuration)
-        multiprocessing.Process.__init__(self)
-
     def run(self):
         """Updates the scan status and sets the pid.
         Run the scanner, blocking until finished."""

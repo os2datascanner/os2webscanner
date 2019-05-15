@@ -49,6 +49,7 @@ class StartScan(object):
         Initialize the scanner application.
         Takes the JSON descriptor of this scan as its argument.
         """
+        super().__init__()
         self.configuration = configuration
 
         scan_id = configuration['id']
