@@ -37,7 +37,7 @@ dictionary."""
 
         # Get scan object from DB
         if not _Model:
-            from ....sites.admin.adminapp.models.scans.scan_model import Scan
+            from os2datascanner.sites.admin.adminapp.models.scans.scan_model import Scan
             _Model = Scan
         self.scan_object = _Model.objects.get(pk=scan_id)
 
@@ -75,7 +75,7 @@ dictionary."""
         return self.scan_object.scanner.process_urls
 
     def mint_url(self, **kwargs):
-        from ....sites.admin.adminapp.models.url_model import Url
+        from os2datascanner.sites.admin.adminapp.models.url_model import Url
         u = Url(scan=self.scan_object, **kwargs)
         u.save()
         return u

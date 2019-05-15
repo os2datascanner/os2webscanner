@@ -27,8 +27,8 @@ from .base_spider import BaseScannerSpider
 
 from ..processors.processor import Processor
 
-from ....sites.admin.adminapp.utils import capitalize_first, get_codec_and_string
-from ....sites.admin.adminapp.models.url_model import Url
+from os2datascanner.sites.admin.adminapp.utils import capitalize_first, get_codec_and_string
+from os2datascanner.sites.admin.adminapp.models.url_model import Url
 
 
 class ScannerSpider(BaseScannerSpider):

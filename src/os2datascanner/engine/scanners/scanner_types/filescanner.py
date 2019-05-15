@@ -1,6 +1,6 @@
 from .scanner import Scanner
 
-from ....sites.admin.adminapp.models.statistic_model import Statistic, TypeStatistics
+from os2datascanner.sites.admin.adminapp.models.statistic_model import Statistic, TypeStatistics
 
 
 class FileScanner(Scanner):

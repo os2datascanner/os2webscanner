@@ -23,7 +23,7 @@ def check_url(url, method="HEAD"):
     :param method:
     :return:
     """
-    from ..sites.admin.adminapp.utils import capitalize_first
+    from os2datascanner.sites.admin.adminapp.utils import capitalize_first
     try:
         logging.info("Checking %s" % url)
         request = urllib.request.Request(url, headers={"User-Agent":

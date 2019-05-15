@@ -32,7 +32,7 @@ from django import db
 from django.utils import timezone
 from django.conf import settings
 
-from ....sites.admin.adminapp.models.conversionqueueitem_model import ConversionQueueItem
+from os2datascanner.sites.admin.adminapp.models.conversionqueueitem_model import ConversionQueueItem
 
 
 # Minimum width and height an image must have to be scanned

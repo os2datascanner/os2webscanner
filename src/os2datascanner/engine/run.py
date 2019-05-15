@@ -116,7 +116,7 @@ class StartScan(object):
 
     def store_stats(self):
         """Stores scrapy scanning stats when scan is completed."""
-        from ..sites.admin.adminapp.models.statistic_model import Statistic
+        from os2datascanner.sites.admin.adminapp.models.statistic_model import Statistic
         from django.core.exceptions import MultipleObjectsReturned
         logging.info('Stats: {0}'.format(self.scanner_crawler.stats.get_stats()))
 
@@ -160,7 +160,7 @@ class StartScan(object):
 
         Keep it open if there are still queue items to be processed.
         """
-        from ..sites.admin.adminapp.models.conversionqueueitem_model import ConversionQueueItem
+        from os2datascanner.sites.admin.adminapp.models.conversionqueueitem_model import ConversionQueueItem
         logging.debug("Spider Idle...")
         # Keep spider alive if there are still queue items to be processed
         remaining_queue_items = ConversionQueueItem.objects.filter(

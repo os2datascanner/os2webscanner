@@ -28,7 +28,7 @@ class MatchItem(DjangoItem):
 
     """Scrapy Item using the Match object from the Django model as storage."""
 
-    from ...sites.admin.adminapp.models.match_model import Match
+    from os2datascanner.sites.admin.adminapp.models.match_model import Match
     django_model = Match
 
     """Original text matched. Stored temporarily for the purposes of

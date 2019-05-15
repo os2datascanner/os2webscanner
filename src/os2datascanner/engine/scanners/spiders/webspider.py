@@ -187,7 +187,7 @@ class WebSpider(ScannerSpider):
 
     def _get_or_create_referrer(self, referrer):
         """Create or get existing ReferrerUrl object."""
-        from ....sites.admin.adminapp.models.referrerurl_model import ReferrerUrl
+        from os2datascanner.sites.admin.adminapp.models.referrerurl_model import ReferrerUrl
         if referrer not in self.referrer_url_objects:
             self.referrer_url_objects[referrer] = ReferrerUrl(
                 url=referrer, scan=self.scanner.scan_object)
