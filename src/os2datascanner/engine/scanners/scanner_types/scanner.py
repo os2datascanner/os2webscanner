@@ -17,6 +17,9 @@
 """Contains a WebScanner."""
 import logging
 
+from os2datascanner.sites.admin.adminapp.models.scans.scan_model import Scan
+from os2datascanner.sites.admin.adminapp.models.url_model import Url
+
 from ..rules.name import NameRule
 from ..rules.address import AddressRule
 from ..rules.regexrule import RegexRule
@@ -37,7 +40,6 @@ dictionary."""
 
         # Get scan object from DB
         if not _Model:
-            from os2datascanner.sites.admin.adminapp.models.scans.scan_model import Scan
             _Model = Scan
         self.scan_object = _Model.objects.get(pk=scan_id)
 
@@ -75,7 +77,6 @@ dictionary."""
         return self.scan_object.scanner.process_urls
 
     def mint_url(self, **kwargs):
-        from os2datascanner.sites.admin.adminapp.models.url_model import Url
         u = Url(scan=self.scan_object, **kwargs)
         u.save()
         return u

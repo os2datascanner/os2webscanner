@@ -20,6 +20,8 @@
 # See documentation in:
 # http://doc.scrapy.org/en/latest/topics/items.html
 
+from os2datascanner.sites.admin.adminapp.models.match_model import Match
+
 from scrapy.item import Field
 from scrapy_djangoitem import DjangoItem
 
@@ -28,7 +30,6 @@ class MatchItem(DjangoItem):
 
     """Scrapy Item using the Match object from the Django model as storage."""
 
-    from os2datascanner.sites.admin.adminapp.models.match_model import Match
     django_model = Match
 
     """Original text matched. Stored temporarily for the purposes of

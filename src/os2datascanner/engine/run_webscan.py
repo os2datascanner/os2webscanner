@@ -5,6 +5,8 @@ from urllib.parse import urlparse
 
 from twisted.internet import reactor, defer
 
+from os2datascanner.sites.admin.adminapp.models.url_model import Url
+
 from .run import StartScan
 from . import linkchecker
 
@@ -70,7 +72,6 @@ class StartWebScan(StartScan, multiprocessing.Process):
 
     def external_link_check(self, external_urls):
         """Perform external link checking."""
-        from os2datascanner.sites.admin.adminapp.models.url_model import Url
         logging.info("Link checking %d external URLs..." % len(external_urls))
 
         for url in external_urls:

@@ -1,5 +1,7 @@
 from urllib.parse import urlparse
 
+from os2datascanner.sites.admin.adminapp.models.scans.webscan_model import WebScan
+
 from ...utils import as_file_uri
 from .scanner import Scanner
 
@@ -7,7 +9,6 @@ from .scanner import Scanner
 class WebScanner(Scanner):
 
     def __init__(self, configuration):
-        from os2datascanner.sites.admin.adminapp.models.scans.webscan_model import WebScan
         super(WebScanner, self).__init__(configuration, _Model=WebScan)
 
     @property
