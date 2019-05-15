@@ -1,3 +1,8 @@
+* Version 2.2.1.2, May 10. 2019
+
+Hotfix:
+   - Add indices to UrlLastModified to speed up incremental web scans of very large sites.
+
 * Version 2.2.1.1, May 10. 2019
 
 Hotfix:
