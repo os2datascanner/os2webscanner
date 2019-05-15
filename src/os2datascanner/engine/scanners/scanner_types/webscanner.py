@@ -9,7 +9,7 @@ from .scanner import Scanner
 class WebScanner(Scanner):
 
     def __init__(self, configuration):
-        super(WebScanner, self).__init__(configuration, _Model=WebScan)
+        super().__init__(configuration, _Model=WebScan)
 
     @property
     def do_link_check(self):
