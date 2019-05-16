@@ -19,7 +19,7 @@ from os2webscanner.models.webdomain_model import WebDomain
 from os2webscanner.models.webscanner_model import WebScanner
 
 from django.conf import settings
-from subprocess import Popen, STDOUT, PIPE
+from subprocess import Popen
 
 
 class ScannerTest(unittest.TestCase):
@@ -85,7 +85,7 @@ class ScannerTest(unittest.TestCase):
 
         log_file = open(LOG_FILE_U, "a")
 
-        result = scanner.run()
+        scanner.run()
 
         try:
             process = Popen([os.path.join(SCRAPY_WEBSCANNER_DIR, "run.sh"),

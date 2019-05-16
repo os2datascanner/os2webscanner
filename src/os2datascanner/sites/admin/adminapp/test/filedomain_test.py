@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AnonymousUser, User
+from django.contrib.auth.models import User
 from django.test import TestCase, RequestFactory
 
 from ...test.util import CreateOrganization, CreateFileDomain

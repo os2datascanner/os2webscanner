@@ -216,9 +216,8 @@ def check_running_scanjobs():
                     scan.set_scan_status_failed(
                         "SCAN FAILED: Process died with pid {}".format(scan.pid))
             logging.log(logging.DEBUG, "Checked {} scans.".format(len(running_scans)))
-    except DatabaseError as ex:
+    except DatabaseError:
         logging.exception('Error occured while trying to select and update running scans.')
-        pass
 
 
 def restart_stuck_processors():

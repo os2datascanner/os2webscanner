@@ -3,7 +3,6 @@ import os
 TESTDIR=os.path.dirname(__file__)
 
 import sys
-import imp
 import testparsetotextmock as testmock
 
 sys.modules["django.conf"]=testmock

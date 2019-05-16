@@ -20,7 +20,7 @@ import logging
 
 from dateutil.parser import parse as parse_datetime
 
-from twisted.internet import reactor, defer
+from twisted.internet import reactor
 from scrapy import signals
 from scrapy.utils.project import get_project_settings
 from scrapy.crawler import CrawlerProcess

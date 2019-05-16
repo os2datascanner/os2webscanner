@@ -1,7 +1,7 @@
 import logging
 import multiprocessing
 
-from twisted.internet import reactor, defer
+from twisted.internet import defer
 
 from .run import StartScan
 
