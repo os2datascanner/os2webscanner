@@ -1,1 +1,0 @@
-ALTER TABLE "os2webscanner_scanner" ADD COLUMN "do_cpr_ignore_irrelevant" boolean NOT NULL DEFAULT FALSE;
