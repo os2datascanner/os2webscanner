@@ -147,7 +147,7 @@ def display(start, texts):
         per_sec = float(count) / now
         print("display signing off after printing {0} texts in {1} seconds ({2} texts/sec)".format(count, now, per_sec))
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
             "urls",
@@ -195,3 +195,6 @@ if __name__ == '__main__':
                 duration = (datetime.now() - start).total_seconds()
                 print("Unclean shutdown after {0} seconds.".format(duration))
                 raise
+
+if __name__ == '__main__':
+    main()
