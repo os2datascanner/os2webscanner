@@ -54,7 +54,8 @@ def generate(start, urls, sources):
         sources.put(done)
         now = (datetime.now() - start).total_seconds()
         per_sec = float(count) / now
-        print("generate signing off after finding {0} sources in {1} seconds ({2} sources/sec)".format(count, now, per_sec))
+        print(("generate signing off after finding {0} sources in {1} " +
+                "seconds ({2} sources/sec)").format(count, now, per_sec))
 
 def explore(start, sm, sources, handles):
     count = 0
@@ -83,7 +84,9 @@ def explore(start, sm, sources, handles):
     finally:
         now = (datetime.now() - start).total_seconds()
         per_sec = float(count) / now
-        print("explore signing off after finding {0} handles (out of {3}) in {1} seconds ({2} handles/sec)".format(count, now, per_sec, total))
+        print(("explore signing off after finding {0} handles (out of {3}) " +
+                "in {1} seconds ({2} handles/sec)").format(
+                    count, now, per_sec, total))
         put(handles, done)
 
 def print_handle_name(tpl):
@@ -111,7 +114,8 @@ def process(start, parent, handles, texts, peers):
                         print_exc()
                         text = None
                     if text:
-                        print("{0}: finished {1}, got some text".format(me, handle))
+                        print("{0}: finished {1}, got some text".format(
+                                me, handle))
                         put(texts, ((handle, text)), print_handle_name)
                         count += 1
                     else:
@@ -127,7 +131,8 @@ def process(start, parent, handles, texts, peers):
                 print("{0} is the last processor, sending sentinel".format(me))
                 put(texts, done)
             else:
-                print("{0} was not the last processor, {1} remain".format(me, peers.value))
+                print("{0} was not the last processor, {1} remain".format(
+                        me, peers.value))
 
 def display(start, texts):
     count = 0
@@ -145,7 +150,8 @@ def display(start, texts):
     finally:
         now = (datetime.now() - start).total_seconds()
         per_sec = float(count) / now
-        print("display signing off after printing {0} texts in {1} seconds ({2} texts/sec)".format(count, now, per_sec))
+        print(("display signing off after printing {0} texts in {1} " +
+                "seconds ({2} texts/sec)").format(count, now, per_sec))
 
 def main():
     parser = argparse.ArgumentParser()
@@ -169,12 +175,16 @@ def main():
             explore(start, sm, sources, handles)
 
             start = datetime.now()
-            proPs = [Process(target=process, name="processor{0}".format(i), args=(start, sm.share(), handles, texts, processor_c,)) for i in range(0, 3)]
-            priP = Process(target=display, name="display", args=(start, texts,))
+            processor_handles = [
+                Process(target=process, name="processor{0}".format(i),
+                        args=(start, sm.share(), handles, texts, processor_c,))
+                for i in range(0, 3)]
+            display_handle = Process(
+                    target=display, name="display", args=(start, texts,))
 
             try:
-                priP.start()
-                [proP.start() for proP in proPs]
+                display_handle.start()
+                [h.start() for h in processor_handles]
 
                 def wait_on(p):
                     while True:
@@ -184,14 +194,15 @@ def main():
                             print("joined {0}".format(p))
                             break
 
-                [wait_on(proP) for proP in proPs]
-                wait_on(priP)
+                [wait_on(h) for h in processor_handles]
+                wait_on(display_handle)
                 duration = (datetime.now() - start).total_seconds()
                 print("Everything finished after {0} seconds.".format(duration))
             except BaseException:
-                print("Uncaught exception: joining all children to shut down context manager cleanly.")
-                [wait_on(proP) for proP in proPs]
-                wait_on(priP)
+                print("Uncaught exception: joining all children to shut " +
+                        "down context manager cleanly.")
+                [wait_on(h) for h in processor_handles]
+                wait_on(display_handle)
                 duration = (datetime.now() - start).total_seconds()
                 print("Unclean shutdown after {0} seconds.".format(duration))
                 raise
