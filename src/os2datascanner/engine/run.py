@@ -94,12 +94,6 @@ class StartScan(object):
         # so the django db connection is not shared between processors.
         run_django_setup()
 
-    def handle_killed(self):
-        """Handle being killed by updating the scan status."""
-        self.scanner.failed()
-        self.scan.logging_occurrence("SCANNER FAILED: Killed")
-        logging.error("Killed")
-
     def make_scanner_crawler(self, spider_type):
         """Setup the scanner spider and crawler."""
         self.scanner_crawler = \
