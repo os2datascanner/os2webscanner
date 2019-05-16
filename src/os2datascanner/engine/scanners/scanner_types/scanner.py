@@ -53,8 +53,8 @@ dictionary."""
     def done(self):
         self.scan_object.set_scan_status_done()
 
-    def failed(self):
-        self.scan_object.set_scan_status_failed()
+    def failed(self, arg):
+        self.scan_object.set_scan_status_failed(arg)
 
     @property
     def do_name_scan(self):
@@ -169,3 +169,15 @@ scan ID."""
 
                 matches.append(match)
         return matches
+
+    def __enter__(self):
+        self.ensure_started()
+
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if exc_type is None:
+            self.done()
+        else:
+            logging.exception("SCANNER FAILED")
+            self.failed('SCANNER FAILED: {}'.format(exc_value))

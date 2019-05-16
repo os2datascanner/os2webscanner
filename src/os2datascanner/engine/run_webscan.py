@@ -23,9 +23,9 @@ class StartWebScan(StartScan, multiprocessing.Process):
         Run the scanner, blocking until finished."""
         super().run()
         self.scanner = WebScanner(self.configuration)
-        self.scanner.ensure_started()
-        self.start_webscan_crawlers()
-        self.scanner.done()
+
+        with self.scanner:
+            self.start_webscan_crawlers()
 
     def start_webscan_crawlers(self):
         logging.info("Beginning crawler process.")

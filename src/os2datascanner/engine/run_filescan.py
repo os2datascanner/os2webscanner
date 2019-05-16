@@ -16,15 +16,17 @@ class StartFileScan(StartScan, multiprocessing.Process):
         """Updates the scan status and sets the pid.
         Run the scanner, blocking until finished."""
         super().run()
+
         self.scanner = FileScanner(self.configuration)
-        self.scanner.ensure_started()
-        self.start_filescan_crawlers()
-        self.scanner.done()
+
+        with self.scanner:
+            self.start_filescan_crawlers()
 
     def start_filescan_crawlers(self):
         """Start a file scan."""
 
         logging.info("Beginning crawler process.")
+
         self.run_crawlers()
         self.crawler_process.start()
         logging.info("Crawler process finished.")
