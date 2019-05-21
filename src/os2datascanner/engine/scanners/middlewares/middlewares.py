@@ -27,10 +27,11 @@ from scrapy.exceptions import IgnoreRequest
 from scrapy.utils.httpobj import urlparse_cached
 from scrapy.utils.url import canonicalize_url
 
+from django.conf import settings as django_settings
+from django.db import transaction
 
 from ....sites.admin.adminapp.models.urllastmodified_model import UrlLastModified
 
-from django.conf import settings as django_settings
 
 
 class ExclusionRuleMiddleware(object):
@@ -218,27 +219,55 @@ class LastModifiedLinkStorageMiddleware(object):
 
             return result
 
-        logging.debug("Updating links for %s" % url_last_modified)
+        with transaction.atomic():
+            # The set of interesting urls extracted by scrapy
+            wanted_link_urls = {
+                canonicalize_url(r.url)
+                for r in result
+                if isinstance(r, Request) and
+                not spider.is_offsite(r) and
+                not spider.is_excluded(r)
+            }
 
-        # Clear existing links
-        url_last_modified.links.clear()
+            extraneous_links = set()
 
-        # Update links
-        for r in result:
-            if isinstance(r, Request):
-                if spider.is_offsite(r) or spider.is_excluded(r):
-                    continue
-                target_url = canonicalize_url(r.url)
-                # Get or create a URL last modified object
-                link, created = UrlLastModified.objects.get_or_create(
-                    url=target_url,
-                    scanner=self.get_scanner_object(spider),
-                )
+            # Compare with the preëxisting links
+            for link in url_last_modified.links.all():
+                if link.url in wanted_link_urls:
+                    # we already have this one
+                    wanted_link_urls.remove(link.url)
+                else:
+                    # not interested in this one, so drop it
+                    extraneous_links.add(link)
 
-                # Add the link to the URL last modified object
-                url_last_modified.links.add(link)
-                logging.debug("Added link %s" % link)
-        return result
+            # Now perform the operations in bulk in a single,
+            # optimised step
+            logging.debug(
+                "Updating links for %s; adding %d and removing %d",
+                url_last_modified,
+                len(extraneous_links),
+                len(wanted_link_urls),
+            )
+
+            # Remove the ones no longer needed
+            if extraneous_links:
+                url_last_modified.links.remove(*extraneous_links)
+
+            # Add new ones
+            if wanted_link_urls:
+                # unfortunately, there's no way in Django (or SQL?) to
+                # a bulk get_or_create()...
+                wanted_links = [
+                    UrlLastModified.objects.get_or_create(
+                        url=link_url,
+                        scanner=self.get_scanner_object(spider),
+                    )[0]
+                    for link_url in wanted_link_urls
+                ]
+
+                url_last_modified.links.add(*wanted_links)
+
+            return result
 
     def get_scanner_object(self, spider):
         """Return the spider's scanner object."""
