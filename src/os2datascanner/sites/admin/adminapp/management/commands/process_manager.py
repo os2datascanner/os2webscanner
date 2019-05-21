@@ -29,10 +29,11 @@ import subprocess
 import time
 import signal
 
-import logging
+from datetime import timedelta
 
 import django
-from datetime import timedelta
+import structlog
+
 from django.utils import timezone
 from django.db import transaction, DatabaseError
 from django import db
@@ -54,6 +55,8 @@ log_dir = os.path.join(var_dir, "logs")
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
+logger = structlog.get_logger()
+
 processes_per_type = scanner_settings.NUMBER_OF_PROCESSES_PER_TYPE
 processing_timeout = timedelta(minutes=20)
 
@@ -66,7 +69,7 @@ process_list = []
 def stop_process(p):
     """Stop the process."""
     if 'process_handle' not in p:
-        logging.log(logging.DEBUG, "Process %s already stopped" % p['name'])
+        logger.debug("Process already stopped", **p)
         return
 
     phandle = p['process_handle']
@@ -74,7 +77,7 @@ def stop_process(p):
     pid = phandle.pid
     # If running, stop it
     if phandle.poll() is None:
-        logging.log(logging.DEBUG, "Terminating process %s" % p['name'])
+        logger.debug("Terminating process", pid=pid, **p)
         phandle.terminate()
         phandle.wait()
     # Remove pid from process map
@@ -123,9 +126,7 @@ def start_process(p):
             "Program %s is already running" % p['name']
         )
 
-    logging.log(logging.DEBUG, ("Starting process %s, (%s)" % (
-        p['name'], " ".join(p['program_args'])
-    )))
+    logger.debug("Starting process", **p)
 
     log_file = os.path.join(log_dir, p['name'] + '.log')
     log_fh = open(log_file, 'a')
@@ -136,19 +137,16 @@ def start_process(p):
         stderr=log_fh
     )
 
-    pid = process_handle.pid
+    pid = p['pid'] = process_handle.pid
 
     if process_handle.poll() is None:
-        logging.log(logging.INFO, ("Process %s started successfully, pid = %s" % (
-            p['name'], pid
-        )))
+        logger.info("Process started successfully", **p)
     else:
-        logging.log(logging.ERROR, "Failed to start process %s, exiting" % p['name'])
+        logger.error("Failed to start process, exiting", **p)
         exit_handler()
 
     p['log_fh'] = log_fh
     p['process_handle'] = process_handle
-    p['pid'] = pid
     process_map[pid] = p
 
 
@@ -198,26 +196,28 @@ def main():
 
 def check_running_scanjobs():
     try:
-        logging.log(logging.DEBUG, "Checking running scans...")
+        logger.debug("Checking running scans...")
         with transaction.atomic():
             running_scans = Scan.objects.filter(
                 status=Scan.STARTED
             ).select_for_update(nowait=True)
             for scan in running_scans:
+                logger.debug("Checking scan", scan=scan)
                 if not scan.pid \
                         and not hasattr(scan, 'exchangescan'):
                     continue
                 try:
                     # Check if process is still running
                     os.kill(scan.pid, 0)
-                    logging.log(logging.DEBUG, 'Scan {} (with PID {}): OK'.format(scan.pk, scan.pid))
+                    logger.debug('Scan is OK', scan=scan.pk, pid=scan.pid)
                 except OSError as ex:
-                    logging.log(logging.DEBUG, 'Scan {} (with PID {}): FAILED ({})'.format(scan.pk, scan.pid, str(ex)))
+                    logger.exception('Scan FAILED', scan=scan.pk, pid=scan.pid,
+                                     cause=ex)
                     scan.set_scan_status_failed(
                         "SCAN FAILED: Process died with pid {}".format(scan.pid))
-            logging.log(logging.DEBUG, "Checked {} scans.".format(len(running_scans)))
-    except DatabaseError:
-        logging.exception('Error occured while trying to select and update running scans.')
+            logger.debug('Checked scans', count=len(running_scans))
+    except DatabaseError as ex:
+        logger.exception('Error occured while trying to select and update running scans.')
 
 
 def restart_stuck_processors():
@@ -230,8 +230,8 @@ def restart_stuck_processors():
     for p in stuck_processes:
         pid = p.process_id
         if pid in process_map:
-            logging.log(logging.WARNING, "Process with pid %s is stuck, restarting" % pid)
             stuck_process = process_map[pid]
+            logger.warning("Process is stuck, restarting", **stuck_process)
             restart_process(stuck_process)
         else:
             p.status = ConversionQueueItem.FAILED
@@ -259,9 +259,7 @@ def restart_stuck_processors():
 def restart_terminated_processors():
     for pdata in process_list:
         if pdata['process_handle'].poll() is not None:
-            logging.log(logging.WARNING, ("Process %s has terminated, restarting it" % (
-                pdata['name']
-            )))
+            logger.warning("Process has terminated, restarting it", **p)
             restart_process(pdata)
 
 
@@ -287,40 +285,10 @@ def prepare_processors():
 class Command(BaseCommand):
     help = __doc__
 
-    def add_arguments(self, parser):
-        parser.add_argument(
-            'log_file',
-            nargs='?',
-            type=str,
-            default=os.path.join(log_dir, "process_manager.log"),
-            help='Output file for logging',
-        )
-
-    def handle(self, log_file, verbosity, **kwargs):
-        fh = logging.FileHandler(log_file)
-        fh.setLevel(logging.DEBUG)
-
-        sh = logging.StreamHandler(sys.stderr)
-
-        if verbosity == 0:
-            sh.setLevel(logging.WARNING)
-        elif verbosity == 1:
-            sh.setLevel(logging.INFO)
-        else:
-            sh.setLevel(logging.DEBUG)
-
-        logging.basicConfig(
-            level=logging.DEBUG,
-            format=(
-                "%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d "
-                "%(message)s"
-            ),
-            handlers=[fh, sh],
-        )
-
+    def handle(self, **kwargs):
         try:
             main()
         except KeyboardInterrupt:
             pass
-        except django.db.utils.InternalError as e:
-            logging.log(logging.ERROR, 'django internal errror %s' % e)
+        except django.db.utils.InternalError:
+            logger.exception('django internal error')
