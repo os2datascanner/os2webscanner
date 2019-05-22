@@ -21,3 +21,4 @@ cifs-utils
 rabbitmq-server
 libkrb5-dev
 gettext
+prometheus
