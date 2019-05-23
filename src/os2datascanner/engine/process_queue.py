@@ -34,6 +34,8 @@ import sys
 import django
 import logging
 
+from .utils import prometheus_session
+
 # Include the Django app
 django.setup()
 
@@ -47,13 +49,14 @@ setup_args = [pid]
 if len(sys.argv) > 2:
     setup_args.extend(sys.argv[2:])
 
-if queued_processor is not None:
-    queued_processor.setup_queue_processing(*setup_args)
-    try:
-        logging.info('Ready to process queue for type: {}'.format(sys.argv[1]))
-        queued_processor.process_queue()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        logging.info('Tearing down process queue for type: {}'.format(sys.argv[1]))
-        queued_processor.teardown_queue_processing()
+with prometheus_session(str(pid), processor_type=sys.argv[1]):
+    if queued_processor is not None:
+        queued_processor.setup_queue_processing(*setup_args)
+        try:
+            logging.info('Ready to process queue for type: {}'.format(sys.argv[1]))
+            queued_processor.process_queue()
+        except KeyboardInterrupt:
+            pass
+        finally:
+            logging.info('Tearing down process queue for type: {}'.format(sys.argv[1]))
+            queued_processor.teardown_queue_processing()
