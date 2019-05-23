@@ -398,17 +398,7 @@ class PreDataScanner(object):
             else:
                 matchtype = 'Unknown'
             filetype = file_type_group(matchtype, mime=True)
-            """
-            if filetype['super-group'] == 'Unknown' and matchtype is not 'Unknown':
-                print()
-                print(node)
-                print('Mime: {}'.format(mime_type))
-                magictype = magic.from_buffer(open(str(node), 'rb').read(512))
-                print('Magic: {}'.format(magictype))
-                import random
-                if random.random() > 0.95:
-                    1/0
-            """
+
         return filetype
 
     def determine_file_information(self):
@@ -448,11 +438,6 @@ class PreDataScanner(object):
                                                           False, None)
         return total_size
 
-    def check_file_group(self, filetype, size=0):
-        for node in self.nodes:
-            if (node['filetype'] == filetype) and (node['size'] > size):
-                print(node)
-
     def summarize_file_types(self):
         types = {'super': {},
                  'sub': {},
@@ -486,7 +471,7 @@ class PreDataScanner(object):
                                           'supergroup': supergroup}
         return types
 
-    def update_stats(self, print_output=True):
+    def update_stats(self):
         """ Update the internal stat-collection """
         self.stats['supported_file_count'] = 0
         self.stats['supported_file_size'] = 0
@@ -585,11 +570,9 @@ if __name__ == '__main__':
 
     pre_scanner = PreDataScanner(p, detection_method='mime')
     filetypes = pre_scanner.summarize_file_types()
-    pre_scanner.update_stats(print_output=True)
+    pre_scanner.update_stats()
 
     pp = PdfPages('multipage.pdf')
     pre_scanner.plot(pp, filetypes['super'])
     pre_scanner.plot(pp, filetypes['sub'])
     pp.close()
-
-    # pre_scanner.check_file_group('Virtual Machine')

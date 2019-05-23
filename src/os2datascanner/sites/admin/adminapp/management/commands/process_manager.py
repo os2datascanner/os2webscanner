@@ -57,7 +57,7 @@ if not os.path.exists(log_dir):
 processes_per_type = scanner_settings.NUMBER_OF_PROCESSES_PER_TYPE
 processing_timeout = timedelta(minutes=20)
 
-process_types = ('html', 'libreoffice', 'ocr', 'pdf', 'zip', 'text', 'csv', 'xml')
+process_types = tuple(sorted(Processor.processors_by_type))
 
 process_map = {}
 process_list = []
