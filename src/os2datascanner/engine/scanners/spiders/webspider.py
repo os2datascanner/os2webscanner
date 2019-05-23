@@ -1,12 +1,15 @@
 import logging
 import magic
-# Use our monkey-patched link extractor
-from ..linkextractor import LxmlLinkExtractor
 
 from scrapy.exceptions import IgnoreRequest
 from scrapy.http import Request, HtmlResponse
 from scrapy.spidermiddlewares.httperror import HttpError
 from scrapy.utils.response import response_status_message
+
+from os2datascanner.sites.admin.adminapp.models.referrerurl_model import ReferrerUrl
+
+# Use our monkey-patched link extractor
+from ..linkextractor import LxmlLinkExtractor
 
 from .scanner_spider import ScannerSpider
 
@@ -187,7 +190,6 @@ class WebSpider(ScannerSpider):
 
     def _get_or_create_referrer(self, referrer):
         """Create or get existing ReferrerUrl object."""
-        from ....sites.admin.adminapp.models.referrerurl_model import ReferrerUrl
         if referrer not in self.referrer_url_objects:
             self.referrer_url_objects[referrer] = ReferrerUrl(
                 url=referrer, scan=self.scanner.scan_object)

@@ -91,10 +91,6 @@ class Domain(models.Model):
         """Get the absolute URL for domains."""
         return '/domains/'
 
-    def __unicode__(self):
-        """Return the URL for the domain."""
-        return self.url
-
     def __str__(self):
         """Return the URL for the domain."""
         return self.url

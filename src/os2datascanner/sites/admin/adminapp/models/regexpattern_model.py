@@ -34,10 +34,6 @@ class RegexPattern(models.Model):
     pattern_string = models.CharField(max_length=1024, blank=False,
                                       verbose_name='Udtryk')
 
-    def __unicode__(self):
-        """Return the pattern string."""
-        return self.pattern_string
-
     def __str__(self):
         """Return the pattern string."""
         return self.pattern_string

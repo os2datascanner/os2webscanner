@@ -34,7 +34,7 @@ import logging
 import django
 from datetime import timedelta
 from django.utils import timezone
-from django.db import transaction, IntegrityError, DatabaseError
+from django.db import transaction, DatabaseError
 from django import db
 from django.conf import settings as django_settings
 
@@ -216,10 +216,8 @@ def check_running_scanjobs():
                     scan.set_scan_status_failed(
                         "SCAN FAILED: Process died with pid {}".format(scan.pid))
             logging.log(logging.DEBUG, "Checked {} scans.".format(len(running_scans)))
-    except (DatabaseError, IntegrityError) as ex:
-        logging.log(logging.ERROR, 'Error occured while trying to select and update running scans.')
-        logging.log(logging.ERROR, 'Error message {}'.format(str(ex)))
-        pass
+    except DatabaseError:
+        logging.exception('Error occured while trying to select and update running scans.')
 
 
 def restart_stuck_processors():

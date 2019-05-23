@@ -10,7 +10,6 @@ class Statistic(models.Model):
     # Statistics
     scan = models.ForeignKey(
         Scan,
-        null=True,
         verbose_name='scanjob',
         related_name='scanjob',
         on_delete=models.CASCADE,

@@ -41,10 +41,6 @@ class Url(models.Model):
                                        related_name='%(app_label)s_%(class)s_linked_urls',
                                        verbose_name='Referrers')
 
-    def __unicode__(self):
-        """Return the URL."""
-        return self.url
-
     def __str__(self):
         """Return the URL."""
         return self.url

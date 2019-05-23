@@ -27,12 +27,12 @@ import random
 import subprocess
 import traceback
 
-from django.db import transaction, IntegrityError, DatabaseError
+from django.db import transaction, DatabaseError
 from django import db
 from django.utils import timezone
 from django.conf import settings
 
-from ....sites.admin.adminapp.models.conversionqueueitem_model import ConversionQueueItem
+from os2datascanner.sites.admin.adminapp.models.conversionqueueitem_model import ConversionQueueItem
 
 
 # Minimum width and height an image must have to be scanned
@@ -327,7 +327,7 @@ class Processor(object):
                     result.process_id = self.pid
                     result.process_start_time = ltime
                     result.save()
-            except (DatabaseError, IntegrityError) as e:
+            except DatabaseError as e:
                 # Database transaction failed, we just try again
                 datetime_print('Error message {0}'.format(e))
                 datetime_print('Transaction failed while getting queue item of type {0}'.format(

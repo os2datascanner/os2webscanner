@@ -2,7 +2,6 @@ import functools
 import os
 import pathlib
 import pkgutil
-import sys
 import typing
 import urllib.parse
 import urllib.request

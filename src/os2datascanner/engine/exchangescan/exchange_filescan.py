@@ -18,9 +18,13 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from exchangelib import EWSDate
 
+from os2datascanner.sites.admin.adminapp.amqp_communication import amqp_connection_manager
+from os2datascanner.sites.admin.adminapp.models.domain_model import Domain
+from os2datascanner.sites.admin.adminapp.models.exchangescan_model import ExchangeScan
+from os2datascanner.sites.admin.adminapp.models.scan_model import Scan
+
 from .mailscan_exchange import ExchangeServerScan, read_users
 from .settings import NUMBER_OF_EMAIL_THREADS
-from ...sites.admin.adminapp.models.domain_model import Domain
 
 
 class ExchangeFilescanner(multiprocessing.Process):
@@ -30,7 +34,6 @@ class ExchangeFilescanner(multiprocessing.Process):
         print('Program started')
         self.scan_id = scan_id
         django.setup()
-        from ...sites.admin.adminapp.models.scan_model import Scan
         scan_object = Scan.objects.get(pk=self.scan_id)
         valid_domains = scan_object.domains.filter(
             validation_status=Domain.VALID
@@ -121,7 +124,6 @@ class ExchangeFilescanner(multiprocessing.Process):
         self.update_scan_job_path(path)
         print('Starting file scan for path {}'.format(path))
         import json
-        from ...sites.admin.adminapp.amqp_communication import amqp_connection_manager
         queue_name = 'datascanner'
         message = {'type': 'FileScanner', 'id': self.scan_id}
         amqp_connection_manager.start_amqp(queue_name)
@@ -147,7 +149,6 @@ class ExchangeFilescanner(multiprocessing.Process):
     def get_scan_object(self):
         """Gets the scan object from db"""
         try:
-            from ...sites.admin.adminapp.models.exchangescan_model import ExchangeScan
             scan_object = ExchangeScan.objects.get(pk=self.scan_id)
         except ObjectDoesNotExist:
             print('Scan object with id {} does not exists.'.format(

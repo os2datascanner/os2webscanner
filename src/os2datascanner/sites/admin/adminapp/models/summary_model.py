@@ -49,7 +49,7 @@ class Summary(models.Model):
     do_email_recipients = models.BooleanField(default=False,
                                               verbose_name="Udsend mails")
 
-    def __unicode__(self):
+    def __str__(self):
         """Return the name as a text representation of this summary object."""
         return self.name
 

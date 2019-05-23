@@ -302,19 +302,16 @@ class OrgRestrictedMixin(ModelFormMixin, LoginRequiredMixin):
 class RestrictedUpdateView(UpdateView, OrgRestrictedMixin):
     """Base class for updateviews restricted by organiztion."""
 
-    pass
 
 
 class RestrictedDetailView(DetailView, OrgRestrictedMixin):
     """Base class for detailviews restricted by organiztion."""
 
-    pass
 
 
 class RestrictedDeleteView(DeleteView, OrgRestrictedMixin):
     """Base class for deleteviews restricted by organiztion."""
 
-    pass
 
 
 class OrganizationUpdate(UpdateView, LoginRequiredMixin):

@@ -8,7 +8,6 @@ https://docs.djangoproject.com/en/1.11/howto/deployment/wsgi/
 """
 
 import os
-import sys
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "os2datascanner.sites.admin.settings")
 

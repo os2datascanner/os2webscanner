@@ -18,10 +18,8 @@
 These will pass when you run "manage.py test os2webscanner".
 """
 
-import os
 import pep8
 from django.test import TestCase
-from django.conf import settings
 
 from .models.domains.webdomain_model import WebDomain
 from .models.organization_model import Organization
