@@ -53,7 +53,7 @@ END
 
 systemctl restart prometheus-postgres-exporter.service
 
-if grep --silent os2datascanner_prometheus /etc/prometheus/prometheus.yml; then
+if grep --silent 'job_name: os2datascanner' /etc/prometheus/prometheus.yml; then
     echo "$0: no need to patch /etc/prometheus/prometheus.yml"
 else
     echo "$0: patching /etc/prometheus/prometheus.yml"
@@ -62,7 +62,9 @@ else
   - job_name: os2datascanner
     file_sd_configs:
       - files:
-        - $(readlink --canonicalize "$(dirname "$0")/os2datascanner_prometheus.yml")
+        - $(readlink --canonicalize "$(dirname "$0")/prometheus")/*.yml
+        - $(readlink --canonicalize "$(dirname "$0")/prometheus")/*.json
 END
+    echo "$0: reloading prometheus configuration"
     killall -HUP prometheus
 fi
