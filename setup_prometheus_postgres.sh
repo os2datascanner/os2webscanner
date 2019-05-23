@@ -1,5 +1,14 @@
 #!/bin/sh
 
+set -e
+
+if [ "`id -u`" != "0" ]; then
+    echo "$0: must, unfortunately, be root" 1>&2
+    exit 1
+fi
+
+echo "$0: setting up prometheus PostgreSQL user"
+
 # Copied and pasted from
 # /usr/share/doc/prometheus-postgres-exporter/README.Debian
 sudo -u postgres psql <<'END'
@@ -43,3 +52,17 @@ DATA_SOURCE_NAME='user=prometheus host=/run/postgresql dbname=os2webscanner'
 END
 
 systemctl restart prometheus-postgres-exporter.service
+
+if grep --silent os2datascanner_prometheus /etc/prometheus/prometheus.yml; then
+    echo "$0: no need to patch /etc/prometheus/prometheus.yml"
+else
+    echo "$0: patching /etc/prometheus/prometheus.yml"
+    cat <<END >> /etc/prometheus/prometheus.yml
+
+  - job_name: os2datascanner
+    file_sd_configs:
+      - files:
+        - $(readlink --canonicalize "$(dirname "$0")/os2datascanner_prometheus.yml")
+END
+    killall -HUP prometheus
+fi
