@@ -26,6 +26,7 @@ import codecs
 import random
 import subprocess
 import traceback
+from prometheus_client.core import Summary
 
 from django.db import transaction, IntegrityError, DatabaseError
 from django import db
@@ -75,6 +76,9 @@ def get_image_dimensions(file_path):
 
 def datetime_print(line_to_print):
     print('{0} : {1}'.format(datetime.datetime.now(), line_to_print))
+
+
+CONVERSIONS = Summary("os2datascanner_processor_conversions", "Object conversions")
 
 
 class Processor(object):
@@ -340,6 +344,7 @@ class Processor(object):
                 break
         return result
 
+    @CONVERSIONS.time()
     def convert_queue_item(self, item):
         """Convert a queue item and add converted files to the queue.
 
