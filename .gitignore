@@ -14,3 +14,4 @@ django-os2webscanner/django.os2webscanner.egg-info
 *.log
 ._*
 **DS_Store
+prometheus/*.json
