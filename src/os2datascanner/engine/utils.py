@@ -9,6 +9,12 @@ import urllib.request
 
 import django
 
+import os.path
+import json
+import errno
+from contextlib import contextmanager
+from random import randrange
+from prometheus_client import start_http_server
 
 def run_django_setup():
     """Load django setup and include django app"""
@@ -54,3 +60,37 @@ def get_data(file_name: str, uppercase=True) -> typing.FrozenSet[str]:
         for line in text.splitlines()
         if line
     )
+
+
+@contextmanager
+def prometheus_session(name, **kwargs):
+    while True:
+        # Find a free port to serve Prometheus metrics over...
+        try:
+            port = randrange(45000, 55000)
+            start_http_server(port)
+            break
+        except OSError as ex:
+            if ex.errno == errno.EADDRINUSE:
+                continue
+            else:
+                raise
+
+    # ... advertise this port, and this service, to Prometheus...
+    print(__file__)
+    advertisement_path = os.path.dirname(__file__) + "/../../../prometheus/{0}.json".format(name)
+    with open(advertisement_path, "w") as fp:
+        json.dump([
+            {
+                "targets": ["localhost:{0}".format(port)],
+                "labels": kwargs
+            }
+        ], fp)
+        fp.flush()
+        os.fsync(fp.fileno())
+
+    # ... yield...
+    yield
+
+    # ... and, finally, delete the service advertisement
+    os.unlink(advertisement_path)
