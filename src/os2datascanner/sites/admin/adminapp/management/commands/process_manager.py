@@ -268,7 +268,7 @@ def prepare_processors():
     for ptype in process_types:
         for i in range(processes_per_type):
             name = '%s%d' % (ptype, i)
-            program = [sys.executable, '-m', 'os2datascanner.engine.process_queue', ptype]
+            program = [sys.executable, sys.argv[0], 'process_queue', ptype]
 
             # Libreoffice takes the homedir name as second arg
             if "libreoffice" == ptype:
