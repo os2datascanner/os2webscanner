@@ -46,6 +46,7 @@ from django.utils import timezone
 timezone.activate(timezone.get_default_timezone())
 
 logger = structlog.get_logger()
+root_logger = logging.getLogger()
 
 
 class StartScan(object):
@@ -81,14 +82,9 @@ class StartScan(object):
 
         # Each scanner process should set up logging separately, writing to
         # both the log file and to the scanner manager's standard error stream
-        logging.basicConfig(
-                level=logging.DEBUG,
-                format="""\
-%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s""",
-                handlers=[
-                    logging.FileHandler(self.logfile),
-                    logging.StreamHandler(stderr)
-                ])
+
+        root_logger.setLevel(logging.DEBUG)
+        root_logger.addHandler(logging.FileHandler(self.logfile))
 
         # Scrapy expects to be able to log things, so this call should always
         # happen after we've initialised the root logging handler
