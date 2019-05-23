@@ -24,10 +24,10 @@ item for too long.
 
 import os
 import shutil
-import sys
-import subprocess
-import time
 import signal
+import subprocess
+import sys
+import time
 
 from datetime import timedelta
 
@@ -46,7 +46,7 @@ from ...models.conversionqueueitem_model import ConversionQueueItem
 from ...models.scans.scan_model import Scan
 
 from os2datascanner.engine import settings as scanner_settings
-
+from os2datascanner.engine.scanners.processors.processor import Processor
 
 var_dir = django_settings.VAR_DIR
 
@@ -196,28 +196,24 @@ def main():
 
 def check_running_scanjobs():
     try:
-        logger.debug("Checking running scans...")
         with transaction.atomic():
             running_scans = Scan.objects.filter(
                 status=Scan.STARTED
             ).select_for_update(nowait=True)
+            logger.debug("check_running_scanjobs", scans=running_scans)
             for scan in running_scans:
-                logger.debug("Checking scan", scan=scan)
-                if not scan.pid \
-                        and not hasattr(scan, 'exchangescan'):
+                if not scan.pid and not hasattr(scan, 'exchangescan'):
                     continue
                 try:
                     # Check if process is still running
                     os.kill(scan.pid, 0)
                     logger.debug('Scan is OK', scan=scan.pk, pid=scan.pid)
                 except OSError as ex:
-                    logger.exception('Scan FAILED', scan=scan.pk, pid=scan.pid,
-                                     cause=ex)
+                    logger.exception('Scan FAILED', scan=scan.pk, pid=scan.pid)
                     scan.set_scan_status_failed(
                         "SCAN FAILED: Process died with pid {}".format(scan.pid))
-            logger.debug('Checked scans', count=len(running_scans))
-    except DatabaseError as ex:
-        logger.exception('Error occured while trying to select and update running scans.')
+    except DatabaseError:
+        logger.exception('check_running_scanjobs_failed')
 
 
 def restart_stuck_processors():
@@ -231,7 +227,7 @@ def restart_stuck_processors():
         pid = p.process_id
         if pid in process_map:
             stuck_process = process_map[pid]
-            logger.warning("Process is stuck, restarting", **stuck_process)
+            logger.warning("restart_stuck_processor", **stuck_process)
             restart_process(stuck_process)
         else:
             p.status = ConversionQueueItem.FAILED
@@ -259,7 +255,7 @@ def restart_stuck_processors():
 def restart_terminated_processors():
     for pdata in process_list:
         if pdata['process_handle'].poll() is not None:
-            logger.warning("Process has terminated, restarting it", **p)
+            logger.warning("Process has terminated, restarting it", **pdata)
             restart_process(pdata)
 
 

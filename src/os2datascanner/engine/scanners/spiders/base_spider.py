@@ -80,3 +80,7 @@ class BaseScannerSpider(Spider):
                     domain_regexes.append(re.escape(d))
         regex = r'^(www\.)?(%s)$' % '|'.join(domain_regexes)
         return re.compile(regex)
+
+    @property
+    def logger(self):
+        return self.scanner.logger

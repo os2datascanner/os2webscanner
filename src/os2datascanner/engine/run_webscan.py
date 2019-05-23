@@ -28,10 +28,10 @@ class StartWebScan(StartScan, multiprocessing.Process):
             self.start_webscan_crawlers()
 
     def start_webscan_crawlers(self):
-        logging.info("Beginning crawler process.")
+        self.logger.info("Beginning crawler process.")
         self.run_crawlers()
         self.crawler_process.start()
-        logging.info("Crawler process finished.")
+        self.logger.info("Crawler process finished.")
 
         if self.scanner.do_link_check and self.scanner.do_external_link_check:
             # Do external link check
@@ -65,14 +65,14 @@ class StartWebScan(StartScan, multiprocessing.Process):
     def get_start_urls_from_sitemap(self):
         """Return the URLs found by the sitemap spider."""
         if self.sitemap_crawler is not None:
-            logging.debug('Sitemap spider found')
+            self.logger.debug('Sitemap spider found')
             return self.sitemap_crawler.spider.get_urls()
         else:
             return []
 
     def external_link_check(self, external_urls):
         """Perform external link checking."""
-        logging.info("Link checking %d external URLs..." % len(external_urls))
+        self.logger.info("Link-checking external URLs", url_count=len(external_urls))
 
         for url in external_urls:
             url_parse = urlparse(url)
@@ -81,7 +81,7 @@ class StartWebScan(StartScan, multiprocessing.Process):
                 # schemes (file:// for example)
                 continue
 
-            logging.info("Checking external URL %s" % url)
+            self.logger.debug("Checking external URL", url=url)
 
             result = linkchecker.check_url(url)
             if result is not None:

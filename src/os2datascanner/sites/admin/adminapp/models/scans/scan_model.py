@@ -21,6 +21,7 @@ import os
 import shutil
 
 import dateutil.tz
+import structlog
 
 from django.conf import settings
 from django.core.validators import validate_comma_separated_integer_list
@@ -35,6 +36,8 @@ from ..sensitivity_level import Sensitivity
 from ..userprofile_model import UserProfile
 
 timezone.activate(timezone.get_default_timezone())
+
+logger = structlog.get_logger()
 
 
 class Scan(models.Model):
@@ -310,16 +313,17 @@ class Scan(models.Model):
         )
         if log:
             if pending_items.exists():
-                print("Deleting %d remaining conversion queue items from "
-                      "finished scan %s" % (
-                          pending_items.count(), self))
+                logger.info(
+                    "Deleting remaining conversion queue items from finished scan",
+                    count=pending_items.count(), scan_id=self.pk,
+                )
         pending_items.delete()
 
     def delete_scan_dir(self, log):
         if log:
-            print("Deleting scan directory: {}".format(self.scan_dir))
+            logger.debug('Delete scan directory', scan_id=self.pk, dir=self.scan_dir)
             shutil.rmtree(self.scan_dir, True)
-            print('Directory deleted: {}'.format(self.scan_dir))
+            logger.debug('Directory deleted', scan_id=self.pk, dir=self.scan_dir)
 
     @classmethod
     def pause_non_ocr_conversions_on_scans_with_too_many_ocr_items(cls):
@@ -346,20 +350,22 @@ class Scan(models.Model):
             num_ocr_items = items["total"]
             if (not scan.pause_non_ocr_conversions and
                         num_ocr_items > settings.PAUSE_NON_OCR_ITEMS_THRESHOLD):
-                print("Pausing non-OCR conversions for scan <%s> (%d) " \
-                      "because it has %d OCR items which is over the " \
-                      "threshold of %d" % \
-                      (scan, scan.pk, num_ocr_items,
-                       settings.PAUSE_NON_OCR_ITEMS_THRESHOLD))
+                logger.info(
+                    "Pausing non-OCR conversions for scan "
+                    "because it has too many OCR items",
+                    scan_id=scan.pk, num_ocr_items=num_ocr_items,
+                    threshold=settings.PAUSE_NON_OCR_ITEMS_THRESHOLD,
+                )
                 scan.pause_non_ocr_conversions = True
                 scan.save()
             elif (scan.pause_non_ocr_conversions and
                           num_ocr_items < settings.RESUME_NON_OCR_ITEMS_THRESHOLD):
-                print("Resuming non-OCR conversions for scan <%s> (%d) " \
-                      "because it has %d OCR items which is under the " \
-                      "threshold of %d" % \
-                      (scan, scan.pk, num_ocr_items,
-                       settings.RESUME_NON_OCR_ITEMS_THRESHOLD))
+                logger.info(
+                    "Resuming non-OCR conversions for scan "
+                    "as its OCR are under the threshold",
+                    scan_id=scan.pk, num_ocr_items=num_ocr_items,
+                    threshold=settings.RESUME_NON_OCR_ITEMS_THRESHOLD,
+                )
                 scan.pause_non_ocr_conversions = False
                 scan.save()
 
@@ -378,7 +384,7 @@ class Scan(models.Model):
         self.status = Scan.STARTED
         self.reason = ""
         pid = os.getpid()
-        print('Starting scan job with pid {}'.format(pid))
+        logger.info('Starting scan job', pid=pid, scan_id=self.pk)
         self.pid = pid
         self.save()
 

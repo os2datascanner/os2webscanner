@@ -19,11 +19,14 @@ import json
 import logging
 import re
 
+import structlog
 import regex
 
 from .cpr import CPRRule
 from .rule import Rule
 from ..items import MatchItem
+
+logger = structlog.get_logger()
 
 
 class RegexRule(Rule):
@@ -46,10 +49,11 @@ class RegexRule(Rule):
         self.regex_str = ''
 
         if not self._is_cpr_only():
-            logging.info('------- Regex patters ---------')
-            for _psuedoRule in self.regex_patterns:
-                logging.info(_psuedoRule.pattern_string)
-            logging.info('-----------------------------\n')
+            logger.debug('Regex patterns', patterns=[
+                _psuedoRule.pattern_string
+                for _psuedoRule in self.regex_patterns
+            ])
+
             self.regex_str = self.compund_rules()
             self.regex = regex.compile(self.regex_str, regex.DOTALL)
 

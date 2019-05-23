@@ -6,12 +6,15 @@ import urllib.request
 import urllib.error
 import urllib.parse
 import http.client
+
 import regex
-import logging
+import structlog
 
 from os2datascanner.sites.admin.adminapp.utils import capitalize_first
 
 LINK_CHECK_TIMEOUT = 5
+
+logger = structlog.get_logger()
 
 
 def check_url(url, method="HEAD"):
@@ -26,7 +29,7 @@ def check_url(url, method="HEAD"):
     :return:
     """
     try:
-        logging.info("Checking %s" % url)
+        logger.info("check_url", url=url)
         request = urllib.request.Request(url, headers={"User-Agent":
                                                        "OS2Webscanner"})
         request.get_method = lambda: method
@@ -37,7 +40,7 @@ def check_url(url, method="HEAD"):
             http.client.InvalidURL,
             socket.timeout,
             IOError, ssl.CertificateError) as e:
-        logging.debug("Error %s" % e)
+        logger.exception("check_url")
         code = getattr(e, "code", 0)
         if code == 405:
             # Method not allowed, try with GET instead

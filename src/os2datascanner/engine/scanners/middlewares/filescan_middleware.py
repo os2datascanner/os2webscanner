@@ -1,13 +1,16 @@
 import os
-import logging
 import datetime
 import dateutil.tz
 
 from urllib.parse import unquote
 
+import structlog
+
 from scrapy.exceptions import IgnoreRequest
 
 from .middlewares import LastModifiedCheckMiddleware
+
+logger = structlog.get_logger()
 
 
 class FileScanLastModifiedCheckMiddleware(LastModifiedCheckMiddleware):
@@ -31,8 +34,8 @@ class FileScanLastModifiedCheckMiddleware(LastModifiedCheckMiddleware):
         # Check the Last-Modified header to see if the content has been
         # updated since the last time we checked it.
         if self.has_been_modified(request, response, spider):
-            logging.debug("Page has been modified since Last-Modified %s"
-                          % response)
+            logger.debug("Page has been modified since Last-Modified",
+                         response=response)
             return response
         else:
             # Ignore the request, since the content has not been modified
@@ -56,14 +59,18 @@ class FileScanLastModifiedCheckMiddleware(LastModifiedCheckMiddleware):
                 os.path.getmtime(file_path),
                 tz=dateutil.tz.UTC,
             )
-        except OSError as e:
-            logging.error('Error occured while getting last modified for file %s' % file_path)
-            logging.error('Error message %s' % e)
+        except OSError:
+            logger.exception('Error occured while getting last modified',
+                             file_path=file_path)
+            return True
 
         if last_modified is not None:
-            logging.info(
-                "Comparing header %s against scan timestamp %s" %
-                (last_modified, spider.runner.last_started))
+            logger.debug(
+                "Comparing timestamps in header and scan",
+                header_value=last_modified,
+                scan_value=spider.runner.last_started,
+                file_path=file_path,
+            )
             last_scan_started_at = spider.runner.last_started
             if not last_scan_started_at or \
                             last_modified > last_scan_started_at:
@@ -73,5 +80,6 @@ class FileScanLastModifiedCheckMiddleware(LastModifiedCheckMiddleware):
         else:
             # If there is no Last-Modified header, we have to assume it has
             # been modified.
-            logging.debug('No Last-Modified header found at all.')
+            logging.debug('No Last-Modified header found at all.',
+                          file_path=file_path)
             return True

@@ -18,6 +18,7 @@
 
 import logging
 
+import structlog
 from dateutil.parser import parse as parse_datetime
 
 from twisted.internet import reactor
@@ -44,6 +45,8 @@ from django.core.exceptions import MultipleObjectsReturned
 from django.utils import timezone
 timezone.activate(timezone.get_default_timezone())
 
+logger = structlog.get_logger()
+
 
 class StartScan(object):
     """A scanner application which can be run."""
@@ -69,6 +72,8 @@ class StartScan(object):
 
         self.settings = get_project_settings()
         self.crawler_process = None
+
+        self.logger = logger.bind(scan_id=self.scan_id)
 
     def run(self):
         """Updates the scan status and sets the pid.
@@ -107,20 +112,19 @@ class StartScan(object):
     def handle_closed(self, spider, reason):
         """Handle the spider being finished."""
         # TODO: Check reason for if it was finished, cancelled, or shutdown
-        logging.debug('Spider is closing. Reason {0}'.format(reason))
+        self.logger.debug('close_spider', reason=reason, spider=spider)
         self.store_stats()
         reactor.stop()
 
     def store_stats(self):
         """Stores scrapy scanning stats when scan is completed."""
-        logging.info('Stats: {0}'.format(self.scanner_crawler.stats.get_stats()))
+        self.logger.info('store_stats', **self.scanner_crawler.stats.get_stats())
 
         try:
             statistics, created = Statistic.objects.get_or_create(scan=self.scanner.scan_object)
-        except MultipleObjectsReturned:
-            logging.error('Multiple statistics objects found for scan job {}'.format(
-                self.scan_id)
-            )
+        except MultipleObjectsReturned as exc:
+            self.logger.exception('Multiple statistics objects found',
+                             exc_info=exc)
 
         if self.scanner_crawler.stats.get_value(
                 'last_modified_check/pages_skipped'):
@@ -139,7 +143,7 @@ class StartScan(object):
             )
 
         statistics.save()
-        logging.debug('Statistic saved.')
+        self.logger.debug('store_stats_done')
 
     def handle_error(self, failure, response, spider):
         """Printing spider errors.
@@ -148,14 +152,16 @@ class StartScan(object):
         The scan is only stopped when the spider signals it has stopped.
 
         So we only print the error to the log."""
-        logging.error("An error occured: %s" % failure.getErrorMessage())
+        self.logger.error("spider_error", exc_info=(
+            failure.type, failure.value, failure.getTracebackObject(),
+        ))
 
     def handle_idle(self, spider):
         """Handle when the spider is idle.
 
         Keep it open if there are still queue items to be processed.
         """
-        logging.debug("Spider Idle...")
+        self.logger.debug("spider_idle")
         # Keep spider alive if there are still queue items to be processed
         remaining_queue_items = ConversionQueueItem.objects.filter(
             status__in=[ConversionQueueItem.NEW,
@@ -164,10 +170,10 @@ class StartScan(object):
         ).count()
 
         if remaining_queue_items > 0:
-            logging.info(
-                "Keeping spider alive: %d remaining queue items to process" %
-                remaining_queue_items
-            )
+            self.logger.info("Keeping spider alive",
+                             remaining_queue_items=remaining_queue_items)
+
             raise DontCloseSpider
         else:
-            logging.info("No more active processors, closing spider...")
+            self.logger.info("No more active processors, closing spider...",
+                             remaining_queue_items=remaining_queue_items)

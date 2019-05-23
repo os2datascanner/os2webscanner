@@ -1,6 +1,7 @@
-import logging
 import errno
 import magic
+
+import structlog
 
 from scrapy.http import Request
 from scrapy.exceptions import IgnoreRequest
@@ -32,22 +33,23 @@ class FileSpider(ScannerSpider):
         super().__init__(scanner=scanner, runner=runner, *a, **kw)
 
     def setup_spider(self):
-        logging.info("Initializing spider of type FileSpider")
+        self.logger.info("Initializing spider of type FileSpider")
         for path in self.allowed_domains:
             path = self.add_correct_file_path_prefix(path)
             self.start_urls.append(path)
 
     def start_requests(self):
         """Return requests for all starting URLs AND sitemap URLs."""
-        logging.info("Starting requests")
+        self.logger.info("Starting requests")
 
         requests = []
         for url in self.start_urls:
             # Some of the files are directories. We handle them in handle_error method.
             try:
                 requests.extend(self.append_file_request(url))
-            except Exception:
-                logging.exception('adding request for url %r failed', url)
+            except Exception as exc:
+                self.logger.exception('adding request failed',
+                                      url=url, exc_info=exc)
 
         return requests
 
@@ -58,7 +60,7 @@ class FileSpider(ScannerSpider):
         :param path: path to folder or file
         :return: path with prefix file://
         """
-        logging.info("Start path {0}".format(path))
+        self.logger.debug("add_correct_file_path_prefix", path=path)
         return as_file_uri(path)
 
     def append_file_request(self, url):
@@ -71,8 +73,8 @@ class FileSpider(ScannerSpider):
                 requests.append(Request(stringdata, callback=self.scan,
                                         errback=self.handle_error))
             except UnicodeEncodeError as uee:
-                logging.error('UnicodeEncodeError in handle_error_method: {}'.format(uee))
-                logging.error('Error happened for file: {}'.format(stringdata))
+                self.logger.exception('UnicodeEncodeError in append_file_request',
+                                      url=url, exc_info=uee, file=file)
 
         return requests
 
@@ -107,15 +109,15 @@ class FileSpider(ScannerSpider):
                 group_name = k
             self.scanner.add_type_statistics(group_name, v["count"], sum(v["sizedist"]))
 
-        logging.info('Starting folder analysis...')
+        self.logger.debug('Starting folder analysis...')
         for path, info in files.nodes.items():
             if info['filetype']['relevant'] and info['filetype']['supported']:
                 relevant_files += 1
                 relevant_file_size += info['size']
                 filemap.append(as_file_uri(path))
-        logging.info('Found {0} relevant files ({1} bytes).'.format(
-            relevant_files, relevant_file_size))
-        logging.info('Folder analysis completed...')
+        self.logger.info('Folder analysis',
+                         relevant_files=relevant_files,
+                         relevant_file_size=relevant_file_size)
         return filemap
 
     def handle_error(self, failure):
@@ -133,17 +135,21 @@ class FileSpider(ScannerSpider):
             return
         else:
             # If file is a directory loop through files within
-            logging.debug('Failure value: {}'.format(str(failure.value)))
             if isinstance(failure.value, IOError) \
                     and failure.value.errno == errno.EISDIR:
-                logging.debug('File that is failing: {0}'.format(
-                    failure.value.filename))
+                self.logger.debug('file_spider_error',
+                                  exc_info=failure.value,
+                                  file=failure.value.filename)
 
                 return self.append_file_request(
                     as_file_uri(failure.value.filename),
                 )
             elif isinstance(failure.value, IOError):
                 status_message = str(failure.value.errno)
+
+        self.logger.debug('file_spider_error',
+                          exc_info=failure.value,
+                          failure=failure)
 
         self.broken_url_save(status_code, status_message, url)
 

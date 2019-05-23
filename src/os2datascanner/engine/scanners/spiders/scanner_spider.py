@@ -19,7 +19,9 @@ import logging
 import magic
 import mimetypes
 import re
+
 import regex
+import structlog
 
 from magic import MagicException
 
@@ -28,6 +30,8 @@ from .base_spider import BaseScannerSpider
 from ..processors.processor import Processor
 
 from os2datascanner.sites.admin.adminapp.utils import capitalize_first
+
+logger = structlog.get_logger()
 
 
 class ScannerSpider(BaseScannerSpider):
