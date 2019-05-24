@@ -19,10 +19,6 @@ class ReferrerUrl(models.Model):
         on_delete=models.CASCADE,
     )
 
-    def __unicode__(self):
-        """Return the URL."""
-        return self.url
-
     def __str__(self):
         """Return the URL."""
         return self.url

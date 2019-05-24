@@ -17,6 +17,9 @@
 """Contains a WebScanner."""
 import logging
 
+from os2datascanner.sites.admin.adminapp.models.scans.scan_model import Scan
+from os2datascanner.sites.admin.adminapp.models.url_model import Url
+
 from ..rules.name import NameRule
 from ..rules.address import AddressRule
 from ..rules.regexrule import RegexRule
@@ -37,7 +40,6 @@ dictionary."""
 
         # Get scan object from DB
         if not _Model:
-            from ....sites.admin.adminapp.models.scans.scan_model import Scan
             _Model = Scan
         self.scan_object = _Model.objects.get(pk=scan_id)
 
@@ -51,8 +53,8 @@ dictionary."""
     def done(self):
         self.scan_object.set_scan_status_done()
 
-    def failed(self):
-        self.scan_object.set_scan_status_failed()
+    def failed(self, arg):
+        self.scan_object.set_scan_status_failed(arg)
 
     @property
     def do_name_scan(self):
@@ -75,7 +77,6 @@ dictionary."""
         return self.scan_object.scanner.process_urls
 
     def mint_url(self, **kwargs):
-        from ....sites.admin.adminapp.models.url_model import Url
         u = Url(scan=self.scan_object, **kwargs)
         u.save()
         return u
@@ -168,3 +169,15 @@ scan ID."""
 
                 matches.append(match)
         return matches
+
+    def __enter__(self):
+        self.ensure_started()
+
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if exc_type is None:
+            self.done()
+        else:
+            logging.exception("SCANNER FAILED")
+            self.failed('SCANNER FAILED: {}'.format(exc_value))

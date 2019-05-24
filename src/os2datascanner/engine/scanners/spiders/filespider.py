@@ -2,9 +2,9 @@ import logging
 import errno
 import magic
 
-from scrapy.http import Request, HtmlResponse
+from scrapy.http import Request
 from scrapy.exceptions import IgnoreRequest
-from ....sites.admin.adminapp.utils import capitalize_first, get_codec_and_string, secure_save
+from os2datascanner.sites.admin.adminapp.utils import get_codec_and_string
 
 from ...utils import as_file_uri, as_path
 from ..processors.processor import Processor

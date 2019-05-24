@@ -14,7 +14,7 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 """HTML Processors."""
-from ....sites.admin.adminapp.utils import get_codec_and_string
+from os2datascanner.sites.admin.adminapp.utils import get_codec_and_string
 
 from .processor import Processor
 from w3lib.html import replace_entities, remove_tags_with_content

@@ -15,6 +15,7 @@
 # source municipalities ( http://www.os2web.dk/ )
 """Regular expression-based rules."""
 
+import json
 import logging
 import re
 
@@ -63,10 +64,13 @@ class RegexRule(Rule):
         Returns a string object representation of this object
         :return:
         """
-        return '{\n\tname: ' + self.name + \
-               ',\n\tregex: ' + self.regex_str + \
-               ',\n\tcpr_enabled: ' + str(self._is_cpr_only()) + \
-               ',\n\tsensitivity: ' + str(self.sensitivity) + '\n}'
+
+        return json.dumps({
+            'name': self.name,
+            'regex': self.regex_str,
+            'cpr_enabled': self._is_cpr_only(),
+            'sensitivity': self.sensitivity,
+        }, indent=2)
 
     def compund_rules(self):
         """

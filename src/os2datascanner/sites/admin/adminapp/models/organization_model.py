@@ -32,10 +32,6 @@ class Organization(models.Model):
                                      default="",
                                      verbose_name='Godkendte CPR-numre')
 
-    def __unicode__(self):
-        """Return the name of the organization."""
-        return self.name
-
     def __str__(self):
         """Return the name of the organization."""
         return self.name

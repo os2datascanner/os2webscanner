@@ -20,20 +20,12 @@
 Starts spiders scheduled to run during the current minute.
 """
 
-import os
-import sys
-
 import datetime
-
-import django
 
 from django.core.management.base import BaseCommand
 
 
 from ...models.scannerjobs.scanner_model import Scanner
-from ...models.scannerjobs.webscanner_model import WebScanner
-from ...models.scannerjobs.filescanner_model import FileScanner
-from ...models.scannerjobs.exchangescanner_model import ExchangeScanner
 
 
 def strip_seconds(d):
