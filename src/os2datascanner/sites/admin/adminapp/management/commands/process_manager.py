@@ -35,7 +35,6 @@ import django
 import structlog
 
 from django.utils import timezone
-from django.db import transaction, DatabaseError
 from django import db
 from django.conf import settings as django_settings
 
@@ -184,36 +183,12 @@ def main():
 
         restart_stuck_processors()
 
-        check_running_scanjobs()
-
         # Cleanup finished scans from the last minute
         Scan.cleanup_finished_scans(timedelta(minutes=1), log=True)
 
         Scan.pause_non_ocr_conversions_on_scans_with_too_many_ocr_items()
 
         time.sleep(10)
-
-
-def check_running_scanjobs():
-    try:
-        with transaction.atomic():
-            running_scans = Scan.objects.filter(
-                status=Scan.STARTED
-            ).select_for_update(nowait=True)
-            logger.debug("check_running_scanjobs", scans=running_scans)
-            for scan in running_scans:
-                if not scan.pid and not hasattr(scan, 'exchangescan'):
-                    continue
-                try:
-                    # Check if process is still running
-                    os.kill(scan.pid, 0)
-                    logger.debug('Scan is OK', scan=scan.pk, pid=scan.pid)
-                except OSError as ex:
-                    logger.exception('Scan FAILED', scan=scan.pk, pid=scan.pid)
-                    scan.set_scan_status_failed(
-                        "SCAN FAILED: Process died with pid {}".format(scan.pid))
-    except DatabaseError:
-        logger.exception('check_running_scanjobs_failed')
 
 
 def restart_stuck_processors():

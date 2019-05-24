@@ -64,6 +64,12 @@ ENABLE_FILESCAN = True
 # If exchangescan on the current installation is needed, enable it here
 ENABLE_EXCHANGESCAN = True
 
+# Check for dead scanner processes at this interval, in seconds
+CHECK_SCAN_INTERVAL = 300
+
+# Purge scanner queue items at this interval, in seconds
+CLEANUP_SCAN_INTERVAL = 300
+
 # Add settings here to make them accessible from templates
 SETTINGS_EXPORT = [
     'DEBUG',
