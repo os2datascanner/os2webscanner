@@ -23,3 +23,12 @@ Good Enough™
 
 Then, set the environemnt variable ``DJANGO_GRAYLOG_HOST`` to
 ``localhost`` when running the various scanning processes.
+
+Caveats
+-------
+
+Graylog should work as-is in a “normal” setup, where the Docker VM is
+accessed at ``localhost``. However, if you run Docker remotely or on a
+VM, you'll need to edit ``GRAYLOG_HTTP_EXTERNAL_URI`` in
+``docker-compose.yml`` or alter it in the Docker configuration. How to
+do so is left as an exercise to the reader.
