@@ -15,7 +15,7 @@
 # source municipalities ( http://www.os2web.dk/ )
 """Middleware for the scanner."""
 
-import logging
+import structlog
 
 from scrapy import Request
 from scrapy import signals
@@ -31,6 +31,9 @@ from django.conf import settings as django_settings
 from django.db import transaction
 
 from os2datascanner.sites.admin.adminapp.models.urllastmodified_model import UrlLastModified
+
+
+logger = structlog.get_logger()
 
 
 
@@ -52,7 +55,7 @@ class ExclusionRuleMiddleware(object):
                     yield x
                 else:
                     # TODO: Log excluded URLs somewhere?
-                    logging.info("Excluding %s" % x.url)
+                    logger.info("Excluding URL", url=x.url)
             else:
                 yield x
 
@@ -112,8 +115,8 @@ class OffsiteDownloaderMiddleware(object):
             return None
         else:
             domain = urlparse_cached(request).hostname
-            logging.debug("Filtered offsite request to %(domain)r: %(request)s" %
-                          {"domain": domain, "request": request})
+            logger.debug("Filtered offsite request",
+                          domain= domain, request=request)
             raise IgnoreRequest
 
     def should_follow(self, request, spider):
@@ -177,12 +180,12 @@ class OffsiteRedirectMiddleware(RedirectMiddleware,
                                                          spider):
                     return result
                 else:
-                    logging.info("Excluding redirect due to exclusion rule %s" %
-                                result.url)
+                    logger.info("Excluding redirect due to exclusion rule",
+                                 url=result.url)
                     raise IgnoreRequest
             else:
-                logging.info("Excluding redirect due to no offsite domains %s" %
-                            result.url)
+                logger.info("Excluding redirect due to no offsite domains",
+                            url=result.url)
                 raise IgnoreRequest
         else:
             return result
@@ -211,10 +214,10 @@ class LastModifiedLinkStorageMiddleware(object):
         except UrlLastModified.DoesNotExist:
             # We never stored the URL for the original request: this
             # shouldn't happen.
-            logging.exception(
-                "no original last modification for URL %s in %s",
-                source_url,
-                self.get_scanner_object(spider),
+            logger.exception(
+                "no original last modification for URL",
+                url=source_url,
+                scanner=self.get_scanner_object(spider),
             )
 
             return result
@@ -242,11 +245,11 @@ class LastModifiedLinkStorageMiddleware(object):
 
             # Now perform the operations in bulk in a single,
             # optimised step
-            logging.debug(
-                "Updating links for %s; adding %d and removing %d",
-                url_last_modified,
-                len(extraneous_links),
-                len(wanted_link_urls),
+            logger.debug(
+                "Updating links",
+                url=url_last_modified,
+                added=wanted_link_urls,
+                removed=extraneous_links,
             )
 
             # Remove the ones no longer needed

@@ -18,7 +18,6 @@
 from .processor import Processor
 
 from .text import TextProcessor
-import logging
 import os
 
 import xmltodict
@@ -56,7 +55,7 @@ class XmlProcessor(HTMLProcessor):
         Converts document to json before processing with TextProcessor.
         if XML is not well formed, treat it as HTML
         """
-        logging.info("Process XML %s" % url_object.url)
+        self.logger.info("Process XML", url=url_object.url)
 
         try:
             data = json.dumps(xmltodict.parse(data))

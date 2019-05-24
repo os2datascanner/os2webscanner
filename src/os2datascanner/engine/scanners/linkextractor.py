@@ -2,12 +2,15 @@
 
 from urllib.parse import urljoin
 
-import logging
+import structlog
+
 from scrapy.linkextractors.lxmlhtml import LxmlParserLinkExtractor
 from scrapy.linkextractors.lxmlhtml import LxmlLinkExtractor  # noqa
 from scrapy.linkextractors.lxmlhtml import _collect_string_content
 from scrapy.utils.python import unique as unique_list
 from scrapy.link import Link
+
+logger = structlog.get_logger()
 
 
 def _is_valid_link(url):
@@ -17,7 +20,7 @@ def _is_valid_link(url):
     """
     parts = url.strip().split(':', 1)
     if len(parts) > 1 and parts[0] not in ('http', 'https'):
-        logging.info("Ignoring link %s" % url)
+        logger.debug("ignore_invalid_link", url=url)
         return False
     else:
         return True

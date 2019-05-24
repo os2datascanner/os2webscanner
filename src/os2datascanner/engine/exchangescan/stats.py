@@ -18,7 +18,7 @@ try:
 except ImportError:
     pass
 
-logger = logging.getLogger('Mailscan_exchange')
+logger = logging.getLogger(__name__)
 fh = logging.FileHandler('logfile.log')
 fh.setLevel(logging.INFO)
 logger.addHandler(fh)

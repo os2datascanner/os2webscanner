@@ -40,8 +40,8 @@ class ZipProcessor(Processor):
             zip_item.extractall(tmp_dir)
             return True
         except (RuntimeError, KeyError) as re:
-            print('Extracting zip file {} failed.'.format(item.file_path))
-            print('Error message {}'.format(re))
+            self.logger.exception('Extracting zip file failed',
+                                  exc_info=re, file=item.file_path)
             return False
 
 

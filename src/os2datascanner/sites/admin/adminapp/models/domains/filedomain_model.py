@@ -16,9 +16,10 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 import os
-import logging
 import tempfile
 from subprocess import call
+
+import structlog
 
 from django.conf import settings
 from django.db import models
@@ -26,7 +27,7 @@ from django.db import models
 from .domain_model import Domain
 
 # Get an instance of a logger
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger()
 
 
 class FileDomain(Domain):
@@ -68,7 +69,7 @@ class FileDomain(Domain):
         """Mounts networkdrive if not already mounted."""
 
         if self.is_mounted:
-            logger.info('{} is already a mount point.'.format(self.mountpath))
+            logger.info('mount_skipped', mountpath=self.mountpath, url=self.url)
             return True
 
         # Make only one scanner able to scan mounted file directory.
@@ -94,10 +95,11 @@ class FileDomain(Domain):
         response = call(command)
 
         if response:
-            logger.error('Mount failed: {0}'.format(response))
+            logger.error('mount_failed', response=response,
+                         mountpath=self.mountpath, url=self.url)
             return False
 
-        logger.info('{} is mounted.'.format(self.mountpath))
+        logger.info('mount_complete', mountpath=self.mountpath, url=self.url)
 
         return True
 
@@ -105,8 +107,11 @@ class FileDomain(Domain):
         """Unmounts networkdrive if mounted."""
         if self.is_mounted:
             call(['sudo', 'umount', '-l', self.mountpath])
-            call(['sudo', 'umount', '-f', self.mountpath])
-            logger.info('{} is unmounted.'.format(self.mountpath))
+            if self.is_mounted:
+                call(['sudo', 'umount', '-f', self.mountpath])
+            logger.info('unmount_complete', mountpath=self.mountpath, url=self.url)
+        else:
+            logger.info('unmount_skipped', mountpath=self.mountpath, url=self.url)
 
     def __str__(self):
         """Return the URL for the domain."""
