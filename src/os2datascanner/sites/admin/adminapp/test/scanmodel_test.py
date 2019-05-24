@@ -33,5 +33,5 @@ class ScanModelTest(TestCase):
         os.makedirs(scan_object.scan_dir)
         self.assertTrue(os.path.exists(scan_object.scan_dir))
         time.sleep(2)
-        Scan.cleanup_finished_scans(timedelta(minutes=1), log=True)
+        Scan.cleanup_finished_scans(timedelta(minutes=1))
         self.assertFalse(os.path.exists(scan_object.scan_dir))

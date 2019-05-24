@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # The contents of this file are subject to the Mozilla Public License
 # Version 2.0 (the "License"); you may not use this file except in
 # compliance with the License. You may obtain a copy of the License at
@@ -39,7 +38,6 @@ from django import db
 from django.conf import settings as django_settings
 
 from django.core.management.base import BaseCommand
-
 
 from ...models.conversionqueueitem_model import ConversionQueueItem
 from ...models.scans.scan_model import Scan
@@ -167,8 +165,6 @@ signal.signal(signal.SIGTERM | signal.SIGINT | signal.SIGQUIT, exit_handler)
 
 def main():
     """Main function."""
-    # Delete all inactive scan's queue items to start with
-    Scan.cleanup_finished_scans(timedelta(days=10000), log=True)
 
     prepare_processors()
 
@@ -182,9 +178,6 @@ def main():
         restart_terminated_processors()
 
         restart_stuck_processors()
-
-        # Cleanup finished scans from the last minute
-        Scan.cleanup_finished_scans(timedelta(minutes=1), log=True)
 
         Scan.pause_non_ocr_conversions_on_scans_with_too_many_ocr_items()
 

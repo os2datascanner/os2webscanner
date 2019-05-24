@@ -1,7 +1,23 @@
+# The contents of this file are subject to the Mozilla Public License
+# Version 2.0 (the "License"); you may not use this file except in
+# compliance with the License. You may obtain a copy of the License at
+#    http://www.mozilla.org/MPL/
+#
+# Software distributed under the License is distributed on an "AS IS"basis,
+# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+# for the specific language governing rights and limitations under the
+# License.
+#
+# OS2Webscanner was developed by Magenta in collaboration with OS2 the
+# Danish community of open source municipalities (http://www.os2web.dk/).
+#
+# The code is currently governed by OS2 the Danish community of open
+# source municipalities ( http://www.os2web.dk/ )
+
 import asyncio
+import datetime
 import json
 import logging
-import os
 
 import aio_pika
 import structlog
@@ -9,7 +25,7 @@ import structlog
 from django import db
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from django.db import transaction
+from django.utils import timezone
 
 from os2datascanner.engine.run_webscan import StartWebScan
 from os2datascanner.engine.run_filescan import StartFileScan
@@ -22,38 +38,30 @@ logger = structlog.get_logger()
 async def check_running_scans():
     while True:
         try:
-            with transaction.atomic():
-                running_scans = Scan.objects.filter(
-                    status=Scan.STARTED
-                ).select_for_update(nowait=True)
-
-                logger.debug("check_running_scans", scans=len(running_scans))
-
-                for scan in running_scans:
-                    if not scan.pid and not hasattr(scan, "exchangescan"):
-                        continue
-                    try:
-                        # Check if process is still running
-                        os.kill(scan.pid, 0)
-                        logger.debug(
-                            "scan_ok", scan=scan.pk, scan_pid=scan.pid
-                        )
-                    except OSError:
-                        logger.critical(
-                            "scan_disappeared",
-                            scan_id=scan.pk,
-                            scan_pid=scan.pid,
-                            exc_info=True,
-                        )
-
-                        scan.set_scan_status_failed(
-                            "FAILED: process {} disappeared".format(scan.pid)
-                        )
+            Scan.check_running_scans()
 
         except Exception:
             logger.warning("check_running_scans_failed", exc_info=True)
 
         await asyncio.sleep(settings.CHECK_SCAN_INTERVAL)
+
+
+async def cleanup_finished_scans():
+    # Delete all inactive scan's queue items to start with
+    last_cleanup_time = timezone.make_aware(datetime.datetime(2000, 1, 1))
+
+    while True:
+        next_cleanup_time = timezone.now()
+
+        try:
+            Scan.cleanup_finished_scans(last_cleanup_time)
+
+            last_cleanup_time = next_cleanup_time
+
+        except Exception:
+            logger.warning("cleanup_finished_scans_failed", exc_info=True)
+
+        await asyncio.sleep(settings.CLEANUP_SCAN_INTERVAL)
 
 
 def handle_exit(pid, returncode, scan_id):
@@ -118,9 +126,6 @@ async def process_message(message):
 async def listen(loop, host, queue_name):
     logger.info("scanner_manager_ready")
 
-    # check for running scans at first available opportunity
-    loop.create_task(check_running_scans())
-
     async with await aio_pika.connect_robust(host=host, loop=loop) as conn:
         chann = await conn.channel()
         queue = await chann.declare_queue(queue_name)
@@ -157,7 +162,12 @@ class Command(BaseCommand):
 
                 loop = asyncio.get_event_loop()
 
+                # check for running scans at first available opportunity
+                loop.create_task(check_running_scans())
+                loop.create_task(cleanup_finished_scans())
+
                 loop.run_until_complete(listen(loop, amqp_host, amqp_queue))
+
                 loop.close()
         except KeyboardInterrupt:
             pass
