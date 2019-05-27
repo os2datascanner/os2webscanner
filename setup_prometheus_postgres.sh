@@ -11,7 +11,7 @@ echo "$0: setting up prometheus PostgreSQL user"
 
 # Copied and pasted from
 # /usr/share/doc/prometheus-postgres-exporter/README.Debian
-sudo -u postgres psql <<'END'
+sudo -u postgres psql -vON_ERROR_STOP=1 <<'END'
 
 CREATE USER prometheus;
 ALTER USER prometheus SET SEARCH_PATH TO prometheus,pg_catalog;
