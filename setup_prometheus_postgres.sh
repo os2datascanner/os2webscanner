@@ -66,5 +66,5 @@ else
         - $(readlink --canonicalize "$(dirname "$0")/prometheus")/*.json
 END
     echo "$0: reloading prometheus configuration"
-    killall -HUP prometheus
+    pkill -HUP prometheus
 fi
