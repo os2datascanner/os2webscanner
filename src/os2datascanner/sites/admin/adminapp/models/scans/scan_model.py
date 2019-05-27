@@ -287,6 +287,8 @@ class Scan(models.Model):
 
     def cleanup_finished_scan(self):
         """Delete pending conversion queue items and remove the scan dir."""
+        self.delete_all_pending_conversionqueue_items()
+
         # remove all files associated with the scan
         if self.is_scan_dir_writable():
             self.delete_scan_dir()
@@ -314,7 +316,6 @@ class Scan(models.Model):
         )
 
         for scan in inactive_scans:
-            scan.delete_all_pending_conversionqueue_items()
             scan.cleanup_finished_scan()
 
     @classmethod
@@ -450,10 +451,7 @@ class Scan(models.Model):
         else:
             self.reason = reason
 
-        self.log_occurrence(
-            self.reason
-        )
-        # TODO: Remove all non-processed conversion queue items.
+        self.log_occurrence(self.reason)
         self.save()
 
     # Create method - copies fields from scanner
