@@ -104,6 +104,11 @@ async def process_message(message):
         else:
             scanjob = StartFileScan(body)
 
+        # sharing opened connections between processes leads to issues
+        # with closed/open state getting out-of-sync -- so just close
+        # them all prior to forking the process
+        db.connections.close_all()
+
         scanjob.start()
 
         asyncio.get_child_watcher().add_child_handler(
