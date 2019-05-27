@@ -15,7 +15,8 @@
 # source municipalities ( http://www.os2web.dk/ )
 
 """Contains a WebScanner."""
-import logging
+
+import structlog
 
 from os2datascanner.sites.admin.adminapp.models.scans.scan_model import Scan
 from os2datascanner.sites.admin.adminapp.models.url_model import Url
@@ -27,6 +28,8 @@ from ..rules.cpr import CPRRule
 
 from ..processors.processor import Processor
 
+logger = structlog.get_logger()
+
 
 class Scanner(object):
     """Represents a scanner which can scan data using configured rules."""
@@ -37,6 +40,8 @@ Loads the scanner settings from the scan ID specified in the configuration \
 dictionary."""
         self.configuration = configuration
         scan_id = configuration['id']
+
+        self.logger = logger.bind(scan_id=scan_id)
 
         # Get scan object from DB
         if not _Model:
@@ -136,9 +141,18 @@ scan ID."""
         )
         processor = Processor.processor_by_type(processor_type)
         if processor is not None:
-            logging.info("{} is handled by processor of type {}".format(
-                url_object.url, processor_type))
+            self.logger.info(
+                "will_scan",
+                url=url_object.url,
+                processor_type=processor_type,
+            )
             return processor.handle_spider_item(data, url_object)
+        else:
+            self.logger.debug(
+                "wont_scan",
+                url=url_object.url,
+                processor_type=processor_type,
+            )
 
     def execute_rules(self, text):
         """Execute the scanner's rules on the given text.
@@ -147,7 +161,8 @@ scan ID."""
         """
         matches = []
         for rule in self.rules:
-            print('-------Rule to be executed {0}-------'.format(rule))
+            self.logger.info('execute_rule', rule=rule)
+
             rule_matches = rule.execute(text)
 
             if isinstance(rule, CPRRule):
@@ -160,7 +175,7 @@ scan ID."""
                     continue
 
                 # Associate the rule with the match
-                print('-------Rule matches length {0}-------'.format(str(len(rule_matches))))
+                self.logger.info('rule_matches', length=len(rule_matches))
 
                 match = rule_matches.pop()
                 match['matched_rule'] = rule.name
@@ -179,5 +194,5 @@ scan ID."""
         if exc_type is None:
             self.done()
         else:
-            logging.exception("SCANNER FAILED")
+            self.logger.exception("SCANNER FAILED", exc_info=exc_value)
             self.failed('SCANNER FAILED: {}'.format(exc_value))

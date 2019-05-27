@@ -27,7 +27,7 @@ try:
 except SystemError:
     from stats import Stats
 
-exchangelogger = logging.getLogger('exchangelib')
+exchangelogger = logging.getLogger(__name__)
 exchangelogger.setLevel(logging.ERROR)
 
 logger = logging.Logger('Mailscan_exchange')

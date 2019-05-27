@@ -14,11 +14,11 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 """Text Processors."""
+import os
+
 from os2datascanner.sites.admin.adminapp.utils import get_codec_and_string
 
 from .processor import Processor
-import os
-import logging
 
 
 class TextProcessor(Processor):
@@ -43,8 +43,8 @@ class TextProcessor(Processor):
         try:
             encoding, data = get_codec_and_string(data)
         except UnicodeDecodeError as ude:
-            logging.error('UnicodeDecodeError in handle_error_method: {}'.format(ude))
-            logging.error('Error happened for file: {}'.format(url_object.url))
+            self.logger.exception('UnicodeDecodeError in handle_error_method',
+                                  exc_info=ude, url=url_object.url)
             return False
 
         from ..scanner_types.scanner import Scanner

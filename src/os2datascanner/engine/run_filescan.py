@@ -1,6 +1,6 @@
-import logging
 import multiprocessing
 
+import structlog
 from twisted.internet import defer
 
 from .run import StartScan
@@ -25,11 +25,11 @@ class StartFileScan(StartScan, multiprocessing.Process):
     def start_filescan_crawlers(self):
         """Start a file scan."""
 
-        logging.info("Beginning crawler process.")
+        self.logger.info("Beginning crawler process.")
 
         self.run_crawlers()
         self.crawler_process.start()
-        logging.info("Crawler process finished.")
+        self.logger.info("Crawler process finished.")
 
     @defer.inlineCallbacks
     def run_crawlers(self):
