@@ -5,12 +5,14 @@ import time
 import logging
 
 import pika
+import structlog
 
 from django.core.management.base import BaseCommand
 
 from os2datascanner.engine.run_webscan import StartWebScan
 from os2datascanner.engine.run_filescan import StartFileScan
 
+logger = structlog.get_logger()
 
 
 def callback(ch, method, properties, body):
@@ -18,7 +20,8 @@ def callback(ch, method, properties, body):
         scan_job_list = []
         body = body.decode('utf-8')
         body = json.loads(body)
-        print(" [x] Received %r" % body)
+        logger.info('Receved scan', **body)
+
         # Collect scan object and map properties
         if body['type'] == 'WebScanner':
             scan_job_list.append(StartWebScan(body))
@@ -28,7 +31,7 @@ def callback(ch, method, properties, body):
         ch.basic_ack(delivery_tag=method.delivery_tag)
     except Exception:
         # reject the job; and delay so that we don't hog CPU
-        logging.exception('failed to start scan job')
+        logger.exception('failed to start scan job')
         ch.basic_reject(delivery_tag=method.delivery_tag)
 
         time.sleep(1)
@@ -53,8 +56,6 @@ class Command(BaseCommand):
         )
 
     def handle(self, amqp_queue, amqp_host, **kwargs):
-        print(' [*] Waiting for messages. To exit press CTRL+C')
-
         while True:
             try:
                 connection = pika.BlockingConnection(
@@ -67,9 +68,9 @@ class Command(BaseCommand):
                 channel.basic_consume(callback, queue=amqp_queue)
 
                 channel.start_consuming()
-            except pika.exceptions.ConnectionClosed as exc:
+            except pika.exceptions.ConnectionClosed:
                 # the most frequent cause of sudden closures is VM
                 # suspensions, but just in case, log it, back off a bit, and
                 # resume
-                print('AMQP connection closed:', exc)
+                logger.exception('AMQP connection closed')
                 time.sleep(1)

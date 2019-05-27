@@ -3,7 +3,7 @@ import magic
 from xattr import xattr
 from struct import unpack
 import mimetypes
-import logging
+import structlog
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
@@ -11,6 +11,9 @@ from pathlib import Path
 from matplotlib.backends.backend_pdf import PdfPages
 
 matplotlib.use('Agg')
+
+logger = structlog.get_logger()
+
 
 def _type_dict(group, sub, mime=None, relevant=False, supported=None):
     type_dict = {'super-group': group,
@@ -42,6 +45,7 @@ class _statcache(dict):
         return self._test_if(path, lambda s: S_ISDIR(s.st_mode), False)
     def is_symlink(self, path):
         return self._test_if(path, lambda s: S_ISLNK(s.st_mode), False)
+
 statcache = _statcache()
 
 types = {}
@@ -275,6 +279,7 @@ def _is_hidden(path):
 
 class PreDataScanner(object):
     def __init__(self, path, detection_method='fast-magic'):
+        self.logger = logger.bind(root_path=str(path))
         if detection_method not in ['fast-magic', 'magic', 'mime']:
             # Also add an option to use both
             exit('Unsupport type detection')
@@ -295,24 +300,16 @@ class PreDataScanner(object):
         # node-dict contains only directories
         self.stats['number_of_dirs'] = len(self.nodes)
         self.stats['time_number_of_dirs'] = time.time() - self.t0
-        status_string = 'Read {} directories. Total run-time: {:.2f}s'
-        logging.info(status_string.format(self.stats['number_of_dirs'],
-                                          self.stats['time_number_of_dirs']))
 
         self.stats['number_of_files'] = self.read_files()
-        status_string = 'Read {} directories. Total run-time: {:.2f}s'
         self.stats['time_number_of_files'] = time.time() - self.t0
-        status_string = 'Read {} files. Total run-time: {:.2f}s'
-        logging.info(status_string.format(self.stats['number_of_files'],
-                                          self.stats['time_number_of_files']))
         self.stats['total_size'] = self.determine_file_information()
         self.stats['time_file_types'] = time.time() - self.t0
-        status_string = 'Generated metadata for {} files. Total run-time: {:.2f}s'
-        logging.info(status_string.format(self.stats['number_of_files'],
-                                          self.stats['time_number_of_files']))
+
+        self.logger.info('read_file_system', **self.stats)
 
     def read_dirtree(self, path):
-        logging.info('Reading directories...')
+        self.logger.debug('read_dirtree', path=path)
         all_dirs = path.glob('**')
         next(all_dirs)  # The root of the tree is already created
         processed = 0
@@ -326,17 +323,20 @@ class PreDataScanner(object):
                 avg_speed = processed / delta_t
                 current_speed = 2500 / (now - t)
                 t = now
-                status = ('Progress: found {} directories in {:.0f}s. ' +
-                          'Avg. Speed: {:.0f} directories/s. ' +
-                          'Current Speed {:.0f} directories/s.')
-                logging.info(status.format(processed, delta_t,
-                                           avg_speed, current_speed))
+                self.logger.info(
+                    'read_dirtree_progress',
+                    found_dirs=processed,
+                    duration=delta_t,
+                    average_speed=avg_speed,
+                    current_speed=current_speed,
+                )
+
             self.nodes[item] = {'size': 0,
                                 'filetype': _type_dict('Directory', 'Directory',
                                                        False, None)}
 
     def read_files(self):
-        logging.info('Reading files...')
+        self.logger.debug('read_files')
         new_nodes = {}
         dirs_processed = 0
         files_processed = 0
@@ -351,13 +351,18 @@ class PreDataScanner(object):
                 current_speed = 2500 / (now - t)
                 t = now
                 eta = (len(self.nodes) - dirs_processed) / current_speed
-                status = ('Progress: on directory {}/{} after {:.0f}s. ' +
-                          'Found {} files. ' +
-                          'Avg. Speed: {:.0f} directories/s. ' +
-                          'Current Speed {:.0f} directories/s. ETA: {:.0f}s.')
-                logging.info(status.format(dirs_processed, len(self.nodes),
-                                           delta_t, files_processed, avg_speed,
-                                           current_speed, eta))
+
+                self.logger.info(
+                    'read_files_progress',
+                    dirs_processed=dirs_processed,
+                    dirs_total=len(self.nodes),
+                    found_files=files_processed,
+                    duration=delta_t,
+                    average_speed=avg_speed,
+                    current_speed=current_speed,
+                    eta=eta,
+                )
+
             items = node.glob('*')
             for item in items:
                 files_processed += 1
@@ -398,17 +403,7 @@ class PreDataScanner(object):
             else:
                 matchtype = 'Unknown'
             filetype = file_type_group(matchtype, mime=True)
-            """
-            if filetype['super-group'] == 'Unknown' and matchtype is not 'Unknown':
-                print()
-                print(node)
-                print('Mime: {}'.format(mime_type))
-                magictype = magic.from_buffer(open(str(node), 'rb').read(512))
-                print('Magic: {}'.format(magictype))
-                import random
-                if random.random() > 0.95:
-                    1/0
-            """
+
         return filetype
 
     def determine_file_information(self):
@@ -418,7 +413,7 @@ class PreDataScanner(object):
         :param root: Pointer to root-node
         :return: Total file size in bytes
         """
-        logging.info('Generating file metadata...')
+        self.logger.debug('determine_file_information')
         total_size = 0
         processed = 0
         t0 = time.time()
@@ -432,11 +427,18 @@ class PreDataScanner(object):
                 current_speed = 2500 / (now - t)
                 t = now
                 eta = (len(self.nodes) - processed) / current_speed
-                status = ('Progress: {}/{} in {:.0f}s. ' +
-                          'Avg. Speed: {:.0f} files/s. ' +
-                          'Current Speed {:.0f} files/s. ETA: {:.0f}s.')
-                logging.info(status.format(processed, len(self.nodes), delta_t,
-                                           avg_speed, current_speed, eta))
+
+                self.logger.info(
+                    'determine_file_information_progress',
+                    file_processed=processed,
+                    file_total=len(self.nodes),
+                    found_files=files_processed,
+                    duration=delta_t,
+                    average_speed=avg_speed,
+                    current_speed=current_speed,
+                    eta=eta,
+                )
+
             if statcache.is_file(node):
                 size = statcache[node].st_size
                 self.nodes[node]['size'] = size
@@ -447,11 +449,6 @@ class PreDataScanner(object):
                 self.nodes[node]['filetype'] = _type_dict('Directory', 'Directory',
                                                           False, None)
         return total_size
-
-    def check_file_group(self, filetype, size=0):
-        for node in self.nodes:
-            if (node['filetype'] == filetype) and (node['size'] > size):
-                print(node)
 
     def summarize_file_types(self):
         types = {'super': {},
@@ -486,7 +483,7 @@ class PreDataScanner(object):
                                           'supergroup': supergroup}
         return types
 
-    def update_stats(self, print_output=True):
+    def update_stats(self):
         """ Update the internal stat-collection """
         self.stats['supported_file_count'] = 0
         self.stats['supported_file_size'] = 0
@@ -505,27 +502,7 @@ class PreDataScanner(object):
                 self.stats['relevant_unsupported_count'] += 1
                 self.stats['relevant_unsupported_size'] += file_info['size']
 
-        if print_output:
-            print('--- Stats ---')
-            print('Total directories: {}'.format(self.stats['number_of_dirs']))
-            print('Total Files: {}'.format(self.stats['number_of_files']))
-            print('Total Size: {}'.format(_to_filesize(self.stats['total_size'])))
-            print()
-
-            supported = 'Total Supported Files: {} in {}bytes'
-            print(supported.format(self.stats['supported_file_count'],
-                                   _to_filesize(self.stats['supported_file_size'])))
-
-            relevant = 'Total Relevant files: {} in {}bytes'
-            print(relevant.format(self.stats['relevant_file_count'],
-                                  _to_filesize(self.stats['relevant_file_size'])))
-
-            rel_unsup = 'Relevant unsupported files: {} in {}bytes'
-            size = self.stats['relevant_unsupported_size']
-            print(rel_unsup.format(self.stats['relevant_unsupported_count'],
-                                   _to_filesize(size)))
-            print('-------')
-            print()
+        self.logger.info('update_stats', **self.stats)
 
     def plot(self, pp, types):
         labels = []
@@ -585,11 +562,9 @@ if __name__ == '__main__':
 
     pre_scanner = PreDataScanner(p, detection_method='mime')
     filetypes = pre_scanner.summarize_file_types()
-    pre_scanner.update_stats(print_output=True)
+    pre_scanner.update_stats()
 
     pp = PdfPages('multipage.pdf')
     pre_scanner.plot(pp, filetypes['super'])
     pre_scanner.plot(pp, filetypes['sub'])
     pp.close()
-
-    # pre_scanner.check_file_group('Virtual Machine')

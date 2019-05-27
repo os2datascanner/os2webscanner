@@ -22,5 +22,6 @@ xmltodict==0.11.0
 numpy==1.16.1
 matplotlib==3.0.2
 xattr==0.9.6
+structlog==19.1.0
+django-structlog==1.2.3
 prometheus_client==0.6.0
-

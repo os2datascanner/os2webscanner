@@ -26,6 +26,9 @@ import codecs
 import random
 import subprocess
 import traceback
+
+import structlog
+
 from prometheus_client.core import Summary
 
 from django.db import transaction, DatabaseError
@@ -35,6 +38,8 @@ from django.conf import settings
 
 from os2datascanner.sites.admin.adminapp.models.conversionqueueitem_model import ConversionQueueItem
 
+
+logger = structlog.get_logger()
 
 # Minimum width and height an image must have to be scanned
 MIN_OCR_DIMENSION_BOTH = 7
@@ -67,15 +72,12 @@ def get_image_dimensions(file_path):
         dimensions = subprocess.check_output(["identify", "-format", "%wx%h",
                                               file_path])
     except subprocess.CalledProcessError as e:
-        datetime_print(e)
+        logger.exception('image_identify_failed', exc_info=e)
+
         return None
     return tuple(int(dim.strip()) for dim in
                  dimensions.decode('utf-8').split("x")
                  )
-
-
-def datetime_print(line_to_print):
-    print('{0} : {1}'.format(datetime.datetime.now(), line_to_print))
 
 
 CONVERSIONS = Summary("os2datascanner_processor_conversions", "Object conversions")
@@ -98,6 +100,7 @@ class Processor(object):
 
     documents_to_process = 10
     pid = None
+    logger = logger
 
     @classmethod
     def processor_by_type(cls, processor_type):
@@ -164,10 +167,7 @@ class Processor(object):
         with open(tmp_file_path, 'wb') as tmp_file:
             tmp_file.write(data)
 
-        datetime_print("Wrote {0} to file {1}".format(
-            url_object.url,
-            tmp_file_path)
-        )
+        self.logger.info("write_file", url=url_object.url, path=tmp_file_path)
 
         # Create a conversion queue item
         new_item = ConversionQueueItem(
@@ -230,10 +230,12 @@ class Processor(object):
     def setup_queue_processing(self, pid, *args):
         """Setup the queue processor with additional arguments."""
         self.pid = pid
+        self.logger = logger.bind(pid=pid, item_type=self.item_type)
 
     def teardown_queue_processing(self):
         """Clean up any resources acquired by setup_queue_processing."""
         self.pid = None
+        self.logger = logger
 
     def process_queue(self):
         """Process items in the queue in an infinite loop.
@@ -241,10 +243,7 @@ class Processor(object):
         If there are no items to process, waits 1 second before trying
         to get the next queue item.
         """
-        datetime_print("Starting processing queue items of type %s, pid %s" % (
-            self.item_type, self.pid
-        ))
-        sys.stdout.flush()
+        self.logger.debug("process_queue")
         executions = 0
 
         while executions < self.documents_to_process:
@@ -280,15 +279,11 @@ class Processor(object):
                 else:
                     item.delete()
 
-                try:
-                    datetime_print("(%s): %s" % (
-                            item.url.url,
-                            "success" if result else "fail"
-                            ))
-                except Exception:
-                    datetime_print("success" if result else "fail")
-
-                sys.stdout.flush()
+                self.logger.info(
+                    "process_queue_completed",
+                    url=item.url.url,
+                    result="success" if result else "fail",
+                )
 
     @transaction.atomic
     def get_next_queue_item(self):
@@ -333,10 +328,7 @@ class Processor(object):
                     result.save()
             except DatabaseError as e:
                 # Database transaction failed, we just try again
-                datetime_print('Error message {0}'.format(e))
-                datetime_print('Transaction failed while getting queue item of type {0}'.format(
-                    self.item_type)
-                )
+                self.logger.exception("transaction_failed", exc_info=e)
                 result = None
             except IndexError:
                 # Nothing in the queue, return None
@@ -429,15 +421,14 @@ class Processor(object):
                 except ValueError:
                     continue
         if ignored_ocr_count > 0:
-            datetime_print("Ignored %d extracted images because the dimensions were"
-                  "small (width AND height must be >= %d) AND (width OR "
-                  "height must be >= %d))" % (ignored_ocr_count,
-                                              MIN_OCR_DIMENSION_BOTH,
-                                              MIN_OCR_DIMENSION_EITHER))
+            self.logger.info(
+                "ignore_images", count=ignored_ocr_count,
+                MIN_OCR_DIMENSION_BOTH=MIN_OCR_DIMENSION_BOTH,
+                MIN_OCR_DIMENSION_EITHER=MIN_OCR_DIMENSION_EITHER,
+            )
+
         if not found_items:
-            datetime_print(
-                    "warning: conversion seems to have succeeded for " +
-                    "{0}, but no converted items were found".format(item.url.url))
+            self.logger.warning("no_converted_items", url=item.url.url)
 
     @classmethod
     def register_processor(cls, processor_type, processor):

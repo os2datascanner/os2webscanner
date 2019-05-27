@@ -20,7 +20,6 @@ from .processor import Processor
 from w3lib.html import replace_entities, remove_tags_with_content
 
 from .text import TextProcessor
-import logging
 import os
 
 import regex
@@ -59,14 +58,15 @@ class HTMLProcessor(Processor):
         Replaces entities and removes tags (except comments) before
         processing with TextProcessor.
         """
-        logging.info("Process HTML %s" % url_object.url)
+        assert self.logger
+        self.logger.info("Process HTML", url=url_object.url)
         try:
             encoding, data = get_codec_and_string(data)
             # Remove style tags to avoid false positives from inline styles
             data = remove_tags_with_content(data, which_ones=('style',))
         except UnicodeDecodeError as ude:
-            logging.error('UnicodeDecodeError in handle_error_method: {}'.format(ude))
-            logging.error('Error happened for file: {}'.format(url_object.url))
+            self.logger.exception('UnicodeDecodeError in handle_error_method',
+                                  exc_info=ude, url=url_object.url)
             return False
 
         # Convert HTML entities to their unicode representation
