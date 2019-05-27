@@ -20,7 +20,7 @@
 # See documentation in:
 # http://doc.scrapy.org/en/latest/topics/items.html
 
-from os2datascanner.sites.admin.adminapp.models.match_model import Match
+from os2datascanner.projects.admin.adminapp.models.match_model import Match
 
 from scrapy.item import Field
 from scrapy_djangoitem import DjangoItem

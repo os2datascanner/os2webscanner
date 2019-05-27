@@ -10,7 +10,7 @@ import http.client
 import regex
 import structlog
 
-from os2datascanner.sites.admin.adminapp.utils import capitalize_first
+from os2datascanner.projects.admin.adminapp.utils import capitalize_first
 
 LINK_CHECK_TIMEOUT = 5
 

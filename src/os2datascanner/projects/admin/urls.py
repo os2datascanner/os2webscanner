@@ -8,7 +8,7 @@ admin.autodiscover()
 
 urlpatterns = [
     # Include webscanner URLs
-    url(r'^', include('os2datascanner.sites.admin.adminapp.urls')),
+    url(r'^', include('os2datascanner.projects.admin.adminapp.urls')),
     # Enable admin
     url('^admin/', admin.site.urls),
     # XMLRPC

@@ -88,16 +88,16 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    'os2datascanner.sites.admin.adminapp.apps.OS2WebScanner',
+    'os2datascanner.projects.admin.adminapp.apps.OS2WebScanner',
     'recurrence',
     'django_xmlrpc',
 )
 
 XMLRPC_METHODS = (
-    ('os2datascanner.sites.admin.adminapp.rpc.scan_urls', 'scan_urls'),
-    ('os2datascanner.sites.admin.adminapp.rpc.scan_documents', 'scan_documents'),
-    ('os2datascanner.sites.admin.adminapp.rpc.get_status', 'get_status'),
-    ('os2datascanner.sites.admin.adminapp.rpc.get_report', 'get_report'),
+    ('os2datascanner.projects.admin.adminapp.rpc.scan_urls', 'scan_urls'),
+    ('os2datascanner.projects.admin.adminapp.rpc.scan_documents', 'scan_documents'),
+    ('os2datascanner.projects.admin.adminapp.rpc.get_status', 'get_status'),
+    ('os2datascanner.projects.admin.adminapp.rpc.get_report', 'get_report'),
 )
 MIDDLEWARE = (
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -110,9 +110,9 @@ MIDDLEWARE = (
     'django_structlog.middlewares.RequestMiddleware',
 )
 
-ROOT_URLCONF = 'os2datascanner.sites.admin.urls'
+ROOT_URLCONF = 'os2datascanner.projects.admin.urls'
 
-WSGI_APPLICATION = 'os2datascanner.sites.admin.wsgi.application'
+WSGI_APPLICATION = 'os2datascanner.projects.admin.wsgi.application'
 
 
 # Database
@@ -164,7 +164,7 @@ USE_THOUSAND_SEPARATOR = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-AUTH_PROFILE_MODULE = 'os2datascanner.sites.admin.adminapp.UserProfile'
+AUTH_PROFILE_MODULE = 'os2datascanner.projects.admin.adminapp.UserProfile'
 
 LOGIN_REDIRECT_URL = '/'
 
