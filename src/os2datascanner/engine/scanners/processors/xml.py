@@ -62,7 +62,7 @@ class XmlProcessor(HTMLProcessor):
             data = json.dumps(xmltodict.parse(data))
             return self.text_processor.process(data, url_object)
         except ExpatError:
-            return super(XmlProcessor,self).process(data,url_object)
+            return super().process(data,url_object)
 
 
 Processor.register_processor(XmlProcessor.item_type, XmlProcessor)

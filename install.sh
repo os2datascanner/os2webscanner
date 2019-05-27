@@ -13,39 +13,23 @@ do
     sudo apt-get -y install $package
 done
 
-
 # Setup virtualenv, install Python packages necessary to run BibOS Admin.
-
-if [ -e $VIRTUALENV/bin/activate ]
+if [ -e $VIRTUALENV/bin/python3 ]
 then
     echo "virtual environment already installed" 1>&2
 else
-    virtualenv -p python3 $VIRTUALENV
+    python3 -m venv $VIRTUALENV
 fi
 
-source $VIRTUALENV/bin/activate
+"$VIRTUALENV/bin/pip" install -e "$DIR/doc/requirements.txt"
 
-PYTHON_PACKAGES=$(cat "$DIR/doc/PYTHON_DEPENDENCIES")
+if [ $? -ne 0 ]; then
+    echo "" 1>&2
+    echo "ERROR: Unable to install Python package <$package>." 1>&2
+    echo -n "Please check your network connection. " 1>&2
+    echo "A remote server may be down - please retry later. " 1>&2
+    echo "" 1>&2
+    exit -1
+fi
 
-for  package in "${PYTHON_PACKAGES[@]}"
-do
-    pip install $package
-
-    RETVAL=$?
-    if [ $RETVAL -ne 0 ]; then
-        echo "" 1>&2
-        echo "ERROR: Unable to install Python package <$package>." 1>&2
-        echo -n "Please check your network connection. " 1>&2
-        echo "A remote server may be down - please retry later. " 1>&2
-        echo "" 1>&2
-        exit -1
-    fi
-done
-
-pushd django-os2webscanner
-python setup.py develop
-popd
-
-pushd webscanner_client
-python setup.py develop
-popd
+"$VIRTUALENV/bin/python" "$DIR/setup.py" develop

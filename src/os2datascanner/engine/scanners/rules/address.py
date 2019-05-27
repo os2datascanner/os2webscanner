@@ -18,12 +18,10 @@
 """Rules for name scanning."""
 
 import regex
-import os
-import codecs
 
 from .rule import Rule
 from ...utils import get_data
-from ....sites.admin.adminapp.models.sensitivity_level import Sensitivity
+from os2datascanner.sites.admin.adminapp.models.sensitivity_level import Sensitivity
 from ..items import MatchItem
 
 # Match whitespace except newlines

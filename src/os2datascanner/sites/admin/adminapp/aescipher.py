@@ -71,7 +71,6 @@ def generate_key():
             message.send()
         except Exception as ex:
             logger.error('Error occured while sending email, regarding master key being generated.'.format(ex))
-            pass
 
     return key
 

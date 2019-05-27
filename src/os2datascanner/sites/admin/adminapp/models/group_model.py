@@ -18,7 +18,7 @@ class Group(models.Model):
                                      verbose_name='Organisation',
                                      on_delete=models.PROTECT)
 
-    def __unicode__(self):
+    def __str__(self):
         """Return the name of the group."""
         return self.name
 
@@ -29,4 +29,4 @@ class Group(models.Model):
     @property
     def display_name(self):
         """The name used when displaying the domain on the web page."""
-        return "Group '%s'" % self.__unicode__()
+        return "Group '%s'" % self

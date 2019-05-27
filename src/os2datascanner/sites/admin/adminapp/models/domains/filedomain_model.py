@@ -18,7 +18,7 @@
 import os
 import logging
 import tempfile
-from subprocess import call, CalledProcessError
+from subprocess import call
 
 from django.conf import settings
 from django.db import models

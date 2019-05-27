@@ -13,7 +13,7 @@ except ImportError:
 
 try:
     from PyExpLabSys.common.database_saver import DataSetSaver, CustomColumn
-    from PyExpLabSys.common.supported_versions import python3_only
+    from PyExpLabSys.common.supported_versions import python3_only  # noqa
     import credentials
 except ImportError:
     pass

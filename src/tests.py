@@ -22,7 +22,6 @@ import os
 import sys
 import shutil
 import tempfile
-import time
 
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(base_dir + "/webscanner_site")

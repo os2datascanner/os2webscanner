@@ -14,8 +14,8 @@ from .utils import run_django_setup
 
 run_django_setup()
 
-from ..sites.admin.adminapp.models.domain_model import Domain
-from ..sites.admin.adminapp.models.exchangescanner_model import ExchangeScanner
+from os2datascanner.sites.admin.adminapp.models.domain_model import Domain
+from os2datascanner.sites.admin.adminapp.models.exchangescanner_model import ExchangeScanner
 
 
 def start_exchange_export():

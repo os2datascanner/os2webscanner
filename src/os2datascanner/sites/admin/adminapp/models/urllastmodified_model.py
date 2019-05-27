@@ -26,10 +26,6 @@ class UrlLastModified(models.Model):
         on_delete=models.CASCADE,
     )
 
-    def __unicode__(self):
-        """Return the URL and last modified date."""
-        return "<%s %s>" % (self.url, self.last_modified)
-
     def __str__(self):
         """Return the URL and last modified date."""
         return "<%s %s>" % (self.url, self.last_modified)

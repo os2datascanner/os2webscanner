@@ -1,5 +1,4 @@
-from django.contrib.auth.models import AnonymousUser, User
-from django.test import TestCase, RequestFactory
+from django.test import TestCase
 from ...utils import get_codec_and_string
 
 

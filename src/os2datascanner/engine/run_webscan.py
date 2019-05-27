@@ -3,7 +3,9 @@ import multiprocessing
 
 from urllib.parse import urlparse
 
-from twisted.internet import reactor, defer
+from twisted.internet import defer
+
+from os2datascanner.sites.admin.adminapp.models.url_model import Url
 
 from .run import StartScan
 from . import linkchecker
@@ -16,23 +18,14 @@ from .scanners.spiders.webspider import WebSpider
 class StartWebScan(StartScan, multiprocessing.Process):
     """A scanner application which can be run."""
 
-    def __init__(self, configuration):
-        """
-        Initialize the scanner application.
-        Takes the JSON descriptor of this scan as its argument.
-        """
-
-        super().__init__(configuration)
-        multiprocessing.Process.__init__(self)
-
     def run(self):
         """Updates the scan status and sets the pid.
         Run the scanner, blocking until finished."""
         super().run()
         self.scanner = WebScanner(self.configuration)
-        self.scanner.ensure_started()
-        self.start_webscan_crawlers()
-        self.scanner.done()
+
+        with self.scanner:
+            self.start_webscan_crawlers()
 
     def start_webscan_crawlers(self):
         logging.info("Beginning crawler process.")
@@ -79,7 +72,6 @@ class StartWebScan(StartScan, multiprocessing.Process):
 
     def external_link_check(self, external_urls):
         """Perform external link checking."""
-        from ..sites.admin.adminapp.models.url_model import Url
         logging.info("Link checking %d external URLs..." % len(external_urls))
 
         for url in external_urls:
