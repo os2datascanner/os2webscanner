@@ -68,19 +68,26 @@ def handle_exit(pid, returncode, scan_id):
     """A scan process died; update its status pending on the success value."""
 
     if returncode == 0:
-        event = "scan_done"
-        level = logging.INFO
+        logger.info(
+            "scan_done", scan_id=scan_id, scan_pid=pid, status=returncode
+        )
 
-        # should we call scan.set_status_done() here?
+        # should we call scan.set_scan_status_done() here?
 
     else:
-        event = "scan_failed"
-        level = logging.CRITICAL
+        logger.critical(
+            "scan_failed", scan_id=scan_id, scan_pid=pid, status=returncode
+        )
 
-        scan = Scan.objects.get(pk=scan_id)
-        scan.set_status_failed("process exited with {}".format(returncode))
+        try:
+            scan = Scan.objects.get(pk=scan_id)
 
-    logger.log(level, event, scan_id=scan_id, scan_pid=pid, status=returncode)
+            scan.set_scan_status_failed(
+                "Scanner process exited with status {}".format(returncode)
+            )
+
+        except Exception:
+            logger.exception("handle_exit_failed")
 
 
 async def process_message(message):
@@ -123,6 +130,7 @@ async def process_message(message):
         logger.critical("scan_start_failed", **body, exc_info=True)
 
         scan = Scan.objects.get(pk=body["id"])
+
         scan.set_scan_status_failed(str(exc))
 
         await message.reject(requeue=False)
