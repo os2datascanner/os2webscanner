@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 from django.db import migrations, models
 import recurrence.fields
 from django.conf import settings
