@@ -117,8 +117,15 @@ class GraylogAMQPHandler(logging.Handler):
 
         # save for later
         self.params = pika.ConnectionParameters(
-            host, port, vhost, pika.PlainCredentials(user, password)
+            host,
+            port,
+            vhost,
+            pika.PlainCredentials(user, password),
+            # disable heartbeats and rely on TCP keep-alive instead,
+            # so that the logger can safely remain idle
+            heartbeat=0,
         )
+
         self.exchange = exchange
         self.routing_key = routing_key
 
@@ -147,7 +154,7 @@ class GraylogAMQPHandler(logging.Handler):
 
         """
         try:
-            if self.channel is None:
+            if self.channel is None or self.channel.is_closed:
                 self.create_channel()
 
             self.channel.basic_publish(

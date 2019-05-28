@@ -25,7 +25,7 @@ import structlog
 
 from django.conf import settings
 from django.core.validators import validate_comma_separated_integer_list
-from django.db import models
+from django.db import models, transaction
 from django.db.models.aggregates import Count
 from django.utils import timezone
 
@@ -50,6 +50,10 @@ class Scan(models.Model):
         """
         super().__init__(*args, **kwargs)
         self._old_status = self.status
+
+    @property
+    def logger(self):
+        return logger.bind(scan_id=self.pk, scan_status=self.status)
 
     start_time = models.DateTimeField(blank=True, null=True,
                                       verbose_name='Starttidspunkt')
@@ -208,6 +212,8 @@ class Scan(models.Model):
 
     # Occurrence log - mainly for the scanner to notify when something FAILS.
     def log_occurrence(self, string):
+        self.logger.debug('scan_occurrence', occurrence=string)
+
         with open(self.occurrence_log_file, "a") as f:
             f.write("{0}\n".format(string))
 
@@ -279,51 +285,95 @@ class Scan(models.Model):
             self.cleanup_finished_scan()
             self._old_status = self.status
 
-    def cleanup_finished_scan(self, log=False):
+    def cleanup_finished_scan(self):
         """Delete pending conversion queue items and remove the scan dir."""
+        self.delete_all_pending_conversionqueue_items()
+
         # remove all files associated with the scan
         if self.is_scan_dir_writable():
-            self.delete_scan_dir(log)
+            self.delete_scan_dir()
 
     @classmethod
-    def cleanup_finished_scans(cls, scan_age, log=False):
+    def cleanup_finished_scans(cls, oldest_end_time: datetime.datetime):
         """Cleanup convqueue items from finished scans.
 
-        Only Scans that have ended since scan_age ago are considered.
-        scan_age should be a timedelta object.
+        Only Scans that have ended since oldest_end_time are considered.
         """
-        from django.utils import timezone
-        from django.db.models import Q
-        oldest_end_time = timezone.localtime(timezone.now()) - scan_age
+
         inactive_scans = cls.objects.filter(
-            Q(status__in=(Scan.DONE, Scan.FAILED)),
-            Q(end_time__gt=oldest_end_time) | Q(end_time__isnull=True)
+            models.Q(status__in=(Scan.DONE, Scan.FAILED)),
+            (
+                models.Q(end_time__gt=oldest_end_time) |
+                models.Q(end_time__isnull=True)
+            ),
+        )
+
+        logger.debug(
+            "cleanup_finished_scans",
+            since=oldest_end_time.isoformat(),
+            scans=len(inactive_scans),
+            type=cls.__name__,
         )
 
         for scan in inactive_scans:
-            scan.delete_all_pending_conversionqueue_items(log)
-            scan.cleanup_finished_scan(log=log)
+            scan.cleanup_finished_scan()
 
-    def delete_all_pending_conversionqueue_items(self, log):
+    @classmethod
+    def check_running_scans(cls):
+        with transaction.atomic():
+            running_scans = cls.objects.filter(
+                status=cls.STARTED
+            ).select_for_update(nowait=True)
+
+            logger.debug(
+                "check_running_scans",
+                scans=len(running_scans),
+                type=cls.__name__,
+            )
+
+            for scan in running_scans:
+                if not scan.pid and not hasattr(scan, "exchangescan"):
+                    continue
+                try:
+                    # Check if process is still running
+                    os.kill(scan.pid, 0)
+                    logger.debug(
+                        "scan_ok", scan=scan.pk, scan_pid=scan.pid
+                    )
+                except OSError:
+                    logger.critical(
+                        "scan_disappeared",
+                        scan_id=scan.pk,
+                        scan_pid=scan.pid,
+                        exc_info=True,
+                    )
+
+                    scan.set_scan_status_failed(
+                        "FAILED: process {} disappeared".format(scan.pid)
+                    )
+
+    def delete_all_pending_conversionqueue_items(self):
         # Delete all pending conversionqueue items
         from ..conversionqueueitem_model import ConversionQueueItem
         pending_items = ConversionQueueItem.objects.filter(
             url__scan=self,
             status=ConversionQueueItem.NEW
         )
-        if log:
-            if pending_items.exists():
-                logger.info(
-                    "Deleting remaining conversion queue items from finished scan",
-                    count=pending_items.count(), scan_id=self.pk,
-                )
-        pending_items.delete()
 
-    def delete_scan_dir(self, log):
-        if log:
-            logger.debug('Delete scan directory', scan_id=self.pk, dir=self.scan_dir)
-            shutil.rmtree(self.scan_dir, True)
-            logger.debug('Directory deleted', scan_id=self.pk, dir=self.scan_dir)
+        if pending_items.exists():
+            self.logger.debug(
+                "remaining_scan_items",
+                count=pending_items.count(),
+            )
+            pending_items.delete()
+
+    def delete_scan_dir(self):
+        shutil.rmtree(self.scan_dir, True)
+        self.logger.debug(
+            "scan_dir_deleted",
+            scan_id=self.pk,
+            dir=self.scan_dir,
+        )
 
     @classmethod
     def pause_non_ocr_conversions_on_scans_with_too_many_ocr_items(cls):
@@ -350,20 +400,20 @@ class Scan(models.Model):
             num_ocr_items = items["total"]
             if (not scan.pause_non_ocr_conversions and
                         num_ocr_items > settings.PAUSE_NON_OCR_ITEMS_THRESHOLD):
-                logger.info(
+                self.logger.info(
                     "Pausing non-OCR conversions for scan "
                     "because it has too many OCR items",
-                    scan_id=scan.pk, num_ocr_items=num_ocr_items,
+                    num_ocr_items=num_ocr_items,
                     threshold=settings.PAUSE_NON_OCR_ITEMS_THRESHOLD,
                 )
                 scan.pause_non_ocr_conversions = True
                 scan.save()
             elif (scan.pause_non_ocr_conversions and
                           num_ocr_items < settings.RESUME_NON_OCR_ITEMS_THRESHOLD):
-                logger.info(
+                self.logger.info(
                     "Resuming non-OCR conversions for scan "
                     "as its OCR are under the threshold",
-                    scan_id=scan.pk, num_ocr_items=num_ocr_items,
+                    num_ocr_items=num_ocr_items,
                     threshold=settings.RESUME_NON_OCR_ITEMS_THRESHOLD,
                 )
                 scan.pause_non_ocr_conversions = False
@@ -383,9 +433,8 @@ class Scan(models.Model):
         self.start_time = datetime.datetime.now(tz=timezone.utc)
         self.status = Scan.STARTED
         self.reason = ""
-        pid = os.getpid()
-        logger.info('Starting scan job', pid=pid, scan_id=self.pk)
-        self.pid = pid
+        self.logger.debug('scan_started')
+        self.pid = os.getpid()
         self.save()
 
     def set_scan_status_done(self):
@@ -402,10 +451,7 @@ class Scan(models.Model):
         else:
             self.reason = reason
 
-        self.log_occurrence(
-            self.reason
-        )
-        # TODO: Remove all non-processed conversion queue items.
+        self.log_occurrence(self.reason)
         self.save()
 
     # Create method - copies fields from scanner
