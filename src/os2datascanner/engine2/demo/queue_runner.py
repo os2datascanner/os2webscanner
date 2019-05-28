@@ -2,10 +2,10 @@
 
 import argparse
 
-from .model.zip import ZipSource
-from .model.core import Source, SourceManager, UnknownSchemeError
-from .model.file import FilesystemSource
-from .processors import processors
+from ..model.zip import ZipSource
+from ..model.core import Source, SourceManager, UnknownSchemeError
+from ..model.file import FilesystemSource
+from ..processors import processors
 
 from queue import Full, Empty
 from ctypes import c_ulong

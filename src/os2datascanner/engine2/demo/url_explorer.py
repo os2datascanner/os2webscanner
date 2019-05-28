@@ -2,8 +2,8 @@
 
 import argparse
 
-from .model.core import Source, SourceManager
-from .model.core import UnknownSchemeError
+from ..model.core import Source, SourceManager
+from ..model.core import UnknownSchemeError
 
 def print_source(manager, source, depth=0, guess=False):
     for h in source.handles(manager):
