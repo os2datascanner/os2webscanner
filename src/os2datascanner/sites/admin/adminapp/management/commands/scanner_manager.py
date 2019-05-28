@@ -149,6 +149,23 @@ async def listen(loop, host, queue_name):
                     await process_message(message)
 
 
+def add_permanent_task(loop, func):
+    def handle_task_done(task):
+        # if one of the "permanent" tasks return, stop the process so
+        # someone notices
+        loop.stop()
+
+        try:
+            task.result()
+        except Exception:
+            logger.exception("task_failed", task=func.__name__)
+
+    task = loop.create_task(func)
+    task.add_done_callback(handle_task_done)
+
+    return task
+
+
 class Command(BaseCommand):
     help = __doc__
 
@@ -176,10 +193,11 @@ class Command(BaseCommand):
                 loop = asyncio.get_event_loop()
 
                 # check for running scans at first available opportunity
-                loop.create_task(check_running_scans())
-                loop.create_task(cleanup_finished_scans())
+                add_permanent_task(loop, check_running_scans())
+                add_permanent_task(loop, cleanup_finished_scans())
+                add_permanent_task(loop, listen(loop, amqp_host, amqp_queue))
 
-                loop.run_until_complete(listen(loop, amqp_host, amqp_queue))
+                loop.run_forever()
 
                 loop.close()
         except KeyboardInterrupt:
