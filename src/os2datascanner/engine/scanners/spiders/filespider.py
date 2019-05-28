@@ -5,7 +5,7 @@ import structlog
 
 from scrapy.http import Request
 from scrapy.exceptions import IgnoreRequest
-from os2datascanner.sites.admin.adminapp.utils import get_codec_and_string
+from os2datascanner.projects.admin.adminapp.utils import get_codec_and_string
 
 from ...utils import as_file_uri, as_path
 from ..processors.processor import Processor

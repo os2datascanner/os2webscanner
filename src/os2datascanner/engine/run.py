@@ -32,8 +32,8 @@ from sys import stderr
 os.umask(0o007)
 os.environ["SCRAPY_SETTINGS_MODULE"] = "os2datascanner.engine.scanners.settings"
 
-from os2datascanner.sites.admin.adminapp.models.statistic_model import Statistic
-from os2datascanner.sites.admin.adminapp.models.conversionqueueitem_model import ConversionQueueItem
+from os2datascanner.projects.admin.adminapp.models.statistic_model import Statistic
+from os2datascanner.projects.admin.adminapp.models.conversionqueueitem_model import ConversionQueueItem
 
 from django.core.exceptions import MultipleObjectsReturned
 

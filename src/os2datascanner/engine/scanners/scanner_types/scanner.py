@@ -18,8 +18,8 @@
 
 import structlog
 
-from os2datascanner.sites.admin.adminapp.models.scans.scan_model import Scan
-from os2datascanner.sites.admin.adminapp.models.url_model import Url
+from os2datascanner.projects.admin.adminapp.models.scans.scan_model import Scan
+from os2datascanner.projects.admin.adminapp.models.url_model import Url
 
 from ..rules.name import NameRule
 from ..rules.address import AddressRule

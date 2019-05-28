@@ -1,4 +1,3 @@
-# coding=utf-8
 # The contents of this file are subject to the Mozilla Public License
 # Version 2.0 (the "License"); you may not use this file except in
 # compliance with the License. You may obtain a copy of the License at
@@ -21,7 +20,7 @@ import regex
 
 from .rule import Rule
 from ...utils import get_data
-from os2datascanner.sites.admin.adminapp.models.sensitivity_level import Sensitivity
+from os2datascanner.projects.admin.adminapp.models.sensitivity_level import Sensitivity
 from ..items import MatchItem
 
 # Match whitespace except newlines

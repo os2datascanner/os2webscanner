@@ -19,7 +19,7 @@ import regex
 from datetime import datetime
 
 from .rule import Rule
-from os2datascanner.sites.admin.adminapp.models.sensitivity_level import Sensitivity
+from os2datascanner.projects.admin.adminapp.models.sensitivity_level import Sensitivity
 from ..items import MatchItem
 
 

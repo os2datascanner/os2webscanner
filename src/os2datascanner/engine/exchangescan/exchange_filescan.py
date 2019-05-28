@@ -18,10 +18,10 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from exchangelib import EWSDate
 
-from os2datascanner.sites.admin.adminapp.amqp_communication import amqp_connection_manager
-from os2datascanner.sites.admin.adminapp.models.domain_model import Domain
-from os2datascanner.sites.admin.adminapp.models.exchangescan_model import ExchangeScan
-from os2datascanner.sites.admin.adminapp.models.scan_model import Scan
+from os2datascanner.projects.admin.adminapp.amqp_communication import amqp_connection_manager
+from os2datascanner.projects.admin.adminapp.models.domain_model import Domain
+from os2datascanner.projects.admin.adminapp.models.exchangescan_model import ExchangeScan
+from os2datascanner.projects.admin.adminapp.models.scan_model import Scan
 
 from .mailscan_exchange import ExchangeServerScan, read_users
 from .settings import NUMBER_OF_EMAIL_THREADS
