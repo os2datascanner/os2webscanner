@@ -14,7 +14,7 @@ class UrlLastModified(models.Model):
             ('url', 'scanner'),
         )
 
-    url = models.CharField(max_length=2048, verbose_name='Url')
+    url = models.CharField(max_length=2048, verbose_name='URL')
     last_modified = models.DateTimeField(blank=True, null=True,
                                          verbose_name='Last-modified')
     links = models.ManyToManyField("self", symmetrical=False,

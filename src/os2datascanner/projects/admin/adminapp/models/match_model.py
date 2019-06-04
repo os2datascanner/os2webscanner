@@ -27,7 +27,7 @@ class Match(models.Model):
     url = models.ForeignKey(
         Url,
         null=False,
-        verbose_name='Url',
+        verbose_name='URL',
         on_delete=models.CASCADE,
     )
     scan = models.ForeignKey(

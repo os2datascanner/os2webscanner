@@ -39,7 +39,7 @@ class Domain(models.Model):
         (VALID, "Gyldig"),
     )
 
-    url = models.CharField(max_length=2048, verbose_name='Url')
+    url = models.CharField(max_length=2048, verbose_name='URL')
 
     authentication = models.OneToOneField(Authentication,
                                           null=True,

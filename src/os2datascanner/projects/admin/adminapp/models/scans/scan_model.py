@@ -94,6 +94,8 @@ class Scan(models.Model):
     do_last_modified_check = models.BooleanField(
         default=True,
         verbose_name='Tjek dato for sidste ændring',
+        help_text='Scan udelukkende filer der rapporteres som nyere end '
+                  'sidste scanning',
     )
 
     columns = models.CharField(validators=[validate_comma_separated_integer_list],

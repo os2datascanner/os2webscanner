@@ -11,7 +11,7 @@ class ReferrerUrl(models.Model):
     class Meta:
         verbose_name = 'Referer URL'
 
-    url = models.CharField(max_length=2048, verbose_name='Url')
+    url = models.CharField(max_length=2048, verbose_name='URL')
     scan = models.ForeignKey(
         WebScan,
         null=False,

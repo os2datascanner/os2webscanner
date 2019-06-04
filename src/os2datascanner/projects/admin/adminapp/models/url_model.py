@@ -25,7 +25,7 @@ class Url(models.Model):
 
     """A representation of an actual URL on a domain with its MIME type."""
 
-    url = models.CharField(max_length=2048, verbose_name='Url')
+    url = models.CharField(max_length=2048, verbose_name='URL')
     scan = models.ForeignKey(Scan, null=False, verbose_name='Scan',
                              related_name='urls',
                              on_delete=models.CASCADE)
