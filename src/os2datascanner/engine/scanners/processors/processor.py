@@ -235,7 +235,7 @@ class Processor(object):
     def process_queue(self):
         """Process items in the queue in an infinite loop.
 
-        If there are no items to process, waits 1 second before trying
+        If there are no items to process, wait 2 seconds before trying
         to get the next queue item.
         """
         self.logger.debug("process_queue")
