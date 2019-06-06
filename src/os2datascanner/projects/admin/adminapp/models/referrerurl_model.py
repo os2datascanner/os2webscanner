@@ -34,10 +34,10 @@ class ReferrerUrl(models.Model):
 
     @property
     def broken_urls(self):
-        result = self.os2webscanner_url_linked_urls.exclude(
+        result = self.os2webscanner_version_linked_urls.exclude(
             status_code__isnull=True
         ).order_by('url')
 
         return result
         # .filter(status=None)
-        # Url.objects.filter(referrerurls__contains=self, status=None)
+        # Version.objects.filter(referrerurls__contains=self, status=None)

@@ -21,7 +21,7 @@ from urllib.request import urlopen
 from .scans.scan_model import Scan
 
 
-class Url(models.Model):
+class Version(models.Model):
 
     """A representation of an actual URL on a domain with its MIME type."""
 
@@ -58,5 +58,3 @@ class Url(models.Model):
 
     class Meta:
         abstract = False
-
-        verbose_name = 'URL'
