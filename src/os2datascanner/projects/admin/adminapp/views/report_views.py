@@ -27,7 +27,7 @@ from ..models.match_model import Match
 from ..models.referrerurl_model import ReferrerUrl
 from ..models.scans.scan_model import Scan
 from ..models.statistic_model import Statistic
-from ..models.version_model import Version
+from ..models.webversion_model import WebVersion
 from ..models.userprofile_model import UserProfile
 
 
@@ -114,7 +114,7 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
             scan=this_scan
         ).order_by('-sensitivity', 'url', 'matched_rule', 'matched_data')
 
-        broken_urls = Version.objects.filter(
+        broken_urls = WebVersion.objects.filter(
             scan=this_scan
         ).exclude(status_code__isnull=True).order_by('url')
 

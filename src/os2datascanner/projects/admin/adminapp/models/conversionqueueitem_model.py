@@ -3,14 +3,14 @@ import shutil
 
 from django.db import models
 
-from .version_model import Version
+from .webversion_model import WebVersion
 
 
 class ConversionQueueItem(models.Model):
 
     """Represents an item in the conversion queue."""
     url = models.ForeignKey(
-        Version,
+        WebVersion,
         null=False,
         verbose_name='URL',
         on_delete=models.CASCADE,
