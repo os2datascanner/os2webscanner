@@ -43,6 +43,7 @@ class Scanner(models.Model):
     objects = InheritanceManager()
 
     name = models.CharField(max_length=256, unique=True, null=False,
+                            db_index=True,
                             verbose_name='Navn')
 
     organization = models.ForeignKey(Organization, null=False,
