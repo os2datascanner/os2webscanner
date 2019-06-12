@@ -1,0 +1,18 @@
+{% extends 'os2datascanner/base.html' %}
+{% block rendertype %}iframe-modal{% endblock %}
+{% block topnav %}{% endblock %}
+{% block body %}
+
+{% if success %}
+<p class="lead">
+    Scanneren blev startet! 
+</p>
+<p>
+    <a href="/report/{{scan.pk}}/" target="_top">Se rapport</a>
+</p>
+{% else %}
+<p>
+{{ error_message }}
+</p>
+{% endif %}
+{% endblock %}

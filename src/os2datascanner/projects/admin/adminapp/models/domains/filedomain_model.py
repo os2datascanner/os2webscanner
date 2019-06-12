@@ -114,6 +114,3 @@ class FileDomain(Domain):
     def __str__(self):
         """Return the URL for the domain."""
         return self.url
-
-    class Meta:
-        db_table = 'os2webscanner_filedomain'

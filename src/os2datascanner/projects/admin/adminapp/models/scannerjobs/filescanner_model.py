@@ -45,6 +45,3 @@ class FileScanner(Scanner):
     def get_absolute_url(self):
         """Get the absolute URL for scanners."""
         return '/filescanners/'
-
-    class Meta:
-        db_table = 'os2webscanner_filescanner'

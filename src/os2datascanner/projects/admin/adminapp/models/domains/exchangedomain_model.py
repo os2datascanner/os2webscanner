@@ -38,6 +38,3 @@ class ExchangeDomain(Domain):
 
     def get_userlist_file_path(self):
         return os.path.join(settings.MEDIA_ROOT, self.userlist.name)
-
-    class Meta:
-        db_table = 'os2webscanner_exchangedomain'

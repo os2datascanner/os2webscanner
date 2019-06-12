@@ -489,6 +489,5 @@ class Scan(models.Model):
 
     class Meta:
         abstract = False
-        db_table = 'os2webscanner_scan'
 
         verbose_name = 'Report'

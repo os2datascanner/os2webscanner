@@ -91,6 +91,3 @@ class WebDomain(Domain):
         else:
             sitemap_url = self.sitemap_url or self.default_sitemap_path
             return urljoin(self.root_url, sitemap_url)
-
-    class Meta:
-        db_table = 'os2webscanner_webdomain'

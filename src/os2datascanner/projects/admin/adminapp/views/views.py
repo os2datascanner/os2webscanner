@@ -125,7 +125,7 @@ class OrganizationList(RestrictedListView):
     """Display a list of organizations, superusers only!"""
 
     model = Organization
-    template_name = 'os2webscanner/organizations_and_domains.html'
+    template_name = 'os2datascanner/organizations_and_domains.html'
 
     def get_context_data(self, **kwargs):
         """Setup context for the template."""
@@ -157,14 +157,14 @@ class GroupList(RestrictedListView):
     """Displays groups for organization."""
 
     model = Group
-    template_name = 'os2webscanner/groups.html'
+    template_name = 'os2datascanner/groups.html'
 
 
 class RuleList(RestrictedListView):
     """Displays list of scanners."""
 
     model = RegexRule
-    template_name = 'os2webscanner/rules.html'
+    template_name = 'os2datascanner/rules.html'
 
 
 # Create/Update/Delete Views.
@@ -414,7 +414,7 @@ class GroupDelete(RestrictedDeleteView):
 class DialogSuccess(TemplateView):
     """View that handles success for iframe-based dialogs."""
 
-    template_name = 'os2webscanner/dialogsuccess.html'
+    template_name = 'os2datascanner/dialogsuccess.html'
 
     type_map = {
         'webdomains': WebDomain,
@@ -447,7 +447,7 @@ class DialogSuccess(TemplateView):
 class SystemStatusView(TemplateView, SuperUserRequiredMixin):
     """Display the system status for superusers."""
 
-    template_name = 'os2webscanner/system_status.html'
+    template_name = 'os2datascanner/system_status.html'
 
     def get_context_data(self, **kwargs):
         """Setup context for the template."""
@@ -495,7 +495,7 @@ class SummaryList(RestrictedListView):
     """Displays list of summaries."""
 
     model = Summary
-    template_name = 'os2webscanner/summaries.html'
+    template_name = 'os2datascanner/summaries.html'
 
 
 class SummaryCreate(RestrictedCreateView):
@@ -581,7 +581,7 @@ class SummaryReport(RestrictedDetailView):
     """Display report for summary."""
 
     model = Summary
-    template_name = 'os2webscanner/summary_report.html'
+    template_name = 'os2datascanner/summary_report.html'
 
     def get_context_data(self, **kwargs):
         """Setup context for the template."""
@@ -690,6 +690,6 @@ def file_upload(request):
         form = FileUploadForm()
 
     return render_to_response(
-        'os2webscanner/file_upload.html',
+        'os2datascanner/file_upload.html',
         {'form': form}
     )

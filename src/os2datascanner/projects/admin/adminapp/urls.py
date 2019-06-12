@@ -57,7 +57,7 @@ urlpatterns = [
         name='exchangescanner_run'),
     url(r'^exchangescanners/(?P<pk>\d+)/askrun/$',
         ExchangeScannerAskRun.as_view(
-            template_name='os2webscanner/scanner_askrun.html',
+            template_name='os2datascanner/scanner_askrun.html',
             model=ExchangeScanner),
         name='scanner_askrun'),
     url(r'^webscanners/$', WebScannerList.as_view(), name='webscanners'),
@@ -68,7 +68,7 @@ urlpatterns = [
         name='webscanner_run'),
     url(r'^webscanners/(?P<pk>\d+)/askrun/$',
         WebScannerAskRun.as_view(
-            template_name='os2webscanner/scanner_askrun.html',
+            template_name='os2datascanner/scanner_askrun.html',
             model=WebScanner),
         name='scanner_askrun'),
     url(r'^webscanners/(?P<pk>\d+)/$', WebScannerUpdate.as_view(),
@@ -83,7 +83,7 @@ urlpatterns = [
         name='filescanner_run'),
     url(r'^filescanners/(?P<pk>\d+)/askrun/$',
         FileScannerAskRun.as_view(
-            template_name='os2webscanner/scanner_askrun.html',
+            template_name='os2datascanner/scanner_askrun.html',
             model=FileScanner),
         name='filescanner_askrun'),
     url(r'^exchangedomains/$', ExchangeDomainList.as_view(), name='exchangedomains'),

@@ -119,10 +119,10 @@ WSGI_APPLICATION = 'os2datascanner.projects.admin.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'os2webscanner',
-        'USER': 'os2webscanner',
-        'PASSWORD': 'os2webscanner',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'os2datascanner',
+        'USER': 'os2datascanner',
+        'PASSWORD': 'os2datascanner',
         'HOST': '127.0.0.1',
     }
 }

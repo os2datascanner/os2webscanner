@@ -40,6 +40,3 @@ class ExchangeScanner(Scanner):
 
     def create_scan(self):
         return super().create_scan()
-
-    class Meta:
-        db_table = 'os2webscanner_exchangescanner'

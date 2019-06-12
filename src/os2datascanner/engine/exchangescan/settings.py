@@ -16,7 +16,7 @@
 """Settings file for the Exchange export module"""
 
 # Path to exchange export dir
-EXCHANGE_EXPORT_DIR_PREFIX = '/tmp/os2webscanner/exchangescan/'
+EXCHANGE_EXPORT_DIR_PREFIX = '/tmp/os2datascanner/exchangescan/'
 
 DAYS_BETWEEN_DOWNLOAD = 1
 

@@ -10,7 +10,7 @@ from ..models.userprofile_model import UserProfile
 class ScannerList(RestrictedListView):
     """Displays list of scanners."""
 
-    template_name = 'os2webscanner/scanners.html'
+    template_name = 'os2datascanner/scanners.html'
     context_object_name = 'scanner_list'
 
     def get_queryset(self):
@@ -22,7 +22,7 @@ class ScannerList(RestrictedListView):
 
 
 class ScannerBase():
-    template_name = 'os2webscanner/scanner_form.html'
+    template_name = 'os2datascanner/scanner_form.html'
 
     def get_form(self, form_class=None):
 
@@ -135,7 +135,7 @@ class ScannerUpdate(ScannerBase, RestrictedUpdateView):
 
 class ScannerDelete(RestrictedDeleteView):
     """Delete a scanner view."""
-    template_name = 'os2webscanner/scanner_confirm_delete.html'
+    template_name = 'os2datascanner/scanner_confirm_delete.html'
 
     def get_form(self, form_class=None):
         """Adds special field password and decrypts password."""
@@ -174,7 +174,7 @@ class ScannerRun(RestrictedDetailView):
 
     """Base class for view that handles starting of a scanner run."""
 
-    template_name = 'os2webscanner/scanner_run.html'
+    template_name = 'os2datascanner/scanner_run.html'
     model = Scanner
 
     def __init__(self):

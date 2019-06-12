@@ -246,4 +246,3 @@ class Scanner(models.Model):
     class Meta:
         abstract = False
         ordering = ['name']
-        db_table = 'os2webscanner_scanner'

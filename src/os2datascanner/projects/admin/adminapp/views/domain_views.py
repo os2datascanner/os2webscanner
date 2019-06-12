@@ -11,7 +11,7 @@ class DomainList(RestrictedListView):
 
     """Displays list of domains."""
 
-    template_name = 'os2webscanner/domains.html'
+    template_name = 'os2datascanner/domains.html'
     context_object_name = 'domain_list'
 
     def get_queryset(self):
@@ -28,7 +28,7 @@ class DomainCreate(RestrictedCreateView):
 
     """Create a domain view."""
 
-    template_name = 'os2webscanner/domain_form.html'
+    template_name = 'os2datascanner/domain_form.html'
 
     def get_form_fields(self):
         """Get the list of form fields.
@@ -85,7 +85,7 @@ class DomainCreate(RestrictedCreateView):
 class DomainUpdate(RestrictedUpdateView):
 
     """Update a domain view."""
-    template_name = 'os2webscanner/domain_form.html'
+    template_name = 'os2datascanner/domain_form.html'
     old_url = ''
 
     def get_form_fields(self):
