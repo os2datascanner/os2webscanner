@@ -30,6 +30,7 @@ from .models.referrerurl_model import ReferrerUrl
 from .models.regexpattern_model import RegexPattern
 from .models.regexrule_model import RegexRule
 from .models.scans.scan_model import Scan
+from .models.scans.webscan_model import WebScan
 from .models.scannerjobs.webscanner_model import WebScanner
 from .models.scannerjobs.filescanner_model import FileScanner
 from .models.scannerjobs.exchangescanner_model import ExchangeScanner
@@ -61,12 +62,22 @@ class RegexPatternAdmin(admin.ModelAdmin):
     list_display = ('pattern_string', 'regex')
 
 
-@admin.register(Scan)
-class ScanAdmin(admin.ModelAdmin):
+@admin.register(WebScan)
+class WebScanAdmin(admin.ModelAdmin):
     date_hierarchy = 'start_time'
     list_display = ('scanner', 'status', 'creation_time',
                     'start_time', 'end_time', 'is_visible')
     list_filter = ('status', 'is_visible', 'scanner')
+
+
+@admin.register(Scan)
+class ScanAdmin(WebScanAdmin):
+    '''
+    Exclude web reports so they aren't shown in two places
+    '''
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(webscan__isnull=True)
 
 
 class TypeStatisticsInline(admin.TabularInline):

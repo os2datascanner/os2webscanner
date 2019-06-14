@@ -1,4 +1,3 @@
-from os2datascanner.projects.admin.adminapp.models.scans.exchangescan_model import ExchangeScan
 from .scanner import Scanner
 
 

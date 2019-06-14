@@ -19,7 +19,5 @@ from .scannerjobs import exchangescanner_model  # noqa
 from .scannerjobs import filescanner_model  # noqa
 from .scannerjobs import scanner_model  # noqa
 from .scannerjobs import webscanner_model  # noqa
-from .scans import exchangescan_model  # noqa
-from .scans import filescan_model  # noqa
 from .scans import scan_model  # noqa
 from .scans import webscan_model  # noqa
