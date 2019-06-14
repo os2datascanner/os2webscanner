@@ -2,6 +2,7 @@ from django.db.models import Q
 
 from .views import RestrictedListView, RestrictedCreateView, \
     RestrictedUpdateView, RestrictedDetailView, RestrictedDeleteView
+from ..models.authentication_model import Authentication
 from ..models.scans.scan_model import Scan
 from ..models.scannerjobs.scanner_model import Scanner
 from ..models.userprofile_model import UserProfile
@@ -68,8 +69,21 @@ class ScannerCreate(ScannerBase, RestrictedCreateView):
 
         return form
 
+    def get_form_fields(self):
+        """Get the list of form fields.
+
+        The 'validation_status' field will be added to the form if the
+        user is a superuser.
+        """
+        fields = super().get_form_fields()
+        if self.request.user.is_superuser:
+            fields.append('validation_status')
+
+        self.fields = fields
+        return fields
+
     def filter_queryset(self, form, groups, organization):
-        for field_name in ['domains', 'regex_rules', 'recipients']:
+        for field_name in ['regex_rules', 'recipients']:
             queryset = form.fields[field_name].queryset
             queryset = queryset.filter(organization=organization)
             if (self.request.user.profile.is_group_admin or
@@ -81,6 +95,31 @@ class ScannerCreate(ScannerBase, RestrictedCreateView):
                     Q(group__in=groups) | Q(group__isnull=True)
                 )
             form.fields[field_name].queryset = queryset
+
+    def form_valid(self, form):
+        if not self.request.user.is_superuser:
+            user_profile = self.request.user.profile
+            self.object = form.save(commit=False)
+            self.object.organization = user_profile.organization
+
+        """Makes sure authentication info gets stored in db."""
+        filedomain = form.save(commit=False)
+        authentication = Authentication()
+        if 'username' in form.cleaned_data and \
+                form.cleaned_data['username']:
+            username = str(form.cleaned_data['username'])
+            authentication.username = username
+        if 'password' in form.cleaned_data and \
+                form.cleaned_data['password']:
+            authentication.set_password(str(form.cleaned_data['password']))
+        if 'domain' in form.cleaned_data and \
+                form.cleaned_data['domain']:
+            domain = str(form.cleaned_data['domain'])
+            authentication.domain = domain
+        authentication.save()
+        filedomain.authentication = authentication
+        filedomain.save()
+        return super().form_valid(form)
 
 
 class ScannerUpdate(ScannerBase, RestrictedUpdateView):
@@ -114,7 +153,7 @@ class ScannerUpdate(ScannerBase, RestrictedUpdateView):
         return form
 
     def filter_queryset(self, form, scanner):
-        for field_name in ['domains', 'regex_rules', 'recipients']:
+        for field_name in ['regex_rules', 'recipients']:
             queryset = form.fields[field_name].queryset
             queryset = queryset.filter(organization=scanner.organization)
 
@@ -157,9 +196,6 @@ class ScannerAskRun(RestrictedDetailView):
         if self.object.is_running:
             ok = False
             error_message = Scanner.ALREADY_RUNNING
-        elif not self.object.has_valid_domains:
-            ok = False
-            error_message = Scanner.NO_VALID_DOMAINS
         else:
             ok = True
 

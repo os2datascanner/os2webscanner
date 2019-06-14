@@ -26,8 +26,8 @@ from django.core.validators import validate_comma_separated_integer_list
 from django.db import models, transaction
 from django.db.models.aggregates import Count
 from django.utils import timezone
+from django.utils.functional import cached_property
 
-from ..domains.domain_model import Domain
 from ..regexrule_model import RegexRule
 from ..scannerjobs.scanner_model import Scanner
 from ..sensitivity_level import Sensitivity
@@ -63,9 +63,6 @@ class Scan(models.Model):
                                 null=True, verbose_name='webscanner',
                                 related_name='webscans',
                                 on_delete=models.SET_NULL)
-
-    domains = models.ManyToManyField(Domain,
-                                     verbose_name='Domæner')
 
     is_visible = models.BooleanField(default=True)
 
@@ -162,11 +159,9 @@ class Scan(models.Model):
             status=ConversionQueueItem.FAILED
         ).count()
 
-    @property
-    def get_valid_domains(self):
-        return self.domains.filter(
-            validation_status=Domain.VALID
-        )
+    @cached_property
+    def webscanner(self):
+        return Scanner.objects.get_subclass(pk=self.scanner_id)
 
     @property
     def status_text(self):
@@ -483,7 +478,6 @@ class Scan(models.Model):
         self.status = Scan.NEW
         self.scanner = scanner
         self.save()
-        self.domains.add(*scanner.domains.all())
         self.regex_rules.add(*scanner.regex_rules.all())
         self.recipients.add(*scanner.recipients.all())
 

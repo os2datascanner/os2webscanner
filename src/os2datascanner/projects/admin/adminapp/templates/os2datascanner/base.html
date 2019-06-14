@@ -58,15 +58,6 @@
           </li>
           {% endif %}
           {% endif %}
-          <li {% block domains_active %}{% endblock %}>
-              {% if settings.ENABLE_WEBSCAN %}
-                  <a href="/webdomains/">Domæner</a>
-              {% elif settings.ENABLE_FILESCAN %}
-                  <a href="/filedomains/">Domæner</a>
-              {% elif settings.ENABLE_EXCHANGESCAN %}
-                  <a href="/exchangedomains/">Domæner</a>
-              {% endif %}
-          </li>
           <li {% block rules_active %}{% endblock %}>
             <a href="/rules/">Regler</a>
           </li>

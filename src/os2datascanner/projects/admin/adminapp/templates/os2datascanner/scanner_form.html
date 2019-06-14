@@ -49,7 +49,6 @@ iframe-modal
       {% endfor %}
 
       // If user is in the edit view the user shall not be able to edit:
-      //  * Domains
       //  * Rules
       //  * Settings
       // But the user shall still be able to view them and edit interval and Recepients
@@ -58,6 +57,16 @@ iframe-modal
         $("#selected_rules span").addClass('disabled')
         $("#select_scan_rules_container").css('opacity', '.35')
       {% endif %}
+
+        $('#{{form.sitemap.auto_id}}').bootstrapFileInput();
+
+        // Toggle the Sitemap URL field when Download Sitemap is checked
+        $("#id_{{ form.download_sitemap.name }}").click(function () {
+            $("#{{ form.sitemap_url.auto_id }}_container").toggle();
+        });
+        {% if not form.download_sitemap.value %}
+            $("#{{ form.sitemap_url.auto_id }}_container").toggle();
+        {% endif %}
     })
   })(jQuery);
 </script>
@@ -111,6 +120,39 @@ iframe-modal
       </div>
     </div>
   </div>
+
+    <div id="{{ form.url.auto_id }}_container" class="col-sm-12{% if form.url.errors %} has-error{% endif %}">
+        <div class="form-group">
+            <label class="control-label col-sm-3" for="id_{{ form.url.name }}">{{ form.url.label }}</label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control" name="{{ form.url.name }}" id="id_{{ form.url.name }}" {% if form.url.value %}value="{{ form.url.value }}"{% endif %}>
+                {% if form.url.help_text %}
+                    <p>
+                        <small>{{ form.url.help_text }}</small>
+                    </p>
+                {% endif %}
+                {% if form.url.errors %}{{ form.url.errors }}{% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if form.alias %}
+        <div id="{{ form.alias.auto_id }}_container" class="col-sm-12{% if form.alias.errors %} has-error{% endif %}">
+            <div class="form-group">
+                <label class="control-label col-sm-3" for="id_{{ form.alias.name }}">Drevbogstav</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control" name="{{ form.alias.name }}" id="id_{{ form.alias.name }}" {% if form.alias.value %}value="{{ form.alias.value }}"{% endif %}>
+                    {% if form.alias.help_text %}
+                        <p>
+                            <small>{{ form.alias.help_text }}</small>
+                        </p>
+                    {% endif %}
+                    {% if form.alias.errors %}{{ form.alias.errors }}{% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
   {% if form.organization %}
   <div id="{{ form.organization.auto_id }}_container"
        class="col-sm-12{% if form.organization.errors %} has-error{% endif %}">
@@ -141,6 +183,24 @@ iframe-modal
     </div>
   </div>
   {% endif %}
+
+  {% if form.domain %}    
+   <div id="{{ form.domain.auto_id }}_container" class="col-sm-12{% if form.domain.errors %} has-error{% endif %}">
+        <div class="form-group">
+            <label class="control-label col-sm-3" for="id_{{ form.domain.name }}">Brugerdomæne</label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control" name="{{ form.domain.name }}" id="id_{{ form.domain.name }}" {% if form.domain.value %}value="{{ form.domain.value }}"{% endif %}>
+                {% if form.domain.help_text %}
+                    <p>
+                        <small>{{ form.domain.help_text }}</small>
+                    </p>
+                {% endif %}
+                {% if form.domain.errors %}{{ form.domain.errors }}{% endif %}
+            </div>
+        </div>
+    </div>
+  {% endif %}
+
   {% if form.username %}
       <div id="{{ form.username.auto_id }}_container" class="col-sm-12{% if form.username.errors %} has-error{% endif %}">
         <div class="form-group">
@@ -217,49 +277,134 @@ iframe-modal
     </div>
   {% endif %}
 
+    {% if form.userlist %}
+        <div id="{{ form.userlist.auto_id }}_container" class="col-sm-12{% if form.userlist.errors %} has-error{% endif %}">
+            <div class="form-group">
+                <label class="control-label col-sm-3" for="id_{{ form.userlist.name }}">Liste af mail brugere</label>
+                <div class="col-sm-9">
+                    <input type="file" class="form-control" name="{{ form.userlist.name }}" id="id_{{ form.userlist.name }}" {% if form.userlist.value %}value="{{ form.userlist.value }}"{% endif %}>
+                    {% if form.userlist.help_text %}
+                        <p>
+                            <small>{{ form.userlist.help_text }}</small>
+                        </p>
+                    {% endif %}
+                    {% if form.userlist.errors %}{{ form.userlist.errors }}{% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if form.validation_status %}
+        <div id="{{ form.validation_status.auto_id }}_container" class="col-sm-12{% if form.validation_status.errors %} has-error{% endif %}">
+            <div class="form-group">
+                <label class="control-label col-sm-3" for="id_{{ form.validation_status.name }}">{{ form.validation_status.label }}</label>
+                <div class="col-sm-9">
+                    <select name="{{ form.validation_status.name }}" id="id_{{ form.validation_status.name }}" class="form-control">
+                        {% for value, tag in form.validation_status.field.choices %}
+                            <option value="{{ value }}"{% if form.validation_status.value|add:"0" == value|add:"0" %} selected="selected"{% endif %}>{{ tag }}</option> {# silly type conversion #}
+                        {% endfor %}
+                    </select>
+                    {% if form.validation_status.help_text %}
+                        <p>
+                            <small>{{ form.validation_status.help_text }}</small>
+                        </p>
+                    {% endif %}
+                    {% if form.validation_status.errors %}{{ form.validation_status.errors }}{% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <div id="{{ form.exclusion_rules.auto_id }}_container" class="col-sm-12{% if form.exclusion_rules.errors %} has-error{% endif %}">
+        <div class="form-group">
+            <label class="control-label col-sm-3" for="id_{{ form.exclusion_rules.name }}">{{ form.exclusion_rules.label }}</label>
+            <div class="col-sm-9">
+                <textarea class="form-control" name="{{ form.exclusion_rules.name }}" id="id_{{ form.exclusion_rules.name }}" rows="3">{% if form.exclusion_rules.value %}{{ form.exclusion_rules.value }}{% endif %}</textarea>
+                {% if form.exclusion_rules.help_text %}
+                    <p>
+                        <small>{{ form.exclusion_rules.help_text }}</small>
+                    </p>
+                {% endif %}
+                {% if form.exclusion_rules.errors %}{{ form.exclusion_rules.errors }}{% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if form.download_sitemap %}
+        <div id="{{ form.download_sitemap.auto_id }}_container" class="col-sm-12{% if form.download_sitemap.errors %} has-error{% endif %}">
+            <div class="form-group">
+                <label class="control-label col-sm-3" for="id_{{ form.download_sitemap.name }}">{{ form.download_sitemap.label }}</label>
+                <div class="col-sm-9">
+                    <input type="checkbox" class="checkbox" style="margin-top: 4px;"
+                           id="id_{{ form.download_sitemap.name }}"
+                           name="{{ form.download_sitemap.name }}" value="{{ form.download_sitemap.name }}"{% if form.download_sitemap.value %} checked="checked"{% endif %} />
+                    {% if form.download_sitemap.help_text %}
+                        <p>
+                            <small>{{ form.download_sitemap.help_text }}</small>
+                        </p>
+                    {% endif %}
+                    {% if form.download_sitemap.errors %}{{ form.download_sitemap.errors }}{% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if form.sitemap_url %}
+        <div id="{{ form.sitemap_url.auto_id }}_container" class="col-sm-12{% if form.sitemap_url.errors %} has-error{% endif %}">
+            <div class="form-group">
+                <label class="control-label col-sm-3" for="id_{{ form.sitemap_url.name }}">{{ form.sitemap_url.label }}</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control"
+                           name="{{ form.sitemap_url.name }}"
+                           id="id_{{ form.sitemap_url.name }}"
+                           placeholder="/sitemap.xml"
+                           {% if form.sitemap_url.value %}value="{{ form.sitemap_url.value }}"{% endif %}>
+                    {% if form.sitemap_url.help_text %}
+                        <p>
+                            <small>{{ form.sitemap_url.help_text }}</small>
+                        </p>
+                    {% endif %}
+                    {% if form.sitemap_url.errors %}{{ form.sitemap_url.errors }}{% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if form.sitemap %}
+        <div id="{{ form.sitemap.auto_id }}_container" class="col-sm-12{% if form.sitemap.errors %} has-error{% endif %}">
+            <div class="form-group">
+                <label class="control-label col-sm-3"
+                       for="id_{{ form.sitemap.name }}">{{ form.sitemap.label}}</label>
+                <div class="col-sm-9">
+                    {% if form.sitemap.value %}
+                        Aktuelt: {{ form.sitemap.value }}
+                        <input id="{{ form.sitemap.name }}-clear_id" name="{{ form.sitemap.name }}-clear" type="checkbox"/>
+                        <label for="{{ form.sitemap.name }}-clear_id">Fjern</label>
+                        <br />
+                    {% endif %}
+                    <input class="form-control" id="id_{{ form.sitemap.name }}"
+                           name="{{ form.sitemap.name }}"
+                           type="file"
+                           data-filename-placement="inside"
+                           title="Klik her for at uploade sitemap.xml" />
+                    {% if form.sitemap.help_text %}
+                        <p>
+                            <small>{{ form.sitemap.help_text }}</small>
+                        </p>
+                    {% endif %}
+                    {% if form.sitemap.errors %}{{ form.sitemap.errors }}{% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
   <div class="clearfix"></div>
   <ul class="nav nav-tabs" id="scanner-settings-tabs">
-    <li class="active"><a href="#domains" data-toggle="tab">Domæner</a></li>
-    <li><a href="#rules" data-toggle="tab">Regler</a></li>
+    <li class="active"><a href="#rules" data-toggle="tab">Regler</a></li>
     <li><a href="#interval" data-toggle="tab">Interval</a></li>
     <li><a href="#recipients" data-toggle="tab">Modtagere</a></li>
   </ul>
   <div class="tab-content">
-    <div class="tab-pane active" id="domains">
-        {% if view.edit %}
-            <p class="bg-warning">{% trans "Listen af domæner kan ikke redigeres. For at scanne andre domæner, opret da et nyt scannerjob." %}</p>
-        {% endif %}
-      <div id="{{ form.domains.auto_id }}_container"
-           class="col-sm-12{% if form.domains.errors %} has-error{% endif %}">
-        <div class="form-group">
-          <label class="control-label" for="id_{{ form.domains.name }}">
-            {{ form.domains.label }}
-            </label>
-          <select name="{{ form.domains.name }}" id="id_{{ form.domains.name }}"
-                  class="form-control" multiple="multiple">
-                {% for value, tag in form.domains.field.choices %}
-                    <option value="{{ value }}"
-                        {% for val in form.domains.value %}
-                            {% if val == value %}
-                                selected="selected"
-                            {% endif %}
-                        {% endfor %}>
-                    {{ tag }}
-                    </option>
-                {% endfor %}
-          </select>
-            {% if form.domains.errors %}
-                {{ form.domains.errors }}
-            {% endif %}
-            {% if form.domains.help_text %}
-              <p>
-                <small>{{ form.domains.help_text }}</small>
-              </p>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-    <div class="tab-pane" id="rules">
+    <div class="tab-pane active" id="rules">
         {% if view.edit %}
         <p class="bg-warning">{% trans "Listen af regler kan ikke redigeres. For at scanne med andre regler, opret da et nyt scannerjob." %}</p>
         {% endif %}
@@ -454,22 +599,6 @@ iframe-modal
 </form>
 
 <script type="text/javascript">
-   addEvent(window, "load",
-        function(e) {
-            SelectFilter.init("id_domains",
-              "domæner", 0, "{% static 'admin/' %}");
-            {% if form.domains.field.disabled %}
-                /*$("[id^=id_domains]").attr('disabled', true)
-                $("[id^=id_domains]").unbind()*/
-                $("#id_domains_container").css('opacity', '.35')
-                $("[id^=id_domains]").removeClass('active').addClass('disabled')
-                $("[id^=id_domains]").css('pointer-events', 'none')
-            {% endif %}
-        }
-   );
-
-
-
   addEvent(window, "load", function(e) {
     SelectFilter.init("id_recipients",
       "modtagere", 0, "{% static 'admin/' %}");

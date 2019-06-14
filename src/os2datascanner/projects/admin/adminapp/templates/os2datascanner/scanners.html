@@ -47,6 +47,45 @@ class="active"
                   </strong>
                 </td>
                     {% endif %}
+                      <td>
+                          <strong>
+                              <small>
+                                  URL
+                              </small>
+                          </strong>
+                      </td>
+                      {% if view.type == 'file' %}
+                          <td>
+                              <strong>
+                                  <small>
+                                      Drev
+                                  </small>
+                              </strong>
+                          </td>
+                      {% endif %}
+                      {% if user.is_superuser %}
+                          <td>
+                              <strong>
+                                  <small>
+                                      Organisation
+                                  </small>
+                              </strong>
+                          </td>
+                      {% endif %}
+                      <td>
+                          <strong>
+                              <small>
+                                  Ekskluderingsregler
+                              </small>
+                          </strong>
+                      </td>
+                      <td>
+                          <strong>
+                              <small>
+                                  Valideret
+                              </small>
+                          </strong>
+                      </td>
                 <td>
                   <strong>
                     <small>
@@ -66,17 +105,46 @@ class="active"
                 <tbody>
                 {% for scanner in scanner_list %}
                   <tr>
-                <td class="scanner-description">
+                      <td class="scanner-description">
                   <span>
                       {{scanner.name}}
                   </span>
-                </td>
+                      </td>
                     {% if user.is_superuser %}
                 <td class="scanner-organization">
                   <span>
                       {{scanner.organization}}
                   </span>
                 </td>
+                        <td class="domain-url">
+                <span>
+                    {{scanner.url}}
+                </span>
+                        </td>
+                        {% if view.type == 'file' %}
+                            <td class="domain-letter">
+                                {% if scanner.alias %}
+                                    {{ scanner.alias }}:
+                                {% endif %}
+                            </td>
+                        {% endif %}
+                        {% if user.is_superuser %}
+                            <td class="domain-organization">
+                <span>
+                    {{scanner.organization}}
+                </span>
+                            </td>
+                        {% endif %}
+                        <td class="domain-exclusion-rules">
+                            <pre>{{scanner.exclusion_rules}}</pre>
+                        </td>
+                        <td class="domain-validation">
+                            {% if scanner.validation_status %}
+                                <span class="glyphicon glyphicon-ok"></span><span class="sr-only">Er valideret</span>
+                            {% else %}
+                                <span class="glyphicon glyphicon-remove"></span><span class="sr-only">Er ikke valideret</span>
+                            {% endif %}
+                        </td>
                     {% endif %}
                 <td class="scanner-runtime">
                   <span class="scanner-schedule-description">

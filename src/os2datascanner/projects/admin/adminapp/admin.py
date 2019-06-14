@@ -23,8 +23,6 @@ from django.utils.translation import ugettext_lazy as _
 
 from .models.authentication_model import Authentication
 from .models.conversionqueueitem_model import ConversionQueueItem
-from .models.domains.exchangedomain_model import ExchangeDomain
-from .models.domains.filedomain_model import FileDomain
 from .models.group_model import Group
 from .models.match_model import Match
 from .models.organization_model import Organization
@@ -39,7 +37,6 @@ from .models.statistic_model import Statistic, TypeStatistics
 from .models.webversion_model import WebVersion
 from .models.urllastmodified_model import UrlLastModified
 from .models.userprofile_model import UserProfile
-from .models.domains.webdomain_model import WebDomain
 
 
 @admin.register(Authentication)
@@ -104,8 +101,7 @@ class ReferrerUrlAdmin(admin.ModelAdmin):
     list_display = ('url', 'scan')
 
 for _cls in [
-    Organization, WebDomain, FileDomain, ExchangeDomain,
-    Group, FileScanner, ExchangeScanner, WebScanner,
+    Group, Organization, FileScanner, ExchangeScanner, WebScanner,
 ]:
     admin.site.register(_cls)
 
