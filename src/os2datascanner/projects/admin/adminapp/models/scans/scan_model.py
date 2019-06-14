@@ -20,13 +20,13 @@ import shutil
 
 import dateutil.tz
 import structlog
-
 from django.conf import settings
 from django.core.validators import validate_comma_separated_integer_list
 from django.db import models, transaction
 from django.db.models.aggregates import Count
 from django.utils import timezone
 from django.utils.functional import cached_property
+from model_utils.fields import MonitorField, StatusField
 
 from ..regexrule_model import RegexRule
 from ..scannerjobs.scanner_model import Scanner
@@ -52,11 +52,6 @@ class Scan(models.Model):
     @property
     def logger(self):
         return logger.bind(scan_id=self.pk, scan_status=self.status)
-
-    start_time = models.DateTimeField(blank=True, null=True,
-                                      verbose_name='Starttidspunkt')
-    end_time = models.DateTimeField(blank=True, null=True,
-                                    verbose_name='Sluttidspunkt')
 
     # Begin setup copied from scanner
     scanner = models.ForeignKey(Scanner,
@@ -137,15 +132,36 @@ class Scan(models.Model):
     DONE = "DONE"
     FAILED = "FAILED"
 
-    status_choices = (
+    STATUS = (
         (NEW, "Ny"),
         (STARTED, "I gang"),
         (DONE, "Færdig"),
         (FAILED, "Mislykket"),
     )
 
-    status = models.CharField(max_length=10, choices=status_choices,
-                              default=NEW)
+    status = StatusField(max_length=max(map(len, dict(STATUS).values())))
+
+    creation_time = MonitorField(
+        monitor='status',
+        when=[NEW],
+        default=timezone.now,
+        null=False,
+        verbose_name='Oprettelsestidspunkt',
+    )
+    start_time = MonitorField(
+        monitor='status',
+        when=[STARTED],
+        null=True,
+        default=None,
+        verbose_name='Starttidspunkt',
+    )
+    end_time = MonitorField(
+        monitor='status',
+        when=[DONE, FAILED],
+        null=True,
+        default=None,
+        verbose_name='Sluttidspunkt',
+    )
 
     pause_non_ocr_conversions = models.BooleanField(default=False,
                                                     verbose_name='Pause ' +
@@ -170,7 +186,7 @@ class Scan(models.Model):
         Relies on the restriction that the status must be one of the allowed
         values.
         """
-        text = [t for s, t in Scan.status_choices if self.status == s][0]
+        text = [t for s, t in Scan.STATUS if self.status == s][0]
         return text
 
     @property
@@ -242,9 +258,9 @@ class Scan(models.Model):
 
     def __str__(self):
         """Return the name of the scan's scanner combined with a timestamp."""
-        if self.start_time:
+        if self.creation_time:
             ts = (
-                self.start_time
+                self.creation_time
                 .astimezone(dateutil.tz.tzlocal())
                 .replace(microsecond=0, tzinfo=None)
             )
@@ -259,11 +275,6 @@ class Scan(models.Model):
         deletes any remaining queue items and deletes the temporary directory
         used by the scan.
         """
-        # Pre-save stuff
-        if self.status in [Scan.DONE, Scan.FAILED] and \
-                (self._old_status != self.status):
-            self.end_time = datetime.datetime.now(tz=timezone.utc)
-
         # Actual save
         super().save(*args, **kwargs)
         # Post-save stuff
@@ -425,7 +436,6 @@ class Scan(models.Model):
 
     def set_scan_status_start(self):
         # Update start_time to now and status to STARTED
-        self.start_time = datetime.datetime.now(tz=timezone.utc)
         self.status = Scan.STARTED
         self.reason = ""
         self.logger.debug('scan_started')
