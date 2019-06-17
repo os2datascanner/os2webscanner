@@ -1,5 +1,5 @@
 HOWTO get the system up and running for development
-===================================================
+---------------------------------------------------
 
 .. highlight:: shell
 

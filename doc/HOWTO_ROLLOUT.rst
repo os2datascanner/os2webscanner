@@ -1,0 +1,41 @@
+HOWTO Initiate a roll-out
+-------------------------
+
+Activate virtualenv
+===================
+
+source python-env/bin/activate
+
+Pull latest production code from github
+=======================================
+
+git pull github master
+
+cd webscanner\_site
+
+Run any sql updates since last release date in sql/updates/
+===========================================================
+
+./manage.py dbshell [full path to .sql file]
+
+Collect any static files
+========================
+
+./manage.py collectstatic
+
+Gracefully restart apache
+=========================
+
+sudo service apache2 graceful
+
+cd ..
+
+Find the PID of and kill the process\_manager.py
+================================================
+
+ps aux \| grep process\_manager.py sudo kill $PID
+
+Start the process manager again
+===============================
+
+sudo -u www-data -b ./bin/start\_process\_manager.sh
