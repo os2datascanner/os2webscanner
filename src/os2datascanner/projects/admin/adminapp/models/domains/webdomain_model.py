@@ -48,7 +48,7 @@ class WebDomain(Domain):
     sitemap_url = models.CharField(max_length=2048,
                                    blank=True,
                                    default="",
-                                   verbose_name='Sitemap Url')
+                                   verbose_name='Sitemap URL')
 
     download_sitemap = models.BooleanField(default=True,
                                            verbose_name='Hent Sitemap fra '

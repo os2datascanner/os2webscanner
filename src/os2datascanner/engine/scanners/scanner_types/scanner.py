@@ -19,7 +19,7 @@
 import structlog
 
 from os2datascanner.projects.admin.adminapp.models.scans.scan_model import Scan
-from os2datascanner.projects.admin.adminapp.models.url_model import Url
+from os2datascanner.projects.admin.adminapp.models.webversion_model import WebVersion
 
 from ..rules.name import NameRule
 from ..rules.address import AddressRule
@@ -82,7 +82,7 @@ dictionary."""
         return self.scan_object.scanner.process_urls
 
     def mint_url(self, **kwargs):
-        u = Url(scan=self.scan_object, **kwargs)
+        u = WebVersion(scan=self.scan_object, **kwargs)
         u.save()
         return u
 

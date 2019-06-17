@@ -32,7 +32,7 @@ from django.core.mail import EmailMessage
 from django.template import loader
 
 from .models.match_model import Match
-from .models.url_model import Url
+from .models.webversion_model import WebVersion
 from .models.scannerjobs.webscanner_model import WebScanner
 from .models.scans.webscan_model import WebScan
 from .models.summary_model import Summary
@@ -49,7 +49,7 @@ def notify_user(scan):
     if not to_addresses:
         to_addresses = [settings.ADMIN_EMAIL, ]
     matches = Match.objects.filter(scan=scan).count()
-    matches += Url.objects.filter(
+    matches += WebVersion.objects.filter(
         scan=scan
     ).exclude(status_code__isnull=True).count()
     critical = scan.no_of_critical_matches

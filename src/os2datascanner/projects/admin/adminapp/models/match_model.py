@@ -18,16 +18,16 @@ from django.db import models
 
 from .scans.scan_model import Scan
 from .sensitivity_level import Sensitivity
-from .url_model import Url
+from .webversion_model import WebVersion
 
 
 class Match(models.Model):
 
     """The data associated with a single match in a single URL."""
     url = models.ForeignKey(
-        Url,
+        WebVersion,
         null=False,
-        verbose_name='Url',
+        verbose_name='URL',
         on_delete=models.CASCADE,
     )
     scan = models.ForeignKey(

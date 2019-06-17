@@ -39,16 +39,17 @@ class WebScan(Scan):
 
     do_external_link_check = models.BooleanField(
         default=False,
-        verbose_name='Eksterne links'
+        verbose_name='Tjek eksterne links'
     )
 
     do_last_modified_check_head_request = models.BooleanField(
         default=True,
-        verbose_name='Brug HTTP HEAD request'
+        verbose_name='Brug HTTP HEAD-forespørgsler',
+        help_text='Tjek datoer ved hjælp af en særskilt forespørgsel',
     )
 
     do_collect_cookies = models.BooleanField(default=False,
-                                             verbose_name='Saml cookies')
+                                             verbose_name='Opsaml cookies')
 
     # Create method - copies fields from scanner
     def create(self, scanner):

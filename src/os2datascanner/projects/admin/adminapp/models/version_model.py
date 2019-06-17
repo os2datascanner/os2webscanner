@@ -21,23 +21,14 @@ from urllib.request import urlopen
 from .scans.scan_model import Scan
 
 
-class Url(models.Model):
+class Version(models.Model):
 
     """A representation of an actual URL on a domain with its MIME type."""
 
-    url = models.CharField(max_length=2048, verbose_name='Url')
+    url = models.CharField(max_length=2048, verbose_name='URL')
     scan = models.ForeignKey(Scan, null=False, verbose_name='Scan',
                              related_name='urls',
                              on_delete=models.CASCADE)
-    mime_type = models.CharField(max_length=256, verbose_name='Mime-type', null=True)
-
-    status_code = models.IntegerField(blank=True, null=True,
-                                      verbose_name='Status code')
-    status_message = models.CharField(blank=True, null=True, max_length=256,
-                                      verbose_name='Status ' + 'Message')
-    referrers = models.ManyToManyField("ReferrerUrl",
-                                       related_name='%(app_label)s_%(class)s_linked_urls',
-                                       verbose_name='Referrers')
 
     def __str__(self):
         """Return the URL."""
@@ -57,6 +48,4 @@ class Url(models.Model):
             return str(e)
 
     class Meta:
-        abstract = False
-
-        verbose_name = 'URL'
+        abstract = True

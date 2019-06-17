@@ -36,7 +36,7 @@ from .models.scannerjobs.webscanner_model import WebScanner
 from .models.scannerjobs.filescanner_model import FileScanner
 from .models.scannerjobs.exchangescanner_model import ExchangeScanner
 from .models.statistic_model import Statistic, TypeStatistics
-from .models.url_model import Url
+from .models.webversion_model import WebVersion
 from .models.urllastmodified_model import UrlLastModified
 from .models.userprofile_model import UserProfile
 from .models.domains.webdomain_model import WebDomain
@@ -81,8 +81,8 @@ class StatisticAdmin(admin.ModelAdmin):
     list_display = ('scan', 'files_scraped_count')
 
 
-@admin.register(Url)
-class UrlAdmin(admin.ModelAdmin):
+@admin.register(WebVersion)
+class WebVersionAdmin(admin.ModelAdmin):
     list_filter = ('scan',)
     list_display = ('url', 'scan')
 
