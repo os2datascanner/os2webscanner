@@ -51,36 +51,42 @@ def _codepage_to_codec(cp):
         return None
 
 def _get_ole_metadata(path):
-    with open(path, "rb") as f:
-        raw = olefile.OleFileIO(f).get_metadata()
-        tidied = {}
-        # The value we get here is a signed 16-bit quantity, even though
-        # the file format specifies values up to 65001
-        tidied["codepage"] = raw.codepage
-        if tidied["codepage"] < 0:
-            tidied["codepage"] += 65536
-        codec = _codepage_to_codec(tidied["codepage"])
-        if codec:
-            for name in olefile.OleMetadata.SUMMARY_ATTRIBS:
-                if name in tidied:
-                    continue
-                value = getattr(raw, name)
-                if isinstance(value, bytes):
-                    value, _ = codec.decode(value)
-                tidied[name] = value
-        return tidied
+    try:
+        with open(path, "rb") as f:
+            raw = olefile.OleFileIO(f).get_metadata()
+            tidied = {}
+            # The value we get here is a signed 16-bit quantity, even though
+            # the file format specifies values up to 65001
+            tidied["codepage"] = raw.codepage
+            if tidied["codepage"] < 0:
+                tidied["codepage"] += 65536
+            codec = _codepage_to_codec(tidied["codepage"])
+            if codec:
+                for name in olefile.OleMetadata.SUMMARY_ATTRIBS:
+                    if name in tidied:
+                        continue
+                    value = getattr(raw, name)
+                    if isinstance(value, bytes):
+                        value, _ = codec.decode(value)
+                    tidied[name] = value
+            return tidied
+    except FileNotFoundError:
+        return None
 
 def _process_zip_resource(path, member, func):
     try:
         with ZipFile(path, "r") as z:
             with z.open(member, "r") as f:
                 return func(f)
-    except (KeyError, BadZipFile):
+    except (KeyError, BadZipFile, FileNotFoundError):
         return None
 
 def _get_pdf_document_info(path):
-    with open(path, "rb") as f:
-        return PdfFileReader(f).getDocumentInfo()
+    try:
+        with open(path, "rb") as f:
+            return PdfFileReader(f).getDocumentInfo()
+    except FileNotFoundError:
+        return None
 
 def _quadruple_check(d, k, value=None):
     """
@@ -165,9 +171,12 @@ to indicate the person responsible for the file's content:
     cifs_acl = _get_cifs_security_descriptor(path)
     if _quadruple_check(cifs_acl, "OWNER"):
         speculations.append(("filesystem-owner-sid", cifs_acl["OWNER"]))
-    # stat will always work
-    stat = os.stat(path)
-    speculations.append(("filesystem-owner-uid", stat.st_uid))
+    # stat will always work unless the path is invalid
+    try:
+        stat = os.stat(path)
+        speculations.append(("filesystem-owner-uid", stat.st_uid))
+    except FileNotFoundError:
+        pass
 
     return speculations
 
