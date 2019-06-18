@@ -11,34 +11,19 @@ We recommend that any server that you wish to use for running this
 scanner must have at least 4GB RAM, a CPU with 4 cores and at least as
 much free disk space as used by the web sites you want to scan.
 
-.. note:: The installer is currently only set up to work with Debian-like
-    GNU/Linux systems, as it depends on the ``apt`` package management
-    system. Magenta has tested the system on *Ubuntu 12.04 only*, but it
-    should work without problem on all recent Debian-like systems.
+The installer only works with Debian-based systems, as it depends on
+the ``apt`` package management system. Magenta exclusively supports the
+currently supported Ubuntu LTS releases — 16.04 and 18.04 as of this
+writing. Any other systems *may* work if you roll the installation manually.
 
-If you wish to run the system on a non-Debian-like GNU/Linux system or
-on FreeBSD or OSX, you will have to modify ``install.sh`` yourself to
-handle the package managers, package names and dependencies in these
-systems. Also note that the setup of Apache is different on such
-systems.
+Please note that file scanning relies on the ability to mount SMB/CIFS file
+systems, using `mount.cifs <https://linux.die.net/man/8/mount.cifs>`_. This is
+is unlikely to work on anything but a native Linux kernel, excluding
+operating system virtualisation such as Docker and LXC. Don't expect it to
+work in FreeBSD, macOS or Windows either.
 
-.. note:: The Apache configuration file delivered with version 1.1.0 of
-    OS2datascanner is for Apache <= 2.2 and will *not* work on Apache 2.4. A
-    configuration file for Apache 2.4 will be supplied in future versions.
-
-In the meantime, please refer to the
-`Apache manual <http://httpd.apache.org/docs/2.4/upgrading.html>`_ for
-instructions on how to upgrade the configuration file for running Apache 2.4.
-As Apache 2.2 is not available in Ubuntu 14.04, please note that the present
-instructions will *not* work without modification in Ubuntu 14.04. We do not
-recommend running a production server on non-LTS versions of Ubuntu.
-
-If you wish to run the system on a Windows system, you need to install a
-C compiler environment, e.g. MinGW or Cygwin. Running on Windows has not
-been tested.
-
-Select installation directory
------------------------------
+Installation directory
+----------------------
 
 We recommend that you install the system as a dedicated user, e.g. with
 username ``os2``. To proceed with the installation, create the user,
