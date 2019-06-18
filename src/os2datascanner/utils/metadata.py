@@ -98,19 +98,19 @@ for the path @path.
 These labels are highly likely to indicate the person responsible for the path,
 but are ambiguous and must be compared against other organisational data:
 
-* "libreoffice-last-modified-by", the plaintext name of the last person to
-  modify a LibreOffice document
-* "ooxml-last-modified-by", the plaintext name of the last person to modify an
-  Office Open XML document
-* "ole-last-modified-by", the plaintext name of the last person to modify an
-  OLE-based Microsoft Office document (.doc, .ppt, .xls, etc.)
+* "od-modifier", the plaintext name of the last person to modify a LibreOffice
+  document
+* "ooxml-modifier", the plaintext name of the last person to modify an Office
+  Open XML document
+* "ole-modifier", the plaintext name of the last person to modify an OLE-based
+  Microsoft Office document (.doc, .ppt, .xls, etc.)
 
 These labels are both ambiguous and less likely to indicate the person
 responsible for the path, but can be compared with other data to increase the
 confidence of the guess:
 
-* "libreoffice-creator", the plaintext name of the person who initially created
-  a LibreOffice document
+* "od-creator", the plaintext name of the person who initially created an
+  OpenDocument document
 * "ooxml-creator", the plaintext name of the person who initially created an
   Office Open XML document
 * "ole-creator", the plaintext name of the person who initially created an OLE-
@@ -134,10 +134,10 @@ to indicate the person responsible for the file's content:
                 if content:
                     lm = content.find("{http://purl.org/dc/elements/1.1/}creator")
                     if lm is not None:
-                        speculations.append(("libreoffice-modifier", lm.text.strip()))
+                        speculations.append(("od-modifier", lm.text.strip()))
                     c = content.find("{urn:oasis:names:tc:opendocument:xmlns:meta:1.0}initial-creator")
                     if c is not None:
-                        speculations.append(("libreoffice-creator", c.text.strip()))
+                        speculations.append(("od-creator", c.text.strip()))
         elif mime.startswith("application/vnd.openxmlformats-officedocument."):
             f = _process_zip_resource(path, "docProps/core.xml", parse)
             if f:
