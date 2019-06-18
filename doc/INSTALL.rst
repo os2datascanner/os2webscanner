@@ -36,9 +36,9 @@ prevent remote login and login as that user:
     sudo su - os2
 
 Note, you are now logged in as the user ``os2``. We assume this in the
-rest of this guide. Also note that this is only a convention - you are
-free to install the system wherever you want. Paths are not hard coded
-in the system.
+rest of this guide. Also note that this is only a convention — you are
+free to install the system wherever you want. Paths are not hard-coded
+into the system.
 
 .. note:: You should probably remove ``os2``'s sudo rights once the
     installation is complete.
@@ -175,7 +175,7 @@ Now, before activating the site, please *edit* the Apache configuration.
    ``/srv/os2datascanner/``, please change all paths accordingly.
 -  If you're *not* using SSL, please delete the first VirtualHost,
    specify port 80 for the second one and delete all directives starting
-   with the letters "SSL".
+   with the letters “SSL”.
 
 If using SSL, you need to enable the extensions ``mod_rewrite`` and
 ``mod_ssl``:
@@ -199,7 +199,7 @@ With all this in place, you may now enable the Apache site:
     sudo service apache2 restart
 
 The webscanner should now be available at the URL you specified as
-ServerName in your VirtualHost, e.g. "https://webscanner.kommune.dk".
+ServerName in your VirtualHost, e.g. ``https://webscanner.kommune.dk``.
 
 Start the scanning processors
 -----------------------------
@@ -261,17 +261,17 @@ Visit your webscanner site URL + ``/admin/`` to enter the Django admin
 interface.
 
 Login with the Django superuser you created (when running
-``python manage.py syncdb``). Click on "Organization" and hit the button
-labeled "Tilføj Organisation" or "Add Organization" to add an
-"Organization". This is necessary - the system will not work without at
+``python manage.py syncdb``). Click on “Organization” and hit the button
+labeled “Tilføj Organisation” or “Add Organization” to add an
+“Organization”. This is necessary — the system will not work without at
 least one organization. Give your new organization a name, email address
-and phone number and save it by clicking "Gem" or "Save" at the bottom
+and phone number and save it by clicking “Gem” or “Save” at the bottom
 of the page.
 
-Return to the main admin page and click "Brugere". Click the username
+Return to the main admin page and click “Brugere”. Click the username
 that you would like to add to the organization.
 
-At the bottom of the page, under "User profiles", change the
-"Organisation" to the organization you created and save.
+At the bottom of the page, under “User profiles”, change the
+“Organisation” to the organization you created and save.
 
 OS2datascanner is now ready to be used.
