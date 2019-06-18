@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+from codecs import lookup as lookup_codec
 from PyPDF2 import PdfFileReader
 import olefile
 from zipfile import ZipFile, BadZipFile
@@ -35,15 +36,39 @@ program returns an error status, in which case None is returned)."""
     else:
         return None
 
-def _get_ole_metadata(path):
+def _codepage_to_codec(cp):
     try:
-        with open(path, "rb") as f:
-            m = olefile.OleFileIO(f).get_metadata()
-            for v in olefile.OleMetadata.SUMMARY_ATTRIBS:
-                print(v, getattr(m, v))
-            return m
-    except:
-        raise
+        # Codepage 65001 is *Windows* UTF-8, not UTF-8, which is defined as
+        # "whatever WideCharToMultiByte returns when you ask it for UTF-8" (and
+        # apparently this does weird things with surrogate pairs in some
+        # circumstances); as a consequence, Python only exposes this codepage
+        # as a codec on Windows. We'll just treat it as normal UTF-8...
+        if cp == 65001:
+            return lookup_codec("utf-8")
+        else:
+            return lookup_codec("cp{:03}".format(cp))
+    except LookupError:
+        return None
+
+def _get_ole_metadata(path):
+    with open(path, "rb") as f:
+        raw = olefile.OleFileIO(f).get_metadata()
+        tidied = {}
+        # The value we get here is a signed 16-bit quantity, even though
+        # the file format specifies values up to 65001
+        tidied["codepage"] = raw.codepage
+        if tidied["codepage"] < 0:
+            tidied["codepage"] += 65536
+        codec = _codepage_to_codec(tidied["codepage"])
+        if codec:
+            for name in olefile.OleMetadata.SUMMARY_ATTRIBS:
+                if name in tidied:
+                    continue
+                value = getattr(raw, name)
+                if isinstance(value, bytes):
+                    value, _ = codec.decode(value)
+                tidied[name] = value
+        return tidied
 
 def _process_zip_resource(path, member, func):
     try:
@@ -126,12 +151,10 @@ to indicate the person responsible for the file's content:
                 mime == "application/vmd.ms-powerpoint":
             m = _get_ole_metadata(path)
             if m:
-                # XXX: we need to understand the m.codepage field in order to
-                # convert the other fields from bytes to unicode
-                if m.last_saved_by:
-                    speculations.append(("ole-last-modified-by", m.last_saved_by))
-                if m.author:
-                    speculations.append(("ole-creator", m.author))
+                if "last_saved_by" in m:
+                    speculations.append(("ole-modifier", m["last_saved_by"]))
+                if "author" in m:
+                    speculations.append(("ole-creator", m["author"]))
         elif mime == "application/pdf" or mime == "application/x-pdf" or \
                 mime == "application/x-bzpdf" or mime == "application/x-gzpdf":
             doc_info = _get_pdf_document_info(path)
