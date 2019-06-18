@@ -84,7 +84,13 @@ def _process_zip_resource(path, member, func):
 def _get_pdf_document_info(path):
     try:
         with open(path, "rb") as f:
-            return PdfFileReader(f).getDocumentInfo()
+            pdf = PdfFileReader(f)
+            if pdf.getIsEncrypted():
+                # Some PDFs are "encrypted" with an empty password: give that a
+                # shot...
+                if not pdf.decrypt(""):
+                    return None
+            return pdf.getDocumentInfo()
     except FileNotFoundError:
         return None
 
