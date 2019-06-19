@@ -104,8 +104,8 @@ value).
 
 def guess_responsible_party(path):
     """\
-Returns an unordered list of labelled speculations about the person responsible
-for the path @path.
+Returns a dictionary of labelled speculations about the person responsible for
+the path @path.
 
 These labels are highly likely to indicate the person responsible for the path,
 but are ambiguous and must be compared against other organisational data:
@@ -134,7 +134,7 @@ to indicate the person responsible for the file's content:
 
 * "filesystem-owner-sid", the SID of the owner of a CIFS filesystem object
 * "filesystem-owner-uid", the UID of the owner of a Unix filesystem object"""
-    speculations = []
+    speculations = {}
 
     # File metadata-based speculations
     mime = guess_mime_type(path)
@@ -145,42 +145,42 @@ to indicate the person responsible for the file's content:
                 content = f.find("{urn:oasis:names:tc:opendocument:xmlns:office:1.0}meta")
                 if content:
                     lm = content.find("{http://purl.org/dc/elements/1.1/}creator")
-                    if lm is not None:
-                        speculations.append(("od-modifier", lm.text.strip()))
+                    if lm and lm.text:
+                        speculations["od-modifier"] = lm.text.strip()
                     c = content.find("{urn:oasis:names:tc:opendocument:xmlns:meta:1.0}initial-creator")
-                    if c is not None:
-                        speculations.append(("od-creator", c.text.strip()))
+                    if c and c.text:
+                        speculations["od-creator"] = c.text.strip()
         elif mime.startswith("application/vnd.openxmlformats-officedocument."):
             f = _process_zip_resource(path, "docProps/core.xml", parse)
             if f:
                 lm = f.find("{http://schemas.openxmlformats.org/package/2006/metadata/core-properties}lastModifiedBy")
-                if lm is not None:
-                    speculations.append(("ooxml-modifier", lm.text.strip()))
+                if lm and lm.text:
+                    speculations["ooxml-modifier"] = lm.text.strip()
                 c = f.find("{http://purl.org/dc/elements/1.1/}creator")
-                if c is not None:
-                    speculations.append(("ooxml-creator", c.text.strip()))
+                if c and c.text:
+                    speculations["ooxml-creator"] = c.text.strip()
         elif mime == "application/msword" or mime == "application/vnd.ms-excel" or \
                 mime == "application/vmd.ms-powerpoint":
             m = _get_ole_metadata(path)
             if m:
                 if "last_saved_by" in m:
-                    speculations.append(("ole-modifier", m["last_saved_by"]))
+                    speculations["ole-modifier"] = m["last_saved_by"]
                 if "author" in m:
-                    speculations.append(("ole-creator", m["author"]))
+                    speculations["ole-creator"] = m["author"]
         elif mime == "application/pdf" or mime == "application/x-pdf" or \
                 mime == "application/x-bzpdf" or mime == "application/x-gzpdf":
             doc_info = _get_pdf_document_info(path)
             if _quadruple_check(doc_info, "/Author"):
-                speculations.append(("pdf-author", doc_info["/Author"]))
+                speculations["pdf-author"] = doc_info["/Author"]
 
     # Filesystem-based speculations
     cifs_acl = _get_cifs_security_descriptor(path)
     if _quadruple_check(cifs_acl, "OWNER"):
-        speculations.append(("filesystem-owner-sid", cifs_acl["OWNER"]))
+        speculations["filesystem-owner-sid"] = cifs_acl["OWNER"]
     # stat will always work unless the path is invalid
     try:
         stat = os.stat(path)
-        speculations.append(("filesystem-owner-uid", stat.st_uid))
+        speculations["filesystem-owner-uid"] = stat.st_uid
     except FileNotFoundError:
         pass
 
