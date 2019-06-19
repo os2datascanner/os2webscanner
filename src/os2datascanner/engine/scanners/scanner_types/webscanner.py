@@ -1,6 +1,6 @@
 from urllib.parse import urlparse
 
-from os2datascanner.sites.admin.adminapp.models.scans.webscan_model import WebScan
+from os2datascanner.projects.admin.adminapp.models.scans.webscan_model import WebScan
 
 from ...utils import as_file_uri
 from .scanner import Scanner

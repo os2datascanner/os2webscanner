@@ -34,7 +34,7 @@ from django import db
 from django.utils import timezone
 from django.conf import settings
 
-from os2datascanner.sites.admin.adminapp.models.conversionqueueitem_model import ConversionQueueItem
+from os2datascanner.projects.admin.adminapp.models.conversionqueueitem_model import ConversionQueueItem
 
 
 logger = structlog.get_logger()
@@ -124,9 +124,9 @@ class Processor(object):
     def handle_spider_item(self, data, url_object):
         """Process an item from a spider. Must be overridden.
 
-        :type url_object: Url
+        :type url_object: WebVersion
         :param data: The textual or binary data to process.
-        :param url_object: The Url object that the data was found at.
+        :param url_object: The WebVersion object that the data was found at.
         """
         raise NotImplemented
 
@@ -235,7 +235,7 @@ class Processor(object):
     def process_queue(self):
         """Process items in the queue in an infinite loop.
 
-        If there are no items to process, waits 1 second before trying
+        If there are no items to process, wait 2 seconds before trying
         to get the next queue item.
         """
         self.logger.debug("process_queue")

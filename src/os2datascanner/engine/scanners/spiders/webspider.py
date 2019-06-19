@@ -6,7 +6,7 @@ from scrapy.http import Request, HtmlResponse
 from scrapy.spidermiddlewares.httperror import HttpError
 from scrapy.utils.response import response_status_message
 
-from os2datascanner.sites.admin.adminapp.models.referrerurl_model import ReferrerUrl
+from os2datascanner.projects.admin.adminapp.models.referrerurl_model import ReferrerUrl
 
 # Use our monkey-patched link extractor
 from ..linkextractor import LxmlLinkExtractor
