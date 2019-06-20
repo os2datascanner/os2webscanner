@@ -26,6 +26,9 @@ class WebScan(Scan):
 
     """An actual instance of the web scanning process done by a web scanner."""
 
+    class Meta:
+        verbose_name = 'Web report'
+
     def __init__(self, *args, **kwargs):
         """Initialize a new scan.
 
