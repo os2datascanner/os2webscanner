@@ -18,8 +18,8 @@ class ReferrerUrl(Version):
     def content(self):
         """Return the content of the target url"""
         try:
-            file = urlopen(self.url)
-            return file.read()
+            with urlopen(self.url) as fp:
+                return fp.read()
         except Exception as e:
             return str(e)
 
