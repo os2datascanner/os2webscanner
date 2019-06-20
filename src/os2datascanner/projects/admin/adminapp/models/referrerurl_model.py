@@ -1,23 +1,14 @@
-from django.db import models
 from urllib.request import urlopen
 
-from .scans.webscan_model import WebScan
+from .version_model import Version
 
 
-class ReferrerUrl(models.Model):
+class ReferrerUrl(Version):
 
     """A representation of a referrer URL."""
 
     class Meta:
         verbose_name = 'Referer URL'
-
-    url = models.CharField(max_length=2048, verbose_name='URL')
-    scan = models.ForeignKey(
-        WebScan,
-        null=False,
-        verbose_name='Scan',
-        on_delete=models.CASCADE,
-    )
 
     def __str__(self):
         """Return the URL."""
