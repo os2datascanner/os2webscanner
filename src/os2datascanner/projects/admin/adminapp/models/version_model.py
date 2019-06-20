@@ -18,15 +18,13 @@ import os
 from django.db import models
 from urllib.request import urlopen
 
-from .scans.scan_model import Scan
-
 
 class Version(models.Model):
 
     """A representation of an actual URL on a domain with its MIME type."""
 
     url = models.CharField(max_length=2048, verbose_name='URL')
-    scan = models.ForeignKey(Scan, null=False, verbose_name='Scan',
+    scan = models.ForeignKey('Scan', null=False, verbose_name='Scan',
                              related_name='%(class)s_versions',
                              on_delete=models.CASCADE)
 
