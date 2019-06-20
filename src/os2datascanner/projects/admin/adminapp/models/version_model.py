@@ -27,7 +27,7 @@ class Version(models.Model):
 
     url = models.CharField(max_length=2048, verbose_name='URL')
     scan = models.ForeignKey(Scan, null=False, verbose_name='Scan',
-                             related_name='urls',
+                             related_name='%(class)s_versions',
                              on_delete=models.CASCADE)
 
     def __str__(self):

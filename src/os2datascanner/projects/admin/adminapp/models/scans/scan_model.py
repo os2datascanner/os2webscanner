@@ -28,6 +28,7 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 from model_utils.fields import MonitorField, StatusField
 
+from ..match_model import Match
 from ..regexrule_model import RegexRule
 from ..scannerjobs.scanner_model import Scanner
 from ..sensitivity_level import Sensitivity
@@ -52,6 +53,14 @@ class Scan(models.Model):
     @property
     def logger(self):
         return logger.bind(scan_id=self.pk, scan_status=self.status)
+
+    @property
+    def matches(self):
+        return Match.objects.filter(url__scan=self)
+
+    @property
+    def urls(self):
+        return self.webversion_versions
 
     # Begin setup copied from scanner
     scanner = models.ForeignKey(Scanner,

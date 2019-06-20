@@ -111,7 +111,7 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
 
         context = super().get_context_data(**kwargs)
         all_matches = Match.objects.filter(
-            scan=this_scan
+            url__scan=this_scan
         ).order_by('-sensitivity', 'url', 'matched_rule', 'matched_data')
 
         broken_urls = WebVersion.objects.filter(
