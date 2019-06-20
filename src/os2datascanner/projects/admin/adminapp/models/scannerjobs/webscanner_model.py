@@ -18,6 +18,7 @@ import urllib
 from django.conf import settings
 from django.db import models
 
+from ..scans.webscan_model import WebScan
 from .scanner_model import Scanner
 
 
@@ -106,9 +107,7 @@ class WebScanner(Scanner):
             return urllib.parse.urljoin(self.root_url, sitemap_url)
 
     def create_scan(self):
-        from ..scans.webscan_model import WebScan
-        webscan = WebScan()
-        return webscan.create(self)
+        return WebScan().create(self)
 
     def get_type(self):
         return 'web'

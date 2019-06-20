@@ -114,15 +114,11 @@ class FileScanner(Scanner):
         """Return the URL for the scanner."""
         return self.url
 
-    def create_scan(self):
-        """
-        Creates a file scan.
-        :return: A file scan object
-        """
+    def run(self, type, blocking=False, user=None):
         if not self.smb_mount():
             return self.MOUNT_FAILED
 
-        return super().create_scan()
+        return super().run(type, blocking, user)
 
 
     def get_type(self):
