@@ -21,6 +21,7 @@ else
     python3 -m venv $VIRTUALENV
 fi
 
+"$VIRTUALENV/bin/pip" install -U setuptools wheel pip
 "$VIRTUALENV/bin/pip" install -r "$DIR/doc/requirements.txt"
 
 if [ $? -ne 0 ]; then
