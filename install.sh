@@ -21,7 +21,7 @@ else
     python3 -m venv $VIRTUALENV
 fi
 
-"$VIRTUALENV/bin/pip" install -e "$DIR/doc/requirements.txt"
+"$VIRTUALENV/bin/pip" install -r "$DIR/doc/requirements.txt"
 
 if [ $? -ne 0 ]; then
     echo "" 1>&2
