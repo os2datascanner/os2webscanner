@@ -61,7 +61,7 @@ class Scan(models.Model):
 
     @property
     def urls(self):
-        return self.webversion_versions
+        return self.versions.values('location')
 
     # Begin setup copied from scanner
     scanner = models.ForeignKey(Scanner,

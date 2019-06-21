@@ -18,6 +18,7 @@
 
 import structlog
 
+from os2datascanner.projects.admin.adminapp.models.location_model import Location
 from os2datascanner.projects.admin.adminapp.models.scans.scan_model import Scan
 from os2datascanner.projects.admin.adminapp.models.webversion_model import WebVersion
 
@@ -80,8 +81,12 @@ dictionary."""
     def process_urls(self):
         return self.scan_object.scanner.process_urls
 
-    def mint_url(self, **kwargs):
-        u = WebVersion(scan=self.scan_object, **kwargs)
+    def mint_url(self, url, **kwargs):
+        l, created = Location.objects.get_or_create(
+            scanner=self.scan_object.webscanner,
+            url=url,
+        )
+        u = WebVersion(scan=self.scan_object, location=l, **kwargs)
         u.save()
         return u
 

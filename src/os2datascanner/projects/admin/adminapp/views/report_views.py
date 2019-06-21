@@ -116,7 +116,7 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
 
         broken_urls = WebVersion.objects.filter(
             scan=this_scan
-        ).exclude(status_code__isnull=True).order_by('url')
+        ).exclude(status_code__isnull=True).order_by('location__url')
 
         referrer_urls = ReferrerUrl.objects.filter(scan=this_scan)
 

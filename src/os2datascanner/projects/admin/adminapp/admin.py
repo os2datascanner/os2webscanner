@@ -93,7 +93,7 @@ class StatisticAdmin(admin.ModelAdmin):
 @admin.register(WebVersion)
 class WebVersionAdmin(admin.ModelAdmin):
     list_filter = ('scan',)
-    list_display = ('url', 'scan')
+    list_display = ('location', 'scan')
 
 @admin.register(UrlLastModified)
 class UrlModifiedAdmin(admin.ModelAdmin):
@@ -110,7 +110,7 @@ class ConversionQueueItemAdmin(admin.ModelAdmin):
 
 @admin.register(ReferrerUrl)
 class ReferrerUrlAdmin(admin.ModelAdmin):
-    list_display = ('url', 'scan')
+    list_display = ('location', 'scan')
 
 for _cls in [
     Group, Organization, FileScanner, ExchangeScanner, WebScanner,

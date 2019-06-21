@@ -27,7 +27,7 @@ class ReferrerUrl(Version):
     def broken_urls(self):
         result = self.os2datascanner_webversion_linked_urls.exclude(
             status_code__isnull=True
-        ).order_by('url')
+        ).order_by('location__url')
 
         return result
         # .filter(status=None)

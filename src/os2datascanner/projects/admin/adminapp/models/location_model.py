@@ -14,40 +14,29 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 
-import os
-
 from urllib.request import urlopen
 
 from django.db import models
-from model_utils.managers import InheritanceManager
 
 
-class Version(models.Model):
-
-    objects = InheritanceManager()
-
+class Location(models.Model):
     """A representation of an actual URL on a domain with its MIME type."""
 
-    location = models.ForeignKey('Location', null=False,
-                                 verbose_name='Location',
-                                 related_name='versions',
-                                 on_delete=models.PROTECT)
-    scan = models.ForeignKey('Scan', null=False, verbose_name='Scan',
-                             related_name='versions',
-                             on_delete=models.CASCADE)
+    class Meta:
+        unique_together = (("url", "scanner"),)
+
+    url = models.URLField(max_length=2048, verbose_name="URL")
+    scanner = models.ForeignKey(
+        "Scanner",
+        null=False,
+        verbose_name="Scan",
+        related_name="files",
+        on_delete=models.CASCADE,
+    )
 
     def __str__(self):
         """Return the URL."""
         return self.url
-
-    @property
-    def url(self):
-        return self.location.url
-
-    @property
-    def tmp_dir(self):
-        """The path to the temporary directory associated with this url."""
-        return os.path.join(self.scan.scan_dir, 'url_item_%d' % (self.pk))
 
     @property
     def content(self):
