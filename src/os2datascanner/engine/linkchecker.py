@@ -40,7 +40,7 @@ def check_url(url, method="HEAD"):
             http.client.InvalidURL,
             socket.timeout,
             IOError, ssl.CertificateError) as e:
-        logger.exception("check_url")
+        logger.warning("check_url", exc_info=True)
         code = getattr(e, "code", 0)
         if code == 405:
             # Method not allowed, try with GET instead

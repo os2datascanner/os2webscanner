@@ -28,11 +28,15 @@ class GELFFormatter(logging.Formatter):
             return 2
         elif level >= logging.ERROR:
             return 3
+        elif level >= logging.WARNING:
+            return 4
         elif level >= logging.INFO:
             return 6
-        else:
-            # DEBUG or lower
+        elif level >= logging.DEBUG:
             return 7
+        else:
+            # NOTSET
+            return 8
 
     def format(self, record):
         # sensible defaults -- not prefixing them with '_' is kind of

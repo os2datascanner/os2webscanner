@@ -323,7 +323,7 @@ class Processor(object):
                     result.save()
             except DatabaseError as e:
                 # Database transaction failed, we just try again
-                self.logger.exception("transaction_failed", exc_info=e)
+                self.logger.warning("transaction_failed", exc_info=e)
                 result = None
             except IndexError:
                 # Nothing in the queue, return None
