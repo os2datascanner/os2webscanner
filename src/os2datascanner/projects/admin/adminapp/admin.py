@@ -112,9 +112,13 @@ class ConversionQueueItemAdmin(admin.ModelAdmin):
 class ReferrerUrlAdmin(admin.ModelAdmin):
     list_display = ('location', 'scan')
 
-for _cls in [
-    Group, Organization, FileScanner, ExchangeScanner, WebScanner,
-]:
+@admin.register(FileScanner)
+@admin.register(ExchangeScanner)
+@admin.register(WebScanner)
+class ScannerAdmin(admin.ModelAdmin):
+    list_display = ('name', 'url', 'validation_status')
+
+for _cls in [Group, Organization]:
     admin.site.register(_cls)
 
 
