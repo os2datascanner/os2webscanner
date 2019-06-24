@@ -76,7 +76,6 @@ def prometheus_session(name, **kwargs):
                 raise
 
     # ... advertise this port, and this service, to Prometheus...
-    print(__file__)
     advertisement_path = os.path.dirname(__file__) + "/../../../prometheus/{0}.json".format(name)
     with open(advertisement_path, "w") as fp:
         json.dump([
