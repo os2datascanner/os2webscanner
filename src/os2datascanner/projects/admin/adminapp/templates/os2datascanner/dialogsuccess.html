@@ -1,0 +1,11 @@
+{% extends 'os2datascanner/base.html' %}
+{% block topnav %}{% endblock %}
+{% block rendertype %}iframe-modal{% endblock %}
+{% block body %}
+<p>
+    {{ item_description }} {{ action }}.
+</p>
+<script type="text/javascript"><!--
+window.top.document.location.href = '{{  reload_url }}'
+//--></script>
+{% endblock %}

@@ -1,5 +1,5 @@
 HOWTO get the system up and running for development
-===================================================
+---------------------------------------------------
 
 .. highlight:: shell
 
@@ -10,7 +10,7 @@ tests and boot the development server.  Get the code::
 
 Install Django and Scrapy, including system dependencies::
 
-  cd os2webscanner
+  cd os2datascanner
   ./install.sh
 
 .. note:: The installation will try to install all needed system
@@ -29,8 +29,8 @@ If you performed the previous step, you've already installed ``postgresql`` and
 Assuming this done::
 
   sudo su - postgres
-  createdb os2webscanner
-  createuser os2webscanner
+  createdb os2datascanner
+  createuser os2datascanner
   psql
 
 
@@ -39,15 +39,15 @@ interactive session:
 
 .. sourcecode:: sql
 
-  GRANT ALL ON DATABASE os2webscanner TO os2webscanner;
-  ALTER USER os2webscanner WITH PASSWORD 'os2webscanner'; 
-  ALTER USER os2webscanner CREATEDB;
+  GRANT ALL ON DATABASE os2datascanner TO os2webscanner;
+  ALTER USER os2datascanner WITH PASSWORD 'os2webscanner'; 
+  ALTER USER os2datascanner CREATEDB;
 
 If you choose any other password, please change in ``settings.py``. The last
 ``ALTER USER`` is to enable the test suite to run on PostgreSQL.
 
 Now log out from psql and the postgres user to proceed, returning to
-where you cloned the os2webscanner source directory.
+where you cloned the os2datascanner source directory.
 
 Test and initialize
 ===================
@@ -84,7 +84,7 @@ Start the scanning processors
 You need to start the process manager background process in order to get actual
 scans done::
 
-  cd /home/os2/os2webscanner
+  cd /home/os2/os2datascanner
   source python-env/bin/activate  # If not active already
   python scrapy-webscanner/process_manager.py &
 

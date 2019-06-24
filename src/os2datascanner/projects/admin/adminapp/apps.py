@@ -19,5 +19,5 @@ from django.apps import AppConfig
 
 class OS2WebScanner(AppConfig):
     name = "os2datascanner.projects.admin.adminapp"
-    label = 'os2webscanner'
+    label = 'os2datascanner'
     verbose_name = "OS2datascanner"

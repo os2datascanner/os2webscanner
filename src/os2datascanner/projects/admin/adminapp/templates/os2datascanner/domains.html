@@ -1,0 +1,182 @@
+{% extends 'os2datascanner/base.html' %}
+{% block rendertype %}regular{% endblock %}
+{%  block title %}
+Domæner
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    {% include 'os2datascanner/domain_above_content.html' with active=view.type %}
+    <div class="tab-content">
+    <div role="tabpanel" class="tab-pane active" id="{{view.type}}scan">
+        <p class="h2" style="display:inline-block;">
+            {% if view.type == 'web' %}
+                Webdomæne
+            {% elif view.type == 'file' %}
+                Fildomæne
+            {% elif view.type == 'exchange' %}
+                Exchangedomæne
+            {% endif %}
+        </p>
+        <span class="page-action">
+            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#create-domain-modal">
+              Tilføj nyt
+              <span style="position:relative;top:.15em;" class="glyphicon glyphicon-plus-sign"></span>
+            </button>
+          </span>
+     <div class="table-responsive">
+	<table class="table table-striped">
+          <thead>
+            <tr>
+              <td>
+                <strong>
+                  <small>
+                    URL
+                  </small>
+                </strong>
+              </td>
+              {% if view.type == 'file' %}
+              <td>
+                <strong>
+                  <small>
+                    Drev
+                  </small>
+                </strong>
+              </td>
+              {% endif %}
+              {% if user.is_superuser %}
+              <td>
+                <strong>
+                  <small>
+                    Organisation
+                  </small>
+                </strong>
+              </td>
+              {% endif %}
+              <td>
+                <strong>
+                  <small>
+                    Ekskluderingsregler
+                  </small>
+                </strong>
+              </td>
+              <td>
+                <strong>
+                  <small>
+                    Valideret
+                  </small>
+                </strong>
+              </td>
+              <td>
+                <strong>
+                  <small>
+                    Handling
+                  </small>
+                </strong>
+              </td>
+            </tr>
+          </thead>
+          <tbody>
+          {% for domain in domain_list %}
+            <tr>
+              <td class="domain-url">
+                <span>
+                    {{domain.url}}
+                </span>
+              </td>
+              {% if view.type == 'file' %}
+              <td class="domain-letter">
+                {% if domain.alias %}
+                {{ domain.alias }}:
+                {% endif %}
+              </td>
+              {% endif %}
+              {% if user.is_superuser %}
+              <td class="domain-organization">
+                <span>
+                    {{domain.organization}}
+                </span>
+              </td>
+              {% endif %}
+              <td class="domain-exclusion-rules">
+               <pre>{{domain.exclusion_rules}}</pre>
+              </td>
+              <td class="domain-validation">
+                  {% if domain.validation_status %}
+                <span class="glyphicon glyphicon-ok"></span><span class="sr-only">Er valideret</span>
+                {% else %}
+                <span class="glyphicon glyphicon-remove"></span><span class="sr-only">Er ikke valideret</span>
+                {% endif %}
+              </td>
+              <td class="domain-actions">
+                <button type="button"
+		  class="btn btn-default btn-xs btn-domain-settings"
+		  onclick="os2web.iframeDialog(
+		      &quot;#edit-domain-modal&quot;,
+		      &quot;/{{ view.type }}domains/{{domain.pk}}&quot;,
+		      &quot;Redigér domæne '{{domain.url}}'&quot;
+		  )">
+              	  <span class="glyphicon glyphicon-cog"></span> <span>Redigér</span>
+		</button>
+                <a href="/{{ view.type }}domains/{{domain.pk}}/delete/" class="btn btn-default btn-xs">
+                    <span class="glyphicon glyphicon-remove"></span>
+                    <span>Slet </span>
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+   </div>
+   </div>
+{% endblock %}
+
+{% block heading %} 
+Domæner
+{% endblock %}
+
+{% block modal %}
+<div class="modal iframe" id="create-domain-modal" tabindex="-1" role="dialog"
+  aria-labelledby="create-domain-modal-title" aria-hidden="true"
+  data-href="/{{ view.type }}domains/add/">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+	  &times;
+	</button>
+	<h4 class="modal-title" id="create-domain-modal-title">
+	  Opret nyt domæne
+	</h4>
+      </div>
+      <div class="modal-body">
+	<iframe src="about:blank" frameborder="0"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal iframe" id="edit-domain-modal" tabindex="-1" role="dialog"
+  aria-labelledby="edit-domain-modal-title" aria-hidden="true"
+  data-href="/{{ view.type }}domains/add/">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+	  &times;
+	</button>
+	<h4 class="modal-title" id="edit-domain-modal-title">
+	  Opret nyt domæne
+	</h4>
+      </div>
+      <div class="modal-body">
+	<iframe src="about:blank" frameborder="0"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block domains_active %}
+class="active"
+{% endblock %}

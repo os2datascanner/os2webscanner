@@ -10,7 +10,7 @@ class RuleList(RestrictedListView):
     """Displays list of scanners."""
 
     model = RegexRule
-    template_name = 'os2webscanner/rules.html'
+    template_name = 'os2datascanner/rules.html'
 
 
 class RuleCreate(RestrictedCreateView):

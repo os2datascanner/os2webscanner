@@ -4,23 +4,9 @@ from os2datascanner.projects.admin.adminapp.models.statistic_model import Statis
 
 
 class FileScanner(Scanner):
-
-    def get_domain_urls(self):
+    def get_domain_url(self):
         """Return a list of valid domain urls."""
-        domains = []
-        for d in self.valid_domains:
-            domains.append(d.filedomain.mountpath)
-        return domains
-
-    def get_domain_objects(self):
-        """
-        Returns a list of valid domain objects
-        :return: domain list
-        """
-        domains = []
-        for domain in self.valid_domains:
-            domains.append(domain.filedomain)
-        return domains
+        return self.get_scanner_object().mountpath
 
     def set_statistics(self,
             supported_count, supported_size,

@@ -66,6 +66,8 @@ class Command(BaseCommand):
         logger.info('processor_ready', extra_args=extra_args)
         try:
             queued_processor.process_queue()
+        except Exception:
+            logger.exception('processor_failed')
         except KeyboardInterrupt:
             pass
         finally:
