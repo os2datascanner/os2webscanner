@@ -11,8 +11,11 @@ import django
 import os.path
 import json
 import errno
-from contextlib import contextmanager
+
+from shutil import move
 from random import randrange
+from tempfile import NamedTemporaryFile
+from contextlib import contextmanager
 from prometheus_client import start_http_server
 
 def run_django_setup():
@@ -62,9 +65,9 @@ def get_data(file_name: str, uppercase=True) -> typing.FrozenSet[str]:
 
 
 @contextmanager
-def prometheus_session(name, **kwargs):
+def prometheus_session(name, advertisement_directory, **kwargs):
+    # Find a free port to serve Prometheus metrics over...
     while True:
-        # Find a free port to serve Prometheus metrics over...
         try:
             # start_http_server tells us nothing about the HTTP server thread
             # that it created, so we can't just pass a port of 0 -- we need to
@@ -80,8 +83,8 @@ def prometheus_session(name, **kwargs):
                 raise
 
     # ... advertise this port, and this service, to Prometheus...
-    advertisement_path = os.path.dirname(__file__) + "/../../../prometheus/{0}.json".format(name)
-    with open(advertisement_path, "w") as fp:
+    with NamedTemporaryFile(mode="wt", delete=False) as fp:
+        tmpfile = fp.name
         json.dump([
             {
                 "targets": ["localhost:{0}".format(port)],
@@ -90,6 +93,8 @@ def prometheus_session(name, **kwargs):
         ], fp)
         fp.flush()
         os.fsync(fp.fileno())
+    advertisement_path = advertisement_directory + ("/{0}.json".format(name))
+    move(tmpfile, advertisement_path)
 
     # ... and yield to execute whatever's in the with block
     yield

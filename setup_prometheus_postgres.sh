@@ -62,8 +62,8 @@ else
   - job_name: os2datascanner
     file_sd_configs:
       - files:
-        - $(readlink --canonicalize "$(dirname "$0")/prometheus")/*.yml
-        - $(readlink --canonicalize "$(dirname "$0")/prometheus")/*.json
+        - $(readlink --canonicalize "$(dirname "$0")/var/prometheus")/*.yml
+        - $(readlink --canonicalize "$(dirname "$0")/var/prometheus")/*.json
 END
     echo "$0: reloading prometheus configuration"
     pkill -HUP prometheus

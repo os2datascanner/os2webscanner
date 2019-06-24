@@ -26,6 +26,7 @@ import sys
 
 import structlog
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from os2datascanner.engine.scanners.processors.processor import Processor
@@ -63,7 +64,9 @@ class Command(BaseCommand):
 
         logger = structlog.get_logger()
 
-        with prometheus_session(str(os.getpid()), processor_type=processor_type):
+        with prometheus_session(str(os.getpid()),
+                settings.PROJECT_DIR + "/var/prometheus",
+                processor_type=processor_type):
             if queued_processor is not None:
                 queued_processor.setup_queue_processing(os.getpid(), *extra_args)
 
