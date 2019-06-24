@@ -30,7 +30,7 @@ class Location(models.Model):
         "Scanner",
         null=False,
         verbose_name="Scan",
-        related_name="files",
+        related_name="locations",
         on_delete=models.CASCADE,
     )
 

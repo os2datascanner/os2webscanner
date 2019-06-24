@@ -27,6 +27,7 @@ class Match(models.Model):
         null=False,
         verbose_name='URL',
         on_delete=models.CASCADE,
+        related_name="matches",
     )
     matched_data = models.TextField(verbose_name='Data match')
     matched_rule = models.CharField(max_length=256, verbose_name='Regel match')
