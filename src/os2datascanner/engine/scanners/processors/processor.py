@@ -31,7 +31,6 @@ import structlog
 
 from django.db import transaction, DatabaseError
 from django import db
-from django.utils import timezone
 from django.conf import settings
 
 from os2datascanner.projects.admin.adminapp.models.conversionqueueitem_model import ConversionQueueItem
@@ -316,10 +315,8 @@ class Processor(object):
                         nowait=True)[0]
 
                     # Change status of the found item
-                    ltime = timezone.localtime(timezone.now())
                     result.status = ConversionQueueItem.PROCESSING
                     result.process_id = self.pid
-                    result.process_start_time = ltime
                     result.save()
             except DatabaseError as e:
                 # Database transaction failed, we just try again

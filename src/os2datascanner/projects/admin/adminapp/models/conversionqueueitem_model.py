@@ -2,6 +2,7 @@ import os
 import shutil
 
 from django.db import models
+from model_utils.fields import StatusField, MonitorField
 
 from .webversion_model import WebVersion
 
@@ -25,19 +26,19 @@ class ConversionQueueItem(models.Model):
     PROCESSING = "PROCESSING"
     FAILED = "FAILED"
 
-    status_choices = (
+    STATUS = (
         (NEW, "Ny"),
         (PROCESSING, "I gang"),
         (FAILED, "Mislykket"),
     )
 
-    status = models.CharField(max_length=10, choices=status_choices,
-                              default=NEW, verbose_name='Status')
+    status = StatusField(max_length=10, default=NEW, verbose_name='Status')
 
     process_id = models.IntegerField(blank=True, null=True,
                                      verbose_name='Proces id')
 
-    process_start_time = models.DateTimeField(
+    process_start_time = MonitorField(
+        monitor='status', when=[PROCESSING],
         blank=True, null=True, verbose_name='Proces starttidspunkt'
     )
 
