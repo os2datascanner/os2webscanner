@@ -432,7 +432,6 @@ class PreDataScanner(object):
                     'determine_file_information_progress',
                     file_processed=processed,
                     file_total=len(self.nodes),
-                    found_files=files_processed,
                     duration=delta_t,
                     average_speed=avg_speed,
                     current_speed=current_speed,
