@@ -64,7 +64,7 @@ class RegexPatternAdmin(admin.ModelAdmin):
 
 @admin.register(WebScan)
 class WebScanAdmin(admin.ModelAdmin):
-    date_hierarchy = 'start_time'
+    date_hierarchy = 'creation_time'
     list_display = ('scanner', 'status', 'creation_time',
                     'start_time', 'end_time', 'is_visible')
     list_filter = ('status', 'is_visible', 'scanner')

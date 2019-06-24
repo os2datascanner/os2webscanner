@@ -502,3 +502,4 @@ class Scan(models.Model):
         abstract = False
 
         verbose_name = 'Report'
+        ordering = ['-creation_time']
