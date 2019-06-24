@@ -1,4 +1,6 @@
 {% extends 'os2datascanner/base.html' %}
+{% load l10n %}
+
 {% block rendertype %}regular{% endblock %}
 {%  block title %}
 {% if scan.scanner %}
@@ -335,7 +337,9 @@ Rapport
                                 class="btn btn-default"
                                 data-toggle="modal"
                                 data-target="#view-deadlinks-modal"
-                                onclick="showReferrerUrl('{{referrer.id}}','{{referrer.url}}',all_broken[{{ forloop.counter0 }}],status_messages[{{ forloop.counter0 }}])">
+                                {% localize off %}
+                                onclick="showReferrerUrl('{{referrer.pk}}', '{{referrer.url}}',all_broken[{{ forloop.counter0 }}],status_messages[{{ forloop.counter0 }}])">
+                                {% endlocalize %}
                         <span class="glyphicon glyphicon-eye-open"></span>
                         Inspicér
                         </button>
