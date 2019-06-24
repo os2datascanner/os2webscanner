@@ -5,7 +5,7 @@ import structlog
 
 from scrapy.http import Request
 from scrapy.exceptions import IgnoreRequest
-from os2datascanner.sites.admin.adminapp.utils import get_codec_and_string
+from os2datascanner.projects.admin.adminapp.utils import get_codec_and_string
 
 from ...utils import as_file_uri, as_path
 from ..processors.processor import Processor
@@ -164,17 +164,17 @@ class FileSpider(ScannerSpider):
             # Ignore this URL
             return
 
-        domain = self.scanner.valid_domains.first()
+        scanner = self.scanner.get_scanner_object()
         old = ''
         new = ''
         if 'type' in self.scanner.configuration:
             scanner_type = self.scanner.configuration["type"]
             if scanner_type == 'FileScanner':
-                old = domain.filedomain.mountpath
-                new = domain.filedomain.url
+                old = scanner.mountpath
+                new = scanner.url
             elif scanner_type == 'ExchangeScanner':
-                old = as_file_uri(domain.exchangedomain.dir_to_scan)
-                new = domain.exchangedomain.url
+                old = as_file_uri(scanner.dir_to_scan)
+                new = scanner.url
 
         url_object = self.url_save(mime_type,
                                    response.request.url.replace(

@@ -18,8 +18,8 @@
 
 import structlog
 
-from os2datascanner.sites.admin.adminapp.models.scans.scan_model import Scan
-from os2datascanner.sites.admin.adminapp.models.url_model import Url
+from os2datascanner.projects.admin.adminapp.models.scans.scan_model import Scan
+from os2datascanner.projects.admin.adminapp.models.webversion_model import WebVersion
 
 from ..rules.name import NameRule
 from ..rules.address import AddressRule
@@ -49,7 +49,6 @@ dictionary."""
         self.scan_object = _Model.objects.get(pk=scan_id)
 
         self.rules = self._load_rules()
-        self.valid_domains = self.scan_object.get_valid_domains
 
     def ensure_started(self):
         if self.scan_object.status != "STARTED":
@@ -82,7 +81,7 @@ dictionary."""
         return self.scan_object.scanner.process_urls
 
     def mint_url(self, **kwargs):
-        u = Url(scan=self.scan_object, **kwargs)
+        u = WebVersion(scan=self.scan_object, **kwargs)
         u.save()
         return u
 
@@ -122,10 +121,7 @@ scan ID."""
 
     def get_exclusion_rules(self):
         """Return a list of exclusion rules associated with the WebScanner."""
-        exclusion_rules = []
-        for domain in self.valid_domains:
-            exclusion_rules.extend(domain.exclusion_rule_list())
-        return exclusion_rules
+        return self.scan_object.scanner.exclusion_rule_list()
 
     def scan(self, data, url_object):
         """Scan data for matches from a spider.
@@ -196,3 +192,6 @@ scan ID."""
         else:
             self.logger.exception("SCANNER FAILED", exc_info=exc_value)
             self.failed('SCANNER FAILED: {}'.format(exc_value))
+
+    def get_scanner_object(self):
+        return self.scan_object.webscanner

@@ -32,21 +32,14 @@ from sys import stderr
 os.umask(0o007)
 os.environ["SCRAPY_SETTINGS_MODULE"] = "os2datascanner.engine.scanners.settings"
 
-# django_setup needs to be loaded before any imports from django app os2webscanner
-from .utils import run_django_setup
+from os2datascanner.projects.admin.adminapp.models.statistic_model import Statistic
+from os2datascanner.projects.admin.adminapp.models.conversionqueueitem_model import ConversionQueueItem
 
-run_django_setup()
-
-from os2datascanner.sites.admin.adminapp.models.statistic_model import Statistic
-from os2datascanner.sites.admin.adminapp.models.conversionqueueitem_model import ConversionQueueItem
-
-# Activate timezone from settings
 from django.core.exceptions import MultipleObjectsReturned
-from django.utils import timezone
-timezone.activate(timezone.get_default_timezone())
+
+from . import utils
 
 logger = structlog.get_logger()
-root_logger = logging.getLogger()
 
 
 class StartScan(object):
@@ -83,6 +76,7 @@ class StartScan(object):
         # Each scanner process should set up logging separately, writing to
         # both the log file and to the scanner manager's standard error stream
 
+        root_logger = logging.getLogger()
         root_logger.setLevel(logging.DEBUG)
         root_logger.addHandler(logging.FileHandler(self.logfile))
 
@@ -90,10 +84,6 @@ class StartScan(object):
         # happen after we've initialised the root logging handler
         self.crawler_process = \
             CrawlerProcess(self.settings, install_root_handler=False)
-
-        # A new instance of django setup needs to be loaded for the scan process,
-        # so the django db connection is not shared between processors.
-        run_django_setup()
 
     def make_scanner_crawler(self, spider_type):
         """Setup the scanner spider and crawler."""

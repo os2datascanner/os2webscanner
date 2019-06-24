@@ -1,6 +1,8 @@
 from urllib.parse import urlparse
 
-from os2datascanner.sites.admin.adminapp.models.scans.webscan_model import WebScan
+from os2datascanner.projects.admin.adminapp.models.scans.webscan_model import WebScan
+from os2datascanner.projects.admin.adminapp.models.scannerjobs\
+    .webscanner_model import WebScanner as DjangoWebScanner
 
 from ...utils import as_file_uri
 from .scanner import Scanner
@@ -23,42 +25,26 @@ class WebScanner(Scanner):
     def do_last_modified_check_head_request(self):
         return self.scan_object.do_last_modified_check_head_request
 
-    def get_domain_urls(self):
+    def get_domain_url(self):
         """Return a list of valid domain urls."""
-        domains = []
-        for d in self.valid_domains:
-            if d.url.startswith('http://') or d.url.startswith('https://'):
-                domains.append(urlparse(d.url).hostname)
-            else:
-                domains.append(d.url)
-        return domains
+        scanner = self.get_scanner_object()
 
-    def get_domain_objects(self):
-        """
-        Returns a list of valid domain objects
-        :return: domain list
-        """
-        domains = []
-        for domain in self.valid_domains:
-            domains.append(domain.webdomain)
-        return domains
+        if scanner.url.startswith('http://') or scanner.url.startswith('https://'):
+            return urlparse(scanner.url).hostname
+        else:
+            return scanner.url
 
     def get_sitemap_urls(self):
         """Return a list of sitemap.xml URLs across all the scanner's domains.
         """
-        urls = []
-        for domain in self.valid_domains:
-            # Do some normalization of the URL to get the sitemap.xml file
-            sitemap_url = domain.webdomain.get_sitemap_url()
-            if sitemap_url:
-                urls.append(sitemap_url)
-        return urls
+        # Do some normalization of the URL to get the sitemap.xml file
+        sitemap_url = self.scan_object.webscanner.get_sitemap_url()
+
+        return [sitemap_url] if sitemap_url else []
 
     def get_uploaded_sitemap_urls(self):
         """Return a list of uploaded sitemap.xml files for all scanner domains.
         """
-        urls = []
-        for domain in self.valid_domains:
-            if domain.webdomain.sitemap:
-                urls.append(as_file_uri(domain.webdomain.sitemap_full_path))
-        return urls
+        if self.scan_object.webscanner.sitemap:
+            return [as_file_uri(self.scan_object.webscanner.sitemap_full_path)]
+        return []

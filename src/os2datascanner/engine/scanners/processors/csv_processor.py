@@ -15,8 +15,8 @@
 # source municipalities ( http://www.os2web.dk/ )
 """CSV Processor."""
 import io
-from os2datascanner.sites.admin.adminapp.models.match_model import Match
-from os2datascanner.sites.admin.adminapp.models.sensitivity_level import Sensitivity
+from os2datascanner.projects.admin.adminapp.models.match_model import Match
+from os2datascanner.projects.admin.adminapp.models.sensitivity_level import Sensitivity
 
 from .processor import Processor
 from .text import TextProcessor

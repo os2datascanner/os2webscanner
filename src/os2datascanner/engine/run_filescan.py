@@ -44,5 +44,4 @@ class StartFileScan(StartScan, multiprocessing.Process):
         super().handle_closed(spider, reason)
 
     def filescan_cleanup(self):
-        for domain in self.scanner.valid_domains:
-            domain.filedomain.smb_umount()
+        self.scan_object.webscanner.smb_umount()

@@ -5,8 +5,6 @@ from urllib.parse import urlparse
 
 from twisted.internet import defer
 
-from os2datascanner.sites.admin.adminapp.models.url_model import Url
-
 from .run import StartScan
 from . import linkchecker
 

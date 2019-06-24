@@ -30,7 +30,7 @@ from scrapy.utils.url import canonicalize_url
 from django.conf import settings as django_settings
 from django.db import transaction
 
-from os2datascanner.sites.admin.adminapp.models.urllastmodified_model import UrlLastModified
+from os2datascanner.projects.admin.adminapp.models.urllastmodified_model import UrlLastModified
 
 
 logger = structlog.get_logger()

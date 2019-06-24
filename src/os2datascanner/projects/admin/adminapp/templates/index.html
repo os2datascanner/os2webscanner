@@ -1,0 +1,67 @@
+{% extends 'os2datascanner/base.html' %}
+{%  block title %}
+OS2datascanner
+{% endblock %}
+
+{% block body %}
+
+<div class="container">
+  <ul class="row cards">
+    <li class="col-xs-12 col-sm-6 col-md-4">
+      {% if settings.ENABLE_WEBSCAN %}
+        <a href="/webscanners/" class="panel panel-default">
+      {% elif settings.ENABLE_FILESCAN %}
+        <a href="/filescanners/" class="panel panel-default">
+      {% elif settings.ENABLE_EXCHANGESCAN %}
+        <a href="/exchangescanners/" class="panel panel-default">
+      {% endif %}
+        <div class="panel-body">
+          <span class="h2">
+            Scannerjob
+          </span>
+          <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+        </div>
+      </a>
+    </li>
+    <li class="col-xs-12 col-sm-6 col-md-4">
+      <a href="/rules/" class="panel panel-default">
+        <div class="panel-body">
+          <span class="h2">
+            Regler
+          </span>
+          <span class="glyphicon glyphicon-check" aria-hidden="true"></span>
+        </div>
+      </a>
+    </li>
+    <li class="col-xs-12 col-sm-6 col-md-4">
+      <a href="/reports/" class="panel panel-default">
+        <div class="panel-body">
+          <span class="h2">
+            Rapporter
+          </span>
+          <span class="glyphicon glyphicon-tasks" aria-hidden="true"></span>
+        </div>
+      </a>
+    </li>
+    {% if user.is_superuser or user.is_staff %}
+    <li class="col-xs-12 col-sm-6 col-md-4">
+      <a href="/admin/" class="panel panel-default">
+        <div class="panel-body">
+          <span class="h2">
+            Admin
+          </span>
+          <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+        </div>
+      </a>
+    </li>
+    {% endif %}
+  </ul>
+</div>
+
+{% endblock %}
+
+{% block heading %} 
+OS2datascanner
+{% endblock %}
+
+{% block index_active %}active{% endblock %}

@@ -16,7 +16,7 @@
 """Text Processors."""
 import os
 
-from os2datascanner.sites.admin.adminapp.utils import get_codec_and_string
+from os2datascanner.projects.admin.adminapp.utils import get_codec_and_string
 
 from .processor import Processor
 

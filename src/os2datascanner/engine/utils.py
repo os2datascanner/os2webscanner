@@ -17,7 +17,7 @@ from prometheus_client import start_http_server
 
 def run_django_setup():
     """Load django setup and include django app"""
-    os.environ["DJANGO_SETTINGS_MODULE"] = "os2datascanner.sites.admin.settings"
+    os.environ["DJANGO_SETTINGS_MODULE"] = "os2datascanner.projects.admin.settings"
     django.setup()
 
 
