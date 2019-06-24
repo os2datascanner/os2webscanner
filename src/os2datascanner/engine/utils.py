@@ -66,7 +66,11 @@ def prometheus_session(name, **kwargs):
     while True:
         # Find a free port to serve Prometheus metrics over...
         try:
-            port = randrange(45000, 55000)
+            # start_http_server tells us nothing about the HTTP server thread
+            # that it created, so we can't just pass a port of 0 -- we need to
+            # know which port it's using in order to be able to create the
+            # advertisement file (groan)
+            port = randrange(5000, 65000)
             start_http_server(port)
             break
         except OSError as ex:
@@ -87,8 +91,9 @@ def prometheus_session(name, **kwargs):
         fp.flush()
         os.fsync(fp.fileno())
 
-    # ... yield...
+    # ... and yield to execute whatever's in the with block
     yield
 
-    # ... and, finally, delete the service advertisement
+    # Now that we're back and the context has finished, delete the service
+    # advertisement
     os.unlink(advertisement_path)
