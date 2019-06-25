@@ -105,6 +105,20 @@ def _check_dictionary_field(d, k, value=None):
     values at any point."""
     return d and k in d and d[k] is not None and (not value or value == d[k])
 
+def type_is_ole(mime):
+    return mime in ("application/msword", "application/vnd.ms-excel",
+            "application/vnd.ms-powerpoint")
+
+def type_is_pdf(mime):
+    return mime in ("application/pdf", "application/x-pdf",
+            "application/x-bzpdf", "application/x-gzpdf")
+
+def type_is_ooxml(mime):
+    return mime.startswith("application/vnd.openxmlformats-officedocument.")
+
+def type_is_opendocument(mime):
+    return mime.startswith("application/vnd.oasis.opendocument.")
+
 def guess_responsible_party(path):
     """Returns a dictionary of labelled speculations about the person
     responsible for the path @path.
@@ -143,7 +157,7 @@ def guess_responsible_party(path):
     # File metadata-based speculations
     mime = guess_mime_type(path)
     if mime:
-        if mime.startswith("application/vnd.oasis.opendocument."):
+        if type_is_opendocument(mime):
             f = _process_zip_resource(path, "meta.xml", parse)
             if f:
                 content = f.find("{urn:oasis:names:tc:opendocument:xmlns:office:1.0}meta")
@@ -154,7 +168,7 @@ def guess_responsible_party(path):
                     c = content.find("{urn:oasis:names:tc:opendocument:xmlns:meta:1.0}initial-creator")
                     if c is not None and c.text:
                         speculations["od-creator"] = c.text.strip()
-        elif mime.startswith("application/vnd.openxmlformats-officedocument."):
+        elif type_is_ooxml(mime):
             f = _process_zip_resource(path, "docProps/core.xml", parse)
             if f:
                 lm = f.find("{http://schemas.openxmlformats.org/package/2006/metadata/core-properties}lastModifiedBy")
@@ -163,16 +177,14 @@ def guess_responsible_party(path):
                 c = f.find("{http://purl.org/dc/elements/1.1/}creator")
                 if c is not None and c.text:
                     speculations["ooxml-creator"] = c.text.strip()
-        elif mime == "application/msword" or mime == "application/vnd.ms-excel" or \
-                mime == "application/vmd.ms-powerpoint":
+        elif type_is_ole(mime):
             m = _get_ole_metadata(path)
             if m:
                 if "last_saved_by" in m:
                     speculations["ole-modifier"] = m["last_saved_by"]
                 if "author" in m:
                     speculations["ole-creator"] = m["author"]
-        elif mime == "application/pdf" or mime == "application/x-pdf" or \
-                mime == "application/x-bzpdf" or mime == "application/x-gzpdf":
+        elif type_is_pdf(mime):
             doc_info = _get_pdf_document_info(path)
             if _check_dictionary_field(doc_info, "/Author"):
                 speculations["pdf-author"] = doc_info["/Author"]
