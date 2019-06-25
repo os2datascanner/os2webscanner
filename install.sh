@@ -106,7 +106,7 @@ END
         echo "$0: no need to patch /etc/default/prometheus-postgres-exporter"
     else
         echo "$0: patching /etc/default/prometheus-postgres-exporter"
-        sudo -H tee /etc/default/prometheus-postgres-exporter <<END
+        sudo -H tee --append /etc/default/prometheus-postgres-exporter <<END
 DATA_SOURCE_NAME='user=prometheus host=/run/postgresql dbname=os2datascanner'
 END
     fi
@@ -116,7 +116,7 @@ END
         echo "$0: no need to patch /etc/prometheus/prometheus.yml"
     else
         echo "$0: patching /etc/prometheus/prometheus.yml"
-        sudo -H tee /etc/prometheus/prometheus.yml <<END
+        sudo -H tee --append /etc/prometheus/prometheus.yml <<END
 
       - job_name: os2datascanner
         file_sd_configs:
