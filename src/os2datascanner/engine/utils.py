@@ -91,8 +91,6 @@ def prometheus_session(name, advertisement_directory, **kwargs):
                 "labels": kwargs
             }
         ], fp)
-        fp.flush()
-        os.fsync(fp.fileno())
     advertisement_path = advertisement_directory + ("/{0}.json".format(name))
     move(tmpfile, advertisement_path)
 
