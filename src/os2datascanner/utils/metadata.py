@@ -54,22 +54,22 @@ def _get_ole_metadata(path):
     try:
         with open(path, "rb") as f:
             raw = olefile.OleFileIO(f).get_metadata()
-            tidied = {}
-            # The value we get here is a signed 16-bit quantity, even though
-            # the file format specifies values up to 65001
-            tidied["codepage"] = raw.codepage
-            if tidied["codepage"] < 0:
-                tidied["codepage"] += 65536
-            codec = _codepage_to_codec(tidied["codepage"])
-            if codec:
-                for name in olefile.OleMetadata.SUMMARY_ATTRIBS:
-                    if name in tidied:
-                        continue
-                    value = getattr(raw, name)
-                    if isinstance(value, bytes):
-                        value, _ = codec.decode(value)
-                    tidied[name] = value
-            return tidied
+        tidied = {}
+        # The value we get here is a signed 16-bit quantity, even though
+        # the file format specifies values up to 65001
+        tidied["codepage"] = raw.codepage
+        if tidied["codepage"] < 0:
+            tidied["codepage"] += 65536
+        codec = _codepage_to_codec(tidied["codepage"])
+        if codec:
+            for name in olefile.OleMetadata.SUMMARY_ATTRIBS:
+                if name in tidied:
+                    continue
+                value = getattr(raw, name)
+                if isinstance(value, bytes):
+                    value, _ = codec.decode(value)
+                tidied[name] = value
+        return tidied
     except FileNotFoundError:
         return None
 
