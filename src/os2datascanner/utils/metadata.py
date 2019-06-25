@@ -12,10 +12,10 @@ import subprocess
 guess_mime_type = lambda t: mimetypes.guess_type(t, strict=False)[0]
 
 def _get_cifs_security_descriptor(path):
-    """\
-Attempts to parse the output of the getcifsacl command, returning a dictionary
-(unless the REVISION and CONTROL fields of the output are both "0x0", or the
-program returns an error status, in which case None is returned)."""
+    """Attempts to parse the output of the getcifsacl command, returning a
+    dictionary (unless the REVISION and CONTROL fields of the output are both
+    "0x0", or the program returns an error status, in which case None is
+    returned)."""
     r = subprocess.run(["getcifsacl", path],
             stdout=subprocess.PIPE, universal_newlines=True)
     if r.returncode == 0:
@@ -28,8 +28,8 @@ program returns an error status, in which case None is returned)."""
                 rv[k].append(v)
             else:
                 rv[k] = v
-        if not (_quadruple_check(rv, "REVISION", "0x0") and
-                _quadruple_check(rv, "CONTROL", "0x0")):
+        if not (_check_dictionary_field(rv, "REVISION", "0x0") and
+                _check_dictionary_field(rv, "CONTROL", "0x0")):
             return rv
         else:
             return None
@@ -94,46 +94,50 @@ def _get_pdf_document_info(path):
     except FileNotFoundError:
         return None
 
-def _quadruple_check(d, k, value=None):
-    """
-Returns true if and only if @d is a dictionary which has a non-None associated
-value for @k (and, if @value is not None, that it's equal to the associated
-value).
-"""
-    return d and k in d and d[k] is not None and (d[k] == value or not value)
+def _check_dictionary_field(d, k, value=None):
+    """Many of the metadata extraction functions in this file return dictionary
+    or dictionary-like objects on success and None on failure -- and, depending
+    on the precise structure of the underlying metadata, these objects may or
+    may not contain any particular named fields.
+
+    This utility function provides a simple way of checking for the presence of
+    fields in these return values without explicitly having to check for None
+    values at any point."""
+    return d and k in d and d[k] is not None and (not value or value == d[k])
 
 def guess_responsible_party(path):
-    """\
-Returns a dictionary of labelled speculations about the person responsible for
-the path @path.
+    """Returns a dictionary of labelled speculations about the person
+    responsible for the path @path.
 
-These labels are highly likely to indicate the person responsible for the path,
-but are ambiguous and must be compared against other organisational data:
+    These labels are highly likely to indicate the person responsible for the
+    path, but are ambiguous and must be compared against other organisational
+    data:
 
-* "od-modifier", the plaintext name of the last person to modify a LibreOffice
-  document
-* "ooxml-modifier", the plaintext name of the last person to modify an Office
-  Open XML document
-* "ole-modifier", the plaintext name of the last person to modify an OLE-based
-  Microsoft Office document (.doc, .ppt, .xls, etc.)
+    * "od-modifier", the plaintext name of the last person to modify an
+      OpenDocument document
+    * "ooxml-modifier", the plaintext name of the last person to modify an
+      Office Open XML document
+    * "ole-modifier", the plaintext name of the last person to modify an OLE-
+      based Microsoft Office document (.doc, .ppt, .xls, etc.)
 
-These labels are both ambiguous and less likely to indicate the person
-responsible for the path, but can be compared with other data to increase the
-confidence of the guess:
+    These labels are both ambiguous and less likely to indicate the person
+    responsible for the path, but can be compared with other data to increase
+    the confidence of the guess:
 
-* "od-creator", the plaintext name of the person who initially created an
-  OpenDocument document
-* "ooxml-creator", the plaintext name of the person who initially created an
-  Office Open XML document
-* "ole-creator", the plaintext name of the person who initially created an OLE-
-  based Microsoft Office document
-* "pdf-author", the plaintext author name given in a PDF document's metadata
+    * "od-creator", the plaintext name of the person who initially created an
+      OpenDocument document
+    * "ooxml-creator", the plaintext name of the person who initially created
+      an Office Open XML document
+    * "ole-creator", the plaintext name of the person who initially created an
+      OLE-based Microsoft Office document
+    * "pdf-author", the plaintext author name given in a PDF document's
+      metadata
 
-These labels refer unambiguously to an individual person, but are less likely
-to indicate the person responsible for the file's content:
+    These labels refer unambiguously to an individual person, but are less
+    likely to indicate the person responsible for the file's content:
 
-* "filesystem-owner-sid", the SID of the owner of a CIFS filesystem object
-* "filesystem-owner-uid", the UID of the owner of a Unix filesystem object"""
+    * "filesystem-owner-sid", the SID of the owner of a CIFS filesystem object
+    * "filesystem-owner-uid", the UID of the owner of a Unix filesystem object"""
     speculations = {}
 
     # File metadata-based speculations
@@ -170,12 +174,12 @@ to indicate the person responsible for the file's content:
         elif mime == "application/pdf" or mime == "application/x-pdf" or \
                 mime == "application/x-bzpdf" or mime == "application/x-gzpdf":
             doc_info = _get_pdf_document_info(path)
-            if _quadruple_check(doc_info, "/Author"):
+            if _check_dictionary_field(doc_info, "/Author"):
                 speculations["pdf-author"] = doc_info["/Author"]
 
     # Filesystem-based speculations
     cifs_acl = _get_cifs_security_descriptor(path)
-    if _quadruple_check(cifs_acl, "OWNER"):
+    if _check_dictionary_field(cifs_acl, "OWNER"):
         speculations["filesystem-owner-sid"] = cifs_acl["OWNER"]
     # stat will always work unless the path is invalid
     try:
