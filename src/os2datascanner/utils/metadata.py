@@ -149,19 +149,19 @@ def guess_responsible_party(path):
                 content = f.find("{urn:oasis:names:tc:opendocument:xmlns:office:1.0}meta")
                 if content:
                     lm = content.find("{http://purl.org/dc/elements/1.1/}creator")
-                    if lm and lm.text:
+                    if lm is not None and lm.text:
                         speculations["od-modifier"] = lm.text.strip()
                     c = content.find("{urn:oasis:names:tc:opendocument:xmlns:meta:1.0}initial-creator")
-                    if c and c.text:
+                    if c is not None and c.text:
                         speculations["od-creator"] = c.text.strip()
         elif mime.startswith("application/vnd.openxmlformats-officedocument."):
             f = _process_zip_resource(path, "docProps/core.xml", parse)
             if f:
                 lm = f.find("{http://schemas.openxmlformats.org/package/2006/metadata/core-properties}lastModifiedBy")
-                if lm and lm.text:
+                if lm is not None and lm.text:
                     speculations["ooxml-modifier"] = lm.text.strip()
                 c = f.find("{http://purl.org/dc/elements/1.1/}creator")
-                if c and c.text:
+                if c is not None and c.text:
                     speculations["ooxml-creator"] = c.text.strip()
         elif mime == "application/msword" or mime == "application/vnd.ms-excel" or \
                 mime == "application/vmd.ms-powerpoint":
