@@ -201,8 +201,3 @@ def guess_responsible_party(path):
         pass
 
     return speculations
-
-if __name__ == '__main__':
-    import sys
-    for i in sys.argv[1:]:
-        print(guess_responsible_party(i))
