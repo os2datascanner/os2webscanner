@@ -9,7 +9,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('os2webscanner', '0069_split_version'),
+        ('os2datascanner', '0003_remove_file_and_exchange_scans'),
     ]
 
     operations = [
