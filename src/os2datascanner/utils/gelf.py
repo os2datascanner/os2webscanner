@@ -187,13 +187,25 @@ class GraylogSocketHandler(logging.handlers.SocketHandler):
             self.handleError(record)
 
 
+#
+# We want our UDP packets to be safe for sending across the internet,
+# so use 508: “Any UDP payload this size or smaller is guaranteed
+# to be deliverable over IP (though not guaranteed to be delivered)”
+#
+# A possible alternative is ~1200 for IPv6, but we can't assume that, yet…
+#
+# See also https://stackoverflow.com/a/35697810
+#
+DEFAULT_UDP_MTU = 508
+
+
 class GraylogDatagramHandler(logging.handlers.DatagramHandler):
     "Log to Graylog via UDP; only works with the GELF formatter"
 
-    mtu = 8000
-
-    def __init__(self, host="localhost", port=12201):
+    def __init__(self, host="localhost", port=12201, mtu=DEFAULT_UDP_MTU):
         super().__init__(host, port)
+
+        self.mtu = mtu
 
         # ensure a sensible default given that nothing but GELF works
         if self.formatter is None:

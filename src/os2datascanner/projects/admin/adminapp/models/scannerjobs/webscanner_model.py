@@ -13,19 +13,17 @@
 #
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
+import urllib
 
+from django.conf import settings
 from django.db import models
 
 from .scanner_model import Scanner
-from ..domains.webdomain_model import WebDomain
 
 
 class WebScanner(Scanner):
 
     """Web scanner for scanning websites."""
-
-    domains = models.ManyToManyField(WebDomain, related_name='webdomains',
-                                     verbose_name='Webdomæner')
 
     do_link_check = models.BooleanField(default=False,
                                         verbose_name='Tjek links')
@@ -42,6 +40,71 @@ class WebScanner(Scanner):
         verbose_name='Saml cookies'
     )
 
+    ROBOTSTXT = 0
+    WEBSCANFILE = 1
+    METAFIELD = 2
+
+    validation_method_choices = (
+        (ROBOTSTXT, 'robots.txt'),
+        (WEBSCANFILE, 'webscan.html'),
+        (METAFIELD, 'Meta-felt'),
+    )
+
+    validation_method = models.IntegerField(choices=validation_method_choices,
+                                            default=ROBOTSTXT,
+                                            verbose_name='Valideringsmetode')
+
+    sitemap = models.FileField(upload_to='sitemaps',
+                               blank=True,
+                               verbose_name='Sitemap Fil')
+
+    sitemap_url = models.CharField(max_length=2048,
+                                   blank=True,
+                                   default="",
+                                   verbose_name='Sitemap URL')
+
+    download_sitemap = models.BooleanField(default=True,
+                                           verbose_name='Hent Sitemap fra '
+                                                        'serveren')
+
+    @property
+    def display_name(self):
+        """The name used when displaying the domain on the web page."""
+        return "Domain '%s'" % self.root_url
+
+    @property
+    def root_url(self):
+        """Return the root url of the domain."""
+        url = self.url.replace('*.', '')
+        if (not self.url.startswith('http://') and not
+        self.url.startswith('https://')):
+            return 'http://%s/' % url
+        else:
+            return url
+
+    @property
+    def sitemap_full_path(self):
+        """Get the absolute path to the uploaded sitemap.xml file."""
+        return "%s/%s" % (settings.MEDIA_ROOT, self.sitemap.url)
+
+    @property
+    def default_sitemap_path(self):
+        return "/sitemap.xml"
+
+    def get_sitemap_url(self):
+        """Get the URL of the sitemap.xml file.
+
+        This will be the URL specified by the user, or if not present, the
+        URL of the default sitemap.xml file.
+        If downloading of the sitemap.xml file is disabled, this will return
+        None.
+        """
+        if not self.download_sitemap:
+            return None
+        else:
+            sitemap_url = self.sitemap_url or self.default_sitemap_path
+            return urllib.parse.urljoin(self.root_url, sitemap_url)
+
     def create_scan(self):
         from ..scans.webscan_model import WebScan
         webscan = WebScan()
@@ -53,6 +116,3 @@ class WebScanner(Scanner):
     def get_absolute_url(self):
         """Get the absolute URL for scanners."""
         return '/webscanners/'
-
-    class Meta:
-        db_table = 'os2webscanner_webscanner'

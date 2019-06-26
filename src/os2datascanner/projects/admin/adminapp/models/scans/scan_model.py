@@ -20,14 +20,14 @@ import shutil
 
 import dateutil.tz
 import structlog
-
 from django.conf import settings
 from django.core.validators import validate_comma_separated_integer_list
 from django.db import models, transaction
 from django.db.models.aggregates import Count
 from django.utils import timezone
+from django.utils.functional import cached_property
+from model_utils.fields import MonitorField, StatusField
 
-from ..domains.domain_model import Domain
 from ..regexrule_model import RegexRule
 from ..scannerjobs.scanner_model import Scanner
 from ..sensitivity_level import Sensitivity
@@ -53,19 +53,11 @@ class Scan(models.Model):
     def logger(self):
         return logger.bind(scan_id=self.pk, scan_status=self.status)
 
-    start_time = models.DateTimeField(blank=True, null=True,
-                                      verbose_name='Starttidspunkt')
-    end_time = models.DateTimeField(blank=True, null=True,
-                                    verbose_name='Sluttidspunkt')
-
     # Begin setup copied from scanner
     scanner = models.ForeignKey(Scanner,
                                 null=True, verbose_name='webscanner',
                                 related_name='webscans',
                                 on_delete=models.SET_NULL)
-
-    domains = models.ManyToManyField(Domain,
-                                     verbose_name='Domæner')
 
     is_visible = models.BooleanField(default=True)
 
@@ -140,15 +132,36 @@ class Scan(models.Model):
     DONE = "DONE"
     FAILED = "FAILED"
 
-    status_choices = (
+    STATUS = (
         (NEW, "Ny"),
         (STARTED, "I gang"),
         (DONE, "Færdig"),
         (FAILED, "Mislykket"),
     )
 
-    status = models.CharField(max_length=10, choices=status_choices,
-                              default=NEW)
+    status = StatusField(max_length=max(map(len, dict(STATUS).values())))
+
+    creation_time = MonitorField(
+        monitor='status',
+        when=[NEW],
+        default=timezone.now,
+        null=False,
+        verbose_name='Oprettelsestidspunkt',
+    )
+    start_time = MonitorField(
+        monitor='status',
+        when=[STARTED],
+        null=True,
+        default=None,
+        verbose_name='Starttidspunkt',
+    )
+    end_time = MonitorField(
+        monitor='status',
+        when=[DONE, FAILED],
+        null=True,
+        default=None,
+        verbose_name='Sluttidspunkt',
+    )
 
     pause_non_ocr_conversions = models.BooleanField(default=False,
                                                     verbose_name='Pause ' +
@@ -162,11 +175,9 @@ class Scan(models.Model):
             status=ConversionQueueItem.FAILED
         ).count()
 
-    @property
-    def get_valid_domains(self):
-        return self.domains.filter(
-            validation_status=Domain.VALID
-        )
+    @cached_property
+    def webscanner(self):
+        return Scanner.objects.get_subclass(pk=self.scanner_id)
 
     @property
     def status_text(self):
@@ -175,7 +186,7 @@ class Scan(models.Model):
         Relies on the restriction that the status must be one of the allowed
         values.
         """
-        text = [t for s, t in Scan.status_choices if self.status == s][0]
+        text = [t for s, t in Scan.STATUS if self.status == s][0]
         return text
 
     @property
@@ -247,9 +258,9 @@ class Scan(models.Model):
 
     def __str__(self):
         """Return the name of the scan's scanner combined with a timestamp."""
-        if self.start_time:
+        if self.creation_time:
             ts = (
-                self.start_time
+                self.creation_time
                 .astimezone(dateutil.tz.tzlocal())
                 .replace(microsecond=0, tzinfo=None)
             )
@@ -264,11 +275,6 @@ class Scan(models.Model):
         deletes any remaining queue items and deletes the temporary directory
         used by the scan.
         """
-        # Pre-save stuff
-        if self.status in [Scan.DONE, Scan.FAILED] and \
-                (self._old_status != self.status):
-            self.end_time = datetime.datetime.now(tz=timezone.utc)
-
         # Actual save
         super().save(*args, **kwargs)
         # Post-save stuff
@@ -430,7 +436,6 @@ class Scan(models.Model):
 
     def set_scan_status_start(self):
         # Update start_time to now and status to STARTED
-        self.start_time = datetime.datetime.now(tz=timezone.utc)
         self.status = Scan.STARTED
         self.reason = ""
         self.logger.debug('scan_started')
@@ -483,12 +488,10 @@ class Scan(models.Model):
         self.status = Scan.NEW
         self.scanner = scanner
         self.save()
-        self.domains.add(*scanner.domains.all())
         self.regex_rules.add(*scanner.regex_rules.all())
         self.recipients.add(*scanner.recipients.all())
 
     class Meta:
         abstract = False
-        db_table = 'os2webscanner_scan'
 
         verbose_name = 'Report'

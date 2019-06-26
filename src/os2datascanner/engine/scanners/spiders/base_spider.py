@@ -36,7 +36,7 @@ class BaseScannerSpider(Spider):
         self.scanner = scanner
 
         self.exclusion_rules = self.scanner.get_exclusion_rules()
-        self.allowed_domains = self.scanner.get_domain_urls()
+        self.allowed_domains = [self.scanner.get_domain_url()]
 
     def is_offsite(self, request):
         """Return whether the request is offsite."""

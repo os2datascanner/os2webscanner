@@ -1,0 +1,15 @@
+<p class="lead">
+    Angiver hvilket domæne der skal gennemgås samt hvilke regler der skal
+    tjekkes.
+</p>
+<ul class="nav nav-tabs" role="tablist">
+    {% if settings.ENABLE_WEBSCAN %}
+    <li role="presentation"{% if active == 'web' %} class="active"{% endif %}><a href="/webscanners/" role="tab">Webscannere</a></li>
+    {% endif %}
+    {% if settings.ENABLE_FILESCAN %}
+        <li role="presentation"{% if active == 'file' %} class="active"{% endif %}><a href="/filescanners/" role="tab">Filscannere</a></li>
+    {% endif %}
+    {% if settings.ENABLE_EXCHANGESCAN %}
+        <li role="presentation"{% if active == 'exchange' %} class="active"{% endif %}><a href="/exchangescanners/" role="tab">Exchangescannere</a></li>
+    {% endif %}
+</ul>

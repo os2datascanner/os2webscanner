@@ -35,7 +35,7 @@ class ReportList(RestrictedListView):
     """Displays list of scanners."""
 
     model = Scan
-    template_name = 'os2webscanner/reports.html'
+    template_name = 'os2datascanner/reports.html'
     paginate_by = 15
 
     active = 'all'
@@ -83,7 +83,7 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
     """Display a detailed report summary."""
 
     model = Scan
-    template_name = 'os2webscanner/report.html'
+    template_name = 'os2datascanner/report.html'
     context_object_name = "scan"
     full = False
 

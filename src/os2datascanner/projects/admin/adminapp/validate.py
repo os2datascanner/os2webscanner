@@ -21,7 +21,7 @@ from urllib.error import URLError
 from urllib.parse import urljoin
 from urllib.request import Request, urlopen
 
-from .models.domains.webdomain_model import WebDomain
+from .models.scannerjobs.webscanner_model import WebScanner
 
 
 def _do_request(url):
@@ -55,11 +55,11 @@ def get_validation_str(domain, method=None):
     hash_str = _get_validation_hash(domain)
     if method is None:
         method = domain.validation_method
-    if method == WebDomain.ROBOTSTXT:
+    if method == WebScanner.ROBOTSTXT:
         return "User-agent: " + hash_str + "\nDisallow:"
-    elif method == WebDomain.WEBSCANFILE:
+    elif method == WebScanner.WEBSCANFILE:
         return hash_str
-    elif method == WebDomain.METAFIELD:
+    elif method == WebScanner.METAFIELD:
         return '<meta name="os2webscanner" content="' + hash_str + '" />'
 
 
@@ -71,15 +71,15 @@ def validate_domain(domain):
     hash_str = _get_validation_hash(domain)
 
     validators = {
-        WebDomain.ROBOTSTXT: {
+        WebScanner.ROBOTSTXT: {
             "url": "/robots.txt",
             "regex": "User-agent: " + hash_str + "(\r\n|\r|\n)Disallow:"
         },
-        WebDomain.WEBSCANFILE: {
+        WebScanner.WEBSCANFILE: {
             "url": "/webscan.html",
             "regex": hash_str
         },
-        WebDomain.METAFIELD: {
+        WebScanner.METAFIELD: {
             "url": "/",
             "regex": '<meta name="os2webscanner" content="' + hash_str + '"'
         }

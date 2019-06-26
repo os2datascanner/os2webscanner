@@ -126,6 +126,3 @@ class WebScan(Scan):
         active_scanners = WebScan.objects.filter(scanner=scanner, status__in=(
                 Scan.NEW, Scan.STARTED)).count()
         return active_scanners > 0
-
-    class Meta:
-        db_table = 'os2webscanner_webscan'

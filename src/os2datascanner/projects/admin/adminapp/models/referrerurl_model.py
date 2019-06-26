@@ -34,7 +34,7 @@ class ReferrerUrl(models.Model):
 
     @property
     def broken_urls(self):
-        result = self.os2webscanner_webversion_linked_urls.exclude(
+        result = self.os2datascanner_webversion_linked_urls.exclude(
             status_code__isnull=True
         ).order_by('url')
 

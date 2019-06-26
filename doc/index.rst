@@ -11,7 +11,7 @@ Welcome to OS2 Datascanner's documentation!
    :caption: Contents:
    :glob:
 
-   HOWTO_START_DEVEL_SERVER
+   *
    pages/*
 
 

@@ -49,7 +49,6 @@ dictionary."""
         self.scan_object = _Model.objects.get(pk=scan_id)
 
         self.rules = self._load_rules()
-        self.valid_domains = self.scan_object.get_valid_domains
 
     def ensure_started(self):
         if self.scan_object.status != "STARTED":
@@ -122,10 +121,7 @@ scan ID."""
 
     def get_exclusion_rules(self):
         """Return a list of exclusion rules associated with the WebScanner."""
-        exclusion_rules = []
-        for domain in self.valid_domains:
-            exclusion_rules.extend(domain.exclusion_rule_list())
-        return exclusion_rules
+        return self.scan_object.scanner.exclusion_rule_list()
 
     def scan(self, data, url_object):
         """Scan data for matches from a spider.
@@ -196,3 +192,6 @@ scan ID."""
         else:
             self.logger.exception("SCANNER FAILED", exc_info=exc_value)
             self.failed('SCANNER FAILED: {}'.format(exc_value))
+
+    def get_scanner_object(self):
+        return self.scan_object.webscanner
