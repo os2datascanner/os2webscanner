@@ -1,6 +1,6 @@
 SITE_URL = 'http://webscanner.kommune.dk'
-STATIC_ROOT = '/home/os2/os2webscanner/webscanner_site/static'
-MEDIA_ROOT = '/home/os2/os2webscanner/webscanner_site/uploads'
+STATIC_ROOT = '/srv/os2datascanner/webscanner_site/static'
+MEDIA_ROOT = '/srv/os2datascanner/webscanner_site/uploads'
 DEFAULT_FROM_EMAIL = 'your@email'
 ADMIN_EMAIL = 'your@email'
 
@@ -10,8 +10,8 @@ ADMIN_EMAIL = 'your@email'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'os2webscanner',
-        'USER': 'os2webscanner',
+        'NAME': 'os2datascanner',
+        'USER': 'os2datascanner',
         'PASSWORD': 'YOUR_PASSWORD',
         'HOST': '127.0.0.1',
     }

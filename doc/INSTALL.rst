@@ -119,6 +119,9 @@ like this:
     DEFAULT_FROM_EMAIL = 'your@email'
     ADMIN_EMAIL = 'your@email'
 
+    # SECURITY WARNING: keep the secret key used in production secret!
+    SECRET_KEY = 'A_LONG_RANDOMLY_GENERATED_SECRET_STRING'
+
     # Database
     # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
 
@@ -138,8 +141,9 @@ Test and initialize
 
 .. sourcecode:: shell
 
-    cd /srv/os2datascanner/webscanner_site
+    cd /srv/os2datascanner
     source ../python-env/bin/activate
+    cd /srv/os2datascanner/src/os2datascanner/projects/admin
     python manage.py test os2datascanner
 
 The test should pass. Now do:
