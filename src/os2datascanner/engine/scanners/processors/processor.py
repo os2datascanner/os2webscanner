@@ -34,6 +34,7 @@ from django import db
 from django.utils import timezone
 from django.conf import settings
 
+from os2datascanner.utils.metadata import guess_responsible_party
 from os2datascanner.projects.admin.adminapp.models.conversionqueueitem_model import ConversionQueueItem
 
 
@@ -161,6 +162,9 @@ class Processor(object):
 
         with open(tmp_file_path, 'wb') as tmp_file:
             tmp_file.write(data)
+
+        url_object.metadata = guess_responsible_party(tmp_file_path)
+        url_object.save()
 
         self.logger.info("write_file", url=url_object.url, path=tmp_file_path)
 

@@ -17,6 +17,7 @@
 import os
 from django.db import models
 from urllib.request import urlopen
+from django.contrib.postgres.fields import JSONField
 
 from .scans.scan_model import Scan
 
@@ -29,6 +30,7 @@ class Version(models.Model):
     scan = models.ForeignKey(Scan, null=False, verbose_name='Scan',
                              related_name='urls',
                              on_delete=models.CASCADE)
+    metadata = JSONField(null=True, blank=True)
 
     def __str__(self):
         """Return the URL."""
