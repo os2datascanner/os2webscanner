@@ -37,15 +37,24 @@ def _get_cifs_security_descriptor(path):
         return None
 
 def _codepage_to_codec(cp):
+    """Retrieves the Python text codec corresponding to the given Windows
+    codepage."""
+
+    # In principle, this isn't hard: Python has lots of inbuilt codecs with
+    # predictable names ("cp" followed by the string representation of the
+    # codepage number), but...
     try:
-        # Codepage 65001 is *Windows* UTF-8, not UTF-8, which is defined as
-        # "whatever WideCharToMultiByte returns when you ask it for UTF-8" (and
-        # apparently this does weird things with surrogate pairs in some
-        # circumstances); as a consequence, Python only exposes this codepage
-        # as a codec on Windows. We'll just treat it as normal UTF-8...
+        # ... codepage 65001 is an interesting special case: it's "whatever
+        # WideCharToMultiByte returns when you ask it for UTF-8" (which is,
+        # at least in some versions of Windows, known not to be proper UTF-8).
+        # As a result, Python can only expose it as a codec on Windows! For
+        # now, we treat it as normal UTF-8...
         if cp == 65001:
             return lookup_codec("utf-8")
         else:
+            # All codepages must be represented with at least three digits:
+            # this is only a problem for "cp037", but we may as well keep
+            # things general
             return lookup_codec("cp{:03}".format(cp))
     except LookupError:
         return None
