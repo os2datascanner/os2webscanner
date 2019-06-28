@@ -27,7 +27,6 @@ def main():
 
     args = parser.parse_args()
 
-    sources = []
     with SourceManager() as sm:
         for i in args.urls:
             try:

@@ -1,4 +1,3 @@
-import logging
 import multiprocessing
 
 from urllib.parse import urlparse

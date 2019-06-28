@@ -17,10 +17,8 @@
 
 
 import time
-import datetime
 import os
 import mimetypes
-import sys
 import magic
 import codecs
 import random

@@ -16,8 +16,6 @@
 """Contains Django views."""
 import csv
 
-from urllib.parse import unquote
-
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 

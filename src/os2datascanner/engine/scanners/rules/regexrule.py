@@ -16,7 +16,6 @@
 """Regular expression-based rules."""
 
 import json
-import logging
 import re
 
 import structlog
