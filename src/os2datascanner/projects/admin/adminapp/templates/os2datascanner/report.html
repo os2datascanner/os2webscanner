@@ -450,39 +450,29 @@ Rapport
     function internalBrokenLink(href) {
         var internalTarget;
 
-        var scanUrls = ['{{ scan.scanner.url }}'];
+        var url = '{{ scan.scanner.url }}'.replace(/\/$/, ''); //remove trailing slash
+        href = href.replace(url, "").replace(/^\/|\/$/g, '');
 
-        for(var i=0;i<scanUrls.length;i++) {
-            var url = scanUrls[i].replace(/\/$/, ''); //remove trailing slash
-            href = href.replace(url, "").replace(/^\/|\/$/g, '');
+        var subfolders = href.split('/');
 
-            var subfolders = href.split('/');
+        //find urls in subfolders ../../../
+        for(var j=0;j<subfolders.length;j++) {
+            var back = '../';
+            var s = back.repeat(j) + subfolders.slice(j).join('/');
+            internalTarget = findLink(s);
 
-            //find urls in subfolders ../../../
-            for(var j=0;j<subfolders.length;j++) {
-                var back = '../';
-                var s = back.repeat(j) + subfolders.slice(j).join('/');
-                internalTarget = findLink(s);
-
-                if(typeof internalTarget[0] != 'undefined'){
-                    break;
-                }
-            }
-
-            //find urls in subdomains *.example.dk
-            if(scanUrls[i].startsWith('*')) {
-                internalTarget = linkInSubdomain(href);
-            }
-
-            if(typeof internalTarget[0] == 'undefined') {
-                internalTarget = decodeComma(href);
-            }
-
-            //if link is found
-            if(typeof internalTarget[0] != 'undefined')
-            {
+            if(typeof internalTarget[0] != 'undefined'){
                 break;
             }
+        }
+
+        //find urls in subdomains *.example.dk
+        if(url.startsWith('*')) {
+            internalTarget = linkInSubdomain(href);
+        }
+
+        if(typeof internalTarget[0] == 'undefined') {
+            internalTarget = decodeComma(href);
         }
 
         return internalTarget;
