@@ -27,30 +27,27 @@ Rapport
     </a>
   </p>
 
-    {% if scan.domains.all %}
-        <div class="table-responsive">
-            <table class="table table-bordered report">
-                <tbody>
-                <tr>
-                    {% if scan.domains.all and not scan.scanner.process_urls %}<td class="head">
-                        <h3>Domæner</h3>
-                    </td>{% endif %}
-                </tr>
-                <tr>
-                    {% if scan.domains.all and not scan.scanner.process_urls %}<td>
-                        {% for domain in scan.domains.all %}
-                            {% if domain.filedomain.alias %}
-                                {{domain.filedomain.alias}}: ({{domain.url}})<br>
-                            {% else %}
-                                {{domain.url}}<br>
-                            {% endif %}
-                        {% endfor %}
-                    </td>{% endif %}
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    {% endif %}
+    <div class="table-responsive">
+        <table class="table table-bordered report">
+            <tbody>
+            <tr>
+                {% if not scan.scanner.process_urls %}<td class="head">
+                    <h3>Domæne</h3>
+                </td>{% endif %}
+            </tr>
+            <tr>
+                {% if not scan.scanner.process_urls %}<td>
+                        {% if scan.scanner.filescanner %}
+                            {{scan.scanner.filescanner.alias}}:
+                            ({{scan.scanner.url}})<br>
+                        {% else %}
+                            {{scan.scanner.url}}<br>
+                        {% endif %}
+                </td>{% endif %}
+            </tr>
+            </tbody>
+        </table>
+    </div>
 
     <h3>Resumé</h3>
     <div class="table-responsive">
