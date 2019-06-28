@@ -84,12 +84,19 @@ dictionary."""
     def process_urls(self):
         return self.scan_object.scanner.process_urls
 
-    def mint_url(self, url, **kwargs):
+    def get_location_for(self, url):
         l, created = Location.objects.get_or_create(
             scanner=self.scan_object.webscanner,
             url=url,
         )
-        u = self.version_class(scan=self.scan_object, location=l, **kwargs)
+        return l
+
+    def mint_url(self, url, **kwargs):
+        u = self.version_class(
+            scan=self.scan_object,
+            location=self.get_location_for(url),
+            **kwargs,
+        )
         u.save()
         return u
 

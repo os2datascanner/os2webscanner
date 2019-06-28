@@ -35,10 +35,6 @@ class WebVersion(Version):
                                        related_name='%(app_label)s_%(class)s_linked_urls',
                                        verbose_name='Referrers')
 
-    def __str__(self):
-        """Return the URL."""
-        return self.url
-
     @property
     def tmp_dir(self):
         """The path to the temporary directory associated with this url."""

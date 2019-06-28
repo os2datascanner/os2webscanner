@@ -13,7 +13,6 @@
 #
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
-
 import os
 
 from urllib.request import urlopen
@@ -38,7 +37,7 @@ class Version(models.Model):
 
     def __str__(self):
         """Return the URL."""
-        return self.url
+        return self.scan.webscanner.path_for(self.location.url)
 
     @property
     def url(self):

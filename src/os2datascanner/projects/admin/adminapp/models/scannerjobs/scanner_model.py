@@ -273,6 +273,9 @@ class Scanner(models.Model):
         scan = Scan()
         return scan.create(self)
 
+    def path_for(self, uri):
+        return uri
+
     class Meta:
         abstract = False
         ordering = ['name']

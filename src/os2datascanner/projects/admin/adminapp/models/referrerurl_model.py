@@ -10,10 +10,6 @@ class ReferrerUrl(Version):
     class Meta:
         verbose_name = 'Referer URL'
 
-    def __str__(self):
-        """Return the URL."""
-        return self.url
-
     @property
     def content(self):
         """Return the content of the target url"""

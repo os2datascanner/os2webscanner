@@ -164,22 +164,7 @@ class FileSpider(ScannerSpider):
             # Ignore this URL
             return
 
-        scanner = self.scanner.get_scanner_object()
-        old = ''
-        new = ''
-        if 'type' in self.scanner.configuration:
-            scanner_type = self.scanner.configuration["type"]
-            if scanner_type == 'FileScanner':
-                old = scanner.mountpath
-                new = scanner.url
-            elif scanner_type == 'ExchangeScanner':
-                old = as_file_uri(scanner.dir_to_scan)
-                new = scanner.url
-
-        url_object = self.url_save(mime_type,
-                                   response.request.url.replace(
-                                       old, new)
-                                   )
+        url_object = self.url_save(mime_type, response.request.url)
 
         data = response.body
 
