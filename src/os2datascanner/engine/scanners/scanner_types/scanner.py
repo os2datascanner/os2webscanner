@@ -35,7 +35,12 @@ logger = structlog.get_logger()
 class Scanner(object):
     """Represents a scanner which can scan data using configured rules."""
 
-    def __init__(self, configuration, _Model=None):
+    # TODO: we can't use a plain Version rather than WebVersion, due
+    # to a lack of mime type on the former
+    version_class = WebVersion
+    scan_class = Scan
+
+    def __init__(self, configuration):
         """\
 Loads the scanner settings from the scan ID specified in the configuration \
 dictionary."""
@@ -45,9 +50,7 @@ dictionary."""
         self.logger = logger.bind(scan_id=scan_id)
 
         # Get scan object from DB
-        if not _Model:
-            _Model = Scan
-        self.scan_object = _Model.objects.get(pk=scan_id)
+        self.scan_object = self.scan_class.objects.get(pk=scan_id)
 
         self.rules = self._load_rules()
 
@@ -86,7 +89,7 @@ dictionary."""
             scanner=self.scan_object.webscanner,
             url=url,
         )
-        u = WebVersion(scan=self.scan_object, location=l, **kwargs)
+        u = self.version_class(scan=self.scan_object, location=l, **kwargs)
         u.save()
         return u
 
