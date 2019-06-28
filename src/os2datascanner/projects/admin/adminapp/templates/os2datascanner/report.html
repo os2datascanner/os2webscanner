@@ -226,10 +226,10 @@ Rapport
               <tr class="{{ match.get_sensitivity_class }}">
                   <td class="match-url">
                     <span>
-                        {% if "file://" in match.url.url %}
-                        {{ match.url.url|slice:"7:" }}
+                        {% if not scan.scanner.linkable %}
+                        {{ match.url }}
                         {% else %}
-                        <a href="{{ match.url.url }}" target="_NEW">{{ match.url.url }}</a>
+                        <a href="{{ match.url.url }}" target="_NEW">{{ match.url }}</a>
                         {% endif %}
                     </span>
                     {% if "file://" in match.url.url %}
@@ -250,7 +250,7 @@ Rapport
                   </td>
                   {% if scan.do_ocr %}
                   <td class="match-pageno">
-                      <span>{{ match.page_no }}</span>
+                      <span>{{ match.page_no | default_if_none:"—" }}</span>
                   </td>
                   {% endif %}
               </tr>
@@ -450,12 +450,7 @@ Rapport
     function internalBrokenLink(href) {
         var internalTarget;
 
-        var scanUrls = '{{ scan.domains.all }}';
-        scanUrls = scanUrls.replace(/(&lt;Domain: )/g,'')
-                           .replace(/(&gt;)/g,'')
-                           .replace('[','')
-                           .replace(']','')
-                           .split(',');
+        var scanUrls = ['{{ scan.scanner.url }}'];
 
         for(var i=0;i<scanUrls.length;i++) {
             var url = scanUrls[i].replace(/\/$/, ''); //remove trailing slash

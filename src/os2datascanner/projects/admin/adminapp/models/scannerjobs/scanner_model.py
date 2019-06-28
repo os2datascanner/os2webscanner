@@ -44,6 +44,8 @@ class Scanner(models.Model):
     """A scanner, i.e. a template for actual scanning jobs."""
     objects = InheritanceManager()
 
+    linkable = False
+
     name = models.CharField(max_length=256, unique=True, null=False,
                             db_index=True,
                             verbose_name='Navn')

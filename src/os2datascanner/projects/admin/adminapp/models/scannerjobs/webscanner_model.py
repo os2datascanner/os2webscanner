@@ -26,6 +26,8 @@ class WebScanner(Scanner):
 
     """Web scanner for scanning websites."""
 
+    linkable = True
+
     do_link_check = models.BooleanField(default=False,
                                         verbose_name='Tjek links')
     do_external_link_check = models.BooleanField(
