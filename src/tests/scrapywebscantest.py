@@ -1,7 +1,7 @@
 import scrapy
 from scrapy import signals
 from scrapy.crawler import CrawlerProcess
-from scrapy-webscanner.scanner.spiders.scanner_spider import ScannerSpider
+from os2datascanner.engine.scanners.spiders.scanner_spider import ScannerSpider
 
 
 class MySpider(scrapy.Spider):
