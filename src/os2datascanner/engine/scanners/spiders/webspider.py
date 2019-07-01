@@ -166,10 +166,6 @@ class WebSpider(ScannerSpider):
 
         self.associate_url_referrers(broken_url)
 
-    def scan(self, response):
-        """Scan a response, returning any matches."""
-        super().scan(response)
-
     def _extract_requests(self, response):
         """Extract requests from the response."""
         r = []

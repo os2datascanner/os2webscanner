@@ -152,20 +152,3 @@ class FileSpider(ScannerSpider):
                           failure=failure)
 
         self.broken_url_save(status_code, status_message, url)
-
-    def scan(self, response):
-        """Scan a response, returning any matches."""
-
-        mime_type = self.get_mime_type(response)
-
-        # Save the URL item to the database
-        if (Processor.mimetype_to_processor_type(mime_type) == 'ocr'
-            and not self.scanner.do_ocr):
-            # Ignore this URL
-            return
-
-        url_object = self.url_save(mime_type, response.request.url)
-
-        data = response.body
-
-        self.scanner.scan(data, url_object)
