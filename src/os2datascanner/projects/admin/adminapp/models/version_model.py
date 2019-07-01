@@ -30,7 +30,7 @@ class Version(models.Model):
     location = models.ForeignKey('Location', null=False,
                                  verbose_name='Location',
                                  related_name='versions',
-                                 on_delete=models.PROTECT)
+                                 on_delete=models.CASCADE)
     scan = models.ForeignKey('Scan', null=False, verbose_name='Scan',
                              related_name='versions',
                              on_delete=models.CASCADE)
