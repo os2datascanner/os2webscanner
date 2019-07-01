@@ -35,6 +35,9 @@ class Version(models.Model):
                              related_name='versions',
                              on_delete=models.CASCADE)
 
+    mime_type = models.CharField(max_length=256, verbose_name='Content type',
+                                 null=True)
+
     def __str__(self):
         """Return the URL."""
         return self.scan.webscanner.path_for(self.location.url)

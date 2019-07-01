@@ -23,7 +23,7 @@ class Match(models.Model):
 
     """The data associated with a single match in a single URL."""
     url = models.ForeignKey(
-        "WebVersion",
+        "Version",
         null=False,
         verbose_name='URL',
         on_delete=models.CASCADE,

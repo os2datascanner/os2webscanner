@@ -20,7 +20,7 @@ import structlog
 
 from os2datascanner.projects.admin.adminapp.models.location_model import Location
 from os2datascanner.projects.admin.adminapp.models.scans.scan_model import Scan
-from os2datascanner.projects.admin.adminapp.models.webversion_model import WebVersion
+from os2datascanner.projects.admin.adminapp.models.version_model import Version
 
 from ..rules.name import NameRule
 from ..rules.address import AddressRule
@@ -35,9 +35,7 @@ logger = structlog.get_logger()
 class Scanner(object):
     """Represents a scanner which can scan data using configured rules."""
 
-    # TODO: we can't use a plain Version rather than WebVersion, due
-    # to a lack of mime type on the former
-    version_class = WebVersion
+    version_class = Version
     scan_class = Scan
 
     def __init__(self, configuration):

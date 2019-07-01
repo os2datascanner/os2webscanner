@@ -27,4 +27,4 @@ class ReferrerUrl(Version):
 
         return result
         # .filter(status=None)
-        # WebVersion.objects.filter(referrerurls__contains=self, status=None)
+        # Version.objects.filter(referrerurls__contains=self, status=None)

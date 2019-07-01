@@ -121,9 +121,9 @@ class Processor(object):
     def handle_spider_item(self, data, url_object):
         """Process an item from a spider. Must be overridden.
 
-        :type url_object: WebVersion
+        :type url_object: Version
         :param data: The textual or binary data to process.
-        :param url_object: The WebVersion object that the data was found at.
+        :param url_object: The Version object that the data was found at.
         """
         raise NotImplemented
 
