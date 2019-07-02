@@ -2,6 +2,12 @@
 
 set -e
 
+failure() {
+    echo "$0: installation failed"
+}
+
+trap failure ERR
+
 DIR="$(dirname "${BASH_SOURCE[0]}")"
 VIRTUALENV="$DIR/python-env"
 
@@ -129,8 +135,8 @@ END
     fi
 }
 
-install_system_dependencies &&
-install_python_environment &&
-configure_development_environment &&
-configure_database &&
+install_system_dependencies
+install_python_environment
+configure_development_environment
+configure_database
 configure_prometheus
