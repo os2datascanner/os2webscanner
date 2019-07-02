@@ -15,6 +15,7 @@
 # source municipalities ( http://www.os2web.dk/ )
 import os
 import tempfile
+from pathlib import PureWindowsPath
 from subprocess import call
 
 import structlog
@@ -114,16 +115,24 @@ class FileScanner(Scanner):
         """Return the URL for the scanner."""
         return self.url
 
-    def create_scan(self):
-        """
-        Creates a file scan.
-        :return: A file scan object
-        """
+    def run(self, type, blocking=False, user=None):
         if not self.smb_mount():
             return self.MOUNT_FAILED
 
-        return super().create_scan()
+        return super().run(type, blocking, user)
 
+    def path_for(self, path):
+        root_url = (
+            self.url if self.url.startswith('file:')
+            else PureWindowsPath(self.url).as_uri()
+        )
+
+        if path.startswith(root_url):
+            return str(
+                PureWindowsPath(self.alias + ':\\') / path[len(root_url):]
+            )
+
+        return path
 
     def get_type(self):
             return 'file'

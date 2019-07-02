@@ -1,10 +1,9 @@
-from ..smb import SMBHandle, SMBSource
+from ..smb import SMBSource
 from ..core import Source
 from ..data import DataSource
 from ..file import FilesystemSource
 from ..http import WebSource, SecureWebSource
 
-from pathlib import Path
 
 sources_and_urls = [
     (FilesystemSource("/usr"),
@@ -36,7 +35,7 @@ def equality_check(generated, reference):
         assert generated == reference
         print("\tOK")
         return True
-    except AssertionError as e:
+    except AssertionError:
         print("\tFAIL")
         return False
 

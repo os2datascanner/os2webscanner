@@ -80,6 +80,6 @@ class FileScanLastModifiedCheckMiddleware(LastModifiedCheckMiddleware):
         else:
             # If there is no Last-Modified header, we have to assume it has
             # been modified.
-            logging.debug('No Last-Modified header found at all.',
-                          file_path=file_path)
+            logger.debug('No Last-Modified header found at all.',
+                         file_path=file_path)
             return True

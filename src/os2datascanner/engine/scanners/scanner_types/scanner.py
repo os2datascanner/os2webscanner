@@ -18,8 +18,9 @@
 
 import structlog
 
+from os2datascanner.projects.admin.adminapp.models.location_model import Location
 from os2datascanner.projects.admin.adminapp.models.scans.scan_model import Scan
-from os2datascanner.projects.admin.adminapp.models.webversion_model import WebVersion
+from os2datascanner.projects.admin.adminapp.models.version_model import Version
 
 from ..rules.name import NameRule
 from ..rules.address import AddressRule
@@ -34,7 +35,10 @@ logger = structlog.get_logger()
 class Scanner(object):
     """Represents a scanner which can scan data using configured rules."""
 
-    def __init__(self, configuration, _Model=None):
+    version_class = Version
+    scan_class = Scan
+
+    def __init__(self, configuration):
         """\
 Loads the scanner settings from the scan ID specified in the configuration \
 dictionary."""
@@ -44,9 +48,7 @@ dictionary."""
         self.logger = logger.bind(scan_id=scan_id)
 
         # Get scan object from DB
-        if not _Model:
-            _Model = Scan
-        self.scan_object = _Model.objects.get(pk=scan_id)
+        self.scan_object = self.scan_class.objects.get(pk=scan_id)
 
         self.rules = self._load_rules()
 
@@ -80,8 +82,19 @@ dictionary."""
     def process_urls(self):
         return self.scan_object.scanner.process_urls
 
-    def mint_url(self, **kwargs):
-        u = WebVersion(scan=self.scan_object, **kwargs)
+    def get_location_for(self, url):
+        l, created = Location.objects.get_or_create(
+            scanner=self.scan_object.webscanner,
+            url=url,
+        )
+        return l
+
+    def mint_url(self, url, **kwargs):
+        u = self.version_class(
+            scan=self.scan_object,
+            location=self.get_location_for(url),
+            **kwargs,
+        )
         u.save()
         return u
 

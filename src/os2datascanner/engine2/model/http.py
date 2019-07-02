@@ -3,7 +3,6 @@ from .utilities import NamedTemporaryResource
 
 from io import BytesIO
 from requests.sessions import Session
-from dateutil.parser import parse
 from contextlib import contextmanager
 
 class WebSource(Source):
