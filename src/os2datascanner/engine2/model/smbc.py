@@ -80,6 +80,7 @@ class SMBCResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
         self._stat = None
+        self._hash = None
 
     def open_file(self):
         url, context = self._open_source()
