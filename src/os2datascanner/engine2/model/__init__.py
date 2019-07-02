@@ -23,6 +23,7 @@ appear on the filesystem when you ask the model for its path.
 
 # Import everything that provides a URL or MIME type handler
 from . import smb # noqa
+from . import smbc # noqa
 from . import tar # noqa
 from . import zip # noqa
 from . import data # noqa
