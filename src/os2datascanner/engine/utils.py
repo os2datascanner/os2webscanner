@@ -12,7 +12,6 @@ import os.path
 import json
 import errno
 
-from shutil import move
 from random import randrange
 from tempfile import NamedTemporaryFile
 from contextlib import contextmanager
@@ -83,7 +82,8 @@ def prometheus_session(name, advertisement_directory, **kwargs):
                 raise
 
     # ... advertise this port, and this service, to Prometheus...
-    with NamedTemporaryFile(mode="wt", delete=False) as fp:
+    with NamedTemporaryFile(mode="wt", dir=advertisement_directory,
+            delete=False) as fp:
         tmpfile = fp.name
         json.dump([
             {
@@ -92,7 +92,7 @@ def prometheus_session(name, advertisement_directory, **kwargs):
             }
         ], fp)
     advertisement_path = advertisement_directory + ("/{0}.json".format(name))
-    move(tmpfile, advertisement_path)
+    os.rename(tmpfile, advertisement_path)
 
     # ... and yield to execute whatever's in the with block
     yield
