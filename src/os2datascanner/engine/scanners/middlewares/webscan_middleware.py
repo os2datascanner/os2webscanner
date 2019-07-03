@@ -122,25 +122,18 @@ class WebScanLastModifiedCheckMiddleware(LastModifiedCheckMiddleware):
                             "Date format error on last modied: {0}".format(lm)
                         )
 
-        # lastmod comes from a sitemap.xml file
         sitemap_lastmod_date = request.meta.get("lastmod", None)
-        if sitemap_lastmod_date is None:
+        # We consider that the Last-Modified date we get out of a sitemap is
+        # more trustworthy than what we get out of the headers, so -- if we
+        # have one -- use it unconditionally
+        if sitemap_lastmod_date is not None:
+            last_modified = sitemap_lastmod_date
+            logging.debug(
+                    "Using sitemap's last-modified date: %s" % last_modified)
+        elif last_modified_header_date is not None:
             last_modified = last_modified_header_date
-            logging.debug("Using header's last-modified date: %s"
-                          % last_modified)
-        else:
-            if last_modified_header_date is None:
-                # No Last-Modified header, use the lastmod from the sitemap
-                last_modified = sitemap_lastmod_date
-                logging.debug("Using lastmod from sitemap %s" % last_modified)
-            else:
-                # Take the most recent of the two
-                logging.debug("Taking most recent of (header) %sand (sitemap) %s"
-                              % (last_modified_header_date,
-                                 sitemap_lastmod_date))
-                last_modified = max(last_modified_header_date,
-                                    sitemap_lastmod_date)
-                logging.debug("Last modified %s" % last_modified)
+            logging.debug(
+                    "Using header's last-modified date: %s" % last_modified)
 
         if last_modified is not None:
             # Check against the database
