@@ -18,14 +18,13 @@
 These will pass when you run "manage.py test os2webscanner".
 """
 
-import pep8
+import pycodestyle
 from django.test import TestCase
 
-from .models.domains.webdomain_model import WebDomain
-from .models.organization_model import Organization
-from .models.scannerjobs.webscanner_model import WebScanner
-from .models.scans.scan_model import Scan
-from .validate import validate_domain
+from os2datascanner.projects.admin.adminapp.models.organization_model import Organization
+from os2datascanner.projects.admin.adminapp.models.scannerjobs.webscanner_model import WebScanner
+from os2datascanner.projects.admin.adminapp.models.scans.scan_model import Scan
+from os2datascanner.projects.admin.adminapp.validate import validate_domain
 
 
 class ScannerTest(TestCase):
@@ -47,7 +46,7 @@ class ScannerTest(TestCase):
     def test_validate_domain(self):
         """Test validating domains."""
         # Make sure Google does not validate in any of the possible methods
-        all_methods = [WebDomain.WEBSCANFILE, WebDomain.METAFIELD]
+        all_methods = [WebScanner.WEBSCANFILE, WebScanner.METAFIELD]
         # Make sure Magenta's website validates using all possible methods
         # Magenta's website is under re-construction.
         """for validation_method in [WebDomain.WEBSCANFILE, WebDomain.METAFIELD]:
@@ -60,7 +59,7 @@ class ScannerTest(TestCase):
             self.assertTrue(validate_domain(domain))"""
 
         for validation_method in all_methods:
-            domain = WebDomain(url="http://www.google.com/",
+            domain = WebScanner(url="http://www.google.com/",
                             validation_method=validation_method,
                             organization=self.google,
                             pk=2)
@@ -69,16 +68,19 @@ class ScannerTest(TestCase):
 
     def test_run_scan(self):
         """Test running a scan."""
-        domain = WebDomain(url="http://www.magenta.dk/",
-                        organization=self.magenta,
-                        validation_method=WebDomain.ROBOTSTXT,
-                        validation_status=1)
-        scanner = WebScanner(organization=self.magenta, schedule="")
+        scanner = WebScanner(url="http://www.magenta.dk/",
+                            organization=self.magenta,
+                            validation_method=WebScanner.ROBOTSTXT,
+                            validation_status=1, schedule="")
         scanner.save()
-        domain.save()
-        scanner.domains.add(domain)
-        self.assertTrue(isinstance(scanner.run('kaflaflibob'), Scan))
-        self.assertFalse(isinstance(scanner.run('kaflaflibob'), Scan))
+
+        scan = scanner.run('kaflaflibob')
+
+        self.assertIsInstance(scan, Scan)
+
+        # we have no scanner manager
+        self.assertEqual(scan.status, scan.NEW)
+        self.assertFalse(scanner.is_running)
 
 
 # TODO: Make it pep8 version 1.7 compatible
@@ -87,7 +89,7 @@ def pep8_test(filepath):
     def do_test(self):
         # print "PATH:", filepath
         # arglist = ['--exclude=lib,migrations', filepath]
-        pep8styleguide = pep8.StyleGuide(
+        pep8styleguide = pycodestyle.StyleGuide(
             exclude=['lib', 'migrations'],
             filename=['*.py'],
             filepath=filepath,
@@ -95,7 +97,7 @@ def pep8_test(filepath):
             show_source=False,
         )
         pep8styleguide.input_dir(filepath)
-        basereport = pep8.BaseReport(benchmark_keys={})
+        basereport = pycodestyle.BaseReport(benchmark_keys={})
         output = basereport.get_statistics(prefix='')
         # print "PEP8 OUTPUT: " + str(output)
         self.assertEqual(len(output), 0)

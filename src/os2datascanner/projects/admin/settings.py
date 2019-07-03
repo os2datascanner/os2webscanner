@@ -78,6 +78,11 @@ SETTINGS_EXPORT = [
     'ENABLE_WEBSCAN',
 ]
 
+TEST_RUNNER = 'xmlrunner.extra.djangotestrunner.XMLTestRunner'
+TEST_OUTPUT_FILE_NAME = os.path.join(PROJECT_DIR, '.test-results.xml')
+TEST_OUTPUT_DESCRIPTIONS = True
+TEST_OUTPUT_VERBOSE = True
+
 # Application definition
 
 INSTALLED_APPS = (
