@@ -101,27 +101,6 @@ class WebScanLastModifiedCheckMiddleware(LastModifiedCheckMiddleware):
         else:
             last_modified_header_date = None
 
-        if last_modified_header_date is None and request.method == 'GET':
-            content_type_header = response.headers.get(
-                "Content-Type", None
-            ).decode('utf-8')
-            if content_type_header.startswith("text/html"):
-                try:
-                    body_html = html.fromstring(response.body)
-                except Exception:
-                    logging.info('Error occured while trying to extract string from response body.')
-
-                meta_dict = {list(el.values())[0]: list(el.values())[1]
-                             for el in body_html.findall('head/meta')}
-                if 'last-modified' in meta_dict:
-                    lm = meta_dict['last-modified']
-                    try:
-                        last_modified_header_date = arrow.get(lm).datetime
-                    except Exception:
-                        logging.error(
-                            "Date format error on last modied: {0}".format(lm)
-                        )
-
         sitemap_lastmod_date = request.meta.get("lastmod", None)
         # We consider that the Last-Modified date we get out of a sitemap is
         # more trustworthy than what we get out of the headers, so -- if we
