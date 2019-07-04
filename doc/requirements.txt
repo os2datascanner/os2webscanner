@@ -9,7 +9,7 @@ django-xmlrpc==0.1.8
 django-settings-export==1.2.1
 exchangelib==1.11.4
 pika==0.12.0
-psycopg2==2.7.3.2
+psycopg2==2.8.2
 psutil==5.4.6
 pycrypto==2.6.1
 python-dateutil==2.8.0
