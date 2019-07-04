@@ -19,42 +19,43 @@
 
 # Include the Django app
 import os
+import re
 import sys
 import shutil
 import tempfile
-
-base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-sys.path.append(base_dir + "/webscanner_site")
-os.environ["DJANGO_SETTINGS_MODULE"] = "os2datascanner.projects.admin.settings"
-
-import django
-django.setup()
-
-import re
-
-import linkchecker
-
 import unittest
 
-from . import process_manager
+from pathlib import Path
 
-from .scanners.scanner_types.scanner import Scanner
+from os2datascanner.engine.utils import run_django_setup
 
-from .scanners.rules import cpr, name, regexrule
+run_django_setup()
 
-from .scanners.spiders import scanner_spider
-from .scanners.processors import pdf, libreoffice, html, zip
+test_dir = Path(__file__).parent
+data_dir = test_dir.joinpath('data')
+base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
-from os2webscanner.models.conversionqueueitem_model import ConversionQueueItem
-from os2webscanner.models.url_model import Url
+from os2datascanner.engine import linkchecker
+from os2datascanner.engine.scanners.scanner_types.scanner import Scanner
+from os2datascanner.engine.scanners.spiders.filespider import FileSpider
+from os2datascanner.engine.scanners.scanner_types.filescanner import FileScanner
 
-from os2webscanner.models.scans.scan_model import Scan
-from os2webscanner.models.scans.webscan_model import WebScan
-from os2webscanner.models.scannerjobs.webscanner_model import WebScanner
-from os2webscanner.models.domains.webdomain_model import WebDomain
+from os2datascanner.engine.scanners.rules import cpr, name, regexrule
 
-from os2webscanner.models.regexrule_model import RegexRule
-from os2webscanner.models.organization_model import Organization
+from os2datascanner.engine.scanners.processors import pdf, libreoffice, html, zip
+
+from os2datascanner.projects.admin.adminapp.models.version_model import Version
+from os2datascanner.projects.admin.adminapp.models.location_model import Location
+
+
+from os2datascanner.projects.admin.adminapp.models.conversionqueueitem_model import ConversionQueueItem
+
+from os2datascanner.projects.admin.adminapp.models.scans.scan_model import Scan
+from os2datascanner.projects.admin.adminapp.models.scans.webscan_model import WebScan
+from os2datascanner.projects.admin.adminapp.models.scannerjobs.webscanner_model import WebScanner
+
+from os2datascanner.projects.admin.adminapp.models.regexrule_model import RegexRule
+from os2datascanner.projects.admin.adminapp.models.organization_model import Organization
 
 
 class AnalysisScanTest(unittest.TestCase):
@@ -65,26 +66,21 @@ class AnalysisScanTest(unittest.TestCase):
         print('Directory Path:' + dir_path)
         return dir_path
 
-    def test_analysis_scan_dir_and_files_count(self):
-
-        """Testing files and directory count on folder scanner/scanner."""
-
-        file_count, dir_count, bytes_count = get_dir_files_and_bytes_count(self.get_folder_path())
-        self.assertEqual(7, file_count)
-        self.assertEqual(3, dir_count)
-        self.assertEqual(18204, bytes_count)
-
 
 class FileExtractorTest(unittest.TestCase):
 
     def test_file_extractor(self):
-        with tempfile.TemporaryDirectory(dir=base_dir + '/scrapy-webscanner/tests/data/') as temp_dir:
+        with tempfile.TemporaryDirectory(dir=str(data_dir)) as temp_dir:
             filepath1 = temp_dir + '/kk.dk'
             filepath2 = temp_dir + '/æøå'
             os.mkdir(filepath1)
             os.mkdir(filepath2)
 
-            filemap = scanner_spider.ScannerSpider.file_extractor(self, 'file://' + temp_dir)
+            spider = FileSpider(
+                FileScanner({"id": create_filescan().pk}),
+                None,
+            )
+            filemap = spider.file_extractor('file://' + temp_dir)
 
             encoded_file_path1 = filemap[0].encode('utf-8')
             encoded_file_path2 = filemap[1].encode('utf-8')
@@ -218,20 +214,33 @@ class CPRTest(unittest.TestCase):
 
 class PDF2HTMLTest(unittest.TestCase):
 
-    test_dir = base_dir + '/scrapy-webscanner/tests/data/'
-
     def create_ressources(self, filename):
-        shutil.copy2(self.test_dir + 'pdf/' + filename, self.test_dir + 'tmp/')
-        url = Url(scan=Scan(), url=self.test_dir + 'tmp/' + filename)
-        item = ConversionQueueItem(url=url,
-                                   file=self.test_dir + 'tmp/' + filename,
+        src = str(data_dir / 'pdf' / filename)
+        dst = str(data_dir / 'tmp' / filename)
+        shutil.copy2(src, dst)
+
+        version = Version(
+            scan=create_filescan(),
+            location=Location(
+                url=dst,
+                scanner=create_filescanner(),
+            ),
+        )
+        item = ConversionQueueItem(pk=0,
+                                   url=version,
+                                   file=dst,
                                    type=pdf.PDFProcessor,
                                    status=ConversionQueueItem.NEW)
 
-        with tempfile.TemporaryDirectory(dir=self.test_dir + 'tmp/') as temp_dir:
+        with tempfile.TemporaryDirectory(dir=str(data_dir / 'tmp')) as temp_dir:
             result = pdf.PDFProcessor.convert(self, item, temp_dir)
 
         return result
+
+    def tearDown(self) -> None:
+        for p in data_dir.joinpath('tmp').iterdir():
+            if p.name != 'README':
+                p.unlink()
 
     def test_pdf2html_conversion_success(self):
         filename = 'Midler-til-frivilligt-arbejde.pdf'
@@ -254,7 +263,6 @@ class PDF2HTMLTest(unittest.TestCase):
 
 class LibreOfficeTest(unittest.TestCase):
 
-    test_dir = base_dir + '/scrapy-webscanner/tests/data/'
     libreoffice_processor = None
 
     @classmethod
@@ -263,20 +271,31 @@ class LibreOfficeTest(unittest.TestCase):
         self.libreoffice_processor = libreoffice.LibreOfficeProcessor()
         self.libreoffice_processor.setup_queue_processing(1111, 'libreoffice0')
 
-    def create_ressources(self, filename):
-        try:
-            shutil.copy2(self.test_dir + 'libreoffice/' + filename, self.test_dir + 'tmp/')
-        except FileNotFoundError:
-            print('File not found error: {}'.format(self.test_dir + 'libreoffice/' + filename))
-            return None
+    def tearDown(self) -> None:
+        for p in data_dir.joinpath('tmp').iterdir():
+            if p.name != 'README':
+                p.unlink()
 
-        url = Url(scan=Scan(), url=self.test_dir + 'tmp/' + filename)
-        item = ConversionQueueItem(url=url,
-                                   file=self.test_dir + 'tmp/' + filename,
+    def create_ressources(self, filename):
+        src = str(data_dir / 'libreoffice' / filename)
+        dst = str(data_dir / 'tmp' / filename)
+
+        shutil.copy2(src, dst)
+
+        version = Version(
+            scan=create_filescan(),
+            location=Location(
+                url=src,
+                scanner=create_filescanner(),
+            ),
+        )
+
+        item = ConversionQueueItem(url=version,
+                                   file=dst,
                                    type=libreoffice.LibreOfficeProcessor,
                                    status=ConversionQueueItem.NEW)
 
-        with tempfile.TemporaryDirectory(dir=self.test_dir + 'tmp/') as temp_dir:
+        with tempfile.TemporaryDirectory(dir=str(data_dir / 'tmp')) as temp_dir:
             result = self.libreoffice_processor.convert(item, temp_dir)
 
         return result
@@ -294,33 +313,39 @@ class LibreOfficeTest(unittest.TestCase):
         self.assertEqual(self.libreoffice_processor.unoconv, None)
         self.assertEqual(self.libreoffice_processor.instance, None)
 
+
 class HTMLTest(unittest.TestCase):
 
-    test_dir = base_dir + '/scrapy-webscanner/tests/data/'
-
     def create_ressources(self, filename):
-        try:
-            shutil.copy2(self.test_dir + 'html/' + filename, self.test_dir + 'tmp/')
-        except FileNotFoundError:
-            print('File not found error: {}'.format(self.test_dir + 'html/' + filename))
-            return None
+        src = str(data_dir / 'html' / filename)
+        dst = str(data_dir / 'tmp' / filename)
 
-        url = Url(scan=Scan(), url=self.test_dir + 'tmp/' + filename)
-        item = ConversionQueueItem(url=url,
-                                   file=self.test_dir + 'tmp/' + filename,
+        shutil.copy2(src, dst)
+
+        version = Version(
+            scan=create_filescan(),
+            location=Location(
+                url=src,
+                scanner=create_filescanner(),
+            ),
+        )
+        item = ConversionQueueItem(url=version, file=dst,
                                    type=html.HTMLProcessor,
                                    status=ConversionQueueItem.NEW)
 
         return item
+
+    def tearDown(self) -> None:
+        for p in data_dir.joinpath('tmp').iterdir():
+            if p.name != 'README':
+                p.unlink()
 
     def test_html_process_method(self):
         """Test case used to investigate UTF-8 decoding fail error.
          Will always return false as text processor instantiates scanner object which makes db call."""
         filename = 'Midler-til-frivilligt-arbejde.html'
         item = self.create_ressources(filename)
-        if item is None:
-            self.fail("File does not exists")
-            return
+        self.assertIsNotNone(item, "File does not exist")
         html_processor = html.HTMLProcessor()
         result = html_processor.handle_queue_item(item)
         self.assertEqual(result, False)
@@ -328,44 +353,49 @@ class HTMLTest(unittest.TestCase):
 
 class ZIPTest(unittest.TestCase):
 
-    test_dir = base_dir + '/scrapy-webscanner/tests/data/'
-
     def create_ressources(self, filename):
-        try:
-            shutil.copy2(self.test_dir + 'zip/' + filename, self.test_dir + 'tmp/')
-        except FileNotFoundError:
-            print('File not found error: {}'.format(self.test_dir + 'zip/' + filename))
-            return None
+        src = str(data_dir / 'zip' / filename)
+        dst = str(data_dir / 'tmp' / filename)
+        shutil.copy2(src, dst)
 
-        url = Url(scan=Scan(), url=self.test_dir + 'tmp/' + filename)
+        version = Version(
+            scan=create_filescan(),
+            location=Location(
+                url=dst,
+                scanner=create_filescanner(),
+            ),
+        )
         item = ConversionQueueItem(pk=0,
-                                   url=url,
-                                   file=self.test_dir + 'tmp/' + filename,
+                                   url=version,
+                                   file=dst,
                                    type=zip.ZipProcessor,
                                    status=ConversionQueueItem.NEW)
 
-        with tempfile.TemporaryDirectory(dir=self.test_dir + 'tmp/') as temp_dir:
+        with tempfile.TemporaryDirectory(dir=str(data_dir / 'tmp')) as temp_dir:
             zip_processor = zip.ZipProcessor()
             result = zip_processor.convert(item, temp_dir)
 
         return result
 
+    def tearDown(self) -> None:
+        for p in data_dir.joinpath('tmp').iterdir():
+            if p.name != 'README':
+                p.unlink()
+
     def test_unzip_on_password_zip(self):
         filename = 'Nye_Ejere_6.zip'
         result = self.create_ressources(filename)
-        if result is None:
-            self.fail("File does not exist")
-            return
+        self.assertIsNotNone(result, "File does not exist")
         self.assertEqual(result, False)
 
     def test_unzip(self):
         filename = "contains.zip"
         result = self.create_ressources(filename)
-        if result is None:
-            self.fail("File does not exist")
-            return
+        self.assertIsNotNone(result, "File does not exist")
         self.assertEqual(result, True)
 
+
+@unittest.skip("ScannerApp no longer exists")
 class StoreStatsTest(unittest.TestCase):
 
     def test_store_stats(self):
@@ -385,21 +415,24 @@ class StoreStatsTest(unittest.TestCase):
         self.assertEqual(statistic.files_scraped_count, files_scraped_count)
 
     def create_ressources(self):
-        webscan = CreateWebScan.create_webscan(self)
-        try:
-            # python 3.4+ should use builtin unittest.mock not mock package
-            from unittest.mock import patch
-        except ImportError:
-            from mock import patch
+        webscan = create_webscan()
+        # python 3.4+ should use builtin unittest.mock not mock package
+        from unittest.mock import patch
+
         scan_id = webscan.pk
         args = ['does not matter', scan_id]
         with patch.object(sys, 'argv', args):
-            from .run import ScannerApp, get_project_settings
+            from os2datascanner.engine.run import get_project_settings
             scannerapp = ScannerApp(scan_id, type(webscan).__name__)
             settings = get_project_settings()
             from scrapy.crawler import CrawlerProcess
             scannerapp.crawler_process = CrawlerProcess(settings)
         return scan_id, scannerapp, webscan
+
+    def tearDown(self) -> None:
+        for p in data_dir.joinpath('tmp').iterdir():
+            if p.name != 'README':
+                p.unlink()
 
     def test_store_multiple_stats(self):
         scan_id, scannerapp, webscan = self.create_ressources()
@@ -414,12 +447,13 @@ class StoreStatsTest(unittest.TestCase):
             scannerapp.scanner_spider.crawler.stats.get_stats()
             scannerapp.store_stats()
 
-        from os2webscanner.models.statistic_model import Statistic
+        from os2datascanner.projects.admin.adminapp.models.statistic_model import Statistic
         statistic = Statistic.objects.get(scan=webscan)
         self.assertEqual(statistic.files_skipped_count, files_skipped_count*2)
         self.assertEqual(statistic.files_scraped_count, files_scraped_count*2)
 
 
+@unittest.skip("process manager has been refactored")
 class ProcessManagerTest(unittest.TestCase):
 
     @classmethod
@@ -453,40 +487,45 @@ class ProcessManagerTest(unittest.TestCase):
         # time.sleep(120)
 
 
-class CreateWebScan(object):
-
-    def create_webscan(self):
-        return WebScan.objects.create(
-            status=Scan.NEW,
-            scanner=WebScanner.objects.filter()[:1].get()
-        )
+def create_webscan():
+    return WebScan.objects.create(
+        status=Scan.NEW,
+        scanner=create_webscanner()
+    )
 
 
-class CreateWebScanner(object):
-
-    def create_webscanner(self):
-        return WebScanner.objects.create(
-            organization=Organization.objects.filter()[:1].get()
-        )
-
-
-class CreateOrganization(object):
-
-    def create_organization(self):
-        return Organization.objects.create(
-            name='Magenta',
-            contact_email='info@magenta.dk',
-            contact_phone='39393939'
-        )
+def create_webscanner():
+    return WebScanner.objects.get_or_create(
+        name='the web scanner',
+        organization=create_organization(),
+        url='http://example.com/something/test',
+    )[0]
 
 
-class CreateWebDomain(object):
+def create_filescan():
+    scanner = create_filescanner()
+    assert scanner.url
+    return Scan.objects.create(status=Scan.NEW,scanner=scanner)
 
-    def create_webdomain(self):
-        return WebDomain.objects.create(
-            url='/something/test',
-            organization=Organization.objects.get()
-        )
+
+def create_filescanner():
+    from os2datascanner.projects.admin.adminapp.models.scannerjobs.filescanner_model import FileScanner
+
+    return FileScanner.objects.get_or_create(
+        name='the file scanner',
+        url=r'\\example.com\test',
+        defaults=dict(organization=create_organization()),
+        mountpath=str(test_dir),
+        alias='T'
+    )[0]
+
+
+def create_organization():
+    return Organization.objects.get_or_create(
+        name='Magenta',
+        contact_email='info@magenta.dk',
+        contact_phone='39393939'
+    )[0]
 
 
 class RegexRuleIsAllMatchTest(unittest.TestCase):
