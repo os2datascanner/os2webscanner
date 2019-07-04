@@ -2,6 +2,7 @@ password.py
 /.secret
 *.pyc
 /python-env*
+/.test-results.xml
 *.komodoproject
 webscanner_site/static
 webscanner_site/uploads

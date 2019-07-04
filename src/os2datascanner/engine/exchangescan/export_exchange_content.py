@@ -11,10 +11,8 @@ from multiprocessing import Queue
 from datetime import datetime, timedelta
 from exchangelib import EWSDateTime, EWSDate, UTC
 from exchangelib import FileAttachment, ItemAttachment
-from exchangelib import IMPERSONATION, ServiceAccount, Account
 from exchangelib.util import chunkify
 from exchangelib.folders import AllItems, FreebusyData
-from exchangelib.errors import ErrorNonExistentMailbox
 from exchangelib.errors import ErrorInternalServerTransientError
 from exchangelib.errors import ErrorMailboxStoreUnavailable
 from exchangelib.errors import ErrorCannotOpenFileAttachment
@@ -22,6 +20,9 @@ from exchangelib.errors import ErrorInternalServerError
 from exchangelib.errors import ErrorInvalidOperation
 from exchangelib.errors import ErrorTimeoutExpired
 from exchangelib.errors import ErrorMimeContentConversionFailed
+
+from exchange_assistant import ExchangeServerAssistant
+
 try:
     from .stats import Stats
 except SystemError:
@@ -46,17 +47,16 @@ class ExportError(Exception):
 
 class ExchangeMailboxScan(object):
     """ Library to export a users mailbox from Exchange to a filesystem """
-    def __init__(self, credentials, user, export_path, mail_ending,
-                 start_date=None, amqp_info=None):
-        logger.info('Start New MailboxScan: {}'.format(user))
-        exchange_credentials = ServiceAccount(username=credentials[0],
-                                              password=credentials[1])
-        username = user + mail_ending
-        self.start_date = start_date
+    def __init__(self, exchange_assistant, amqp_info=None):
+        username = exchange_assistant.get_user_email_address()
+
+        logger.info('Start New MailboxScan: {}'.format(username))
+
+        self.start_date = exchange_assistant.start_date
         if self.start_date is None:
-            self.export_path = Path(export_path + username)
+            self.export_path = Path(exchange_assistant.export_path + username)
         else:
-            self.export_path = Path(export_path + username + '_' +
+            self.export_path = Path(exchange_assistant.export_path + username + '_' +
                                     str(self.start_date))
         self.current_path = None
 
@@ -66,16 +66,7 @@ class ExchangeMailboxScan(object):
         self.amqp_data['start_time'] = time.time()
         self.update_amqp()
 
-        try:
-            self.account = Account(primary_smtp_address=username,
-                                   credentials=exchange_credentials,
-                                   autodiscover=True,
-                                   access_type=IMPERSONATION)
-            self.account.root.refresh()
-            logger.info('{}: Init complete'.format(username))
-        except ErrorNonExistentMailbox:
-            logger.error('No such user: {}'.format(username))
-            self.account = None
+        self.account = exchange_assistant.get_account()
 
     def total_mails(self):
         """ Return the total amounts of content newet thatn self.start_date
@@ -370,7 +361,7 @@ class ExchangeServerExport(multiprocessing.Process):
     This classes inherits from multiprocessing and helps to
     run a number of exporters in parallel """
     def __init__(self, credentials, user_queue, done_queue, export_path,
-                 mail_ending, start_date=None, amqp=False):
+                 mail_ending, start_date=None, amqp=False, is_office365=False):
         multiprocessing.Process.__init__(self)
         self.credentials = credentials
         self.user_queue = user_queue
@@ -381,6 +372,7 @@ class ExchangeServerExport(multiprocessing.Process):
         self.mail_ending = mail_ending
         self.export_path = export_path
         self.amqp = amqp
+        self.is_office365 = is_office365
         self.amqp_channel = None
         self.exported_users = 0 # Number of exported users in this process
         self.exported_mails = 0 # Number of exported mails in this process
@@ -404,12 +396,15 @@ class ExchangeServerExport(multiprocessing.Process):
                     amqp_data['exported_users'] = self.exported_users
                     amqp_data['total_mails'] = self.exported_mails
                     amqp_info = (self.amqp_channel, str(self.pid), amqp_data)
-                    self.scanner = ExchangeMailboxScan(self.credentials,
-                                                       self.user_name,
-                                                       self.export_path,
-                                                       self.mail_ending,
-                                                       self.start_date,
-                                                       amqp_info)
+                    self.scanner = ExchangeMailboxScan(
+                        ExchangeServerAssistant(self.credentials,
+                                                self.user_name,
+                                                self.export_path,
+                                                self.mail_ending,
+                                                self.start_date,
+                                                self.is_office365),
+                        amqp_info)
+
                     self.scanner.amqp_data['exported_users'] = self.exported_users
                 except NameError:   # No start_time given
                     # TODO: When do we end here??!?!?

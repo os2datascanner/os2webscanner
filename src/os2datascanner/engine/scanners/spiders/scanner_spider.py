@@ -112,8 +112,8 @@ class ScannerSpider(BaseScannerSpider):
             if not mime_type:
                 try:
                     mime_type = self.magic.from_buffer(response.body)
-                except MagicException as me:
-                    logging.error(me)
+                except MagicException:
+                    logging.exception('magic mime-type detection failed')
 
         return mime_type
 

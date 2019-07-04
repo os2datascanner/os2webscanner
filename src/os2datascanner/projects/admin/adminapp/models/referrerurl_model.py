@@ -1,34 +1,21 @@
-from django.db import models
 from urllib.request import urlopen
 
-from .scans.webscan_model import WebScan
+from .version_model import Version
 
 
-class ReferrerUrl(models.Model):
+class ReferrerUrl(Version):
 
     """A representation of a referrer URL."""
 
     class Meta:
         verbose_name = 'Referer URL'
 
-    url = models.CharField(max_length=2048, verbose_name='URL')
-    scan = models.ForeignKey(
-        WebScan,
-        null=False,
-        verbose_name='Scan',
-        on_delete=models.CASCADE,
-    )
-
-    def __str__(self):
-        """Return the URL."""
-        return self.url
-
     @property
     def content(self):
         """Return the content of the target url"""
         try:
-            file = urlopen(self.url)
-            return file.read()
+            with urlopen(self.url) as fp:
+                return fp.read()
         except Exception as e:
             return str(e)
 
@@ -36,8 +23,8 @@ class ReferrerUrl(models.Model):
     def broken_urls(self):
         result = self.os2datascanner_webversion_linked_urls.exclude(
             status_code__isnull=True
-        ).order_by('url')
+        ).order_by('location__url')
 
         return result
         # .filter(status=None)
-        # WebVersion.objects.filter(referrerurls__contains=self, status=None)
+        # Version.objects.filter(referrerurls__contains=self, status=None)

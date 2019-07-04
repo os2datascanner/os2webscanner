@@ -1,8 +1,7 @@
 from urllib.parse import urlparse
 
 from os2datascanner.projects.admin.adminapp.models.scans.webscan_model import WebScan
-from os2datascanner.projects.admin.adminapp.models.scannerjobs\
-    .webscanner_model import WebScanner as DjangoWebScanner
+from os2datascanner.projects.admin.adminapp.models.webversion_model import WebVersion
 
 from ...utils import as_file_uri
 from .scanner import Scanner
@@ -10,8 +9,8 @@ from .scanner import Scanner
 
 class WebScanner(Scanner):
 
-    def __init__(self, configuration):
-        super().__init__(configuration, _Model=WebScan)
+    version_class = WebVersion
+    scan_class = WebScan
 
     @property
     def do_link_check(self):

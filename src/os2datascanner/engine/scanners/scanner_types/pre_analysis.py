@@ -7,8 +7,6 @@ import structlog
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-from pathlib import Path
-from matplotlib.backends.backend_pdf import PdfPages
 
 matplotlib.use('Agg')
 

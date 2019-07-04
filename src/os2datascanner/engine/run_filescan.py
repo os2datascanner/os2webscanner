@@ -1,6 +1,5 @@
 import multiprocessing
 
-import structlog
 from twisted.internet import defer
 
 from .run import StartScan

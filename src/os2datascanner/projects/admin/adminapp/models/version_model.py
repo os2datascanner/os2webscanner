@@ -13,26 +13,40 @@
 #
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
-
 import os
-from django.db import models
-from urllib.request import urlopen
 
-from .scans.scan_model import Scan
+from urllib.request import urlopen
+from django.contrib.postgres.fields import JSONField
+
+from django.db import models
+from model_utils.managers import InheritanceManager
 
 
 class Version(models.Model):
 
+    objects = InheritanceManager()
+
     """A representation of an actual URL on a domain with its MIME type."""
 
-    url = models.CharField(max_length=2048, verbose_name='URL')
-    scan = models.ForeignKey(Scan, null=False, verbose_name='Scan',
-                             related_name='urls',
+    location = models.ForeignKey('Location', null=False,
+                                 verbose_name='Location',
+                                 related_name='versions',
+                                 on_delete=models.CASCADE)
+    scan = models.ForeignKey('Scan', null=False, verbose_name='Scan',
+                             related_name='versions',
                              on_delete=models.CASCADE)
+    metadata = JSONField(null=True, blank=True)
+
+    mime_type = models.CharField(max_length=256, verbose_name='Content type',
+                                 null=True)
 
     def __str__(self):
         """Return the URL."""
-        return self.url
+        return self.scan.webscanner.path_for(self.location.url)
+
+    @property
+    def url(self):
+        return self.location.url
 
     @property
     def tmp_dir(self):
@@ -46,6 +60,3 @@ class Version(models.Model):
             return file.read()
         except Exception as e:
             return str(e)
-
-    class Meta:
-        abstract = True
