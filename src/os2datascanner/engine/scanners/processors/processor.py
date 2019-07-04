@@ -78,7 +78,7 @@ def get_image_dimensions(file_path):
                  )
 
 
-CONVERSIONS = Summary("os2datascanner_processor_conversions", "Object conversions")
+METRIC_CONVERSIONS = Summary("os2datascanner_processor_conversions", "Object conversions")
 
 
 class Processor(object):
@@ -335,7 +335,7 @@ class Processor(object):
                 break
         return result
 
-    @CONVERSIONS.time()
+    @METRIC_CONVERSIONS.time()
     def convert_queue_item(self, item):
         """Convert a queue item and add converted files to the queue.
 
