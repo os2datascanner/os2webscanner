@@ -122,13 +122,14 @@ END
         echo "$0: no need to patch /etc/prometheus/prometheus.yml"
     else
         echo "$0: patching /etc/prometheus/prometheus.yml"
+        # Yes, the indentation is significant in this YAML fragment (groan...)
         sudo -H tee --append /etc/prometheus/prometheus.yml <<END
 
-      - job_name: os2datascanner
-        file_sd_configs:
-          - files:
-            - $(readlink --canonicalize "$DIR/var/prometheus")/*.yml
-            - $(readlink --canonicalize "$DIR/var/prometheus")/*.json
+  - job_name: os2datascanner
+    file_sd_configs:
+      - files:
+        - $(readlink --canonicalize "$DIR/var/prometheus")/*.yml
+        - $(readlink --canonicalize "$DIR/var/prometheus")/*.json
 END
         echo "$0: reloading prometheus configuration"
         sudo -H pkill -HUP prometheus
