@@ -11,7 +11,7 @@ test:
     AMQP_HOST: rabbitmq
   script:
     - apt-get update -qq
-    - apt-get install -qq $(cat doc/SYSTEM_DEPENDENCIES)
+    - apt-get install -qq $(cat doc/TEST_DEPENDENCIES)
 
     - pip install -U setuptools wheel pip
     - pip install -e . -r doc/requirements-dev.txt
