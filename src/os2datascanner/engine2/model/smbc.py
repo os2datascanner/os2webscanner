@@ -64,9 +64,9 @@ class SMBCSource(Source):
         scheme, netloc, path, _, _ = urlsplit(url)
         match = SMBSource.netloc_regex.match(netloc)
         if match:
-            _, _, domain, username, _, password, unc = match.groups()
-            return SMBCSource("//" + unc + unquote(path),
-                username or None, password or None, domain or None)
+            return SMBCSource("//" + match.group("unc") + unquote(path),
+                match.group("username"), match.group("password"),
+                match.group("domain"))
         else:
             return None
 

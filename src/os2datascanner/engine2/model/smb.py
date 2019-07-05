@@ -64,16 +64,16 @@ class SMBSource(Source):
         return make_smb_url(
                 "smb", self._unc, self._user, self._domain, self._password)
 
-    netloc_regex = compile(r"^(((\w+);)?(\w+)(:(\w+))?@)?([\w.]+)$")
+    netloc_regex = compile(r"^(((?P<domain>\w+);)?(?P<username>\w+)(:(?P<password>\w+))?@)?(?P<unc>[\w.]+)$")
     @staticmethod
     @Source.url_handler("smb")
     def from_url(url):
         scheme, netloc, path, _, _ = urlsplit(url)
         match = SMBSource.netloc_regex.match(netloc)
         if match:
-            _, _, domain, username, _, password, unc = match.groups()
-            return SMBSource("//" + unc + unquote(path),
-                username or None, password or None, domain or None)
+            return SMBSource("//" + match.group("unc") + unquote(path),
+                match.group("username"), match.group("password"),
+                match.group("domain"))
         else:
             return None
 
