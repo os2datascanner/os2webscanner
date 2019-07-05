@@ -79,7 +79,7 @@ SETTINGS_EXPORT = [
 ]
 
 TEST_RUNNER = 'xmlrunner.extra.djangotestrunner.XMLTestRunner'
-TEST_OUTPUT_FILE_NAME = os.path.join(PROJECT_DIR, '.test-results.xml')
+TEST_OUTPUT_DIR = os.path.join(PROJECT_DIR, 'build/test-results')
 TEST_OUTPUT_DESCRIPTIONS = True
 TEST_OUTPUT_VERBOSE = True
 
@@ -140,7 +140,7 @@ DATABASES = {
         'NAME': 'os2datascanner',
         'USER': 'os2datascanner',
         'PASSWORD': 'os2datascanner',
-        'HOST': '127.0.0.1',
+        'HOST': os.getenv('POSTGRES_HOST', '127.0.0.1'),
     }
 }
 

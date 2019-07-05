@@ -1,0 +1,25 @@
+test:
+  services:
+    - postgres:alpine
+    - rabbitmq:alpine
+  image: python:3.5
+  variables:
+    POSTGRES_DB: os2datascanner
+    POSTGRES_USER: os2datascanner
+    POSTGRES_PASSWORD: os2datascanner
+    POSTGRES_HOST: postgres
+    AMQP_HOST: rabbitmq
+  script:
+    - apt-get update -qq
+    - apt-get install -qq $(cat doc/SYSTEM_DEPENDENCIES)
+
+    - pip install -U setuptools wheel pip
+    - pip install -e . -r doc/requirements-dev.txt
+
+    - export DJANGO_SETTINGS_MODULE=os2datascanner.projects.admin.settings
+    - django-admin makemigrations --check --dry-run
+    - django-admin test os2datascanner.tests
+
+  artifacts:
+    reports:
+      junit: build/test-results/*.xml
