@@ -25,8 +25,6 @@ class WebVersion(Version):
 
     """A representation of an actual URL on a domain with its MIME type."""
 
-    mime_type = models.CharField(max_length=256, verbose_name='Mime-type', null=True)
-
     status_code = models.IntegerField(blank=True, null=True,
                                       verbose_name='Status code')
     status_message = models.CharField(blank=True, null=True, max_length=256,
@@ -34,10 +32,6 @@ class WebVersion(Version):
     referrers = models.ManyToManyField("ReferrerUrl",
                                        related_name='%(app_label)s_%(class)s_linked_urls',
                                        verbose_name='Referrers')
-
-    def __str__(self):
-        """Return the URL."""
-        return self.url
 
     @property
     def tmp_dir(self):

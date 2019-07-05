@@ -1,4 +1,4 @@
-from .core import Source, Handle, Resource
+from .core import Source
 
 class DummySource(Source):
     def __init__(self, *handles):

@@ -2,6 +2,7 @@ password.py
 /.secret
 *.pyc
 /python-env*
+/.test-results.xml
 *.komodoproject
 webscanner_site/static
 webscanner_site/uploads
@@ -14,3 +15,4 @@ django-os2webscanner/django.os2webscanner.egg-info
 *.log
 ._*
 **DS_Store
+var/prometheus/*.json

@@ -13,45 +13,30 @@
 #
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
-import os
 
 from urllib.request import urlopen
-from django.contrib.postgres.fields import JSONField
 
 from django.db import models
-from model_utils.managers import InheritanceManager
 
 
-class Version(models.Model):
-
-    objects = InheritanceManager()
-
+class Location(models.Model):
     """A representation of an actual URL on a domain with its MIME type."""
 
-    location = models.ForeignKey('Location', null=False,
-                                 verbose_name='Location',
-                                 related_name='versions',
-                                 on_delete=models.CASCADE)
-    scan = models.ForeignKey('Scan', null=False, verbose_name='Scan',
-                             related_name='versions',
-                             on_delete=models.CASCADE)
-    metadata = JSONField(null=True, blank=True)
+    class Meta:
+        unique_together = (("url", "scanner"),)
 
-    mime_type = models.CharField(max_length=256, verbose_name='Content type',
-                                 null=True)
+    url = models.URLField(max_length=2048, verbose_name="URL")
+    scanner = models.ForeignKey(
+        "Scanner",
+        null=False,
+        verbose_name="Scan",
+        related_name="locations",
+        on_delete=models.CASCADE,
+    )
 
     def __str__(self):
         """Return the URL."""
-        return self.scan.webscanner.path_for(self.location.url)
-
-    @property
-    def url(self):
-        return self.location.url
-
-    @property
-    def tmp_dir(self):
-        """The path to the temporary directory associated with this url."""
-        return os.path.join(self.scan.scan_dir, 'url_item_%d' % (self.pk))
+        return self.url
 
     @property
     def content(self):

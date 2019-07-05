@@ -2,7 +2,7 @@ from .core import Source, Handle, ShareableCookie
 from .file import FilesystemResource
 
 from os import rmdir
-from regex import compile, match
+from regex import compile
 from urllib.parse import quote, unquote, urlsplit, urlunsplit
 from pathlib import Path
 from tempfile import mkdtemp

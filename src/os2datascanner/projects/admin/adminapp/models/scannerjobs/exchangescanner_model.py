@@ -45,6 +45,3 @@ class ExchangeScanner(Scanner):
     def get_absolute_url(self):
         """Get the absolute URL for scanners."""
         return '/exchangescanners/'
-
-    def create_scan(self):
-        return super().create_scan()

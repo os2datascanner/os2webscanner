@@ -13,8 +13,9 @@ Slet {{ object }}?
     {% if object.webscans.all %}
     <p>
       Bemærk venligst at {{ object.webscans.all.count }} rapporter er
-      knyttet til dette scannerjob. Disse rapporter vil fremover
-      fremstå uden tilknyttet scanner og organisation.
+      knyttet til dette scannerjob. Disse rapporter vil ligeledes slettes.
+
+      Handlingen kan ikke fortrydes.
     </p>
     {% else %}
     <p>

@@ -44,6 +44,8 @@ class Scanner(models.Model):
     """A scanner, i.e. a template for actual scanning jobs."""
     objects = InheritanceManager()
 
+    linkable = False
+
     name = models.CharField(max_length=256, unique=True, null=False,
                             db_index=True,
                             verbose_name='Navn')
@@ -270,6 +272,9 @@ class Scanner(models.Model):
         from ..scans.scan_model import Scan
         scan = Scan()
         return scan.create(self)
+
+    def path_for(self, uri):
+        return uri
 
     class Meta:
         abstract = False

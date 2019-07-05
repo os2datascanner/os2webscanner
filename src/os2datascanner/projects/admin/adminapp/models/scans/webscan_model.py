@@ -26,6 +26,9 @@ class WebScan(Scan):
 
     """An actual instance of the web scanning process done by a web scanner."""
 
+    class Meta:
+        verbose_name = 'Web report'
+
     def __init__(self, *args, **kwargs):
         """Initialize a new scan.
 
@@ -118,7 +121,8 @@ class WebScan(Scan):
     @property
     def no_of_broken_links(self):
         """Return the number of broken links for this scan."""
-        return self.urls.exclude(status_code__isnull=True).count()
+        print('VERSIONS', self.versions, self.urls)
+        return self.urls.exclude(webversion__status_code__isnull=True).count()
 
     @property
     def has_active_scans(self, scanner):

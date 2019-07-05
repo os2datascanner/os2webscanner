@@ -64,7 +64,7 @@ class RegexPatternAdmin(admin.ModelAdmin):
 
 @admin.register(WebScan)
 class WebScanAdmin(admin.ModelAdmin):
-    date_hierarchy = 'start_time'
+    date_hierarchy = 'creation_time'
     list_display = ('scanner', 'status', 'creation_time',
                     'start_time', 'end_time', 'is_visible')
     list_filter = ('status', 'is_visible', 'scanner')
@@ -93,7 +93,7 @@ class StatisticAdmin(admin.ModelAdmin):
 @admin.register(WebVersion)
 class WebVersionAdmin(admin.ModelAdmin):
     list_filter = ('scan',)
-    list_display = ('url', 'scan')
+    list_display = ('location', 'scan')
 
 @admin.register(UrlLastModified)
 class UrlModifiedAdmin(admin.ModelAdmin):
@@ -110,11 +110,15 @@ class ConversionQueueItemAdmin(admin.ModelAdmin):
 
 @admin.register(ReferrerUrl)
 class ReferrerUrlAdmin(admin.ModelAdmin):
-    list_display = ('url', 'scan')
+    list_display = ('location', 'scan')
 
-for _cls in [
-    Group, Organization, FileScanner, ExchangeScanner, WebScanner,
-]:
+@admin.register(FileScanner)
+@admin.register(ExchangeScanner)
+@admin.register(WebScanner)
+class ScannerAdmin(admin.ModelAdmin):
+    list_display = ('name', 'url', 'validation_status')
+
+for _cls in [Group, Organization]:
     admin.site.register(_cls)
 
 
