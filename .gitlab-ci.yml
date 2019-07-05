@@ -23,3 +23,15 @@ test:
   artifacts:
     reports:
       junit: build/test-results/*.xml
+
+flake8:
+  image: python:latest
+  script:
+    - pip install flake8
+    - flake8 --show-source src || echo TODO
+
+black:
+  image: python:latest
+  script:
+    - pip install black
+    - black --check src || echo TODO
