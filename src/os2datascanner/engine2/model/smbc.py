@@ -39,16 +39,14 @@ class SMBCSource(Source):
                 try:
                     obj = context.opendir(url + "/" + str(path))
                     for dent in obj.getdents():
-                        for h in handle_dirent(here, dent):
-                            yield h
+                        yield from handle_dirent(here, dent)
                 except ValueError:
                     pass
             elif entity.smbc_type == smbc.FILE:
                 yield SMBCHandle(self, path)
         obj = context.opendir(url)
         for dent in obj.getdents():
-            for h in handle_dirent([], dent):
-                yield h
+            yield from handle_dirent([], dent)
 
     def to_url(self):
         return make_smb_url(
