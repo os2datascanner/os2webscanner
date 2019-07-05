@@ -25,8 +25,10 @@ from exchange_assistant import ExchangeServerAssistant
 
 try:
     from .stats import Stats
+    from .settings import AMQP_HOST
 except SystemError:
     from stats import Stats
+    from settings import AMQP_HOST
 
 exchangelogger = logging.getLogger(__name__)
 exchangelogger.setLevel(logging.ERROR)
@@ -379,7 +381,7 @@ class ExchangeServerExport(multiprocessing.Process):
 
     def start_amqp(self):
         if self.amqp:
-            conn_params = pika.ConnectionParameters('localhost',
+            conn_params = pika.ConnectionParameters(AMQP_HOST,
                                                     heartbeat_interval=6000)
             connection = pika.BlockingConnection(conn_params)
             self.amqp_channel = connection.channel()
@@ -485,7 +487,7 @@ if __name__ == '__main__':
     if amqp:
         amqp_data = {}
         amqp_data['children'] = str(len(multiprocessing.active_children()))
-        conn_params = pika.ConnectionParameters('localhost')
+        conn_params = pika.ConnectionParameters(AMQP_HOST)
         connection = pika.BlockingConnection(conn_params)
         amqp_channel = connection.channel()
         amqp_channel.queue_declare('global')

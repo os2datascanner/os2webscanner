@@ -83,6 +83,8 @@ TEST_OUTPUT_FILE_NAME = os.path.join(PROJECT_DIR, '.test-results.xml')
 TEST_OUTPUT_DESCRIPTIONS = True
 TEST_OUTPUT_VERBOSE = True
 
+AMQP_HOST = os.getenv("AMQP_HOST", "localhost")
+
 # Application definition
 
 INSTALLED_APPS = (

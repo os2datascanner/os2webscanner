@@ -18,6 +18,8 @@
 # Path to exchange export dir
 EXCHANGE_EXPORT_DIR_PREFIX = '/tmp/os2datascanner/exchangescan/'
 
+AMQP_HOST = 'localhost'
+
 DAYS_BETWEEN_DOWNLOAD = 1
 
 # Number of email downloader threads that should be running.
