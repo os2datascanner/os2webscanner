@@ -27,4 +27,5 @@ django-structlog==1.2.3
 aio-pika==5.5.3
 PyPDF2==1.26.0
 olefile==0.46
-defusedxml==0.5.0
+defusedxml==0.6.0
+prometheus_client==0.6.0
