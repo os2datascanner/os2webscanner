@@ -85,6 +85,9 @@ def prometheus_session(name, advertisement_directory, **kwargs):
     with NamedTemporaryFile(mode="wt", dir=advertisement_directory,
             delete=False) as fp:
         tmpfile = fp.name
+        # (... making sure that other users can read the advertisement...)
+        os.chmod(tmpfile, 0o644)
+
         json.dump([
             {
                 "targets": ["localhost:{0}".format(port)],
