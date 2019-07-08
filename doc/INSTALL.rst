@@ -169,7 +169,7 @@ Next, deploy Apache configuration:
 .. sourcecode:: shell
 
     cd /srv/os2datascanner
-    sudo cp config/apache.conf /etc/apache2/sites-available/webscanner
+    sudo cp contrib/config/apache.conf /etc/apache2/sites-available/os2datascanner
 
 Now, before activating the site, please *edit* the Apache configuration.
 
