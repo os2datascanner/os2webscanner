@@ -1,6 +1,6 @@
 SITE_URL = 'http://webscanner.kommune.dk'
-STATIC_ROOT = '/srv/os2datascanner/projects/admin/adminapp/static'
-MEDIA_ROOT = '/srv/os2datascanner/projects/admin/adminapp/uploads'
+STATIC_ROOT = '/srv/os2datascanner/src/os2datascanner/projects/admin/adminapp/static'
+MEDIA_ROOT = '/srv/os2datascanner/src/os2datascanner/projects/admin/adminapp/uploads'
 DEFAULT_FROM_EMAIL = 'your@email'
 ADMIN_EMAIL = 'your@email'
 
