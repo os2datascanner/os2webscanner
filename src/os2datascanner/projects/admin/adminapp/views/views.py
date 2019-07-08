@@ -419,9 +419,13 @@ class DialogSuccess(TemplateView):
         'webscanners': WebScanner,
         'filescanners': FileScanner,
         'exchangescanners': ExchangeScanner,
-        'rules': RegexRule,
+        'rules/regex': RegexRule,
         'groups': Group,
         'reports/summaries': Summary,
+    }
+
+    reload_map = {
+        'rules/regex': 'rules'
     }
 
     def get_context_data(self, **kwargs):
@@ -436,6 +440,8 @@ class DialogSuccess(TemplateView):
         item = get_object_or_404(model, pk=pk)
         context['item_description'] = item.display_name
         context['action'] = "oprettet" if created else "gemt"
+        if model_type in self.reload_map:
+            model_type = self.reload_map[model_type]
         context['reload_url'] = '/' + model_type + '/'
         return context
 

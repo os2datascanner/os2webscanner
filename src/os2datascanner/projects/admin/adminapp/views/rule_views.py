@@ -1,5 +1,6 @@
 from .views import RestrictedListView, RestrictedCreateView, \
     RestrictedUpdateView, RestrictedDeleteView
+from ..models.rules.rule_model import Rule
 from ..models.rules.regexrule_model import RegexRule, RegexPattern
 
 from django import forms
@@ -14,18 +15,24 @@ class RuleList(RestrictedListView):
 
 class RuleCreate(RestrictedCreateView):
     """Create a rule view."""
-
-    model = RegexRule
-    fields = ['name', 'description', 'sensitivity', 'cpr_enabled', 'do_modulus11', 'ignore_irrelevant']
+    model = Rule
+    fields = ['name', 'description', 'sensitivity']
 
     def get_form(self, form_class=None):
         """Get the form for the view.
         All form fields will have the css class 'form-control' added.
         """
-        if form_class is None:
-            form_class = self.get_form_class()
+        return super().get_form(
+                form_class if form_class else self.get_form_class())
 
+
+class RegexRuleCreate(RestrictedCreateView):
+    model = RegexRule
+    fields = RuleCreate.fields + ['cpr_enabled', 'do_modulus11', 'ignore_irrelevant']
+
+    def get_form(self, form_class=None):
         form = super().get_form(form_class)
+
         # Then a dynamic form to create multiple pattern fields
         # See - https://www.caktusgroup.com/blog/2018/05/07/creating-dynamic-forms-django/ (Creating a dynamic form)
         self.patterns = extract_pattern_fields(form.data)
@@ -83,23 +90,33 @@ class RuleCreate(RestrictedCreateView):
 
     def get_success_url(self):
         """The URL to redirect to after successful creation."""
-        return '/rules/%s/created/' % self.object.pk
+        return '/rules/regex/%s/created/' % self.object.pk
 
 
 class RuleUpdate(RestrictedUpdateView):
     """Update a rule view."""
-
-    model = RegexRule
-    fields = ['name', 'description', 'sensitivity', 'cpr_enabled', 'do_modulus11', 'ignore_irrelevant']
+    model = Rule
+    fields = ['name', 'description', 'sensitivity']
 
     def get_form(self, form_class=None):
         """Get the form for the view.
 
         All form fields will have the css class 'form-control' added.
         """
-        if form_class is None:
-            form_class = self.get_form_class()
+        return super().get_form(
+                form_class if form_class else self.get_form_class())
 
+
+class RegexRuleUpdate(RestrictedUpdateView):
+    """Update a rule view."""
+    model = RegexRule
+    fields = RuleUpdate.fields + ['cpr_enabled', 'do_modulus11', 'ignore_irrelevant']
+
+    def get_form(self, form_class=None):
+        """Get the form for the view.
+
+        All form fields will have the css class 'form-control' added.
+        """
         form = super().get_form(form_class)
         regex_patterns = self.object.patterns.all().order_by('-id')
 
@@ -181,14 +198,17 @@ class RuleUpdate(RestrictedUpdateView):
 
     def get_success_url(self):
         """The URL to redirect to after successful update."""
-        return '/rules/%s/created/' % self.object.pk
+        return '/rules/regex/%s/saved/' % self.object.pk
 
 
 class RuleDelete(RestrictedDeleteView):
     """Delete a rule view."""
-
-    model = RegexRule
+    model = Rule
     success_url = '/rules/'
+
+
+class RegexRuleDelete(RuleDelete):
+    model = RegexRule
 
 
 '''============ Methods required by multiple views ============'''

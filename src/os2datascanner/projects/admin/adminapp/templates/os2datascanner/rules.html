@@ -120,12 +120,12 @@ Regler
                 <button type="button" class="btn btn-default btn-xs btn-rule-settings"
                   onclick="os2web.iframeDialog(
                   &quot;#edit-rule-modal&quot;,
-                  &quot;/rules/{{rule.pk}}&quot;,
+                  &quot;/rules/regex/{{rule.pk}}&quot;,
                   &quot;Redigér ad hoc-regel '{{rule.name}}'&quot;
                   )">
                 <span class="glyphicon glyphicon-cog"></span> <span>Redigér</span>
                 </button>
-                <a href="/rules/{{rule.pk}}/delete/" class="btn btn-default btn-xs">
+                <a href="/rules/regex/{{rule.pk}}/delete/" class="btn btn-default btn-xs">
                 <span class="glyphicon glyphicon-remove"></span>
                 <span>Slet</span>
                 </a>
@@ -147,7 +147,7 @@ Regler
 {% block modal %}
 <div class="modal iframe" id="create-rule-modal" tabindex="-1" role="dialog"
   aria-labelledby="create-rule-modal-title" aria-hidden="true"
-  data-href="/rules/add/">
+  data-href="/rules/regex/add/">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
@@ -166,7 +166,7 @@ Regler
 </div>
 <div class="modal iframe" id="edit-rule-modal" tabindex="-1" role="dialog"
   aria-labelledby="edit-rule-modal-title" aria-hidden="true"
-  data-href="/rules/add/">
+  data-href="/rules/regex/add/">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
