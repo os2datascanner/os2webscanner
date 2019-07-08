@@ -48,5 +48,3 @@ class Rule(models.Model):
         """Return the name of the rule."""
         return self.name
 
-    class Meta:
-        abstract = True
