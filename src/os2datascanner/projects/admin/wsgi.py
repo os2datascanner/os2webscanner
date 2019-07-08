@@ -13,16 +13,16 @@ import pathlib
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "os2datascanner.projects.admin.settings")
 
-BASE_DIR = str(pathlib.Path(__file__).resolve().parent.parent.parent.parent.parent.absolute())
+PROJECT_DIR = str(pathlib.Path(__file__).resolve().parent.parent.parent.parent.parent.absolute())
 
 lib_path = 'python-env/lib/python3.6/site-packages'
 lib_path1 = 'python-env/lib/python3.5/site-packages'
 
-lib_dir = os.path.join(BASE_DIR, lib_path)
-lib_dir1 = os.path.join(BASE_DIR, lib_path1)
-src_dir = os.path.join(BASE_DIR, 'src')
+lib_dir = os.path.join(PROJECT_DIR, lib_path)
+lib_dir1 = os.path.join(PROJECT_DIR, lib_path1)
+src_dir = os.path.join(PROJECT_DIR, 'src')
 
-sys.path[0:0] = [BASE_DIR, lib_dir, lib_dir1, src_dir]
+sys.path[0:0] = [PROJECT_DIR, lib_dir, lib_dir1, src_dir]
 
 try:
     import os2datascanner.projects.admin.adminapp
