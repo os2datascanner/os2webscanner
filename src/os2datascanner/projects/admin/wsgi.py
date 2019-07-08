@@ -9,10 +9,11 @@ https://docs.djangoproject.com/en/1.11/howto/deployment/wsgi/
 
 import os
 import sys
+import pathlib
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "os2datascanner.projects.admin.settings")
 
-BASE_DIR = str(pathlib.Path(__file__).parent.parent.parent.parent.absolute())
+BASE_DIR = str(pathlib.Path(__file__).resolve().parent.parent.parent.parent.parent.absolute())
 
 lib_path = 'python-env/lib/python3.6/site-packages'
 lib_path1 = 'python-env/lib/python3.5/site-packages'
@@ -26,7 +27,7 @@ sys.path[0:0] = [BASE_DIR, lib_dir, lib_dir1, src_dir]
 try:
     import os2datascanner.projects.admin.adminapp
 except Exception:
-raise RuntimeError("Path: " + str(sys.path))
+    raise RuntimeError("Path: " + str(sys.path))
 
 from django.core.wsgi import get_wsgi_application
 
