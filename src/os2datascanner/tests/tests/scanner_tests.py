@@ -12,8 +12,7 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "os2datascanner.projects.admin.settings"
 django.setup()
 
 from os2webscanner.models.organization_model import Organization
-from os2webscanner.models.regexrule_model import RegexRule
-from os2webscanner.models.regexpattern_model import RegexPattern
+from os2webscanner.models.rules.regexrule_model import RegexRule, RegexPattern
 from os2webscanner.models.sensitivity_level import Sensitivity
 from os2webscanner.models.webdomain_model import WebDomain
 from os2webscanner.models.webscanner_model import WebScanner

@@ -31,7 +31,7 @@ from recurrence.fields import RecurrenceField
 from ..authentication_model import Authentication
 from ..organization_model import Organization
 from ..group_model import Group
-from ..regexrule_model import RegexRule
+from ..rules.regexrule_model import RegexRule
 from ..userprofile_model import UserProfile
 from ...amqp_communication import amqp_connection_manager
 

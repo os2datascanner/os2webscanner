@@ -27,8 +27,7 @@ from .models.group_model import Group
 from .models.match_model import Match
 from .models.organization_model import Organization
 from .models.referrerurl_model import ReferrerUrl
-from .models.regexpattern_model import RegexPattern
-from .models.regexrule_model import RegexRule
+from .models.rules.regexrule_model import RegexRule, RegexPattern
 from .models.scans.scan_model import Scan
 from .models.scans.webscan_model import WebScan
 from .models.scannerjobs.webscanner_model import WebScanner

@@ -30,7 +30,7 @@ from model_utils.fields import MonitorField, StatusField
 
 from ..conversionqueueitem_model import ConversionQueueItem
 from ..match_model import Match
-from ..regexrule_model import RegexRule
+from ..rules.regexrule_model import RegexRule
 from ..scannerjobs.scanner_model import Scanner
 from ..sensitivity_level import Sensitivity
 from ..userprofile_model import UserProfile

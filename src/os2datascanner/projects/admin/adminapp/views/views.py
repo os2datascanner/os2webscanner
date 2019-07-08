@@ -39,7 +39,7 @@ from ..models.scannerjobs.filescanner_model import FileScanner
 from ..models.group_model import Group
 from ..models.organization_model import Organization
 from ..models.referrerurl_model import ReferrerUrl
-from ..models.regexrule_model import RegexRule
+from ..models.rules.regexrule_model import RegexRule
 from ..models.scans.scan_model import Scan
 from ..models.summary_model import Summary
 from ..models.userprofile_model import UserProfile

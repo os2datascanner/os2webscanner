@@ -15,7 +15,15 @@
 # source municipalities ( http://www.os2web.dk/ )
 
 from django.db import models
-from .regexrule_model import RegexRule
+from .rule_model import Rule
+
+
+class RegexRule(Rule):
+    """Represents matching rules based on regular expressions."""
+
+    cpr_enabled = models.BooleanField(default=False, verbose_name='Scan CPR')
+    do_modulus11 = models.BooleanField(default=False, verbose_name='Tjek modulus-11')
+    ignore_irrelevant = models.BooleanField(default=False, verbose_name='Ignorer ugyldige fødselsdatoer')
 
 
 class RegexPattern(models.Model):

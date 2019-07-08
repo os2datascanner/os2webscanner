@@ -1,7 +1,6 @@
 from .views import RestrictedListView, RestrictedCreateView, \
     RestrictedUpdateView, RestrictedDeleteView
-from ..models.regexrule_model import RegexRule
-from ..models.regexpattern_model import RegexPattern
+from ..models.rules.regexrule_model import RegexRule, RegexPattern
 
 from django import forms
 from django.db import transaction
