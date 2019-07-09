@@ -77,15 +77,7 @@ class RegexRuleCreate(RuleCreate):
         return form
 
     def get_pattern_fields(self):
-        """
-        Used in the template to get the field names and their values
-        :return:
-        """
-
-        form_fields = self.get_form().fields
-        for field_name in form_fields:
-            if field_name.startswith('pattern_'):
-                yield (field_name, form_fields.get(field_name).initial)
+        yield ("pattern_0", "")
 
     def form_valid(self, form):
         """
@@ -225,12 +217,8 @@ class RegexRuleUpdate(RuleUpdate):
         Used in the template to get the field names and their values
         :return:
         """
-
-        form_fields = self.get_form().fields
-
-        for field_name in form_fields:
-            if field_name.startswith('pattern_'):
-                yield (field_name, form_fields.get(field_name).initial)
+        for index, f in enumerate(self.get_object().patterns.all()):
+            yield ("pattern_{0}".format(index), f.pattern_string)
 
     def get_success_url(self):
         """The URL to redirect to after successful update."""

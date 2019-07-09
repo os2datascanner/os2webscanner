@@ -43,3 +43,6 @@ class RegexPattern(models.Model):
     def __str__(self):
         """Return the pattern string."""
         return self.pattern_string
+
+    class Meta:
+        ordering = ('pk', )
