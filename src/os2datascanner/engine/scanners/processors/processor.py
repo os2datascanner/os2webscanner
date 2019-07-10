@@ -17,10 +17,8 @@
 
 
 import time
-import datetime
 import os
 import mimetypes
-import sys
 import magic
 import codecs
 import random
@@ -31,9 +29,9 @@ import structlog
 
 from django.db import transaction, DatabaseError
 from django import db
-from django.utils import timezone
 from django.conf import settings
 
+from os2datascanner.utils.metadata import guess_responsible_party
 from os2datascanner.projects.admin.adminapp.models.conversionqueueitem_model import ConversionQueueItem
 
 
@@ -124,9 +122,9 @@ class Processor(object):
     def handle_spider_item(self, data, url_object):
         """Process an item from a spider. Must be overridden.
 
-        :type url_object: WebVersion
+        :type url_object: Version
         :param data: The textual or binary data to process.
-        :param url_object: The WebVersion object that the data was found at.
+        :param url_object: The Version object that the data was found at.
         """
         raise NotImplemented
 
@@ -161,6 +159,9 @@ class Processor(object):
 
         with open(tmp_file_path, 'wb') as tmp_file:
             tmp_file.write(data)
+
+        url_object.metadata = guess_responsible_party(tmp_file_path)
+        url_object.save()
 
         self.logger.info("write_file", url=url_object.url, path=tmp_file_path)
 
@@ -316,14 +317,12 @@ class Processor(object):
                         nowait=True)[0]
 
                     # Change status of the found item
-                    ltime = timezone.localtime(timezone.now())
                     result.status = ConversionQueueItem.PROCESSING
                     result.process_id = self.pid
-                    result.process_start_time = ltime
                     result.save()
             except DatabaseError as e:
                 # Database transaction failed, we just try again
-                self.logger.exception("transaction_failed", exc_info=e)
+                self.logger.warning("transaction_failed", exc_info=e)
                 result = None
             except IndexError:
                 # Nothing in the queue, return None

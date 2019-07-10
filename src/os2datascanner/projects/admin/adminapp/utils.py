@@ -48,7 +48,7 @@ def notify_user(scan):
                     p.user.email]
     if not to_addresses:
         to_addresses = [settings.ADMIN_EMAIL, ]
-    matches = Match.objects.filter(scan=scan).count()
+    matches = Match.objects.filter(url__scan=scan).count()
     matches += WebVersion.objects.filter(
         scan=scan
     ).exclude(status_code__isnull=True).count()

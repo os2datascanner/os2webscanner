@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 import magic
 from pathlib import Path
 from mimetypes import guess_type
-from subprocess import run, PIPE, DEVNULL
 
 from .utilities import _TypPropEq
 

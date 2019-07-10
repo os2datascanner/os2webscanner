@@ -1,4 +1,6 @@
 {% extends 'os2datascanner/base.html' %}
+{% load l10n %}
+
 {% block rendertype %}regular{% endblock %}
 {%  block title %}
 {% if scan.scanner %}
@@ -25,30 +27,27 @@ Rapport
     </a>
   </p>
 
-    {% if scan.domains.all %}
-        <div class="table-responsive">
-            <table class="table table-bordered report">
-                <tbody>
-                <tr>
-                    {% if scan.domains.all and not scan.scanner.process_urls %}<td class="head">
-                        <h3>Domæner</h3>
-                    </td>{% endif %}
-                </tr>
-                <tr>
-                    {% if scan.domains.all and not scan.scanner.process_urls %}<td>
-                        {% for domain in scan.domains.all %}
-                            {% if domain.filedomain.alias %}
-                                {{domain.filedomain.alias}}: ({{domain.url}})<br>
-                            {% else %}
-                                {{domain.url}}<br>
-                            {% endif %}
-                        {% endfor %}
-                    </td>{% endif %}
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    {% endif %}
+    <div class="table-responsive">
+        <table class="table table-bordered report">
+            <tbody>
+            <tr>
+                {% if not scan.scanner.process_urls %}<td class="head">
+                    <h3>Domæne</h3>
+                </td>{% endif %}
+            </tr>
+            <tr>
+                {% if not scan.scanner.process_urls %}<td>
+                        {% if scan.scanner.filescanner %}
+                            {{scan.scanner.filescanner.alias}}:
+                            ({{scan.scanner.url}})<br>
+                        {% else %}
+                            {{scan.scanner.url}}<br>
+                        {% endif %}
+                </td>{% endif %}
+            </tr>
+            </tbody>
+        </table>
+    </div>
 
     <h3>Resumé</h3>
     <div class="table-responsive">
@@ -227,10 +226,10 @@ Rapport
               <tr class="{{ match.get_sensitivity_class }}">
                   <td class="match-url">
                     <span>
-                        {% if "file://" in match.url.url %}
-                        {{ match.url.url|slice:"7:" }}
+                        {% if not scan.scanner.linkable %}
+                        {{ match.url }}
                         {% else %}
-                        <a href="{{ match.url.url }}" target="_NEW">{{ match.url.url }}</a>
+                        <a href="{{ match.url.url }}" target="_NEW">{{ match.url }}</a>
                         {% endif %}
                     </span>
                     {% if "file://" in match.url.url %}
@@ -251,7 +250,7 @@ Rapport
                   </td>
                   {% if scan.do_ocr %}
                   <td class="match-pageno">
-                      <span>{{ match.page_no }}</span>
+                      <span>{{ match.page_no | default_if_none:"—" }}</span>
                   </td>
                   {% endif %}
               </tr>
@@ -335,7 +334,9 @@ Rapport
                                 class="btn btn-default"
                                 data-toggle="modal"
                                 data-target="#view-deadlinks-modal"
-                                onclick="showReferrerUrl('{{referrer.id}}','{{referrer.url}}',all_broken[{{ forloop.counter0 }}],status_messages[{{ forloop.counter0 }}])">
+                                {% localize off %}
+                                onclick="showReferrerUrl('{{referrer.pk}}', '{{referrer.url}}',all_broken[{{ forloop.counter0 }}],status_messages[{{ forloop.counter0 }}])">
+                                {% endlocalize %}
                         <span class="glyphicon glyphicon-eye-open"></span>
                         Inspicér
                         </button>
@@ -449,44 +450,29 @@ Rapport
     function internalBrokenLink(href) {
         var internalTarget;
 
-        var scanUrls = '{{ scan.domains.all }}';
-        scanUrls = scanUrls.replace(/(&lt;Domain: )/g,'')
-                           .replace(/(&gt;)/g,'')
-                           .replace('[','')
-                           .replace(']','')
-                           .split(',');
+        var url = '{{ scan.scanner.url }}'.replace(/\/$/, ''); //remove trailing slash
+        href = href.replace(url, "").replace(/^\/|\/$/g, '');
 
-        for(var i=0;i<scanUrls.length;i++) {
-            var url = scanUrls[i].replace(/\/$/, ''); //remove trailing slash
-            href = href.replace(url, "").replace(/^\/|\/$/g, '');
+        var subfolders = href.split('/');
 
-            var subfolders = href.split('/');
+        //find urls in subfolders ../../../
+        for(var j=0;j<subfolders.length;j++) {
+            var back = '../';
+            var s = back.repeat(j) + subfolders.slice(j).join('/');
+            internalTarget = findLink(s);
 
-            //find urls in subfolders ../../../
-            for(var j=0;j<subfolders.length;j++) {
-                var back = '../';
-                var s = back.repeat(j) + subfolders.slice(j).join('/');
-                internalTarget = findLink(s);
-
-                if(typeof internalTarget[0] != 'undefined'){
-                    break;
-                }
-            }
-
-            //find urls in subdomains *.example.dk
-            if(scanUrls[i].startsWith('*')) {
-                internalTarget = linkInSubdomain(href);
-            }
-
-            if(typeof internalTarget[0] == 'undefined') {
-                internalTarget = decodeComma(href);
-            }
-
-            //if link is found
-            if(typeof internalTarget[0] != 'undefined')
-            {
+            if(typeof internalTarget[0] != 'undefined'){
                 break;
             }
+        }
+
+        //find urls in subdomains *.example.dk
+        if(url.startsWith('*')) {
+            internalTarget = linkInSubdomain(href);
+        }
+
+        if(typeof internalTarget[0] == 'undefined') {
+            internalTarget = decodeComma(href);
         }
 
         return internalTarget;

@@ -6,7 +6,6 @@ from gzip import GzipFile
 from lzma import LZMAFile
 from hashlib import md5
 from pathlib import Path
-from datetime import datetime
 from functools import partial
 from contextlib import contextmanager
 

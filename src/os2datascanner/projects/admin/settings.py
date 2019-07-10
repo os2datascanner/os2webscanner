@@ -92,6 +92,16 @@ INSTALLED_APPS = (
     'django_xmlrpc',
 )
 
+try:
+    # if installed, add django_extensions for its many useful commands
+    import django_extensions  # noqa
+
+    INSTALLED_APPS += (
+        'django_extensions',
+    )
+except ImportError:
+    pass
+
 XMLRPC_METHODS = (
     ('os2datascanner.projects.admin.adminapp.rpc.scan_urls', 'scan_urls'),
     ('os2datascanner.projects.admin.adminapp.rpc.scan_documents', 'scan_documents'),

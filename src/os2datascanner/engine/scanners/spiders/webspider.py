@@ -6,12 +6,13 @@ from scrapy.http import Request, HtmlResponse
 from scrapy.spidermiddlewares.httperror import HttpError
 from scrapy.utils.response import response_status_message
 
-from os2datascanner.projects.admin.adminapp.models.referrerurl_model import ReferrerUrl
-
+from os2datascanner.projects.admin.adminapp.models.location_model import \
+    Location
+from os2datascanner.projects.admin.adminapp.models.referrerurl_model import \
+    ReferrerUrl
+from .scanner_spider import ScannerSpider
 # Use our monkey-patched link extractor
 from ..linkextractor import LxmlLinkExtractor
-
-from .scanner_spider import ScannerSpider
 
 
 class WebSpider(ScannerSpider):
@@ -165,10 +166,6 @@ class WebSpider(ScannerSpider):
 
         self.associate_url_referrers(broken_url)
 
-    def scan(self, response):
-        """Scan a response, returning any matches."""
-        super().scan(response)
-
     def _extract_requests(self, response):
         """Extract requests from the response."""
         r = []
@@ -191,7 +188,12 @@ class WebSpider(ScannerSpider):
     def _get_or_create_referrer(self, referrer):
         """Create or get existing ReferrerUrl object."""
         if referrer not in self.referrer_url_objects:
+            l, created = Location.objects.get_or_create(
+                scanner=self.scanner.scan_object.webscanner,
+                url=referrer,
+            )
             self.referrer_url_objects[referrer] = ReferrerUrl(
-                url=referrer, scan=self.scanner.scan_object)
+                location=l, scan=self.scanner.scan_object,
+            )
             self.referrer_url_objects[referrer].save()
         return self.referrer_url_objects[referrer]

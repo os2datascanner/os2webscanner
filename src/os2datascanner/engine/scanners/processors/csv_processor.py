@@ -110,7 +110,6 @@ class CSVProcessor(Processor):
                 for match in matches:
                     # Save matches
                     match['url'] = url_object
-                    match['scan'] = url_object.scan
                     match.save()
 
                     warnings_in_row.append((match['matched_rule'], i))

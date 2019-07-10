@@ -28,7 +28,6 @@ from scrapy.crawler import CrawlerProcess
 from scrapy.exceptions import DontCloseSpider
 
 import os
-from sys import stderr
 os.umask(0o007)
 os.environ["SCRAPY_SETTINGS_MODULE"] = "os2datascanner.engine.scanners.settings"
 
@@ -37,7 +36,6 @@ from os2datascanner.projects.admin.adminapp.models.conversionqueueitem_model imp
 
 from django.core.exceptions import MultipleObjectsReturned
 
-from . import utils
 
 logger = structlog.get_logger()
 
