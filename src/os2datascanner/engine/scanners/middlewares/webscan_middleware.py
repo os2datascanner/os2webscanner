@@ -113,6 +113,8 @@ class WebScanLastModifiedCheckMiddleware(LastModifiedCheckMiddleware):
             last_modified = last_modified_header_date
             logging.debug(
                     "Using header's last-modified date: %s" % last_modified)
+        else:
+            last_modified = None
 
         if last_modified is not None:
             # Check against the database
