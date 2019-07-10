@@ -117,6 +117,21 @@
     </div>
   </div>
 
+  <div id="{{ form.whitelist.auto_id }}_container" class="col-sm-12{% if form.whitelist.errors %} has-error{% endif %}">
+    <div class="form-group">
+      <label class="control-label col-sm-2" for="id_{{ form.whitelist.name }}">{{ form.whitelist.label }}</label>
+      <div class="col-sm-10">
+	<textarea class="form-control" name="{{ form.whitelist.name }}" id="id_{{ form.whitelist.name }}" rows="3" {% if form.whitelist.field.required %}required{% endif %}>{% if form.whitelist.value %}{{ form.whitelist.value }}{% endif %}</textarea>
+	{% if form.whitelist.help_text %}
+	  <p>
+            <small>{{ form.whitelist.help_text }}</small>
+          </p>
+        {% endif %}
+        {% if form.whitelist.errors %}{{ form.whitelist.errors }}{% endif %}
+      </div>
+    </div>
+  </div>
+
   <div id="{{ form.sensitivity.auto_id }}_container" class="col-sm-12{% if form.sensitivity.errors %} has-error{% endif %}">
     <div class="form-group">
       <label class="control-label col-sm-2" for="id_{{ form.sensitivity.name }}">{{ form.sensitivity.label }}</label>

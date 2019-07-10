@@ -109,8 +109,8 @@ scan ID."""
                         name=rule.name,
                         sensitivity=rule.sensitivity,
                         database=rule.namerule.database,
-                        whitelist=self.scan_object.whitelisted_names,
-                        blacklist=self.scan_object.blacklisted_names
+                        whitelist=rule.addressrule.whitelist,
+                        blacklist=rule.addressrule.blacklist
                     )
                 )
             elif hasattr(rule, "addressrule"):
@@ -119,8 +119,8 @@ scan ID."""
                         name=rule.name,
                         sensitivity=rule.sensitivity,
                         database=rule.addressrule.database,
-                        whitelist=self.scan_object.whitelisted_addresses,
-                        blacklist=self.scan_object.blacklisted_addresses
+                        whitelist=rule.addressrule.whitelist,
+                        blacklist=rule.addressrule.blacklist
                     )
                 )
             elif hasattr(rule, "regexrule"):
@@ -134,7 +134,8 @@ scan ID."""
                 rules.append(
                     CPRRule(name=rule.name, sensitivity=rule.sensitivity,
                             ignore_irrelevant=rule.cprrule.ignore_irrelevant,
-                            do_modulus11=rule.cprrule.do_modulus11))
+                            do_modulus11=rule.cprrule.do_modulus11,
+                            whitelist=rule.cprrule.whitelist))
         return rules
 
     def get_exclusion_rules(self):

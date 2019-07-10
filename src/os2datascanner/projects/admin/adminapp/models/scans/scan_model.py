@@ -71,22 +71,6 @@ class Scan(models.Model):
 
     is_visible = models.BooleanField(default=True)
 
-    whitelisted_names = models.TextField(max_length=4096, blank=True,
-                                         default="",
-                                         verbose_name='Godkendte navne')
-    blacklisted_names = models.TextField(max_length=4096, blank=True,
-                                         default="",
-                                         verbose_name='Sortlistede navne')
-    whitelisted_addresses = models.TextField(max_length=4096, blank=True,
-                                             default="", verbose_name='Godkendte adresser')
-    blacklisted_addresses = models.TextField(
-        max_length=4096, blank=True,
-        default="",
-        verbose_name='Sortlistede adresser'
-    )
-    whitelisted_cprs = models.TextField(max_length=4096, blank=True,
-                                        default="",
-                                        verbose_name='Godkendte CPR-numre')
     do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder')
 
 
@@ -467,11 +451,6 @@ class Scan(models.Model):
     def create(self, scanner):
         """ Create and copy fields from scanner. """
         self.is_visible = scanner.is_visible
-        self.whitelisted_names = scanner.organization.name_whitelist
-        self.blacklisted_names = scanner.organization.name_blacklist
-        self.whitelisted_addresses = scanner.organization.address_whitelist
-        self.blacklisted_addresses = scanner.organization.address_blacklist
-        self.whitelisted_cprs = scanner.organization.cpr_whitelist
         self.do_ocr = scanner.do_ocr
         self.do_last_modified_check = scanner.do_last_modified_check
         self.columns = scanner.columns

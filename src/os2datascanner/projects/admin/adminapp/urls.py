@@ -34,7 +34,7 @@ from .views.rule_views import RuleList, \
     RegexRuleCreate, RegexRuleUpdate, RegexRuleDelete
 from .views.views import GroupList, GroupCreate, GroupUpdate, GroupDelete
 from .views.views import MainPageView
-from .views.views import OrganizationUpdate, OrganizationList
+from .views.views import OrganizationList
 from .views.views import SummaryList, SummaryCreate, SummaryUpdate, SummaryDelete
 from .views.views import SummaryReport, DialogSuccess, SystemStatusView
 from .views.views import file_upload, referrer_content
@@ -98,8 +98,6 @@ urlpatterns = [
         name='rule_update'),
     url(r'^rules/regex/(?P<pk>\d+)/delete/$', RegexRuleDelete.as_view(),
         name='rule_delete'),
-    url(r"^rules/organization/$", OrganizationUpdate.as_view(),
-        name='organization_update'),
     url(r'^reports/$', ReportList.as_view(), name='reports'),
     url(r'^reports/web/$', ReportList.as_view(active='web', queryset=Scan.objects.filter(scanner__webscanner__isnull=False)), name='reports'),
     url(r'^reports/file/$', ReportList.as_view(active='file', queryset=Scan.objects.filter(scanner__filescanner__isnull=False)), name='reports'),

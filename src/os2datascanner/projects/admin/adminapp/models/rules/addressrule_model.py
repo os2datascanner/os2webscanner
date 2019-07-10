@@ -33,3 +33,10 @@ class AddressRule(Rule):
             choices=database_choices,
             default=DATABASE_PD_2015,
             verbose_name="Gadenavnedatabase")
+
+    whitelist = models.TextField(blank=True,
+                                 default="",
+                                 verbose_name='Godkendte adresser')
+    blacklist = models.TextField(blank=True,
+                                 default="",
+                                 verbose_name='Sortlistede adresser')

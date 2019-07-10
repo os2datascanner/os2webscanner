@@ -28,3 +28,6 @@ class CPRRule(Rule):
     ignore_irrelevant = models.BooleanField(
             default=False, verbose_name='Ignorer ugyldige fødselsdatoer')
 
+    whitelist = models.TextField(blank=True,
+                                 default="",
+                                 verbose_name='Godkendte CPR-numre')

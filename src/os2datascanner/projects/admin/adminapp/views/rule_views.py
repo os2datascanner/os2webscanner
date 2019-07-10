@@ -103,7 +103,8 @@ class RegexRuleCreate(RuleCreate):
 
 class CPRRuleCreate(RuleCreate):
     model = CPRRule
-    fields = RuleCreate.fields + ['do_modulus11', 'ignore_irrelevant']
+    fields = RuleCreate.fields + [
+            'do_modulus11', 'ignore_irrelevant', 'whitelist']
 
     def get_success_url(self):
         """The URL to redirect to after successful creation."""
@@ -208,7 +209,8 @@ class RegexRuleUpdate(RuleUpdate):
 
 class CPRRuleUpdate(RuleUpdate):
     model = CPRRule
-    fields = RuleUpdate.fields + ['do_modulus11', 'ignore_irrelevant']
+    fields = RuleUpdate.fields + [
+            'do_modulus11', 'ignore_irrelevant', 'whitelist']
 
     def get_success_url(self):
         """The URL to redirect to after successful update."""

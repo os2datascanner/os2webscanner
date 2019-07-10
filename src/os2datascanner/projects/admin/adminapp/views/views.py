@@ -312,26 +312,6 @@ class RestrictedDeleteView(DeleteView, OrgRestrictedMixin):
     """Base class for deleteviews restricted by organiztion."""
 
 
-
-class OrganizationUpdate(UpdateView, LoginRequiredMixin):
-    """Create an organization update view."""
-
-    model = Organization
-    fields = ['name_whitelist', 'name_blacklist', 'address_whitelist',
-              'address_blacklist', 'cpr_whitelist']
-
-    def get_object(self):
-        """Get the organization to which the current user belongs."""
-        try:
-            object = self.request.user.profile.organization
-        except UserProfile.DoesNotExist:
-            object = None
-        return object
-
-    def get_success_url(self):
-        return "/rules/organization/"
-
-
 class GroupCreate(RestrictedCreateView):
     """Create a group view."""
 

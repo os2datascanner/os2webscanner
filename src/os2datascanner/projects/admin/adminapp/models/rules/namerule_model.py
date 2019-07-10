@@ -33,3 +33,10 @@ class NameRule(Rule):
             choices=database_choices,
             default=DATABASE_DST_2014,
             verbose_name="Navnedatabase")
+
+    whitelist = models.TextField(blank=True,
+                                 default="",
+                                 verbose_name='Godkendte navne')
+    blacklist = models.TextField(blank=True,
+                                 default="",
+                                 verbose_name='Sortlistede navne')
