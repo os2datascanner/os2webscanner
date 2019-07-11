@@ -30,7 +30,7 @@ from model_utils.fields import MonitorField, StatusField
 
 from ..conversionqueueitem_model import ConversionQueueItem
 from ..match_model import Match
-from ..regexrule_model import RegexRule
+from ..rules.rule_model import Rule
 from ..scannerjobs.scanner_model import Scanner
 from ..sensitivity_level import Sensitivity
 from ..userprofile_model import UserProfile
@@ -71,25 +71,6 @@ class Scan(models.Model):
 
     is_visible = models.BooleanField(default=True)
 
-    whitelisted_names = models.TextField(max_length=4096, blank=True,
-                                         default="",
-                                         verbose_name='Godkendte navne')
-    blacklisted_names = models.TextField(max_length=4096, blank=True,
-                                         default="",
-                                         verbose_name='Sortlistede navne')
-    whitelisted_addresses = models.TextField(max_length=4096, blank=True,
-                                             default="", verbose_name='Godkendte adresser')
-    blacklisted_addresses = models.TextField(
-        max_length=4096, blank=True,
-        default="",
-        verbose_name='Sortlistede adresser'
-    )
-    whitelisted_cprs = models.TextField(max_length=4096, blank=True,
-                                        default="",
-                                        verbose_name='Godkendte CPR-numre')
-    do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
-    do_address_scan = models.BooleanField(default=False,
-                                          verbose_name='Adresse')
     do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder')
 
 
@@ -106,10 +87,10 @@ class Scan(models.Model):
                                blank=True
                                )
 
-    regex_rules = models.ManyToManyField(RegexRule,
-                                         blank=True,
-                                         verbose_name='Regex-regler',
-                                         related_name='scans')
+    rules = models.ManyToManyField(Rule,
+                                   blank=True,
+                                   verbose_name='Regler',
+                                   related_name='scans')
     recipients = models.ManyToManyField(UserProfile, blank=True)
 
     # Spreadsheet annotation and replacement parameters
@@ -470,13 +451,6 @@ class Scan(models.Model):
     def create(self, scanner):
         """ Create and copy fields from scanner. """
         self.is_visible = scanner.is_visible
-        self.whitelisted_names = scanner.organization.name_whitelist
-        self.blacklisted_names = scanner.organization.name_blacklist
-        self.whitelisted_addresses = scanner.organization.address_whitelist
-        self.blacklisted_addresses = scanner.organization.address_blacklist
-        self.whitelisted_cprs = scanner.organization.cpr_whitelist
-        self.do_name_scan = scanner.do_name_scan
-        self.do_address_scan = scanner.do_address_scan
         self.do_ocr = scanner.do_ocr
         self.do_last_modified_check = scanner.do_last_modified_check
         self.columns = scanner.columns
@@ -495,7 +469,7 @@ class Scan(models.Model):
         self.status = Scan.NEW
         self.scanner = scanner
         self.save()
-        self.regex_rules.add(*scanner.regex_rules.all())
+        self.rules.add(*scanner.rules.all())
         self.recipients.add(*scanner.recipients.all())
 
     class Meta:

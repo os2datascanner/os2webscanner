@@ -18,6 +18,7 @@ install_system_dependencies() {
 
     SYSTEM_PACKAGES=$(cat "$DIR/doc/SYSTEM_DEPENDENCIES")
 
+    sudo -H apt-get update
     for package in ${SYSTEM_PACKAGES[@]}
     do
         sudo -H apt-get -y install "$package" || return 1
@@ -136,8 +137,18 @@ END
     fi
 }
 
+perform_django_migrations() {
+    echo "$0: applying Django migrations"
+    if "$DIR/bin/manage-admin" showmigrations | sponge | grep --quiet '\[ \]'; then
+        "$DIR/bin/manage-admin" migrate
+    else
+        echo "$0: all Django migrations have been applied"
+    fi
+}
+
 install_system_dependencies
 install_python_environment
 configure_development_environment
 configure_database
 configure_prometheus
+perform_django_migrations

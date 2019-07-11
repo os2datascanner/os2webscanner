@@ -39,7 +39,8 @@ from ..models.scannerjobs.filescanner_model import FileScanner
 from ..models.group_model import Group
 from ..models.organization_model import Organization
 from ..models.referrerurl_model import ReferrerUrl
-from ..models.regexrule_model import RegexRule
+from ..models.rules.cprrule_model import CPRRule
+from ..models.rules.regexrule_model import RegexRule
 from ..models.scans.scan_model import Scan
 from ..models.summary_model import Summary
 from ..models.userprofile_model import UserProfile
@@ -311,26 +312,6 @@ class RestrictedDeleteView(DeleteView, OrgRestrictedMixin):
     """Base class for deleteviews restricted by organiztion."""
 
 
-
-class OrganizationUpdate(UpdateView, LoginRequiredMixin):
-    """Create an organization update view."""
-
-    model = Organization
-    fields = ['name_whitelist', 'name_blacklist', 'address_whitelist',
-              'address_blacklist', 'cpr_whitelist']
-
-    def get_object(self):
-        """Get the organization to which the current user belongs."""
-        try:
-            object = self.request.user.profile.organization
-        except UserProfile.DoesNotExist:
-            object = None
-        return object
-
-    def get_success_url(self):
-        return "/rules/organization/"
-
-
 class GroupCreate(RestrictedCreateView):
     """Create a group view."""
 
@@ -349,7 +330,7 @@ class GroupCreate(RestrictedCreateView):
     def get_form(self, form_class=None):
         """Get the form for the view.
 
-        Querysets used for choices in the 'domains' and 'regex_rules' fields
+        Querysets used for choices in the 'domains' and 'rules' fields
         will be limited by the user's organiztion unless the user is a
         superuser.
         """
@@ -379,7 +360,7 @@ class GroupUpdate(RestrictedUpdateView):
     def get_form(self, form_class=None):
         """Get the form for the view.
 
-        Querysets used for choices in the 'domains' and 'regex_rules' fields
+        Querysets used for choices in the 'domains' and 'rules' fields
         will be limited by the user's organiztion unless the user is a
         superuser.
         """
@@ -419,9 +400,15 @@ class DialogSuccess(TemplateView):
         'webscanners': WebScanner,
         'filescanners': FileScanner,
         'exchangescanners': ExchangeScanner,
-        'rules': RegexRule,
+        'rules/cpr': CPRRule,
+        'rules/regex': RegexRule,
         'groups': Group,
         'reports/summaries': Summary,
+    }
+
+    reload_map = {
+        'rules/cpr': 'rules',
+        'rules/regex': 'rules'
     }
 
     def get_context_data(self, **kwargs):
@@ -436,6 +423,8 @@ class DialogSuccess(TemplateView):
         item = get_object_or_404(model, pk=pk)
         context['item_description'] = item.display_name
         context['action'] = "oprettet" if created else "gemt"
+        if model_type in self.reload_map:
+            model_type = self.reload_map[model_type]
         context['reload_url'] = '/' + model_type + '/'
         return context
 

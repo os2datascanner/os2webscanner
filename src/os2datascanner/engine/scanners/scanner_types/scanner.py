@@ -21,6 +21,7 @@ import structlog
 from os2datascanner.projects.admin.adminapp.models.location_model import Location
 from os2datascanner.projects.admin.adminapp.models.scans.scan_model import Scan
 from os2datascanner.projects.admin.adminapp.models.version_model import Version
+from os2datascanner.projects.admin.adminapp.models.sensitivity_level import Sensitivity
 
 from ..rules.name import NameRule
 from ..rules.address import AddressRule
@@ -63,14 +64,6 @@ dictionary."""
         self.scan_object.set_scan_status_failed(arg)
 
     @property
-    def do_name_scan(self):
-        return self.scan_object.do_name_scan
-
-    @property
-    def do_address_scan(self):
-        return self.scan_object.do_address_scan
-
-    @property
     def do_ocr(self):
         return self.scan_object.do_ocr
 
@@ -108,28 +101,41 @@ scan ID."""
     def _load_rules(self):
         """Load rules based on WebScanner settings."""
         rules = []
-        if self.do_name_scan:
-            rules.append(
-                NameRule(whitelist=self.scan_object.whitelisted_names,
-                         blacklist=self.scan_object.blacklisted_names)
-            )
-        if self.do_address_scan:
-            rules.append(
-                AddressRule(whitelist=self.scan_object.whitelisted_addresses,
-                            blacklist=self.scan_object.blacklisted_addresses)
-            )
         # Add Regex Rules
-        for rule in self.scan_object.regex_rules.all():
-            rules.append(
-                RegexRule(
-                    name=rule.name,
-                    pattern_strings=rule.patterns.all(),
-                    sensitivity=rule.sensitivity,
-                    cpr_enabled=rule.cpr_enabled,
-                    ignore_irrelevant=rule.ignore_irrelevant,
-                    do_modulus11=rule.do_modulus11
+        for rule in self.scan_object.rules.all():
+            if hasattr(rule, "namerule"):
+                rules.append(
+                    NameRule(
+                        name=rule.name,
+                        sensitivity=rule.sensitivity,
+                        database=rule.namerule.database,
+                        whitelist=rule.namerule.whitelist,
+                        blacklist=rule.namerule.blacklist
+                    )
                 )
-            )
+            elif hasattr(rule, "addressrule"):
+                rules.append(
+                    AddressRule(
+                        name=rule.name,
+                        sensitivity=rule.sensitivity,
+                        database=rule.addressrule.database,
+                        whitelist=rule.addressrule.whitelist,
+                        blacklist=rule.addressrule.blacklist
+                    )
+                )
+            elif hasattr(rule, "regexrule"):
+                rules.append(
+                    RegexRule(
+                        name=rule.name, sensitivity=rule.sensitivity,
+                        pattern_strings=rule.regexrule.patterns.all()
+                    )
+                )
+            elif hasattr(rule, "cprrule"):
+                rules.append(
+                    CPRRule(name=rule.name, sensitivity=rule.sensitivity,
+                            ignore_irrelevant=rule.cprrule.ignore_irrelevant,
+                            do_modulus11=rule.cprrule.do_modulus11,
+                            whitelist=rule.cprrule.whitelist))
         return rules
 
     def get_exclusion_rules(self):

@@ -16,22 +16,6 @@ class Organization(models.Model):
                                         editable=settings.DO_USE_GROUPS)
     do_notify_all_scans = models.BooleanField(default=True)
 
-    name_whitelist = models.TextField(blank=True,
-                                      default="",
-                                      verbose_name='Godkendte navne')
-    name_blacklist = models.TextField(blank=True,
-                                      default="",
-                                      verbose_name='Sortlistede navne')
-    address_whitelist = models.TextField(blank=True,
-                                         default="",
-                                         verbose_name='Godkendte adresser')
-    address_blacklist = models.TextField(blank=True,
-                                         default="",
-                                         verbose_name='Sortlistede adresser')
-    cpr_whitelist = models.TextField(blank=True,
-                                     default="",
-                                     verbose_name='Godkendte CPR-numre')
-
     def __str__(self):
         """Return the name of the organization."""
         return self.name

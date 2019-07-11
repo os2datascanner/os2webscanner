@@ -54,7 +54,7 @@ from os2datascanner.projects.admin.adminapp.models.scans.scan_model import Scan
 from os2datascanner.projects.admin.adminapp.models.scans.webscan_model import WebScan
 from os2datascanner.projects.admin.adminapp.models.scannerjobs.webscanner_model import WebScanner
 
-from os2datascanner.projects.admin.adminapp.models.regexrule_model import RegexRule
+from os2datascanner.projects.admin.adminapp.models.rules.regexrule_model import RegexRule
 from os2datascanner.projects.admin.adminapp.models.organization_model import Organization
 
 

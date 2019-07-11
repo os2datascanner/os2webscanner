@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# encoding: utf-8
 # The contents of this file are subject to the Mozilla Public License
 # Version 2.0 (the "License"); you may not use this file except in
 # compliance with the License. You may obtain a copy of the License at
@@ -31,7 +33,7 @@ from recurrence.fields import RecurrenceField
 from ..authentication_model import Authentication
 from ..organization_model import Organization
 from ..group_model import Group
-from ..regexrule_model import RegexRule
+from ..rules.rule_model import Rule
 from ..userprofile_model import UserProfile
 from ...amqp_communication import amqp_connection_manager
 
@@ -61,11 +63,6 @@ class Scanner(models.Model):
     schedule = RecurrenceField(max_length=1024,
                                verbose_name='Planlagt afvikling')
 
-    do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
-
-    do_address_scan = models.BooleanField(default=False,
-                                          verbose_name='Adresse')
-
     do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder')
 
     do_last_modified_check = models.BooleanField(
@@ -79,10 +76,10 @@ class Scanner(models.Model):
                                blank=True
                                )
 
-    regex_rules = models.ManyToManyField(RegexRule,
-                                         blank=True,
-                                         verbose_name='Regex-regler',
-                                         related_name='scanners')
+    rules = models.ManyToManyField(Rule,
+                                   blank=True,
+                                   verbose_name='Regler',
+                                   related_name='scanners')
 
     recipients = models.ManyToManyField(UserProfile, blank=True,
                                         verbose_name='Modtagere')
