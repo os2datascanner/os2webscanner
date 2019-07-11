@@ -18,6 +18,7 @@ install_system_dependencies() {
 
     SYSTEM_PACKAGES=$(cat "$DIR/doc/SYSTEM_DEPENDENCIES")
 
+    sudo -H apt-get update
     for package in ${SYSTEM_PACKAGES[@]}
     do
         sudo -H apt-get -y install "$package" || return 1
