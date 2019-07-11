@@ -109,8 +109,8 @@ scan ID."""
                         name=rule.name,
                         sensitivity=rule.sensitivity,
                         database=rule.namerule.database,
-                        whitelist=rule.addressrule.whitelist,
-                        blacklist=rule.addressrule.blacklist
+                        whitelist=rule.namerule.whitelist,
+                        blacklist=rule.namerule.blacklist
                     )
                 )
             elif hasattr(rule, "addressrule"):
