@@ -107,8 +107,13 @@ async def process_message(message):
         # Collect scan object and map properties
         if body['type'] == 'WebScanner':
             scanjob = StartWebScan(body)
-        else:
+        elif body['type'] == 'FileScanner':
             scanjob = StartFileScan(body)
+        elif body['type'] == 'ExchangeScanner':
+            scanjob = StartExchangeScan(body)
+        else:
+            logger.error('Invalid scan object recieved: ' + body['type'])
+            return
 
         # sharing opened connections between processes leads to issues
         # with closed/open state getting out-of-sync -- so just close
