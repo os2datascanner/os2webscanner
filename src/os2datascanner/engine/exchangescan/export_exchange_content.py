@@ -21,7 +21,7 @@ from exchangelib.errors import ErrorInvalidOperation
 from exchangelib.errors import ErrorTimeoutExpired
 from exchangelib.errors import ErrorMimeContentConversionFailed
 
-from exchange_assistant import ExchangeServerAssistant
+from .exchange_assistant import ExchangeServerAssistant
 
 try:
     from .stats import Stats
@@ -242,6 +242,8 @@ class ExchangeMailboxScan(object):
             time.sleep(30)
             warning = '{}, {}: ErrorInternalServerTransientError'
             logger.warning(warning.format(self.export_path, folder))
+        except Exception as e:
+            logger.error('Unexpected exception happened: '+str(e))
         return attachments
 
     def _attempt_export(self, folder, start_dt=None, end_dt=None):
