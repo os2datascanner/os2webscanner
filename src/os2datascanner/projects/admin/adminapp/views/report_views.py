@@ -124,7 +124,7 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
         context['referrer_urls'] = referrer_urls
         context['matches'] = all_matches[:100]
         context['all_matches'] = all_matches
-        context['no_of_matches'] = all_matches.count() + broken_urls.count()
+        context['no_of_matches'] = all_matches.count()
         context['failed_conversions'] = (
             this_scan.get_number_of_failed_conversions()
         )
