@@ -2,8 +2,18 @@ from .core import Source, Handle, FileResource
 from .utilities import NamedTemporaryResource
 
 from io import BytesIO
+from time import sleep
+from lxml.html import document_fromstring
+from urllib.parse import urljoin, urlsplit, urlunsplit
 from requests.sessions import Session
 from contextlib import contextmanager
+
+MAX_REQUESTS_PER_SECOND = 10
+SLEEP_TIME = 1 / MAX_REQUESTS_PER_SECOND
+
+def simplify_mime_type(mime):
+    r = mime.split(';', maxsplit=1)
+    return r[0]
 
 class WebSource(Source):
     def __init__(self, url):
@@ -20,7 +30,39 @@ class WebSource(Source):
         session.close()
 
     def handles(self, sm):
-        pass
+        session = sm.open(self)
+        to_visit = [self._url]
+        visited = set()
+
+        scheme, netloc, path, query, fragment = urlsplit(self._url)
+        while to_visit:
+            here, to_visit = to_visit[0], to_visit[1:]
+
+            response = session.head(here)
+            if response.status_code != 200:
+                print(here, response)
+                continue
+
+            ct = response.headers['Content-Type']
+            if simplify_mime_type(ct) == 'text/html':
+                response = session.get(here)
+                doc = document_fromstring(response.content)
+                doc.make_links_absolute(here, resolve_base_href=True)
+                for el, _, li, _ in doc.iterlinks():
+                    if el.tag != 'a':
+                        continue
+                    new_url = urljoin(here, li)
+                    new_scheme, new_netloc, new_path, new_query, _ = urlsplit(new_url)
+                    if new_scheme == scheme and new_netloc == netloc:
+                        new_url = urlunsplit((new_scheme, new_netloc, new_path, new_query, None))
+                        if new_url not in visited:
+                            visited.add(new_url)
+                            to_visit.append(new_url)
+
+            yield WebHandle(self, here[len(self._url):])
+            sleep(SLEEP_TIME)
+
+        print(visited)
 
     def to_url(self):
         return self._url
