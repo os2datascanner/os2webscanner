@@ -28,6 +28,7 @@ from django.utils import timezone
 
 from os2datascanner.engine.run_webscan import StartWebScan
 from os2datascanner.engine.run_filescan import StartFileScan
+from os2datascanner.engine.run_exchangescan import StartExchangeScan
 
 from ...models.scans.scan_model import Scan
 
