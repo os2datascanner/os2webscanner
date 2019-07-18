@@ -29,11 +29,11 @@ class Statistic(models.Model):
     files_is_dir_count = models.IntegerField(default=0)
 
     # Information from the prescanner
-    supported_size = models.IntegerField(default=0)
+    supported_size = models.BigIntegerField(default=0)
     supported_count = models.IntegerField(default=0)
-    relevant_size = models.IntegerField(default=0)
+    relevant_size = models.BigIntegerField(default=0)
     relevant_count = models.IntegerField(default=0)
-    relevant_unsupported_size = models.IntegerField(default=0)
+    relevant_unsupported_size = models.BigIntegerField(default=0)
     relevant_unsupported_count = models.IntegerField(default=0)
 
 
@@ -48,4 +48,4 @@ class TypeStatistics(models.Model):
 
     type_name = models.CharField(max_length=256)
     count = models.IntegerField(default=0)
-    size = models.IntegerField(default=0)
+    size = models.BigIntegerField(default=0)
