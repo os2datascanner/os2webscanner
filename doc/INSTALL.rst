@@ -143,8 +143,7 @@ Test and initialize
 
     cd /srv/os2datascanner
     source ../python-env/bin/activate
-    cd /srv/os2datascanner/src/os2datascanner/projects/admin
-    python manage.py test os2datascanner
+    bin/manage-admin test os2datascanner
 
 The test should pass. Now do:
 
