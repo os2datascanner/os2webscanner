@@ -7,16 +7,15 @@ import time
 import shutil
 import multiprocessing
 
-from os2datascanner.engine.exchangescan import settings
-from os2datascanner.engine.exchangescan.export_exchange_content import ExchangeServerExport, read_users
-
 from os2datascanner.engine.utils import run_django_setup
 
 run_django_setup()
 
+from os2datascanner.engine.exchangescan import settings
+from os2datascanner.engine.exchangescan.export_exchange_content import ExchangeServerExport, read_users
+
 from os2datascanner.projects.admin.adminapp.models.scannerjobs.scanner_model import Scanner
 from os2datascanner.projects.admin.adminapp.models.scannerjobs.exchangescanner_model import ExchangeScanner
-
 
 def start_exchange_export():
     """Starts the exchange server export"""

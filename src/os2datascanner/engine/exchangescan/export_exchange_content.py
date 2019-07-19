@@ -4,7 +4,7 @@ import pika
 import pickle
 import shutil
 import random
-import logging
+import structlog
 import multiprocessing
 from pathlib import Path
 from multiprocessing import Queue
@@ -28,14 +28,8 @@ try:
 except SystemError:
     from stats import Stats
 
-exchangelogger = logging.getLogger(__name__)
-exchangelogger.setLevel(logging.ERROR)
-
-logger = logging.Logger('Mailscan_exchange')
-fh = logging.FileHandler('logfile.log')
-fh.setLevel(logging.DEBUG)
-logger.addHandler(fh)
-logger.error('Program start')
+logger = structlog.getLogger(__name__)
+logger.info('Program start')
 
 
 class ExportError(Exception):

@@ -2,7 +2,7 @@ import time
 import pika
 import pickle
 import curses
-import logging
+import structlog
 import subprocess
 import multiprocessing
 import psutil
@@ -18,11 +18,8 @@ try:
 except ImportError:
     pass
 
-logger = logging.getLogger(__name__)
-fh = logging.FileHandler('logfile.log')
-fh.setLevel(logging.INFO)
-logger.addHandler(fh)
-logger.error('Stat start')
+logger = structlog.getLogger(__name__)
+logger.info('Stat start')
 
 
 class Stats(multiprocessing.Process):
