@@ -10,7 +10,7 @@ import multiprocessing
 from os2datascanner.engine.exchangescan import settings
 from os2datascanner.engine.exchangescan.export_exchange_content import ExchangeServerExport, read_users
 
-from .utils import run_django_setup
+from os2datascanner.engine.utils import run_django_setup
 
 run_django_setup()
 
