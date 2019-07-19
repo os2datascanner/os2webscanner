@@ -7,8 +7,8 @@ import time
 import shutil
 import multiprocessing
 
-from .exchangescan import settings
-from .exchangescan.export_exchange_content import ExchangeServerExport, read_users
+from os2datascanner.engine.exchangescan import settings
+from os2datascanner.engine.exchangescan.export_exchange_content import ExchangeServerExport, read_users
 
 from .utils import run_django_setup
 
