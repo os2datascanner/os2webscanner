@@ -113,7 +113,7 @@ async def process_message(message):
         elif body['type'] == 'ExchangeScanner':
             scanjob = StartExchangeScan(body)
         else:
-            logger.error('Invalid scan object recieved: ' + body['type'])
+            logger.error('invalid_scan_object', **body)
             return
 
         # sharing opened connections between processes leads to issues
