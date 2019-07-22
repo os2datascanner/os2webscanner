@@ -119,10 +119,13 @@ class SourceManager:
         self._ro = False
 
     def share(self):
-        """Returns a copy of this SourceManager that contains only
-        ShareableCookies. (The resulting SourceManager can only safely be used
-        as a parent.)"""
+        """Returns a SourceManager that contains only the ShareableCookies from
+        this SourceManager. (The result can only safely be used as a
+        parent.)"""
+        if self._ro:
+            return self
         r = SourceManager()
+        r._parent = self._parent.share() if self._parent else None
         r._ro = True
         for v in self._order:
             cookie = self._opened[v]
