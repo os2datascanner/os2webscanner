@@ -27,11 +27,17 @@ class NamedTemporaryResource:
 
 class _TypPropEq:
     """Secret mixin! Classes inheriting from _TypPropEq compare equal if their
-    types and properties -- as determined by __getstate__() or __dict__ --
-    compare equal."""
+    types and properties compare equal.
+
+    The relevant properties for this purpose are, in order of preference:
+    - those enumerated by the 'eq_properties' field;
+    - the keys of the dictionary returned by its __getstate__ function; or
+    - the keys of its __dict__ field."""
     @staticmethod
     def __get_state(obj):
-        if hasattr(obj, '__getstate__'):
+        if hasattr(obj, 'eq_properties'):
+            return {k: getattr(obj, k) for k in getattr(obj, 'eq_properties')}
+        elif hasattr(obj, '__getstate__'):
             return obj.__getstate__()
         else:
             return obj.__dict__
