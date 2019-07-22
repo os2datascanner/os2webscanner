@@ -232,8 +232,8 @@ Rapport
                         <a href="{{ match.url.url }}" target="_NEW">{{ match.url }}</a>
                         {% endif %}
                     </span>
-                    {% if "file://" in match.url.url %}
-                    <input type="text" class="phantom" value="{{ match.url.url|slice:"7:" }}" />
+                    {% if not scan.scanner.linkable %}
+                    <input type="text" class="phantom" value="{{ match.url }}" />
                     {% endif %}
                   </td>
                   <td class="match-rule">
