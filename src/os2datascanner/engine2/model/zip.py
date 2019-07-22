@@ -30,6 +30,9 @@ class ZipSource(Source):
         r.__exit__(None, None, None)
         zipfile.close()
 
+    def to_handle(self):
+        return self._handle
+
 class ZipHandle(Handle):
     def follow(self, sm):
         return ZipResource(self, sm)

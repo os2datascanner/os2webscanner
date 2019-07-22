@@ -81,6 +81,12 @@ class Source(ABC, _TypPropEq):
         else:
             return None
 
+    def to_handle(self):
+        """If this Source was created based on a Handle (typically by the
+        Source.from_handle function), then returns that Handle; otherwise,
+        returns None."""
+        return None
+
 class UnknownSchemeError(LookupError):
     pass
 
