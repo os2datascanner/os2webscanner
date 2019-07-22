@@ -394,9 +394,10 @@ class Scan(models.Model):
             num_ocr_items = items["total"]
             if (not scan.pause_non_ocr_conversions and
                         num_ocr_items > settings.PAUSE_NON_OCR_ITEMS_THRESHOLD):
-                self.logger.info(
+                logger.info(
                     "Pausing non-OCR conversions for scan "
                     "because it has too many OCR items",
+                    scan_id=scan.pk, scan_status=scan.status,
                     num_ocr_items=num_ocr_items,
                     threshold=settings.PAUSE_NON_OCR_ITEMS_THRESHOLD,
                 )
@@ -404,9 +405,10 @@ class Scan(models.Model):
                 scan.save()
             elif (scan.pause_non_ocr_conversions and
                           num_ocr_items < settings.RESUME_NON_OCR_ITEMS_THRESHOLD):
-                self.logger.info(
+                logger.info(
                     "Resuming non-OCR conversions for scan "
                     "as its OCR are under the threshold",
+                    scan_id=scan.pk, scan_status=scan.status,
                     num_ocr_items=num_ocr_items,
                     threshold=settings.RESUME_NON_OCR_ITEMS_THRESHOLD,
                 )
