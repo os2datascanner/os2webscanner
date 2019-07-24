@@ -1,5 +1,4 @@
 from time import sleep
-import logging
 import multiprocessing
 from urllib.parse import urljoin
 
@@ -9,6 +8,9 @@ from ..engine2.model.core import SourceManager
 from ..engine2.model.file import FilesystemSource
 from .scanners.processors.processor import Processor
 from .scanners.scanner_types.filescanner import FileScanner
+
+import structlog
+logger = structlog.get_logger()
 
 
 class StartModelFileScan(StartScan, multiprocessing.Process):
@@ -22,6 +24,7 @@ class StartModelFileScan(StartScan, multiprocessing.Process):
 
         super().__init__(configuration)
         multiprocessing.Process.__init__(self)
+        self.logger = logger.bind(**self.configuration)
 
     def run(self):
         """Updates the scan status and sets the pid.
@@ -43,7 +46,7 @@ class StartModelFileScan(StartScan, multiprocessing.Process):
                 interesting_size = 0
                 interesting_count = 0
 
-                logging.info("Exploring source...")
+                self.logger.info("exploring_source")
                 source = FilesystemSource(mountpath)
                 for h in source.handles(sm):
                     mime = h.guess_type()
@@ -55,8 +58,13 @@ class StartModelFileScan(StartScan, multiprocessing.Process):
                         interesting_count += 1
                         interesting.append(h)
                     if all_count % 1000 == 0:
-                        logging.info("Exploring: found {0} files, {1} of which interesting...".format(all_count, interesting_count))
-                logging.info("Exploration complete: found {0} files ({1} bytes), of which {2} ({3} bytes) interesting.".format(all_count, all_size, interesting_count, interesting_size))
+                        logger.info("exploration_status",
+                                all_count=all_count,
+                                interesting_count=interesting_count)
+                self.logger.info("explored_source",
+                        all_count=all_count, all_size=all_size,
+                        interesting_count=interesting_count,
+                        interesting_size=interesting_size)
 
                 self.scanner.set_statistics(
                         supported_size=interesting_size,
@@ -66,20 +74,20 @@ class StartModelFileScan(StartScan, multiprocessing.Process):
                         relevant_unsupported_size=0,
                         relevant_unsupported_count=0)
 
-                logging.info("Fetching interesting items...")
+                self.logger.info("fetching_items")
                 for idx, h in enumerate(interesting):
                     url = urljoin(source.to_url() + "/",
                             str(h.get_relative_path()))
                     url = url.replace(mountpath, url)
-                    logging.info("Item {0}/{1}: {2}".format(idx + 1, interesting_count, url))
 
                     url_object = self.scanner.mint_url(
                             url=url, mime_type=h.guess_type())
                     with h.follow(sm).make_stream() as s:
                         self.scanner.scan(s.read(), url_object)
-                logging.info("Fetched interesting items.")
+                    self.logger.info("fetched_item", pos=idx + 1, total=interesting_count)
+                self.logger.info("fetched_items")
 
-            logging.info("Waiting for processing to finish...")
+            self.logger.info("awaiting_completion")
             from os2datascanner.projects.admin.adminapp.models.conversionqueueitem_model import ConversionQueueItem
             while True:
                 remaining_queue_items = ConversionQueueItem.objects.filter(
@@ -90,9 +98,10 @@ class StartModelFileScan(StartScan, multiprocessing.Process):
                 if not remaining_queue_items:
                     break
                 else:
-                    logging.info("Keeping scan alive: {0} remaining queue items...".format(remaining_queue_items))
+                    self.logger.info("still_awaiting_completion",
+                            remaining=remaining_queue_items)
                     sleep(60)
         finally:
-            logging.info("Processing finished. Scan {0} finished.".format(self.scan_id))
+            self.logger.info("finished")
             self.scanner.done()
 
