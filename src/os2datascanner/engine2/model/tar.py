@@ -58,6 +58,9 @@ class TarResource(FileResource):
     def get_hash(self):
         return self.get_info().chksum
 
+    def get_size(self):
+        return self.get_info().size
+
     def get_last_modified(self):
         return datetime(*self.get_info().mtime)
 

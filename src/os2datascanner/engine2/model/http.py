@@ -94,6 +94,9 @@ class WebResource(FileResource):
             self._header = dict(response.headers)
         return self._header
 
+    def get_size(self):
+        return int(self.get_header()["Content-Length"])
+
     def get_last_modified(self):
         return dateutil.parse(self.get_header()["Last-Modified"])
 

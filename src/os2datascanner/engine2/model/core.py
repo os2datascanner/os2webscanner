@@ -287,6 +287,10 @@ class FileResource(Resource):
         the same one.)"""
 
     @abstractmethod
+    def get_size(self):
+        """Returns the size of this FileResource's content, in bytes."""
+
+    @abstractmethod
     def get_last_modified(self):
         """Returns the last modification date of this FileResource as a Python
         datetime.datetime."""

@@ -95,6 +95,9 @@ class SMBCResource(FileResource):
                 f.close()
         return self._stat
 
+    def get_size(self):
+        return self.get_stat().st_size
+
     def get_last_modified(self):
         return datetime.fromtimestamp(self.get_stat().st_mtime)
 

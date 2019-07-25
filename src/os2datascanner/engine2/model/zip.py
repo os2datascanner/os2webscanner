@@ -51,6 +51,9 @@ class ZipResource(FileResource):
     def get_hash(self):
         return self.get_info().CRC
 
+    def get_size(self):
+        return self.get_info.file_size
+
     def get_last_modified(self):
         return datetime(*self.get_info().date_time)
 

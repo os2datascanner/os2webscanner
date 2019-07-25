@@ -58,6 +58,15 @@ class FilteredResource(FileResource):
                 self._md5 = md5(s.read())
         return self._md5
 
+    def get_size(self):
+        with self.make_stream() as s:
+            initial = s.seek(0, 1)
+            try:
+                s.seek(0, 2)
+                return s.tell()
+            finally:
+                s.seek(initial, 0)
+
     def get_last_modified(self):
         with self.make_stream() as s:
             return s.mtime

@@ -54,6 +54,9 @@ class DataResource(FileResource):
                 self._hash = md5(s.read())
         return self._hash
 
+    def get_size(self):
+        return len(self.get_handle().get_source()._content)
+
     def get_last_modified(self):
         return None
 
