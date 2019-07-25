@@ -28,7 +28,7 @@ from django.utils import timezone
 
 from os2datascanner.engine.run_webscan import StartWebScan
 from os2datascanner.engine.run_filescan import StartFileScan
-from os2datascanner.engine.run_model_filescan import StartModelFileScan
+from os2datascanner.engine.run_engine2_scan import StartEngine2Scan
 
 from ...models.scans.scan_model import Scan
 
@@ -106,11 +106,11 @@ async def process_message(message):
         logger.debug("scan_received", **body)
 
         # Collect scan object and map properties
-        if body['type'] == 'WebScanner':
-            scanjob = StartWebScan(body)
+        if settings.USE_ENGINE2:
+            scanjob = StartEngine2Scan(body)
         else:
-            if settings.USE_ENGINE2:
-                scanjob = StartModelFileScan(body)
+            if body['type'] == 'WebScanner':
+                scanjob = StartWebScan(body)
             else:
                 scanjob = StartFileScan(body)
 

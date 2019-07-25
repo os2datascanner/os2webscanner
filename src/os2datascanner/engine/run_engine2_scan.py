@@ -15,7 +15,7 @@ import structlog
 logger = structlog.get_logger()
 
 
-class StartModelFileScan(StartScan, multiprocessing.Process):
+class StartEngine2Scan(StartScan, multiprocessing.Process):
     """A scanner application which can be run."""
 
     def __init__(self, configuration):
