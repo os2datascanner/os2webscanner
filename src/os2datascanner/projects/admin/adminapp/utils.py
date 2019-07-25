@@ -40,7 +40,7 @@ from .models.summary_model import Summary
 
 def notify_user(scan):
     """Notify user about completed scan - including success and failure."""
-    template = 'os2webscanner/email/scan_report.html'
+    template = 'os2datascanner/email/scan_report.html'
 
     t = loader.get_template(template)
 
@@ -48,7 +48,7 @@ def notify_user(scan):
                     p.user.email]
     if not to_addresses:
         to_addresses = [settings.ADMIN_EMAIL, ]
-    matches = Match.objects.filter(scan=scan).count()
+    matches = Match.objects.filter(url__scan=scan).count()
     matches += WebVersion.objects.filter(
         scan=scan
     ).exclude(status_code__isnull=True).count()
@@ -178,7 +178,7 @@ def send_summary_report(summary, from_date=None, to_date=None,
                  'to_date': to_date,
                  'summary': summary,
                  'site_url': url})
-    template = 'os2webscanner/email/summary_report.html'
+    template = 'os2datascanner/email/summary_report.html'
 
     t = loader.get_template(template)
 

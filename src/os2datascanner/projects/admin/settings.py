@@ -78,6 +78,11 @@ SETTINGS_EXPORT = [
     'ENABLE_WEBSCAN',
 ]
 
+TEST_RUNNER = 'xmlrunner.extra.djangotestrunner.XMLTestRunner'
+TEST_OUTPUT_FILE_NAME = os.path.join(PROJECT_DIR, '.test-results.xml')
+TEST_OUTPUT_DESCRIPTIONS = True
+TEST_OUTPUT_VERBOSE = True
+
 # Application definition
 
 INSTALLED_APPS = (
@@ -91,6 +96,16 @@ INSTALLED_APPS = (
     'recurrence',
     'django_xmlrpc',
 )
+
+try:
+    # if installed, add django_extensions for its many useful commands
+    import django_extensions  # noqa
+
+    INSTALLED_APPS += (
+        'django_extensions',
+    )
+except ImportError:
+    pass
 
 XMLRPC_METHODS = (
     ('os2datascanner.projects.admin.adminapp.rpc.scan_urls', 'scan_urls'),
@@ -119,10 +134,10 @@ WSGI_APPLICATION = 'os2datascanner.projects.admin.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'os2webscanner',
-        'USER': 'os2webscanner',
-        'PASSWORD': 'os2webscanner',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'os2datascanner',
+        'USER': 'os2datascanner',
+        'PASSWORD': 'os2datascanner',
         'HOST': '127.0.0.1',
     }
 }

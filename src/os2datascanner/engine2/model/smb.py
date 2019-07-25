@@ -2,7 +2,7 @@ from .core import Source, Handle, ShareableCookie
 from .file import FilesystemResource
 
 from os import rmdir
-from regex import compile, match
+from regex import compile
 from urllib.parse import quote, unquote, urlsplit, urlunsplit
 from pathlib import Path
 from tempfile import mkdtemp
@@ -60,33 +60,37 @@ class SMBSource(Source):
                 if f.is_file():
                     yield SMBHandle(self, f.relative_to(mntdir))
 
-    # Third form from https://www.iana.org/assignments/uri-schemes/prov/smb
     def to_url(self):
-        server, path = self._unc.lstrip('/').split('/', maxsplit=1)
-        netloc = ""
-        if self._user:
-            if self._domain:
-                netloc += self._domain + ";"
-            netloc += self._user
-            if self._password:
-                netloc += ":" + self._password
-            netloc += "@"
-        netloc += server
-        return urlunsplit(('smb', netloc, quote(path), None, None))
+        return make_smb_url(
+                "smb", self._unc, self._user, self._domain, self._password)
 
-    netloc_regex = compile(r"^(((\w+);)?(\w+)(:(\w+))?@)?([\w.]+)$")
+    netloc_regex = compile(r"^(((?P<domain>\w+);)?(?P<username>\w+)(:(?P<password>\w+))?@)?(?P<unc>[\w.]+)$")
     @staticmethod
     @Source.url_handler("smb")
     def from_url(url):
         scheme, netloc, path, _, _ = urlsplit(url)
         match = SMBSource.netloc_regex.match(netloc)
         if match:
-            _, _, domain, username, _, password, unc = match.groups()
-            return SMBSource("//" + unc + unquote(path),
-                username or None, password or None, domain or None)
+            return SMBSource("//" + match.group("unc") + unquote(path),
+                match.group("username"), match.group("password"),
+                match.group("domain"))
         else:
             return None
 
 class SMBHandle(Handle):
     def follow(self, sm):
         return FilesystemResource(self, sm)
+
+# Third form from https://www.iana.org/assignments/uri-schemes/prov/smb
+def make_smb_url(schema, unc, user, domain, password):
+    server, path = unc.lstrip('/').split('/', maxsplit=1)
+    netloc = ""
+    if user:
+        if domain:
+            netloc += domain + ";"
+        netloc += user
+        if password:
+            netloc += ":" + password
+        netloc += "@"
+    netloc += server
+    return urlunsplit((schema, netloc, quote(path), None, None))

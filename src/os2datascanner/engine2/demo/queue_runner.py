@@ -2,9 +2,7 @@
 
 import argparse
 
-from ..model.zip import ZipSource
 from ..model.core import Source, SourceManager, UnknownSchemeError
-from ..model.file import FilesystemSource
 from ..processors import processors
 
 from queue import Full, Empty
@@ -140,7 +138,6 @@ def display(start, texts):
         while True:
             text = take(texts, print_handle_name)
             if text == done:
-                finished = True
                 break
             else:
                 handle, txt = text

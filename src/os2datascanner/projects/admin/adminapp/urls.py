@@ -24,25 +24,24 @@ from .models.scans.scan_model import Scan
 from .models.scannerjobs.exchangescanner_model import ExchangeScanner
 from .models.scannerjobs.filescanner_model import FileScanner
 from .models.scannerjobs.webscanner_model import WebScanner
-from .views.exchangedomain_views import ExchangeDomainList, ExchangeDomainCreate, ExchangeDomainUpdate, \
-    ExchangeDomainDelete
 from .views.exchangescanner_views import ExchangeScannerList, ExchangeScannerCreate, ExchangeScannerUpdate, \
     ExchangeScannerDelete, ExchangeScannerRun, ExchangeScannerAskRun
-from .views.filedomain_views import FileDomainList, FileDomainCreate, FileDomainUpdate, FileDomainDelete
 from .views.filescanner_views import FileScannerCreate, FileScannerRun, FileScannerAskRun, FileScannerUpdate, \
     FileScannerDelete, FileScannerList
 from .views.report_views import ScanReportLog, CSVReportDetails, ReportDetails, ReportList, ReportDelete
-from .views.rule_views import RuleList, RuleCreate, RuleUpdate, RuleDelete
+from .views.rule_views import RuleList, \
+    CPRRuleCreate, CPRRuleUpdate, CPRRuleDelete, \
+    RegexRuleCreate, RegexRuleUpdate, RegexRuleDelete
 from .views.views import GroupList, GroupCreate, GroupUpdate, GroupDelete
 from .views.views import MainPageView
-from .views.views import OrganizationUpdate, OrganizationList
+from .views.views import OrganizationList
 from .views.views import SummaryList, SummaryCreate, SummaryUpdate, SummaryDelete
 from .views.views import SummaryReport, DialogSuccess, SystemStatusView
 from .views.views import file_upload, referrer_content
-from .views.webdomain_views import WebDomainList, WebDomainCreate, WebDomainUpdate, WebDomainDelete, WebDomainValidate
-from .views.webscanner_views import WebScannerCreate, WebScannerUpdate, WebScannerDelete, WebScannerRun, \
-    WebScannerAskRun, WebScannerList
-
+from .views.webscanner_views import (WebScannerCreate, WebScannerUpdate,
+                                     WebScannerDelete, WebScannerRun,
+                                     WebScannerAskRun, WebScannerList,
+                                     WebScannerValidate)
 
 urlpatterns = [
     # App URLs
@@ -57,18 +56,20 @@ urlpatterns = [
         name='exchangescanner_run'),
     url(r'^exchangescanners/(?P<pk>\d+)/askrun/$',
         ExchangeScannerAskRun.as_view(
-            template_name='os2webscanner/scanner_askrun.html',
+            template_name='os2datascanner/scanner_askrun.html',
             model=ExchangeScanner),
         name='scanner_askrun'),
     url(r'^webscanners/$', WebScannerList.as_view(), name='webscanners'),
     url(r'^webscanners/add/$', WebScannerCreate.as_view(), name='webscanner_add'),
     url(r'^webscanners/(?P<pk>\d+)/delete/$', WebScannerDelete.as_view(),
         name='scanner_delete'),
+    url(r'^webscanners/(?P<pk>\d+)/validate/$', WebScannerValidate.as_view(),
+        name='web_scanner_validate'),
     url(r'^webscanners/(?P<pk>\d+)/run/$', WebScannerRun.as_view(),
         name='webscanner_run'),
     url(r'^webscanners/(?P<pk>\d+)/askrun/$',
         WebScannerAskRun.as_view(
-            template_name='os2webscanner/scanner_askrun.html',
+            template_name='os2datascanner/scanner_askrun.html',
             model=WebScanner),
         name='scanner_askrun'),
     url(r'^webscanners/(?P<pk>\d+)/$', WebScannerUpdate.as_view(),
@@ -83,40 +84,20 @@ urlpatterns = [
         name='filescanner_run'),
     url(r'^filescanners/(?P<pk>\d+)/askrun/$',
         FileScannerAskRun.as_view(
-            template_name='os2webscanner/scanner_askrun.html',
+            template_name='os2datascanner/scanner_askrun.html',
             model=FileScanner),
         name='filescanner_askrun'),
-    url(r'^exchangedomains/$', ExchangeDomainList.as_view(), name='exchangedomains'),
-    url(r'^exchangedomains/add/$', ExchangeDomainCreate.as_view(), name='exchangedomain_add'),
-    url(r'^(exchangedomains)/(\d+)/(success)/$', DialogSuccess.as_view()),
-    url(r'^exchangedomains/(?P<pk>\d+)/$', ExchangeDomainUpdate.as_view(),
-        name='exchange_domain_update'),
-    url(r'^exchangedomains/(?P<pk>\d+)/delete/$', ExchangeDomainDelete.as_view(),
-        name='exchange_domain_delete'),
-    url(r'^filedomains/$', FileDomainList.as_view(), name='filedomains'),
-    url(r'^filedomains/add/$', FileDomainCreate.as_view(), name='filedomain_add'),
-    url(r'^(filedomains)/(\d+)/(success)/$', DialogSuccess.as_view()),
-    url(r'^filedomains/(?P<pk>\d+)/$', FileDomainUpdate.as_view(),
-        name='file_domain_update'),
-    url(r'^filedomains/(?P<pk>\d+)/delete/$', FileDomainDelete.as_view(),
-        name='file_domain_delete'),
-    url(r'^webdomains/$', WebDomainList.as_view(), name='webdomains'),
-    url(r'^webdomains/add/$', WebDomainCreate.as_view(), name='webdomain_add'),
-    url(r'^webdomains/(?P<pk>\d+)/validate/$', WebDomainValidate.as_view(),
-        name='web_domain_validate'),
-    url(r'^(webdomains)/(\d+)/(success)/$', DialogSuccess.as_view()),
-    url(r'^webdomains/(?P<pk>\d+)/$', WebDomainUpdate.as_view(),
-        name='web_domain_update'),
-    url(r'^webdomains/(?P<pk>\d+)/delete/$', WebDomainDelete.as_view(),
-        name='web_domain_delete'),
     url(r'^rules/$', RuleList.as_view(), name='rules'),
-    url(r'^rules/add/$', RuleCreate.as_view(), name='rule_add'),
-    url(r'^rules/(?P<pk>\d+)/$', RuleUpdate.as_view(),
+    url(r'^rules/cpr/add/$', CPRRuleCreate.as_view(), name='cprrule_add'),
+    url(r'^rules/cpr/(?P<pk>\d+)/$', CPRRuleUpdate.as_view(),
         name='rule_update'),
-    url(r'^rules/(?P<pk>\d+)/delete/$', RuleDelete.as_view(),
+    url(r'^rules/cpr/(?P<pk>\d+)/delete/$', CPRRuleDelete.as_view(),
         name='rule_delete'),
-    url(r"^rules/organization/$", OrganizationUpdate.as_view(),
-        name='organization_update'),
+    url(r'^rules/regex/add/$', RegexRuleCreate.as_view(), name='regexrule_add'),
+    url(r'^rules/regex/(?P<pk>\d+)/$', RegexRuleUpdate.as_view(),
+        name='rule_update'),
+    url(r'^rules/regex/(?P<pk>\d+)/delete/$', RegexRuleDelete.as_view(),
+        name='rule_delete'),
     url(r'^reports/$', ReportList.as_view(), name='reports'),
     url(r'^reports/web/$', ReportList.as_view(active='web', queryset=Scan.objects.filter(scanner__webscanner__isnull=False)), name='reports'),
     url(r'^reports/file/$', ReportList.as_view(active='file', queryset=Scan.objects.filter(scanner__filescanner__isnull=False)), name='reports'),
@@ -188,21 +169,16 @@ urlpatterns = [
         name='password_reset_complete'
         ),
 
-    # General dialog success handler
-    url(r'^(webscanners|webdomains|rules|groups|reports/summaries)/(\d+)/(created)/$',
+    # General success handler
+    url(r'^(webscanners|filescanners|exchangescanners)/(\d+)/(created)/$',
         DialogSuccess.as_view()),
-    url(r'^(webscanners|webdomains|rules|groups|reports/summaries)/(\d+)/(saved)/$',
+    url(r'^(webscanners|filescanners|exchangescanners)/(\d+)/(saved)/$',
         DialogSuccess.as_view()),
-    # General dialog success handler
-    url(r'^(filescanners|filedomains|rules|groups|reports/summaries)/(\d+)/(created)/$',
+    url(r'^(rules/regex|rules/cpr|groups|reports/summaries)/(\d+)/(created)/$',
         DialogSuccess.as_view()),
-    url(r'^(filescanners|filedomains|rules|groups|reports/summaries)/(\d+)/(saved)/$',
+    url(r'^(rules/regex|rules/cpr|groups|reports/summaries)/(\d+)/(saved)/$',
         DialogSuccess.as_view()),
-    # General dialog success handler
-    url(r'^(exchangescanners|exchangedomains|rules|groups|reports/summaries)/(\d+)/(created)/$',
-        DialogSuccess.as_view()),
-    url(r'^(exchangescanners|exchangedomains|rules|groups|reports/summaries)/(\d+)/(saved)/$',
-        DialogSuccess.as_view()),
+
     url(r'^jsi18n/$', JavaScriptCatalog.as_view(
         packages=('os2webscanner', 'recurrence'),
     )),

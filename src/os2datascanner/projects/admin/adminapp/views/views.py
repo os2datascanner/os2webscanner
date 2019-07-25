@@ -34,18 +34,16 @@ from shutil import copyfile
 
 from ..forms import FileUploadForm
 from ..models.conversionqueueitem_model import ConversionQueueItem
-from ..models.domains.exchangedomain_model import ExchangeDomain
 from ..models.scannerjobs.exchangescanner_model import ExchangeScanner
-from ..models.domains.filedomain_model import FileDomain
 from ..models.scannerjobs.filescanner_model import FileScanner
 from ..models.group_model import Group
 from ..models.organization_model import Organization
 from ..models.referrerurl_model import ReferrerUrl
-from ..models.regexrule_model import RegexRule
+from ..models.rules.cprrule_model import CPRRule
+from ..models.rules.regexrule_model import RegexRule
 from ..models.scans.scan_model import Scan
 from ..models.summary_model import Summary
 from ..models.userprofile_model import UserProfile
-from ..models.domains.webdomain_model import WebDomain
 from ..models.scannerjobs.webscanner_model import WebScanner
 from ..utils import scans_for_summary_report, do_scan, as_file_uri
 
@@ -125,7 +123,7 @@ class OrganizationList(RestrictedListView):
     """Display a list of organizations, superusers only!"""
 
     model = Organization
-    template_name = 'os2webscanner/organizations_and_domains.html'
+    template_name = 'os2datascanner/organizations_and_domains.html'
 
     def get_context_data(self, **kwargs):
         """Setup context for the template."""
@@ -138,11 +136,13 @@ class OrganizationList(RestrictedListView):
             def top_level(d):
                 return '.'.join(d.strip('/').split('.')[-2:])
 
-            tlds = set([top_level(d.url) for d in org.os2webscanner_domain_organization.all()])
+            tlds = set([top_level(d.url) for d in
+                        org.scanners.all()])
 
             for tld in tlds:
                 sub_domains = [
-                    d.url for d in org.os2webscanner_domain_organization.all() if top_level(d.url) == tld
+                    d.url for d in org.scanners.all() if top_level(d.url) ==
+                                                         tld
                 ]
                 tld_list.append({'tld': tld, 'domains': sub_domains})
 
@@ -157,14 +157,14 @@ class GroupList(RestrictedListView):
     """Displays groups for organization."""
 
     model = Group
-    template_name = 'os2webscanner/groups.html'
+    template_name = 'os2datascanner/groups.html'
 
 
 class RuleList(RestrictedListView):
     """Displays list of scanners."""
 
     model = RegexRule
-    template_name = 'os2webscanner/rules.html'
+    template_name = 'os2datascanner/rules.html'
 
 
 # Create/Update/Delete Views.
@@ -312,26 +312,6 @@ class RestrictedDeleteView(DeleteView, OrgRestrictedMixin):
     """Base class for deleteviews restricted by organiztion."""
 
 
-
-class OrganizationUpdate(UpdateView, LoginRequiredMixin):
-    """Create an organization update view."""
-
-    model = Organization
-    fields = ['name_whitelist', 'name_blacklist', 'address_whitelist',
-              'address_blacklist', 'cpr_whitelist']
-
-    def get_object(self):
-        """Get the organization to which the current user belongs."""
-        try:
-            object = self.request.user.profile.organization
-        except UserProfile.DoesNotExist:
-            object = None
-        return object
-
-    def get_success_url(self):
-        return "/rules/organization/"
-
-
 class GroupCreate(RestrictedCreateView):
     """Create a group view."""
 
@@ -350,7 +330,7 @@ class GroupCreate(RestrictedCreateView):
     def get_form(self, form_class=None):
         """Get the form for the view.
 
-        Querysets used for choices in the 'domains' and 'regex_rules' fields
+        Querysets used for choices in the 'domains' and 'rules' fields
         will be limited by the user's organiztion unless the user is a
         superuser.
         """
@@ -380,7 +360,7 @@ class GroupUpdate(RestrictedUpdateView):
     def get_form(self, form_class=None):
         """Get the form for the view.
 
-        Querysets used for choices in the 'domains' and 'regex_rules' fields
+        Querysets used for choices in the 'domains' and 'rules' fields
         will be limited by the user's organiztion unless the user is a
         superuser.
         """
@@ -414,18 +394,21 @@ class GroupDelete(RestrictedDeleteView):
 class DialogSuccess(TemplateView):
     """View that handles success for iframe-based dialogs."""
 
-    template_name = 'os2webscanner/dialogsuccess.html'
+    template_name = 'os2datascanner/dialogsuccess.html'
 
     type_map = {
-        'webdomains': WebDomain,
         'webscanners': WebScanner,
-        'filedomains': FileDomain,
         'filescanners': FileScanner,
-        'exchangedomains': ExchangeDomain,
         'exchangescanners': ExchangeScanner,
-        'rules': RegexRule,
+        'rules/cpr': CPRRule,
+        'rules/regex': RegexRule,
         'groups': Group,
         'reports/summaries': Summary,
+    }
+
+    reload_map = {
+        'rules/cpr': 'rules',
+        'rules/regex': 'rules'
     }
 
     def get_context_data(self, **kwargs):
@@ -440,6 +423,8 @@ class DialogSuccess(TemplateView):
         item = get_object_or_404(model, pk=pk)
         context['item_description'] = item.display_name
         context['action'] = "oprettet" if created else "gemt"
+        if model_type in self.reload_map:
+            model_type = self.reload_map[model_type]
         context['reload_url'] = '/' + model_type + '/'
         return context
 
@@ -447,7 +432,7 @@ class DialogSuccess(TemplateView):
 class SystemStatusView(TemplateView, SuperUserRequiredMixin):
     """Display the system status for superusers."""
 
-    template_name = 'os2webscanner/system_status.html'
+    template_name = 'os2datascanner/system_status.html'
 
     def get_context_data(self, **kwargs):
         """Setup context for the template."""
@@ -495,7 +480,7 @@ class SummaryList(RestrictedListView):
     """Displays list of summaries."""
 
     model = Summary
-    template_name = 'os2webscanner/summaries.html'
+    template_name = 'os2datascanner/summaries.html'
 
 
 class SummaryCreate(RestrictedCreateView):
@@ -581,7 +566,7 @@ class SummaryReport(RestrictedDetailView):
     """Display report for summary."""
 
     model = Summary
-    template_name = 'os2webscanner/summary_report.html'
+    template_name = 'os2datascanner/summary_report.html'
 
     def get_context_data(self, **kwargs):
         """Setup context for the template."""
@@ -665,7 +650,7 @@ def file_upload(request):
             #
             if not isinstance(scan, Scan):
                 raise RuntimeError("Unable to perform scan - check user has"
-                                   "organization and valid domain")
+                                   "organization and valid scanner")
             # We now have the scan object
             if not params['output_spreadsheet_file']:
                 return HttpResponseRedirect('/report/{0}/'.format(scan.pk))
@@ -690,6 +675,6 @@ def file_upload(request):
         form = FileUploadForm()
 
     return render_to_response(
-        'os2webscanner/file_upload.html',
+        'os2datascanner/file_upload.html',
         {'form': form}
     )

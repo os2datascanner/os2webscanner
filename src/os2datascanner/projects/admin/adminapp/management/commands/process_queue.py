@@ -26,9 +26,13 @@ import sys
 
 import structlog
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from os2datascanner.engine.scanners.processors.processor import Processor
+
+from os2datascanner.engine.utils import prometheus_session
+
 
 def sigterm_handler(sig, frm):
     sys.exit(1)
@@ -60,15 +64,20 @@ class Command(BaseCommand):
 
         logger = structlog.get_logger()
 
-        if queued_processor is not None:
-            queued_processor.setup_queue_processing(os.getpid(), *extra_args)
+        with prometheus_session(str(os.getpid()),
+                settings.PROJECT_DIR + "/var/prometheus",
+                processor_type=processor_type):
+            if queued_processor is not None:
+                queued_processor.setup_queue_processing(os.getpid(), *extra_args)
 
-        logger.info('processor_ready', extra_args=extra_args)
-        try:
-            queued_processor.process_queue()
-        except KeyboardInterrupt:
-            pass
-        finally:
-            logger.info('processor_done')
+            logger.info('processor_ready', extra_args=extra_args)
+            try:
+                queued_processor.process_queue()
+            except Exception:
+                logger.exception('processor_failed')
+            except KeyboardInterrupt:
+                pass
+            finally:
+                logger.info('processor_done')
 
-            queued_processor.teardown_queue_processing()
+                queued_processor.teardown_queue_processing()

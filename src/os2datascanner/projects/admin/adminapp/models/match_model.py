@@ -16,26 +16,18 @@
 
 from django.db import models
 
-from .scans.scan_model import Scan
 from .sensitivity_level import Sensitivity
-from .webversion_model import WebVersion
 
 
 class Match(models.Model):
 
     """The data associated with a single match in a single URL."""
     url = models.ForeignKey(
-        WebVersion,
+        "Version",
         null=False,
         verbose_name='URL',
         on_delete=models.CASCADE,
-    )
-    scan = models.ForeignKey(
-        Scan,
-        null=False,
-        verbose_name='Scan',
-        related_name='matches',
-        on_delete=models.CASCADE,
+        related_name="matches",
     )
     matched_data = models.TextField(verbose_name='Data match')
     matched_rule = models.CharField(max_length=256, verbose_name='Regel match')
@@ -44,6 +36,10 @@ class Match(models.Model):
                                       verbose_name='Følsomhed')
     match_context = models.CharField(max_length=1152, verbose_name='Kontekst')
     page_no = models.IntegerField(null=True, verbose_name='Side')
+
+    @property
+    def scan(self):
+        return self.url.scan
 
     def get_matched_rule_display(self):
         """Return a display name for the rule."""

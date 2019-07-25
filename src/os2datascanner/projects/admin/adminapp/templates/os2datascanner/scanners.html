@@ -1,0 +1,274 @@
+{% extends 'os2datascanner/base.html' %}
+{% block title %}
+Scannerjob
+{% endblock %}
+{% block scanners_active %}
+class="active"
+{% endblock %}
+{% block rendertype %}regular{% endblock %}
+
+{% block body %}
+<div class="container">
+    {% include 'os2datascanner/scanner_above_content.html' with active=view.type %}
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="{{view.type}}scan">
+            <p class="h2" style="display:inline-block;">
+                {% if view.type == 'web' %}
+                    Webscanner
+                {% elif view.type == 'file' %}
+                    Filscanner
+                {% elif view.type == 'exchange' %}
+                    Exchangescanner
+                {% endif %}
+            </p>
+            <span class="page-action">
+            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#create-scanner-modal">
+              Tilføj ny
+              <span style="position:relative;top:.15em;" class="glyphicon glyphicon-plus-sign"></span>
+            </button>
+          </span>
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                <td>
+                  <strong>
+                    <small>
+                      Beskrivelse
+                    </small>
+                  </strong>
+                </td>
+                    {% if user.is_superuser %}
+                <td>
+                  <strong>
+                    <small>
+                      Organisation
+                    </small>
+                  </strong>
+                </td>
+                    {% endif %}
+                      <td>
+                          <strong>
+                              <small>
+                                  URL
+                              </small>
+                          </strong>
+                      </td>
+                      {% if view.type == 'file' %}
+                          <td>
+                              <strong>
+                                  <small>
+                                      Drev
+                                  </small>
+                              </strong>
+                          </td>
+                      {% endif %}
+                      {% if user.is_superuser %}
+                          <td>
+                              <strong>
+                                  <small>
+                                      Organisation
+                                  </small>
+                              </strong>
+                          </td>
+                      {% endif %}
+                      <td>
+                          <strong>
+                              <small>
+                                  Ekskluderingsregler
+                              </small>
+                          </strong>
+                      </td>
+                      <td>
+                          <strong>
+                              <small>
+                                  Valideret
+                              </small>
+                          </strong>
+                      </td>
+                <td>
+                  <strong>
+                    <small>
+                      Automatisk kørsel
+                    </small>
+                  </strong>
+                </td>
+                <td>
+                  <strong>
+                    <small>
+                      Handling
+                    </small>
+                  </strong>
+                </td>
+                  </tr>
+                </thead>
+                <tbody>
+                {% for scanner in scanner_list %}
+                  <tr>
+                      <td class="scanner-description">
+                  <span>
+                      {{scanner.name}}
+                  </span>
+                      </td>
+                    {% if user.is_superuser %}
+                <td class="scanner-organization">
+                  <span>
+                      {{scanner.organization}}
+                  </span>
+                </td>
+                        <td class="domain-url">
+                <span>
+                    {{scanner.url}}
+                </span>
+                        </td>
+                        {% if view.type == 'file' %}
+                            <td class="domain-letter">
+                                {% if scanner.alias %}
+                                    {{ scanner.alias }}:
+                                {% endif %}
+                            </td>
+                        {% endif %}
+                        {% if user.is_superuser %}
+                            <td class="domain-organization">
+                <span>
+                    {{scanner.organization}}
+                </span>
+                            </td>
+                        {% endif %}
+                        <td class="domain-exclusion-rules">
+                            <pre>{{scanner.exclusion_rules}}</pre>
+                        </td>
+                        <td class="domain-validation">
+                            {% if scanner.validation_status %}
+                                <span class="glyphicon glyphicon-ok"></span><span class="sr-only">Er valideret</span>
+                            {% else %}
+                                <span class="glyphicon glyphicon-remove"></span><span class="sr-only">Er ikke valideret</span>
+                            {% endif %}
+                        </td>
+                    {% endif %}
+                <td class="scanner-runtime">
+                  <span class="scanner-schedule-description">
+                      {{ scanner.schedule_description|truncatechars:20 }}
+                  </span>
+
+                </td>
+                <td class="scanner-actions">
+                  <span class="scanner-status">
+                    {% if not scanner.is_running %}
+                      Klar
+                    {% else %}
+                      Aktiv
+                    {% endif %}
+                  </span>
+
+                  <button type="button"
+                    class="btn btn-default btn-xs btn-scanner-settings"
+                    onclick="os2web.iframeDialog(
+                    &quot;#run-scanner-modal&quot;,
+                    &quot;/{{ view.type }}scanners/{{scanner.pk}}/askrun/&quot;,
+                            &quot;Kør scanner '{{scanner.name}}'&quot;)">
+                    <span class="glyphicon glyphicon-play">
+                    </span> <span>Kør</span>
+                  </button>
+                  <button type="button"
+                    class="btn btn-default btn-xs btn-scanner-settings"
+                    onclick="os2web.iframeDialog(
+                    &quot;#edit-scanner-modal&quot;,
+                    &quot;/{{ view.type }}scanners/{{scanner.pk}}&quot;,
+                    &quot;Redigér scannerjob '{{scanner.name}}'&quot;
+                    )"
+                  >
+                    <span class="glyphicon glyphicon-cog">
+                    </span> <span>Redigér</span>
+
+                    <span class="sr-only">
+                      Indstillinger for scanner
+                    </span>
+
+                  </button>
+                  {% if not scanner.scans %}
+                  <a href="/{{ view.type }}scanners/{{scanner.pk}}/delete/" class="btn btn-default btn-xs">
+                      <span class="glyphicon glyphicon-remove"></span>
+                      <span>Slet</span>
+                  </a>
+                  {% endif %}
+                  </span>
+                </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block heading %} 
+Scannerjob
+{% endblock %}
+
+{% block modal %}
+<div class="modal iframe" id="create-scanner-modal" tabindex="-1" role="dialog"
+    aria-labelledby="create-scanner-modal-title" aria-hidden="true"
+    data-href="/{{ view.type }}scanners/add/">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+	  &times;
+	</button>
+	<h4 class="modal-title" id="create-scanner-modal-title">
+	  Opret nyt scannerjob
+	</h4>
+      </div>
+      <div class="modal-body">
+	<iframe src="about:blank" frameborder="0"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal iframe" id="edit-scanner-modal" tabindex="-1" role="dialog"
+    aria-labelledby="edit-scanner-modal-title" aria-hidden="true"
+    data-href="/{{ view.type }}scanners/add/">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+	  &times;
+	</button>
+	<h4 class="modal-title" id="edit-scanner-modal-title">
+	  Rediger scannerjob
+	</h4>
+      </div>
+      <div class="modal-body">
+	<iframe src="about:blank" frameborder="0"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal iframe" id="run-scanner-modal" tabindex="-1" role="dialog"
+    aria-labelledby="run-scanner-modal-title" aria-hidden="true"
+    data-href="/{{ view.type }}scanners/add/">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+	  &times;
+	</button>
+	<h4 class="modal-title" id="run-scanner-modal-title">
+	  Kør scanner
+	</h4>
+      </div>
+      <div class="modal-body">
+	<iframe src="about:blank" frameborder="0"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block jquery_script %}
+<script type="text/javascript"><!--
+//--></script>
+{% endblock %}

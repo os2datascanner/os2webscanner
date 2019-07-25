@@ -13,23 +13,31 @@
 #
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
-from django.db import models
+import os
 
-from ..domains.exchangedomain_model import ExchangeDomain
+from django.db import models
+from django.conf import settings
+
 from .scanner_model import Scanner
 
 
 class ExchangeScanner(Scanner):
 
     """File scanner for scanning network drives and folders"""
-    # TODO: ExchangeScanner should only be able to have one domain attached
-    domains = models.ManyToManyField(ExchangeDomain, related_name='exchangedomains',
-                                     verbose_name='Exchangedomæner')
 
     is_exporting = models.BooleanField(default=False)
 
     # If nothing has been exported yet this property is false.
     is_ready_to_scan = models.BooleanField(default=False)
+
+    userlist = models.FileField(upload_to='mailscan/users/')
+
+    dir_to_scan = models.CharField(max_length=2048,
+                                   verbose_name='Exchange export sti',
+                                   null=True)
+
+    def get_userlist_file_path(self):
+        return os.path.join(settings.MEDIA_ROOT, self.userlist.name)
 
     def get_type(self):
         return 'exchange'
@@ -37,9 +45,3 @@ class ExchangeScanner(Scanner):
     def get_absolute_url(self):
         """Get the absolute URL for scanners."""
         return '/exchangescanners/'
-
-    def create_scan(self):
-        return super().create_scan()
-
-    class Meta:
-        db_table = 'os2webscanner_exchangescanner'

@@ -16,10 +16,8 @@
 """Contains Django views."""
 import csv
 
-from urllib.parse import unquote
-
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import HttpResponse
+from django.http import HttpResponse, StreamingHttpResponse
 
 from .views import LoginRequiredMixin, RestrictedListView, \
     DeleteView, UpdateView
@@ -35,7 +33,7 @@ class ReportList(RestrictedListView):
     """Displays list of scanners."""
 
     model = Scan
-    template_name = 'os2webscanner/reports.html'
+    template_name = 'os2datascanner/reports.html'
     paginate_by = 15
 
     active = 'all'
@@ -83,7 +81,7 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
     """Display a detailed report summary."""
 
     model = Scan
-    template_name = 'os2webscanner/report.html'
+    template_name = 'os2datascanner/report.html'
     context_object_name = "scan"
     full = False
 
@@ -111,12 +109,12 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
 
         context = super().get_context_data(**kwargs)
         all_matches = Match.objects.filter(
-            scan=this_scan
+            url__scan=this_scan
         ).order_by('-sensitivity', 'url', 'matched_rule', 'matched_data')
 
         broken_urls = WebVersion.objects.filter(
             scan=this_scan
-        ).exclude(status_code__isnull=True).order_by('url')
+        ).exclude(status_code__isnull=True).order_by('location__url')
 
         referrer_urls = ReferrerUrl.objects.filter(scan=this_scan)
 
@@ -126,7 +124,7 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
         context['referrer_urls'] = referrer_urls
         context['matches'] = all_matches[:100]
         context['all_matches'] = all_matches
-        context['no_of_matches'] = all_matches.count() + broken_urls.count()
+        context['no_of_matches'] = all_matches.count()
         context['failed_conversions'] = (
             this_scan.get_number_of_failed_conversions()
         )
@@ -146,37 +144,6 @@ class ReportDetails(UpdateView, LoginRequiredMixin):
                 stats.relevant_unsupported_count
         except ObjectDoesNotExist:
             pass
-
-        if hasattr(this_scan.scanner, 'filescanner'):
-            # Patch all of the context's match model objects to have paths and
-            # not encoded URLs. (This should be fine, since we don't save
-            # them, and it keeps this complexity out of the browser and
-            # template: the database genuinely shouldn't have URLs here, so
-            # let's pretend that it doesn't...)
-            #
-            # TODO: as is, this code is rather hard to understand; we
-            # should probably refactor it to use urllib and/or pathlib
-            # instead.
-            for k in ['matches', 'all_matches']:
-                for m in context[k]:
-                    path = unquote(m.url.url)
-                    # While we're at it, if we have an alias for whichever
-                    # domain this path came from, then convert the path into a
-                    # Windows-style path
-                    for domain in this_scan.domains.exclude(
-                            filedomain__alias__isnull=True).exclude(
-                            filedomain__alias__exact=''):
-                        url_with_schema = "file://" + domain.url
-                        if path.startswith(url_with_schema):
-                            everything_else = \
-                                path[len(url_with_schema):].strip('/')
-                            # Windows appears, in my limited testing, to
-                            # support forward slashes in paths nowadays
-                            m.url.url = "file://{0}:/{1}".format(
-                                    domain.filedomain.alias, everything_else)
-                            break
-                    else:
-                        m.url.url = path
 
         return context
 
@@ -221,60 +188,57 @@ class ScanReportLog(ReportDetails):
         return response
 
 
+class Echo:
+    def write(self, value):
+        return value
+
+
+def render_csv_report(scan, context):
+    pseudo_buffer = Echo()
+    writer = csv.writer(pseudo_buffer)
+
+    # CSV utilities
+    # Print summary header
+    yield writer.writerow([
+            'Starttidspunkt', 'Sluttidspunkt', 'Status',
+            'Totalt antal matches', 'Total antal broken links'])
+    yield writer.writerow([
+            scan.start_time, scan.end_time, scan.get_status_display(),
+            context['no_of_matches'], context['no_of_broken_links']])
+
+    all_matches = context['all_matches']
+    if all_matches:
+        # Print match header
+        yield writer.writerow([
+                'URL', 'Regel', 'Match', 'Følsomhed', 'Kontekst'])
+
+        for match in all_matches:
+            yield writer.writerow([
+                    match.url.url, match.get_matched_rule_display(),
+                    match.matched_data.replace('\n', '').replace('\r', ' '),
+                    match.get_sensitivity_display(),
+                    match.match_context])
+
+    broken_urls = context['broken_urls']
+    if broken_urls:
+        # Print broken link header
+        yield writer.writerow(['Referrers', 'URL', 'Status'])
+        for url in broken_urls:
+            for referrer in url.referrers.all():
+                yield writer.writerow([
+                        referrer.url, url.url, url.status_message])
+
 class CSVReportDetails(ReportDetails):
-    """Display  full report in CSV format."""
+    """Display full report in CSV format."""
 
     def render_to_response(self, context, **response_kwargs):
         """Generate a CSV file and return it as the http response."""
         scan = self.get_object()
-        response = HttpResponse(content_type='text/csv')
+        response = StreamingHttpResponse(
+                render_csv_report(scan, context), content_type='text/csv')
         report_file = '{0}{1}.csv'.format(
             scan.scanner.organization.name.replace(' ', '_'),
             scan.id)
-        response[
-            'Content-Disposition'
-        ] = 'attachment; filename={0}'.format(report_file)
-        writer = csv.writer(response)
-        all_matches = context['all_matches']
-
-        # CSV utilities
-        # Print summary header
-        writer.writerow(['Starttidspunkt', 'Sluttidspunkt', 'Status',
-                         'Totalt antal matches', 'Total antal broken links'])
-        # Print summary
-        writer.writerow(
-            [
-                scan.start_time,
-                scan.end_time,
-                scan.get_status_display(),
-                context['no_of_matches'],
-                context['no_of_broken_links'],
-            ],
-        )
-
-        if all_matches:
-            # Print match header
-            writer.writerow(['URL', 'Regel', 'Match', 'Følsomhed'])
-
-            for match in all_matches:
-                writer.writerow([
-                    match.url.url,
-                    match.get_matched_rule_display(),
-                    match.matched_data.replace('\n', '').replace('\r', ' '),
-                    match.get_sensitivity_display()
-                ])
-
-        broken_urls = context['broken_urls']
-
-        if broken_urls:
-            # Print broken link header
-            writer.writerow(['Referrers', 'URL', 'Status'])
-            for url in broken_urls:
-                for referrer in url.referrers.all():
-                    writer.writerow([
-                        referrer.url,
-                        url.url,
-                        url.status_message,
-                    ])
-
+        response['Content-Disposition'] = (
+                'attachment; filename={0}'.format(report_file))
         return response

@@ -20,15 +20,17 @@ import shutil
 
 import dateutil.tz
 import structlog
-
 from django.conf import settings
 from django.core.validators import validate_comma_separated_integer_list
 from django.db import models, transaction
 from django.db.models.aggregates import Count
 from django.utils import timezone
+from django.utils.functional import cached_property
+from model_utils.fields import MonitorField, StatusField
 
-from ..domains.domain_model import Domain
-from ..regexrule_model import RegexRule
+from ..conversionqueueitem_model import ConversionQueueItem
+from ..match_model import Match
+from ..rules.rule_model import Rule
 from ..scannerjobs.scanner_model import Scanner
 from ..sensitivity_level import Sensitivity
 from ..userprofile_model import UserProfile
@@ -53,10 +55,13 @@ class Scan(models.Model):
     def logger(self):
         return logger.bind(scan_id=self.pk, scan_status=self.status)
 
-    start_time = models.DateTimeField(blank=True, null=True,
-                                      verbose_name='Starttidspunkt')
-    end_time = models.DateTimeField(blank=True, null=True,
-                                    verbose_name='Sluttidspunkt')
+    @property
+    def matches(self):
+        return Match.objects.filter(url__scan=self)
+
+    @property
+    def urls(self):
+        return self.versions.values('location')
 
     # Begin setup copied from scanner
     scanner = models.ForeignKey(Scanner,
@@ -64,30 +69,8 @@ class Scan(models.Model):
                                 related_name='webscans',
                                 on_delete=models.SET_NULL)
 
-    domains = models.ManyToManyField(Domain,
-                                     verbose_name='Domæner')
-
     is_visible = models.BooleanField(default=True)
 
-    whitelisted_names = models.TextField(max_length=4096, blank=True,
-                                         default="",
-                                         verbose_name='Godkendte navne')
-    blacklisted_names = models.TextField(max_length=4096, blank=True,
-                                         default="",
-                                         verbose_name='Sortlistede navne')
-    whitelisted_addresses = models.TextField(max_length=4096, blank=True,
-                                             default="", verbose_name='Godkendte adresser')
-    blacklisted_addresses = models.TextField(
-        max_length=4096, blank=True,
-        default="",
-        verbose_name='Sortlistede adresser'
-    )
-    whitelisted_cprs = models.TextField(max_length=4096, blank=True,
-                                        default="",
-                                        verbose_name='Godkendte CPR-numre')
-    do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
-    do_address_scan = models.BooleanField(default=False,
-                                          verbose_name='Adresse')
     do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder')
 
 
@@ -104,10 +87,10 @@ class Scan(models.Model):
                                blank=True
                                )
 
-    regex_rules = models.ManyToManyField(RegexRule,
-                                         blank=True,
-                                         verbose_name='Regex-regler',
-                                         related_name='scans')
+    rules = models.ManyToManyField(Rule,
+                                   blank=True,
+                                   verbose_name='Regler',
+                                   related_name='scans')
     recipients = models.ManyToManyField(UserProfile, blank=True)
 
     # Spreadsheet annotation and replacement parameters
@@ -140,15 +123,36 @@ class Scan(models.Model):
     DONE = "DONE"
     FAILED = "FAILED"
 
-    status_choices = (
+    STATUS = (
         (NEW, "Ny"),
         (STARTED, "I gang"),
         (DONE, "Færdig"),
         (FAILED, "Mislykket"),
     )
 
-    status = models.CharField(max_length=10, choices=status_choices,
-                              default=NEW)
+    status = StatusField(max_length=max(map(len, dict(STATUS).values())))
+
+    creation_time = MonitorField(
+        monitor='status',
+        when=[NEW],
+        default=timezone.now,
+        null=False,
+        verbose_name='Oprettelsestidspunkt',
+    )
+    start_time = MonitorField(
+        monitor='status',
+        when=[STARTED],
+        null=True,
+        default=None,
+        verbose_name='Starttidspunkt',
+    )
+    end_time = MonitorField(
+        monitor='status',
+        when=[DONE, FAILED],
+        null=True,
+        default=None,
+        verbose_name='Sluttidspunkt',
+    )
 
     pause_non_ocr_conversions = models.BooleanField(default=False,
                                                     verbose_name='Pause ' +
@@ -156,17 +160,14 @@ class Scan(models.Model):
 
     def get_number_of_failed_conversions(self):
         """The number conversions that has failed during this scan."""
-        from ..conversionqueueitem_model import ConversionQueueItem
         return ConversionQueueItem.objects.filter(
             url__scan=self,
             status=ConversionQueueItem.FAILED
         ).count()
 
-    @property
-    def get_valid_domains(self):
-        return self.domains.filter(
-            validation_status=Domain.VALID
-        )
+    @cached_property
+    def webscanner(self):
+        return Scanner.objects.get_subclass(pk=self.scanner_id)
 
     @property
     def status_text(self):
@@ -175,7 +176,7 @@ class Scan(models.Model):
         Relies on the restriction that the status must be one of the allowed
         values.
         """
-        text = [t for s, t in Scan.status_choices if self.status == s][0]
+        text = [t for s, t in Scan.STATUS if self.status == s][0]
         return text
 
     @property
@@ -247,9 +248,9 @@ class Scan(models.Model):
 
     def __str__(self):
         """Return the name of the scan's scanner combined with a timestamp."""
-        if self.start_time:
+        if self.creation_time:
             ts = (
-                self.start_time
+                self.creation_time
                 .astimezone(dateutil.tz.tzlocal())
                 .replace(microsecond=0, tzinfo=None)
             )
@@ -264,11 +265,6 @@ class Scan(models.Model):
         deletes any remaining queue items and deletes the temporary directory
         used by the scan.
         """
-        # Pre-save stuff
-        if self.status in [Scan.DONE, Scan.FAILED] and \
-                (self._old_status != self.status):
-            self.end_time = datetime.datetime.now(tz=timezone.utc)
-
         # Actual save
         super().save(*args, **kwargs)
         # Post-save stuff
@@ -354,7 +350,6 @@ class Scan(models.Model):
 
     def delete_all_pending_conversionqueue_items(self):
         # Delete all pending conversionqueue items
-        from ..conversionqueueitem_model import ConversionQueueItem
         pending_items = ConversionQueueItem.objects.filter(
             url__scan=self,
             status=ConversionQueueItem.NEW
@@ -390,7 +385,6 @@ class Scan(models.Model):
         When the number of OCR items falls below the lower threshold
         (RESUME_NON_OCR_ITEMS_THRESHOLD), non-OCR conversions are resumed.
         """
-        from ..conversionqueueitem_model import ConversionQueueItem
         ocr_items_by_scan = ConversionQueueItem.objects.filter(
             status=ConversionQueueItem.NEW,
             type="ocr"
@@ -400,9 +394,10 @@ class Scan(models.Model):
             num_ocr_items = items["total"]
             if (not scan.pause_non_ocr_conversions and
                         num_ocr_items > settings.PAUSE_NON_OCR_ITEMS_THRESHOLD):
-                self.logger.info(
+                logger.info(
                     "Pausing non-OCR conversions for scan "
                     "because it has too many OCR items",
+                    scan_id=scan.pk, scan_status=scan.status,
                     num_ocr_items=num_ocr_items,
                     threshold=settings.PAUSE_NON_OCR_ITEMS_THRESHOLD,
                 )
@@ -410,9 +405,10 @@ class Scan(models.Model):
                 scan.save()
             elif (scan.pause_non_ocr_conversions and
                           num_ocr_items < settings.RESUME_NON_OCR_ITEMS_THRESHOLD):
-                self.logger.info(
+                logger.info(
                     "Resuming non-OCR conversions for scan "
                     "as its OCR are under the threshold",
+                    scan_id=scan.pk, scan_status=scan.status,
                     num_ocr_items=num_ocr_items,
                     threshold=settings.RESUME_NON_OCR_ITEMS_THRESHOLD,
                 )
@@ -430,7 +426,6 @@ class Scan(models.Model):
 
     def set_scan_status_start(self):
         # Update start_time to now and status to STARTED
-        self.start_time = datetime.datetime.now(tz=timezone.utc)
         self.status = Scan.STARTED
         self.reason = ""
         self.logger.debug('scan_started')
@@ -458,13 +453,6 @@ class Scan(models.Model):
     def create(self, scanner):
         """ Create and copy fields from scanner. """
         self.is_visible = scanner.is_visible
-        self.whitelisted_names = scanner.organization.name_whitelist
-        self.blacklisted_names = scanner.organization.name_blacklist
-        self.whitelisted_addresses = scanner.organization.address_whitelist
-        self.blacklisted_addresses = scanner.organization.address_blacklist
-        self.whitelisted_cprs = scanner.organization.cpr_whitelist
-        self.do_name_scan = scanner.do_name_scan
-        self.do_address_scan = scanner.do_address_scan
         self.do_ocr = scanner.do_ocr
         self.do_last_modified_check = scanner.do_last_modified_check
         self.columns = scanner.columns
@@ -483,12 +471,11 @@ class Scan(models.Model):
         self.status = Scan.NEW
         self.scanner = scanner
         self.save()
-        self.domains.add(*scanner.domains.all())
-        self.regex_rules.add(*scanner.regex_rules.all())
+        self.rules.add(*scanner.rules.all())
         self.recipients.add(*scanner.recipients.all())
 
     class Meta:
         abstract = False
-        db_table = 'os2webscanner_scan'
 
         verbose_name = 'Report'
+        ordering = ['-creation_time']

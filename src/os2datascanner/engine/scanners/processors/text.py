@@ -53,7 +53,6 @@ class TextProcessor(Processor):
         matches = scanner.execute_rules(data)
         for match in matches[:10]:
             match['url'] = url_object
-            match['scan'] = url_object.scan
             if page_no:
                 match['page_no'] = page_no
             match.save()

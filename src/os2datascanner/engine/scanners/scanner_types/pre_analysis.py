@@ -7,8 +7,6 @@ import structlog
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-from pathlib import Path
-from matplotlib.backends.backend_pdf import PdfPages
 
 matplotlib.use('Agg')
 
@@ -432,7 +430,6 @@ class PreDataScanner(object):
                     'determine_file_information_progress',
                     file_processed=processed,
                     file_total=len(self.nodes),
-                    found_files=files_processed,
                     duration=delta_t,
                     average_speed=avg_speed,
                     current_speed=current_speed,
@@ -554,17 +551,3 @@ class PreDataScanner(object):
 
         plt.savefig(pp, format='pdf')
         plt.close()
-
-
-if __name__ == '__main__':
-    t = time.time()
-    p = Path('/tmp/mnt/os2webscanner/tmpxus17k2_/')
-
-    pre_scanner = PreDataScanner(p, detection_method='mime')
-    filetypes = pre_scanner.summarize_file_types()
-    pre_scanner.update_stats()
-
-    pp = PdfPages('multipage.pdf')
-    pre_scanner.plot(pp, filetypes['super'])
-    pre_scanner.plot(pp, filetypes['sub'])
-    pp.close()

@@ -152,35 +152,3 @@ class FileSpider(ScannerSpider):
                           failure=failure)
 
         self.broken_url_save(status_code, status_message, url)
-
-    def scan(self, response):
-        """Scan a response, returning any matches."""
-
-        mime_type = self.get_mime_type(response)
-
-        # Save the URL item to the database
-        if (Processor.mimetype_to_processor_type(mime_type) == 'ocr'
-            and not self.scanner.do_ocr):
-            # Ignore this URL
-            return
-
-        domain = self.scanner.valid_domains.first()
-        old = ''
-        new = ''
-        if 'type' in self.scanner.configuration:
-            scanner_type = self.scanner.configuration["type"]
-            if scanner_type == 'FileScanner':
-                old = domain.filedomain.mountpath
-                new = domain.filedomain.url
-            elif scanner_type == 'ExchangeScanner':
-                old = as_file_uri(domain.exchangedomain.dir_to_scan)
-                new = domain.exchangedomain.url
-
-        url_object = self.url_save(mime_type,
-                                   response.request.url.replace(
-                                       old, new)
-                                   )
-
-        data = response.body
-
-        self.scanner.scan(data, url_object)

@@ -1,26 +1,22 @@
+import pathlib
+
+from os2datascanner.engine.utils import as_path
 from .scanner import Scanner
 
 from os2datascanner.projects.admin.adminapp.models.statistic_model import Statistic, TypeStatistics
 
 
 class FileScanner(Scanner):
-
-    def get_domain_urls(self):
+    def get_domain_url(self):
         """Return a list of valid domain urls."""
-        domains = []
-        for d in self.valid_domains:
-            domains.append(d.filedomain.mountpath)
-        return domains
+        return self.get_scanner_object().mountpath
 
-    def get_domain_objects(self):
-        """
-        Returns a list of valid domain objects
-        :return: domain list
-        """
-        domains = []
-        for domain in self.valid_domains:
-            domains.append(domain.filedomain)
-        return domains
+    def get_location_for(self, url):
+        p = as_path(url)
+        p = p.relative_to(as_path(self.get_domain_url()))
+        p = pathlib.PureWindowsPath(self.scan_object.webscanner.url) / p
+
+        return super().get_location_for(p.as_uri())
 
     def set_statistics(self,
             supported_count, supported_size,

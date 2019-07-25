@@ -39,17 +39,20 @@ class CPRRule(Rule):
 
     """Represents a rule which scans for CPR numbers."""
 
-    name = 'cpr'
-
-    def __init__(self, do_modulus11, ignore_irrelevant, whitelist=None):
+    def __init__(self, name, sensitivity,
+            do_modulus11, ignore_irrelevant, whitelist=None):
         """Initialize the CPR Rule."""
+        super().__init__(name, sensitivity)
+
         self.ignore_irrelevant = ignore_irrelevant
         self.do_modulus11 = do_modulus11
         self.whitelist = load_whitelist(whitelist)
 
     def execute(self, text, mask_digits=True):
         """Execute the CPR rule."""
-        matches = match_cprs(text, do_modulus11=self.do_modulus11,
+        matches = match_cprs(text,
+                             sensitivity=self.sensitivity,
+                             do_modulus11=self.do_modulus11,
                              ignore_irrelevant=self.ignore_irrelevant,
                              mask_digits=mask_digits,
                              whitelist=self.whitelist)
@@ -170,7 +173,7 @@ def modulus11_check(cpr):
         return _is_modulus11(cpr)
 
 
-def match_cprs(text, do_modulus11=True, ignore_irrelevant=True,
+def match_cprs(text, sensitivity, do_modulus11=True, ignore_irrelevant=True,
                mask_digits=True, whitelist=[]):
     """Return MatchItem objects for each CPR matched in the given text.
 
@@ -205,7 +208,7 @@ def match_cprs(text, do_modulus11=True, ignore_irrelevant=True,
         if valid_date and valid_modulus11:
             matches.add(MatchItem(
                 matched_data=cpr,
-                sensitivity=Sensitivity.HIGH,
+                sensitivity=sensitivity,
                 match_context=match_context,
                 original_matched_data=original_cpr,
             ))

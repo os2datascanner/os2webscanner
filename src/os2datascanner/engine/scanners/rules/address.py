@@ -18,6 +18,8 @@
 
 import regex
 
+from os2datascanner.projects.admin.adminapp.models.rules.addressrule_model import AddressRule as DjangoModel
+
 from .rule import Rule
 from ...utils import get_data
 from os2datascanner.projects.admin.adminapp.models.sensitivity_level import Sensitivity
@@ -96,14 +98,22 @@ class AddressRule(Rule):
 
     name = 'address'
 
-    def __init__(self, whitelist=None, blacklist=None):
+    def __init__(self, name, database, sensitivity=Sensitivity.HIGH,
+            whitelist=None, blacklist=None):
         """Initialize the rule with an optional whitelist.
 
         The whitelist should contains a multi-line string, with one name per
         line.
         """
+        super().__init__(name, sensitivity)
+
+        if database == DjangoModel.DATABASE_PD_2015:
+            street_name_file = 'gadenavne.txt'
+        else:
+            raise Exception("Unrecognised database")
+
         # Load street names from data file
-        self.street_names = get_data('gadenavne.txt')
+        self.street_names = get_data(street_name_file)
 
         # Convert to sets for efficient lookup
         self.whitelist = load_whitelist(whitelist)
@@ -157,6 +167,7 @@ class AddressRule(Rule):
             unmatched_text = unmatched_text.replace(matched_text, "", 1)
 
             matches.add(
-                MatchItem(matched_data=matched_text, sensitivity=sensitivity)
+                MatchItem(matched_data=matched_text,
+                          sensitivity=self._clamp_sensitivity(sensitivity))
             )
         return matches

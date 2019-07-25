@@ -18,8 +18,10 @@
 
 import structlog
 
+from os2datascanner.projects.admin.adminapp.models.location_model import Location
 from os2datascanner.projects.admin.adminapp.models.scans.scan_model import Scan
-from os2datascanner.projects.admin.adminapp.models.webversion_model import WebVersion
+from os2datascanner.projects.admin.adminapp.models.version_model import Version
+from os2datascanner.projects.admin.adminapp.models.sensitivity_level import Sensitivity
 
 from ..rules.name import NameRule
 from ..rules.address import AddressRule
@@ -34,7 +36,10 @@ logger = structlog.get_logger()
 class Scanner(object):
     """Represents a scanner which can scan data using configured rules."""
 
-    def __init__(self, configuration, _Model=None):
+    version_class = Version
+    scan_class = Scan
+
+    def __init__(self, configuration):
         """\
 Loads the scanner settings from the scan ID specified in the configuration \
 dictionary."""
@@ -44,12 +49,9 @@ dictionary."""
         self.logger = logger.bind(scan_id=scan_id)
 
         # Get scan object from DB
-        if not _Model:
-            _Model = Scan
-        self.scan_object = _Model.objects.get(pk=scan_id)
+        self.scan_object = self.scan_class.objects.get(pk=scan_id)
 
         self.rules = self._load_rules()
-        self.valid_domains = self.scan_object.get_valid_domains
 
     def ensure_started(self):
         if self.scan_object.status != "STARTED":
@@ -60,14 +62,6 @@ dictionary."""
 
     def failed(self, arg):
         self.scan_object.set_scan_status_failed(arg)
-
-    @property
-    def do_name_scan(self):
-        return self.scan_object.do_name_scan
-
-    @property
-    def do_address_scan(self):
-        return self.scan_object.do_address_scan
 
     @property
     def do_ocr(self):
@@ -81,8 +75,19 @@ dictionary."""
     def process_urls(self):
         return self.scan_object.scanner.process_urls
 
-    def mint_url(self, **kwargs):
-        u = WebVersion(scan=self.scan_object, **kwargs)
+    def get_location_for(self, url):
+        l, created = Location.objects.get_or_create(
+            scanner=self.scan_object.webscanner,
+            url=url,
+        )
+        return l
+
+    def mint_url(self, url, **kwargs):
+        u = self.version_class(
+            scan=self.scan_object,
+            location=self.get_location_for(url),
+            **kwargs,
+        )
         u.save()
         return u
 
@@ -96,36 +101,46 @@ scan ID."""
     def _load_rules(self):
         """Load rules based on WebScanner settings."""
         rules = []
-        if self.do_name_scan:
-            rules.append(
-                NameRule(whitelist=self.scan_object.whitelisted_names,
-                         blacklist=self.scan_object.blacklisted_names)
-            )
-        if self.do_address_scan:
-            rules.append(
-                AddressRule(whitelist=self.scan_object.whitelisted_addresses,
-                            blacklist=self.scan_object.blacklisted_addresses)
-            )
         # Add Regex Rules
-        for rule in self.scan_object.regex_rules.all():
-            rules.append(
-                RegexRule(
-                    name=rule.name,
-                    pattern_strings=rule.patterns.all(),
-                    sensitivity=rule.sensitivity,
-                    cpr_enabled=rule.cpr_enabled,
-                    ignore_irrelevant=rule.ignore_irrelevant,
-                    do_modulus11=rule.do_modulus11
+        for rule in self.scan_object.rules.all():
+            if hasattr(rule, "namerule"):
+                rules.append(
+                    NameRule(
+                        name=rule.name,
+                        sensitivity=rule.sensitivity,
+                        database=rule.namerule.database,
+                        whitelist=rule.namerule.whitelist,
+                        blacklist=rule.namerule.blacklist
+                    )
                 )
-            )
+            elif hasattr(rule, "addressrule"):
+                rules.append(
+                    AddressRule(
+                        name=rule.name,
+                        sensitivity=rule.sensitivity,
+                        database=rule.addressrule.database,
+                        whitelist=rule.addressrule.whitelist,
+                        blacklist=rule.addressrule.blacklist
+                    )
+                )
+            elif hasattr(rule, "regexrule"):
+                rules.append(
+                    RegexRule(
+                        name=rule.name, sensitivity=rule.sensitivity,
+                        pattern_strings=rule.regexrule.patterns.all()
+                    )
+                )
+            elif hasattr(rule, "cprrule"):
+                rules.append(
+                    CPRRule(name=rule.name, sensitivity=rule.sensitivity,
+                            ignore_irrelevant=rule.cprrule.ignore_irrelevant,
+                            do_modulus11=rule.cprrule.do_modulus11,
+                            whitelist=rule.cprrule.whitelist))
         return rules
 
     def get_exclusion_rules(self):
         """Return a list of exclusion rules associated with the WebScanner."""
-        exclusion_rules = []
-        for domain in self.valid_domains:
-            exclusion_rules.extend(domain.exclusion_rule_list())
-        return exclusion_rules
+        return self.scan_object.scanner.exclusion_rule_list()
 
     def scan(self, data, url_object):
         """Scan data for matches from a spider.
@@ -196,3 +211,6 @@ scan ID."""
         else:
             self.logger.exception("SCANNER FAILED", exc_info=exc_value)
             self.failed('SCANNER FAILED: {}'.format(exc_value))
+
+    def get_scanner_object(self):
+        return self.scan_object.webscanner

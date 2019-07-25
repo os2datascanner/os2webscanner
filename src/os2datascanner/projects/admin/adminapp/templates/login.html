@@ -1,4 +1,4 @@
-{% extends 'os2webscanner/base.html' %}
+{% extends 'os2datascanner/base.html' %}
 {%  block title %}
 Login
 {% endblock %}
@@ -30,7 +30,8 @@ Har du glemt dit password? <a href="{% url 'password_reset' %}">Klik her</a>.
 {% endif %}
 {% endif %}
       <form role="form-horizontal" method="post" action="{% url 'login' %}">
-          {% csrf_token %}
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}" />
 	<div class="form-group{% if form.username.errors %} has-error{% endif %}">
           <label class="control-label" for="id_{{ form.username.name }}">{{ form.username.label }}</label>
           <input type="text" name="{{ form.username.name }}" class="form-control" id="id_{{ form.username.name }}" {% if form.username.value %}value="{{ form.username.value }}"{% endif %}>

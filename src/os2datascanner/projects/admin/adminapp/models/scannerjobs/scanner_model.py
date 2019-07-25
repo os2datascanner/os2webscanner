@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# encoding: utf-8
 # The contents of this file are subject to the Mozilla Public License
 # Version 2.0 (the "License"); you may not use this file except in
 # compliance with the License. You may obtain a copy of the License at
@@ -19,6 +21,7 @@
 import os
 import datetime
 import json
+import re
 
 from django.core.validators import validate_comma_separated_integer_list
 from django.db import models
@@ -27,9 +30,10 @@ from django.contrib.postgres.fields import JSONField
 from model_utils.managers import InheritanceManager
 from recurrence.fields import RecurrenceField
 
+from ..authentication_model import Authentication
 from ..organization_model import Organization
 from ..group_model import Group
-from ..regexrule_model import RegexRule
+from ..rules.rule_model import Rule
 from ..userprofile_model import UserProfile
 from ...amqp_communication import amqp_connection_manager
 
@@ -42,7 +46,10 @@ class Scanner(models.Model):
     """A scanner, i.e. a template for actual scanning jobs."""
     objects = InheritanceManager()
 
+    linkable = False
+
     name = models.CharField(max_length=256, unique=True, null=False,
+                            db_index=True,
                             verbose_name='Navn')
 
     organization = models.ForeignKey(Organization, null=False,
@@ -55,11 +62,6 @@ class Scanner(models.Model):
 
     schedule = RecurrenceField(max_length=1024,
                                verbose_name='Planlagt afvikling')
-
-    do_name_scan = models.BooleanField(default=False, verbose_name='Navn')
-
-    do_address_scan = models.BooleanField(default=False,
-                                          verbose_name='Adresse')
 
     do_ocr = models.BooleanField(default=False, verbose_name='Scan billeder')
 
@@ -74,10 +76,10 @@ class Scanner(models.Model):
                                blank=True
                                )
 
-    regex_rules = models.ManyToManyField(RegexRule,
-                                         blank=True,
-                                         verbose_name='Regex-regler',
-                                         related_name='scanners')
+    rules = models.ManyToManyField(Rule,
+                                   blank=True,
+                                   verbose_name='Regler',
+                                   related_name='scanners')
 
     recipients = models.ManyToManyField(UserProfile, blank=True,
                                         verbose_name='Modtagere')
@@ -110,6 +112,43 @@ class Scanner(models.Model):
     address_replace_text = models.CharField(max_length=2048, null=True,
                                             blank=True)
 
+    VALID = 1
+    INVALID = 0
+
+    validation_choices = (
+        (INVALID, "Ugyldig"),
+        (VALID, "Gyldig"),
+    )
+
+    url = models.CharField(max_length=2048, blank=False, verbose_name='URL')
+
+    authentication = models.OneToOneField(Authentication,
+                                          null=True,
+                                          related_name='%(app_label)s_%(class)s_authentication',
+                                          verbose_name='Brugernavn',
+                                          on_delete=models.SET_NULL)
+
+    validation_status = models.IntegerField(choices=validation_choices,
+                                            default=INVALID,
+                                            verbose_name='Valideringsstatus')
+
+    exclusion_rules = models.TextField(blank=True,
+                                       default="",
+                                       verbose_name='Ekskluderingsregler')
+
+    def exclusion_rule_list(self):
+        """Return the exclusion rules as a list of strings or regexes."""
+        REGEX_PREFIX = "regex:"
+        rules = []
+        for line in self.exclusion_rules.splitlines():
+            line = line.strip()
+            if line.startswith(REGEX_PREFIX):
+                rules.append(re.compile(line[len(REGEX_PREFIX):],
+                                        re.IGNORECASE))
+            else:
+                rules.append(line)
+        return rules
+
     @property
     def is_running(self) -> bool:
         '''Are any scans currently running against this scanner?'''
@@ -129,10 +168,6 @@ class Scanner(models.Model):
     ALREADY_RUNNING = (
         "Scanneren kunne ikke startes," +
         " fordi der allerede er en scanning i gang for den."
-    )
-    NO_VALID_DOMAINS = (
-        "Scanneren kunne ikke startes," +
-        " fordi den ikke har nogen gyldige domæner."
     )
     EXCHANGE_EXPORT_IS_RUNNING = (
         "Scanneren kunne ikke startes," +
@@ -159,10 +194,6 @@ class Scanner(models.Model):
             hour=Scanner.FIRST_START_TIME.hour + added_hours,
             minute=Scanner.FIRST_START_TIME.minute + added_minutes
         )
-
-    @property
-    def has_valid_domains(self):
-        return self.organization.os2webscanner_domain_organization.filter(validation_status=True).exists()
 
     @classmethod
     def modulo_for_starttime(cls, time):
@@ -196,9 +227,6 @@ class Scanner(models.Model):
         """
         if self.is_running:
             return Scanner.ALREADY_RUNNING
-
-        if not self.has_valid_domains:
-            return Scanner.NO_VALID_DOMAINS
 
         # Create a new Scan
         scan = self.create_scan()
@@ -242,7 +270,9 @@ class Scanner(models.Model):
         scan = Scan()
         return scan.create(self)
 
+    def path_for(self, uri):
+        return uri
+
     class Meta:
         abstract = False
         ordering = ['name']
-        db_table = 'os2webscanner_scanner'
