@@ -6,7 +6,9 @@ from .run import StartScan
 
 from ..engine2.model.core import SourceManager
 from ..engine2.model.file import FilesystemSource
+from ..engine2.model.http import WebSource
 from .scanners.processors.processor import Processor
+from .scanners.scanner_types.webscanner import WebScanner
 from .scanners.scanner_types.filescanner import FileScanner
 
 import structlog
@@ -31,60 +33,63 @@ class StartModelFileScan(StartScan, multiprocessing.Process):
         Run the scanner, blocking until finished."""
         super().run()
 
-        self.scanner = FileScanner(self.configuration)
-        self.scanner.ensure_started()
+        self.scanner = _make_scanner(self.configuration)
+        source = _make_source(self.configuration, self.scanner)
 
-        mountpath = self.scanner.get_domain_url()
-        url = self.scanner.get_scanner_object().url
         try:
             with SourceManager() as sm:
-                interesting = []
+                interesting = None
 
-                all_size = 0
-                all_count = 0
+                if hasattr(self.scanner, 'set_statistics'):
+                    # If our scanner is interested in collecting statistics,
+                    # then do a pre-analysis pass
+                    interesting = []
 
-                interesting_size = 0
-                interesting_count = 0
+                    all_size = 0
+                    all_count = 0
 
-                self.logger.info("exploring_source")
-                source = FilesystemSource(mountpath)
-                for h in source.handles(sm):
-                    mime = h.guess_type()
-                    stat = h.follow(sm).get_stat()
-                    all_size += stat.st_size
-                    all_count += 1
-                    if Processor.mimetype_to_processor_type(mime):
-                        interesting_size += stat.st_size
-                        interesting_count += 1
-                        interesting.append(h)
-                    if all_count % 1000 == 0:
-                        logger.info("exploration_status",
-                                all_count=all_count,
-                                interesting_count=interesting_count)
-                self.logger.info("explored_source",
-                        all_count=all_count, all_size=all_size,
-                        interesting_count=interesting_count,
-                        interesting_size=interesting_size)
+                    interesting_size = 0
+                    interesting_count = 0
 
-                self.scanner.set_statistics(
-                        supported_size=interesting_size,
-                        supported_count=interesting_count,
-                        relevant_size=all_size,
-                        relevant_count=all_count,
-                        relevant_unsupported_size=0,
-                        relevant_unsupported_count=0)
+                    self.logger.info("exploring_source")
+                    for h in source.handles(sm):
+                        mime = h.guess_type()
+                        size = h.follow(sm).get_size()
+                        all_size += size
+                        all_count += 1
+                        if Processor.mimetype_to_processor_type(mime):
+                            interesting_size += size
+                            interesting_count += 1
+                            interesting.append(h)
+                        if all_count % 1000 == 0:
+                            logger.info("exploration_status",
+                                    all_count=all_count,
+                                    interesting_count=interesting_count)
+                    self.logger.info("explored_source",
+                            all_count=all_count, all_size=all_size,
+                            interesting_count=interesting_count,
+                            interesting_size=interesting_size)
+                    self.scanner.set_statistics(
+                            supported_size=interesting_size,
+                            supported_count=interesting_count,
+                            relevant_size=all_size,
+                            relevant_count=all_count,
+                            relevant_unsupported_size=0,
+                            relevant_unsupported_count=0)
+                else:
+                    # If not, then just return the generator directly
+                    interesting = source.handles(sm)
 
                 self.logger.info("fetching_items")
-                for idx, h in enumerate(interesting):
-                    url = urljoin(source.to_url() + "/",
-                            str(h.get_relative_path()))
-                    url = url.replace(mountpath, url)
+                for idx, handle in enumerate(interesting):
+                    url = urljoin(handle.get_source().to_url() + "/",
+                            str(handle.get_relative_path()))
 
                     url_object = self.scanner.mint_url(
-                            url=url, mime_type=h.guess_type())
-                    with h.follow(sm).make_stream() as s:
+                            url=url, mime_type=handle.guess_type())
+                    with handle.follow(sm).make_stream() as s:
                         self.scanner.scan(s.read(), url_object)
-                    self.logger.info("fetched_item", pos=idx + 1, total=interesting_count)
+                    self.logger.info("fetched_item", pos=idx + 1)
                 self.logger.info("fetched_items")
 
             self.logger.info("awaiting_completion")
@@ -105,3 +110,22 @@ class StartModelFileScan(StartScan, multiprocessing.Process):
             self.logger.info("finished")
             self.scanner.done()
 
+def _make_scanner(configuration):
+    variety = configuration['type']
+
+    scanner = None
+    if variety == 'WebScanner':
+        scanner = WebScanner(configuration)
+    else:
+        scanner = FileScanner(configuration)
+
+    scanner.ensure_started()
+    return scanner
+
+def _make_source(configuration, scanner):
+    variety = configuration['type']
+
+    if variety == 'WebScanner':
+        return WebSource(scanner.get_scanner_object().url)
+    else:
+        return FilesystemSource(scanner.get_domain_url())
