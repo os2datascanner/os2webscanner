@@ -27,6 +27,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from os2datascanner.engine.run_webscan import StartWebScan
+from os2datascanner.engine.run_filescan import StartFileScan
 from os2datascanner.engine.run_model_filescan import StartModelFileScan
 
 from ...models.scans.scan_model import Scan
@@ -108,7 +109,10 @@ async def process_message(message):
         if body['type'] == 'WebScanner':
             scanjob = StartWebScan(body)
         else:
-            scanjob = StartModelFileScan(body)
+            if settings.USE_ENGINE2:
+                scanjob = StartModelFileScan(body)
+            else:
+                scanjob = StartFileScan(body)
 
         # sharing opened connections between processes leads to issues
         # with closed/open state getting out-of-sync -- so just close
