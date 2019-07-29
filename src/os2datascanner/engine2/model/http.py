@@ -39,25 +39,22 @@ class WebSource(Source):
             here, to_visit = to_visit[0], to_visit[1:]
 
             response = session.head(here)
-            if response.status_code != 200:
-                print(here, response)
-                continue
-
-            ct = response.headers['Content-Type']
-            if simplify_mime_type(ct) == 'text/html':
-                response = session.get(here)
-                doc = document_fromstring(response.content)
-                doc.make_links_absolute(here, resolve_base_href=True)
-                for el, _, li, _ in doc.iterlinks():
-                    if el.tag != 'a':
-                        continue
-                    new_url = urljoin(here, li)
-                    new_scheme, new_netloc, new_path, new_query, _ = urlsplit(new_url)
-                    if new_scheme == scheme and new_netloc == netloc:
-                        new_url = urlunsplit((new_scheme, new_netloc, new_path, new_query, None))
-                        if new_url not in visited:
-                            visited.add(new_url)
-                            to_visit.append(new_url)
+            if response.status_code == 200:
+                ct = response.headers['Content-Type']
+                if simplify_mime_type(ct) == 'text/html':
+                    response = session.get(here)
+                    doc = document_fromstring(response.content)
+                    doc.make_links_absolute(here, resolve_base_href=True)
+                    for el, _, li, _ in doc.iterlinks():
+                        if el.tag != 'a':
+                            continue
+                        new_url = urljoin(here, li)
+                        new_scheme, new_netloc, new_path, new_query, _ = urlsplit(new_url)
+                        if new_scheme == scheme and new_netloc == netloc:
+                            new_url = urlunsplit((new_scheme, new_netloc, new_path, new_query, None))
+                            if new_url not in visited:
+                                visited.add(new_url)
+                                to_visit.append(new_url)
 
             yield WebHandle(self, here[len(self._url):])
             sleep(SLEEP_TIME)
