@@ -36,6 +36,7 @@ test:
       junit: build/test-results.xml
 
 flake8:
+  stage: test
   image: python:latest
   script:
     - pip install flake8
@@ -46,3 +47,13 @@ black:
   script:
     - pip install black
     - black --check src || echo TODO
+docs:
+  image: keimlink/sphinx-doc:latex
+  script:
+    - make -C doc PAPER=a4 html latexpdf
+    - mv doc/_build .
+
+  artifacts:
+    name: "$CI_JOB_STAGE-$CI_COMMIT_REF_NAME"
+    paths:
+      - _build
