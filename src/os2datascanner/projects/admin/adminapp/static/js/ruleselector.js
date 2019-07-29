@@ -40,7 +40,7 @@
 
     $this.closest("form").append($("<input/>", { // add a hidden input field to the form
       type: "hidden",
-      name: "regex_rules",
+      name: "rules",
       value: ruleId
     }));
 
@@ -58,7 +58,7 @@
       ruleLi.removeAttr("data-disabled");
       ruleAnchor.tooltip(); // re-enable tooltip
 
-      $(this).closest("form").find("input[type=\"hidden\"][name=\"regex_rules\"][value=\"" + ruleId + "\"]").remove(); // remove the hidden input field corresponding to the rule we removed
+      $(this).closest("form").find("input[type=\"hidden\"][name=\"rules\"][value=\"" + ruleId + "\"]").remove(); // remove the hidden input field corresponding to the rule we removed
       elm.remove();
 
       recalcIframeHeight();

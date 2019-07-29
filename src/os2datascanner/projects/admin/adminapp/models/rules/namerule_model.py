@@ -1,3 +1,5 @@
+# -*- coding: UTF-8 -*-
+# encoding: utf-8
 # The contents of this file are subject to the Mozilla Public License
 # Version 2.0 (the "License"); you may not use this file except in
 # compliance with the License. You may obtain a copy of the License at
@@ -15,23 +17,26 @@
 # source municipalities ( http://www.os2web.dk/ )
 
 from django.db import models
-from .regexrule_model import RegexRule
 
 
-class RegexPattern(models.Model):
-    """
-    Represents a regular expression pattern to be added to a RegexRule.
-    """
+from .rule_model import Rule
 
-    class Meta:
-        verbose_name = 'Pattern'
 
-    regex = models.ForeignKey(RegexRule, null=True, on_delete=models.CASCADE,
-                              related_name='patterns', verbose_name='Regex')
+class NameRule(Rule):
+    DATABASE_DST_2014 = 0
 
-    pattern_string = models.CharField(max_length=1024, blank=False,
-                                      verbose_name='Udtryk')
+    database_choices = (
+        (DATABASE_DST_2014, u'Danmarks Statistiks liste over navne pr. 1. januar 2014'),
+    )
 
-    def __str__(self):
-        """Return the pattern string."""
-        return self.pattern_string
+    database = models.IntegerField(
+            choices=database_choices,
+            default=DATABASE_DST_2014,
+            verbose_name="Navnedatabase")
+
+    whitelist = models.TextField(blank=True,
+                                 default="",
+                                 verbose_name='Godkendte navne')
+    blacklist = models.TextField(blank=True,
+                                 default="",
+                                 verbose_name='Sortlistede navne')

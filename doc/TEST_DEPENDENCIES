@@ -10,3 +10,8 @@ mailutils
 libssl-dev
 libkrb5-dev
 gettext
+prometheus
+prometheus-postgres-exporter
+libsmbclient-dev
+moreutils
+linux-image-generic

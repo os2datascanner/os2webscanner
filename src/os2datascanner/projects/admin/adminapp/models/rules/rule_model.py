@@ -15,15 +15,12 @@
 # source municipalities ( http://www.os2web.dk/ )
 
 from django.db import models
-from .group_model import Group
-from .organization_model import Organization
-from .sensitivity_level import Sensitivity
+from ..group_model import Group
+from ..organization_model import Organization
+from ..sensitivity_level import Sensitivity
 
 
-class RegexRule(models.Model):
-
-    """Represents matching rules based on regular expressions."""
-
+class Rule(models.Model):
     name = models.CharField(max_length=256, unique=True, null=False,
                             verbose_name='Navn')
     organization = models.ForeignKey(Organization, null=False,
@@ -38,10 +35,6 @@ class RegexRule(models.Model):
                                       default=Sensitivity.HIGH,
                                       verbose_name='Følsomhed')
 
-    cpr_enabled = models.BooleanField(default=False, verbose_name='Scan CPR')
-    do_modulus11 = models.BooleanField(default=False, verbose_name='Tjek modulus-11')
-    ignore_irrelevant = models.BooleanField(default=False, verbose_name='Ignorer ugyldige fødselsdatoer')
-
     @property
     def display_name(self):
         """The name used when displaying the regexrule on the web page."""
@@ -54,3 +47,4 @@ class RegexRule(models.Model):
     def __str__(self):
         """Return the name of the rule."""
         return self.name
+

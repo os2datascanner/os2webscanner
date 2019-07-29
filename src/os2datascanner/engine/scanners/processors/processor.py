@@ -27,6 +27,8 @@ import traceback
 
 import structlog
 
+from prometheus_client.core import Summary
+
 from django.db import transaction, DatabaseError
 from django import db
 from django.conf import settings
@@ -74,6 +76,9 @@ def get_image_dimensions(file_path):
     return tuple(int(dim.strip()) for dim in
                  dimensions.decode('utf-8').split("x")
                  )
+
+
+METRIC_CONVERSIONS = Summary("os2datascanner_processor_conversions", "Object conversions")
 
 
 class Processor(object):
@@ -330,6 +335,7 @@ class Processor(object):
                 break
         return result
 
+    @METRIC_CONVERSIONS.time()
     def convert_queue_item(self, item):
         """Convert a queue item and add converted files to the queue.
 

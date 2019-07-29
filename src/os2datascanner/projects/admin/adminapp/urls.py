@@ -29,10 +29,12 @@ from .views.exchangescanner_views import ExchangeScannerList, ExchangeScannerCre
 from .views.filescanner_views import FileScannerCreate, FileScannerRun, FileScannerAskRun, FileScannerUpdate, \
     FileScannerDelete, FileScannerList
 from .views.report_views import ScanReportLog, CSVReportDetails, ReportDetails, ReportList, ReportDelete
-from .views.rule_views import RuleList, RuleCreate, RuleUpdate, RuleDelete
+from .views.rule_views import RuleList, \
+    CPRRuleCreate, CPRRuleUpdate, CPRRuleDelete, \
+    RegexRuleCreate, RegexRuleUpdate, RegexRuleDelete
 from .views.views import GroupList, GroupCreate, GroupUpdate, GroupDelete
 from .views.views import MainPageView
-from .views.views import OrganizationUpdate, OrganizationList
+from .views.views import OrganizationList
 from .views.views import SummaryList, SummaryCreate, SummaryUpdate, SummaryDelete
 from .views.views import SummaryReport, DialogSuccess, SystemStatusView
 from .views.views import file_upload, referrer_content
@@ -86,13 +88,16 @@ urlpatterns = [
             model=FileScanner),
         name='filescanner_askrun'),
     url(r'^rules/$', RuleList.as_view(), name='rules'),
-    url(r'^rules/add/$', RuleCreate.as_view(), name='rule_add'),
-    url(r'^rules/(?P<pk>\d+)/$', RuleUpdate.as_view(),
+    url(r'^rules/cpr/add/$', CPRRuleCreate.as_view(), name='cprrule_add'),
+    url(r'^rules/cpr/(?P<pk>\d+)/$', CPRRuleUpdate.as_view(),
         name='rule_update'),
-    url(r'^rules/(?P<pk>\d+)/delete/$', RuleDelete.as_view(),
+    url(r'^rules/cpr/(?P<pk>\d+)/delete/$', CPRRuleDelete.as_view(),
         name='rule_delete'),
-    url(r"^rules/organization/$", OrganizationUpdate.as_view(),
-        name='organization_update'),
+    url(r'^rules/regex/add/$', RegexRuleCreate.as_view(), name='regexrule_add'),
+    url(r'^rules/regex/(?P<pk>\d+)/$', RegexRuleUpdate.as_view(),
+        name='rule_update'),
+    url(r'^rules/regex/(?P<pk>\d+)/delete/$', RegexRuleDelete.as_view(),
+        name='rule_delete'),
     url(r'^reports/$', ReportList.as_view(), name='reports'),
     url(r'^reports/web/$', ReportList.as_view(active='web', queryset=Scan.objects.filter(scanner__webscanner__isnull=False)), name='reports'),
     url(r'^reports/file/$', ReportList.as_view(active='file', queryset=Scan.objects.filter(scanner__filescanner__isnull=False)), name='reports'),
@@ -164,21 +169,16 @@ urlpatterns = [
         name='password_reset_complete'
         ),
 
-    # General dialog success handler
-    url(r'^(webscanners|rules|groups|reports/summaries)/(\d+)/(created)/$',
+    # General success handler
+    url(r'^(webscanners|filescanners|exchangescanners)/(\d+)/(created)/$',
         DialogSuccess.as_view()),
-    url(r'^(webscanners|rules|groups|reports/summaries)/(\d+)/(saved)/$',
+    url(r'^(webscanners|filescanners|exchangescanners)/(\d+)/(saved)/$',
         DialogSuccess.as_view()),
-    # General dialog success handler
-    url(r'^(filescanners|rules|groups|reports/summaries)/(\d+)/(created)/$',
+    url(r'^(rules/regex|rules/cpr|groups|reports/summaries)/(\d+)/(created)/$',
         DialogSuccess.as_view()),
-    url(r'^(filescanners|rules|groups|reports/summaries)/(\d+)/(saved)/$',
+    url(r'^(rules/regex|rules/cpr|groups|reports/summaries)/(\d+)/(saved)/$',
         DialogSuccess.as_view()),
-    # General dialog success handler
-    url(r'^(exchangescanners|rules|groups|reports/summaries)/(\d+)/(created)/$',
-        DialogSuccess.as_view()),
-    url(r'^(exchangescanners|rules|groups|reports/summaries)/(\d+)/(saved)/$',
-        DialogSuccess.as_view()),
+
     url(r'^jsi18n/$', JavaScriptCatalog.as_view(
         packages=('os2webscanner', 'recurrence'),
     )),
