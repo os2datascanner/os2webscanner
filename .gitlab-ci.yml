@@ -9,6 +9,10 @@ test:
     POSTGRES_PASSWORD: os2datascanner
     POSTGRES_HOST: postgres
     AMQP_HOST: rabbitmq
+    DJANGO_SETTINGS_MODULE: os2datascanner.projects.admin.settings
+
+  coverage: '/^TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+\%)$/'
+
   script:
     - apt-get update -qq
     - apt-get install -qq $(cat doc/TEST_DEPENDENCIES)
@@ -18,9 +22,16 @@ test:
 
     - export DJANGO_SETTINGS_MODULE=os2datascanner.projects.admin.settings
     - django-admin makemigrations --check --dry-run
-    - django-admin test os2datascanner.tests
+
+    - coverage erase
+    - coverage run -m django test os2datascanner.tests
+    - coverage html --skip-covered -d build/coverage
+    - coverage report
 
   artifacts:
+    name: "$CI_JOB_STAGE-$CI_COMMIT_REF_NAME"
+    paths:
+      - build/coverage
     reports:
       junit: build/test-results.xml
 
