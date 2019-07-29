@@ -278,6 +278,20 @@ class Resource(ABC):
         this Resource in the associated StateManager."""
         return self._sm.open(self.get_handle().get_source())
 
+class ResourceUnavailableError(Exception):
+    """When a function that tries to access a Resource's data or metadata
+    fails, a ResourceUnavailableError will be raised. The first associated
+    value will be the Handle backing the Resource in question; subsequent
+    values, if present, give specific details of the failure."""
+
+    def __str__(self):
+        hand, args = self.args[0], self.args[1:]
+        if args:
+            return "ResourceUnavailableError({0}, {1})".format(
+                    hand, ", ".join([str(arg) for arg in args]))
+        else:
+            return "ResourceUnavailableError({0})".format(hand)
+
 class FileResource(Resource):
     """A FileResource is a Resource that can, when necessary, be viewed as a
     file."""
