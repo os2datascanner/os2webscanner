@@ -22,7 +22,7 @@ test:
 
   artifacts:
     reports:
-      junit: build/test-results/*.xml
+      junit: build/test-results.xml
 
 flake8:
   image: python:latest

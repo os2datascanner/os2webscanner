@@ -19,8 +19,11 @@ from django.utils.translation import gettext_lazy as _
 
 BASE_DIR = str(pathlib.Path(__file__).parent.parent.parent.parent.absolute())
 PROJECT_DIR = os.path.dirname(BASE_DIR)
+BUILD_DIR = os.path.join(PROJECT_DIR, 'build')
 VAR_DIR = os.path.join(PROJECT_DIR, 'var')
 LOGS_DIR = os.path.join(VAR_DIR, 'logs')
+
+os.makedirs(BUILD_DIR, exist_ok=True)
 
 DEBUG = True
 
@@ -79,7 +82,7 @@ SETTINGS_EXPORT = [
 ]
 
 TEST_RUNNER = 'xmlrunner.extra.djangotestrunner.XMLTestRunner'
-TEST_OUTPUT_DIR = os.path.join(PROJECT_DIR, 'build/test-results')
+TEST_OUTPUT_FILE_NAME = os.path.join(BUILD_DIR, 'test-results.xml')
 TEST_OUTPUT_DESCRIPTIONS = True
 TEST_OUTPUT_VERBOSE = True
 
