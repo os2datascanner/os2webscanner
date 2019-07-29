@@ -1,4 +1,4 @@
-from .core import Source, Handle, FileResource
+from .core import Source, Handle, FileResource, ResourceUnavailableError
 from .utilities import NamedTemporaryResource
 
 from io import BytesIO
@@ -79,6 +79,7 @@ class WebHandle(Handle):
 class WebResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
+        self._status = None
         self._header = None
 
     def _make_url(self):
@@ -86,10 +87,20 @@ class WebResource(FileResource):
         base = handle.get_source().to_url()
         return base + str(handle.get_relative_path())
 
-    def get_header(self):
+    def _require_header_and_status(self):
         if not self._header:
             response = self._open_source().head(self._make_url())
+            self._status = response.status_code
             self._header = dict(response.headers)
+
+    def get_status(self):
+        self._require_header_and_status()
+        return self._status
+
+    def get_header(self):
+        self._require_header_and_status()
+        if self._status != 200:
+            raise ResourceUnavailableError(self.get_handle(), self._status)
         return self._header
 
     def get_size(self):
@@ -104,7 +115,7 @@ class WebResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        ntr = NamedTemporaryResource(self._handle.get_name())
+        ntr = NamedTemporaryResource(self.get_handle().get_name())
         try:
             with ntr.open("wb") as res:
                 with self.make_stream() as s:
@@ -116,5 +127,9 @@ class WebResource(FileResource):
     @contextmanager
     def make_stream(self):
         response = self._open_source().get(self._make_url())
-        with BytesIO(response.content) as s:
-            yield s
+        if response.status_code != 200:
+            raise ResourceUnavailableError(
+                    self.get_handle(), response.status_code)
+        else:
+            with BytesIO(response.content) as s:
+                yield s
