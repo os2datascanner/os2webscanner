@@ -5,6 +5,7 @@ from io import BytesIO
 from time import sleep
 from lxml.html import document_fromstring
 from urllib.parse import urljoin, urlsplit, urlunsplit
+from dateutil.parser import parse as parse_date
 from requests.sessions import Session
 from contextlib import contextmanager
 
@@ -95,7 +96,7 @@ class WebResource(FileResource):
         return int(self.get_header()["Content-Length"])
 
     def get_last_modified(self):
-        return dateutil.parse(self.get_header()["Last-Modified"])
+        return parse_date(self.get_header()["Last-Modified"])
 
     # override
     def compute_type(self):
