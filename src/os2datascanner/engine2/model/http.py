@@ -34,6 +34,7 @@ class WebSource(Source):
         session = sm.open(self)
         to_visit = [self._url]
         visited = set()
+        referrer_map = {}
 
         scheme, netloc, path, query, fragment = urlsplit(self._url)
         while to_visit:
@@ -53,11 +54,14 @@ class WebSource(Source):
                         new_scheme, new_netloc, new_path, new_query, _ = urlsplit(new_url)
                         if new_scheme == scheme and new_netloc == netloc:
                             new_url = urlunsplit((new_scheme, new_netloc, new_path, new_query, None))
+                            referrer_map.setdefault(new_url, set()).add(here)
                             if new_url not in visited:
                                 visited.add(new_url)
                                 to_visit.append(new_url)
 
-            yield WebHandle(self, here[len(self._url):])
+            wh = WebHandle(self, here[len(self._url):])
+            wh.set_referrer_urls(referrer_map.get(here, set()))
+            yield wh
             sleep(SLEEP_TIME)
 
         print(visited)
@@ -73,6 +77,16 @@ class WebSource(Source):
 SecureWebSource = WebSource
 
 class WebHandle(Handle):
+    def __init__(self, source, path):
+        super().__init__(source, path)
+        self._referrer_urls = set()
+
+    def set_referrer_urls(self, referrer_urls):
+        self._referrer_urls = referrer_urls
+
+    def get_referrer_urls(self):
+        return self._referrer_urls
+
     def follow(self, sm):
         return WebResource(self, sm)
 
