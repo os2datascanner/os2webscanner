@@ -65,6 +65,7 @@ cpr_regex = regex.compile(
 #
 # Updated list of dates with CPR numbers violating the Modulo-11 check,
 # as of July 2019.
+# Source: https://cpr.dk/cpr-systemet/personnumre-uden-kontrolciffer-modulus-11-kontrol/
 #
 cpr_exception_dates = {
     date(1960, 1, 1),
