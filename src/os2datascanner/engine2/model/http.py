@@ -77,6 +77,8 @@ class WebSource(Source):
 SecureWebSource = WebSource
 
 class WebHandle(Handle):
+    eq_properties = Handle.BASE_PROPERTIES
+
     def __init__(self, source, path):
         super().__init__(source, path)
         self._referrer_urls = set()

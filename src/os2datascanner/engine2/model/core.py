@@ -256,6 +256,12 @@ class Handle(ABC, _TypPropEq):
         """Follows this Handle using the state in the StateManager @sm,
         returning a concrete Resource."""
 
+    BASE_PROPERTIES = ('_source', '_relpath',)
+    """The properties defined by Handle. (If a subclass defines other
+    properties, but wants those properties to be ignored when comparing
+    objects, it should set the 'eq_properties' class attribute to this
+    value.)"""
+
 class Resource(ABC):
     """A Resource is a concrete embodiment of an object: it's the thing a
     Handle points to. If you have a Resource, then you have some way of getting
