@@ -123,11 +123,15 @@ class WebResource(FileResource):
         return int(self.get_header()["Content-Length"])
 
     def get_last_modified(self):
-        return parse_date(self.get_header()["Last-Modified"])
+        try:
+            return parse_date(self.get_header()["Last-Modified"])
+        except (KeyError, ValueError):
+            return None
 
     # override
     def compute_type(self):
-        return self.get_header()["Content-Type"] or "application/octet-stream"
+        return self.get_header().get(
+                "Content-Type", "application/octet-stream")
 
     @contextmanager
     def make_path(self):
