@@ -64,8 +64,6 @@ class WebSource(Source):
             yield wh
             sleep(SLEEP_TIME)
 
-        print(visited)
-
     def to_url(self):
         return self._url
 
