@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import pika
 
+from django.conf import settings
+
 _amqp_obj = {
     "amqp_channels": None,
     "connection": None
@@ -31,7 +33,7 @@ def _create_connection():
     Creates a amqp connection
     """
     if not _amqp_obj['connection']:
-        conn_params = pika.ConnectionParameters('localhost',
+        conn_params = pika.ConnectionParameters(settings.AMQP_HOST,
                                                 heartbeat_interval=6000)
         _amqp_obj['connection'] = pika.BlockingConnection(conn_params)
 

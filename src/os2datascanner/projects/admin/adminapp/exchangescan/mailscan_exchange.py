@@ -388,7 +388,9 @@ class ExchangeServerScan(multiprocessing.Process):
 
     def start_amqp(self):
         if self.amqp:
-            conn_params = pika.ConnectionParameters('localhost',
+            from django.conf import settings
+
+            conn_params = pika.ConnectionParameters(settings.AMQP_HOST,
                                                     heartbeat_interval=6000)
             connection = pika.BlockingConnection(conn_params)
             self.amqp_channel = connection.channel()
