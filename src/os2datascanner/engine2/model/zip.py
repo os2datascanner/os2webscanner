@@ -1,7 +1,6 @@
 from .core import Source, Handle, FileResource
 from .utilities import NamedTemporaryResource
 
-from pathlib import Path
 from zipfile import ZipFile
 from datetime import datetime
 from contextlib import contextmanager
@@ -45,7 +44,7 @@ class ZipResource(FileResource):
     def get_info(self):
         if not self._info:
             self._info = self._open_source()[1].getinfo(
-                    str(self._handle.get_relative_path()))
+                    str(self.get_handle().get_relative_path()))
         return self._info
 
     def get_hash(self):
@@ -59,7 +58,7 @@ class ZipResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        ntr = NamedTemporaryResource(Path(self._handle.get_name()))
+        ntr = NamedTemporaryResource(self.get_handle().get_name())
         try:
             with ntr.open("wb") as f:
                 with self.make_stream() as s:
@@ -70,5 +69,6 @@ class ZipResource(FileResource):
 
     @contextmanager
     def make_stream(self):
-        with self._open_source()[1].open(str(self._handle.get_relative_path())) as s:
+        with self._open_source()[1].open(
+                self.get_handle().get_relative_path()) as s:
             yield s

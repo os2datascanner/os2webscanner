@@ -1,5 +1,5 @@
 from .smb import make_smb_url, SMBSource
-from .core import Source, Handle, ShareableCookie, FileResource
+from .core import Source, Handle, ShareableCookie, FileResource, ResourceUnavailableError
 from .utilities import NamedTemporaryResource
 
 from os import rmdir, stat_result, O_RDONLY
@@ -7,7 +7,8 @@ import smbc
 from regex import compile, match
 from urllib.parse import quote, unquote, urlsplit, urlunsplit
 from hashlib import md5
-from pathlib import Path
+from datetime import datetime
+from urllib.parse import quote
 from contextlib import contextmanager
 
 class SMBCSource(Source):
@@ -33,11 +34,11 @@ class SMBCSource(Source):
         url, context = sm.open(self)
         def handle_dirent(parents, entity):
             here = parents + [entity]
-            path = Path('/'.join([h.name for h in here]))
+            path = '/'.join([h.name for h in here])
             if entity.smbc_type == smbc.DIR and not (
                     entity.name == "." or entity.name == ".."):
                 try:
-                    obj = context.opendir(url + "/" + str(path))
+                    obj = context.opendir(url + "/" + path)
                     for dent in obj.getdents():
                         yield from handle_dirent(here, dent)
                 except ValueError:
@@ -81,10 +82,13 @@ class SMBCResource(FileResource):
         self._hash = None
 
     def open_file(self):
-        url, context = self._open_source()
-        h = self.get_handle()
-        my_url = url + "/" + str(self.get_handle().get_relative_path())
-        return context.open(my_url, O_RDONLY)
+        try:
+            url, context = self._open_source()
+            h = self.get_handle()
+            my_url = url + "/" + quote(self.get_handle().get_relative_path())
+            return context.open(my_url, O_RDONLY)
+        except smbc.NoEntryError as ex:
+            raise ResourceUnavailableError(self.get_handle(), ex)
 
     def get_stat(self):
         if not self._stat:
@@ -115,7 +119,7 @@ class SMBCResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        ntr = NamedTemporaryResource(Path(self.get_handle().get_name()))
+        ntr = NamedTemporaryResource(self.get_handle().get_name())
         try:
             with ntr.open("wb") as f:
                 rf = self.open_file()

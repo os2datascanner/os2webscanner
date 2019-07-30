@@ -4,7 +4,6 @@ from io import BytesIO
 from os import fsync
 from base64 import b64decode, b64encode
 from hashlib import md5
-from pathlib import Path
 from tempfile import NamedTemporaryFile
 from contextlib import contextmanager
 
@@ -14,7 +13,7 @@ class DataSource(Source):
         self._mime = mime
 
     def handles(self, sm):
-        yield DataHandle(self, Path())
+        yield DataHandle(self, "file")
 
     def __str__(self):
         return "DataSource(content=..., mime={0})".format(self._mime)

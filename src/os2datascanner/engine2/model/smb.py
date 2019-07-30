@@ -38,13 +38,12 @@ class SMBSource(Source):
             args.append(self._make_optarg(display=False))
             print(args)
             assert run(args).returncode == 0
-            return ShareableCookie(Path(mntdir))
+            return ShareableCookie(mntdir)
         except:
             rmdir(mntdir)
             raise
 
     def _close(self, mntdir):
-        mntdir = str(mntdir)
         args = ["umount", mntdir]
         try:
             assert run(args).returncode == 0
@@ -54,11 +53,11 @@ class SMBSource(Source):
             rmdir(mntdir)
 
     def handles(self, sm):
-        mntdir = sm.open(self)
-        for d in mntdir.glob("**"):
+        pathlib_mntdir = Path(sm.open(self))
+        for d in pathlib_mntdir.glob("**"):
             for f in d.iterdir():
                 if f.is_file():
-                    yield SMBHandle(self, f.relative_to(mntdir))
+                    yield SMBHandle(self, str(f.relative_to(pathlib_mntdir)))
 
     def to_url(self):
         return make_smb_url(

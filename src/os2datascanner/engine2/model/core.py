@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import magic
-from pathlib import Path
+import os.path
 from mimetypes import guess_type
 
 from .utilities import _TypPropEq
@@ -217,19 +217,16 @@ class Handle(ABC, _TypPropEq):
     Source. Handles can be followed to give a Resource, a concrete object.
 
     Although all Handle subclasses expose the same two-argument constructor,
-    which takes a Source and a pathlib.Path, each type of Source defines what
-    its Handles and their paths mean; the only general way to get a meaningful
-    Handle is the Source.handles() function (or to make a copy of an existing
-    one).
+    which takes a Source and a string representation of a path, each type of
+    Source defines what its Handles and their paths mean; the only general way
+    to get a meaningful Handle is the Source.handles() function (or to make a
+    copy of an existing one).
 
     Handles are serialisable and persistent, and two different Handles with the
     same type and properties compare equal."""
     def __init__(self, source, relpath):
         self._source = source
-        if isinstance(relpath, Path):
-            self._relpath = relpath
-        else:
-            self._relpath = Path(relpath)
+        self._relpath = relpath
 
     def get_source(self):
         return self._source
@@ -238,7 +235,7 @@ class Handle(ABC, _TypPropEq):
         return self._relpath
 
     def get_name(self):
-        return self.get_relative_path().name
+        return os.path.basename(self._relpath) or 'file'
 
     def guess_type(self):
         """Guesses the type of this Handle's target based on its name. (For a

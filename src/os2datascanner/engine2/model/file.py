@@ -1,5 +1,7 @@
 from .core import Source, Handle, FileResource, ShareableCookie
 
+from os import stat
+import os.path
 from urllib.parse import quote, unquote, urlsplit, urlunsplit
 from hashlib import md5
 from pathlib import Path
@@ -8,14 +10,17 @@ from contextlib import contextmanager
 
 class FilesystemSource(Source):
     def __init__(self, path):
-        self._path = Path(path)
-        assert self._path.is_absolute()
+        if not os.path.isabs(path):
+            raise ValueError("Path {0} is not absolute".format(path))
+        self._path = path
 
     def handles(self, sm):
-        for d in self._path.glob("**"):
+        pathlib_path = Path(self._path)
+        for d in pathlib_path.glob("**"):
             for f in d.iterdir():
                 if f.is_file():
-                    yield FilesystemHandle(self, f.relative_to(self._path))
+                    yield FilesystemHandle(self,
+                            str(f.relative_to(pathlib_path)))
 
     def __str__(self):
         return "FilesystemSource({0})".format(self._path)
@@ -43,8 +48,8 @@ class FilesystemHandle(Handle):
 class FilesystemResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
-        self._full_path = self._open_source().joinpath(
-                self.get_handle().get_relative_path())
+        self._full_path = os.path.join(
+                self._open_source(), self.get_handle().get_relative_path())
         self._hash = None
         self._stat = None
 
@@ -56,7 +61,7 @@ class FilesystemResource(FileResource):
 
     def get_stat(self):
         if not self._stat:
-            self._stat = self._full_path.stat()
+            self._stat = os.stat(self._full_path)
         return self._stat
 
     def get_size(self):
@@ -67,9 +72,9 @@ class FilesystemResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        yield str(self._full_path)
+        yield self._full_path
 
     @contextmanager
     def make_stream(self):
-        with open(str(self._full_path), "rb") as s:
+        with open(self._full_path, "rb") as s:
             yield s
