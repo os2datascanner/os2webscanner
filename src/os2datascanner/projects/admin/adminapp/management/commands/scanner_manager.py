@@ -177,7 +177,7 @@ class Command(BaseCommand):
             '-H',
             '--amqp-host',
             type=str,
-            default='localhost',
+            default=settings.AMQP_HOST,
             help='Host name of the AMQP server',
         )
         parser.add_argument(

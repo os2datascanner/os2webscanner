@@ -14,12 +14,11 @@
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
 """Rules for CPR scanning."""
+from datetime import date
 
 import regex
-from datetime import datetime
 
 from .rule import Rule
-from os2datascanner.projects.admin.adminapp.models.sensitivity_level import Sensitivity
 from ..items import MatchItem
 
 
@@ -63,18 +62,34 @@ cpr_regex = regex.compile(
     r"\b(\d{2}[\s]?\d{2}[\s]?\d{2})(?:[\s\-/\.]|\s\-\s)?(\d{4})\b"
 )
 
-# As of 11. January 2011, a total of 18 CPR numbers have been assigned
-# without a valid modulus 11 check digit - all men born 1. January 1965
-# or 1. January 1966.
-# https://cpr.dk/cpr-systemet/opbygning-af-cpr-nummeret/
-cpr_exception_dates = (
-    # 1. January 1965
-    datetime(year=1965, month=1, day=1),
-    # 1. January 1966
-    datetime(year=1966, month=1, day=1)
-)
+#
+# Updated list of dates with CPR numbers violating the Modulo-11 check,
+# as of July 2019.
+# Source: https://cpr.dk/cpr-systemet/personnumre-uden-kontrolciffer-modulus-11-kontrol/
+#
+cpr_exception_dates = {
+    date(1960, 1, 1),
+    date(1964, 1, 1),
+    date(1965, 1, 1),
+    date(1966, 1, 1),
+    date(1969, 1, 1),
+    date(1970, 1, 1),
+    date(1980, 1, 1),
+    date(1982, 1, 1),
+    date(1984, 1, 1),
+    date(1985, 1, 1),
+    date(1986, 1, 1),
+    date(1987, 1, 1),
+    date(1987, 12, 1),
+    date(1988, 1, 1),
+    date(1989, 1, 1),
+    date(1990, 1, 1),
+    date(1991, 1, 1),
+    date(1992, 1, 1),
+}
 
-YEAR_TODAY = datetime.now().year
+
+THIS_YEAR = date.today().year
 
 
 def date_check(cpr, ignore_irrelevant=True):
@@ -127,10 +142,10 @@ def _get_birth_date(cpr, ignore_irrelevant=True):
             year += 2000
 
     if ignore_irrelevant:
-        if year > YEAR_TODAY + 2 or year < 1900:
-            raise ValueError
+        if year > THIS_YEAR + 2 or year < 1900:
+            raise ValueError(cpr)
 
-    return datetime(day=day, month=month, year=year)
+    return date(day=day, month=month, year=year)
 
 
 def _is_modulus11(cpr):
@@ -153,7 +168,7 @@ def _is_modulus11(cpr):
 
 
 def modulus11_check(cpr):
-    """Perform a modulus-11 check on a CPR number with exceptions.
+    """Perform a modulo-11 check on a CPR number with exceptions.
 
     Return True if the number either passes the modulus-11 check OR is one
     assigned to a person born on one of the exception dates where the
