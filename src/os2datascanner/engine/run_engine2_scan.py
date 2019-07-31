@@ -1,12 +1,12 @@
 from time import sleep
 import multiprocessing
-from urllib.parse import urljoin
+from urllib.parse import urljoin, quote
 
 from .run import StartScan
 
-from ..engine2.model.core import SourceManager
-from ..engine2.model.file import FilesystemSource
+from ..engine2.model.core import SourceManager, ResourceUnavailableError
 from ..engine2.model.http import WebSource
+from ..engine2.model.smbc import SMBCSource
 from .scanners.processors.processor import Processor
 from .scanners.scanner_types.webscanner import WebScanner
 from .scanners.scanner_types.filescanner import FileScanner
@@ -54,9 +54,12 @@ class StartEngine2Scan(StartScan, multiprocessing.Process):
                     self.logger.info("exploring_source")
                     for h in source.handles(sm):
                         mime = h.guess_type()
-                        size = h.follow(sm).get_size()
-                        all_size += size
-                        all_count += 1
+                        try:
+                            size = h.follow(sm).get_size()
+                            all_size += size
+                            all_count += 1
+                        except ResourceUnavailableError:
+                            continue
                         if Processor.mimetype_to_processor_type(mime):
                             interesting_size += size
                             interesting_count += 1
@@ -82,14 +85,20 @@ class StartEngine2Scan(StartScan, multiprocessing.Process):
 
                 self.logger.info("fetching_items")
                 for idx, handle in enumerate(interesting):
-                    url = urljoin(handle.get_source().to_url() + "/",
-                            str(handle.get_relative_path()))
+                    url = self.make_presentation_url(handle)
 
                     url_object = self.scanner.mint_url(
                             url=url, mime_type=handle.guess_type())
-                    with handle.follow(sm).make_stream() as s:
-                        self.scanner.scan(s.read(), url_object)
-                    self.logger.info("fetched_item", pos=idx + 1)
+                    try:
+                        with handle.follow(sm).make_stream() as s:
+                            self.scanner.scan(s.read(), url_object)
+                        self.logger.info("fetched_item",
+                                path=handle.get_relative_path(), pos=idx + 1)
+                    except ResourceUnavailableError:
+                        if hasattr(handle, 'get_referrer_urls'):
+                            pass # XXX: actually build referrer URL structure
+                        self.logger.info("item_unavailable",
+                            path=handle.get_relative_path(), pos=idx + 1)
                 self.logger.info("fetched_items")
 
             self.logger.info("awaiting_completion")
@@ -110,14 +119,27 @@ class StartEngine2Scan(StartScan, multiprocessing.Process):
             self.logger.info("finished")
             self.scanner.done()
 
+    def make_presentation_url(self, handle):
+        variety = self.configuration['type']
+        if variety == 'WebScanner':
+            return urljoin(handle.get_source().to_url() + "/",
+                    handle.get_relative_path())
+        elif variety == 'FileScanner':
+            return urljoin("file:" + quote(handle.get_source().get_unc()) + "/",
+                    quote(handle.get_relative_path()))
+        else:
+            raise Exception("Unknown variety {0}".format(variety))
+
 def _make_scanner(configuration):
     variety = configuration['type']
 
     scanner = None
     if variety == 'WebScanner':
         scanner = WebScanner(configuration)
-    else:
+    elif variety == 'FileScanner':
         scanner = FileScanner(configuration)
+    else:
+        raise Exception("Unknown variety {0}".format(variety))
 
     scanner.ensure_started()
     return scanner
@@ -127,5 +149,11 @@ def _make_source(configuration, scanner):
 
     if variety == 'WebScanner':
         return WebSource(scanner.get_scanner_object().url)
+    elif variety == 'FileScanner':
+        db_object = scanner.get_scanner_object()
+        return SMBCSource(db_object.url,
+                user=db_object.authentication.username,
+                password=db_object.authentication.get_password(),
+                domain=db_object.authentication.domain)
     else:
-        return FilesystemSource(scanner.get_domain_url())
+        raise Exception("Unknown variety {0}".format(variety))
