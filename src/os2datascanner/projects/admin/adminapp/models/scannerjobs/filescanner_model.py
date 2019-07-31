@@ -65,6 +65,8 @@ class FileScanner(Scanner):
 
     def smb_mount(self):
         """Mounts networkdrive if not already mounted."""
+        if settings.USE_ENGINE2:
+            return True
 
         if self.is_mounted:
             logger.info('mount_skipped', mountpath=self.mountpath, url=self.url)
@@ -103,6 +105,9 @@ class FileScanner(Scanner):
 
     def smb_umount(self):
         """Unmounts networkdrive if mounted."""
+        if settings.USE_ENGINE2:
+            return True
+
         if self.is_mounted:
             call(['sudo', 'umount', '-l', self.mountpath])
             if self.is_mounted:
