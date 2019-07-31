@@ -40,7 +40,7 @@ class TarResource(FileResource):
 
     def get_info(self):
         if not self._info:
-            self._info = self._open_source()[1].gettarinfo(
+            self._info = self._open_source()[1].getmember(
                     self.get_handle().get_relative_path())
         return self._info
 
@@ -51,7 +51,7 @@ class TarResource(FileResource):
         return self.get_info().size
 
     def get_last_modified(self):
-        return datetime(*self.get_info().mtime)
+        return datetime.fromtimestamp(self.get_info().mtime)
 
     @contextmanager
     def make_path(self):
