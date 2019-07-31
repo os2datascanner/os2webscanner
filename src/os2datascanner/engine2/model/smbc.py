@@ -18,6 +18,9 @@ class SMBCSource(Source):
         self._password = password
         self._domain = domain
 
+    def get_unc(self):
+        return self._unc
+
     def __str__(self):
         return "SMBCSource({0}, {1}, ****, {2})".format(
                 self._unc, self._user, self._domain)

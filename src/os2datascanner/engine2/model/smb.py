@@ -15,6 +15,9 @@ class SMBSource(Source):
         self._password = password
         self._domain = domain
 
+    def get_unc(self):
+        return self._unc
+
     def _make_optarg(self, display=True):
         optarg = ["ro"]
         if self._user:
