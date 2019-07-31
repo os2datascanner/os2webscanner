@@ -124,7 +124,10 @@ class SMBCResource(FileResource):
             with ntr.open("wb") as f:
                 rf = self.open_file()
                 try:
-                    f.write(rf.read())
+                    buf = rf.read(self.DOWNLOAD_CHUNK_SIZE)
+                    while buf:
+                        f.write(buf)
+                        buf = rf.read(self.DOWNLOAD_CHUNK_SIZE)
                 finally:
                     rf.close()
             yield ntr.get_path()
@@ -135,3 +138,5 @@ class SMBCResource(FileResource):
     def make_stream(self):
         with self.make_path() as p:
             yield open(p, "rb")
+
+    DOWNLOAD_CHUNK_SIZE = 1024 * 512
