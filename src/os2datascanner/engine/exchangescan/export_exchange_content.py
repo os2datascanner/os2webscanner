@@ -382,7 +382,7 @@ class ExchangeServerExport(multiprocessing.Process):
     def start_amqp(self):
         if self.amqp:
             conn_params = pika.ConnectionParameters(AMQP_HOST,
-                                                    heartbeat_interval=6000)
+                                                    heartbeat=6000)
             connection = pika.BlockingConnection(conn_params)
             self.amqp_channel = connection.channel()
             self.amqp_channel.queue_declare(queue=str(self.pid))

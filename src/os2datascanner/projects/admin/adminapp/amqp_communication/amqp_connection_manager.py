@@ -34,7 +34,7 @@ def _create_connection():
     """
     if not _amqp_obj['connection']:
         conn_params = pika.ConnectionParameters(settings.AMQP_HOST,
-                                                heartbeat_interval=6000)
+                                                heartbeat=6000)
         _amqp_obj['connection'] = pika.BlockingConnection(conn_params)
 
 
