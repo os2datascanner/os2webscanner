@@ -29,7 +29,7 @@ tests:
     - django-admin makemigrations --check --dry-run
 
     - coverage erase
-    - coverage run -m django test os2datascanner.tests
+    - coverage run -m django test os2datascanner
     - coverage html --skip-covered -d build/coverage
     - coverage report
 
