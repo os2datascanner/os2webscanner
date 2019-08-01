@@ -1,22 +1,35 @@
 import os
+import shutil
+import tempfile
 import time
 import unittest
-from datetime import timedelta
+from datetime import timedelta, datetime
 
-from django.test import TestCase
+from django.conf import settings
+from django.test import TestCase, override_settings
 
 from os2datascanner.projects.admin.adminapp.models.scans.scan_model import Scan
 
 from .util import CreateOrganization, CreateWebScan, CreateScan
 
 
+@override_settings(VAR_DIR=None)
 class ScanModelTest(TestCase):
     """Unit-tests for the Create Scan model."""
 
     def setUp(self):
+        super().setUp()
+
         CreateOrganization.create_organization(self)
+
         # CreateExchangeDomain.create_exchangedomain(self)
 
+        self.__tempdir = settings.VAR_DIR = tempfile.mkdtemp()
+
+    def tearDown(self):
+        shutil.rmtree(self.__tempdir)
+
+        super().tearDown()
 
     @unittest.skip("Exchange domain is gone!")
     def test_exchange_cleanup_finished_scan(self):
@@ -32,8 +45,14 @@ class ScanModelTest(TestCase):
         self.check_scan_dir(filescan)
 
     def check_scan_dir(self, scan_object):
+        self.assertEqual(
+            os.path.commonpath([self.__tempdir, scan_object.scan_dir]),
+            self.__tempdir,
+            "forcing scandir to /tmp failed!"
+        )
+
         os.makedirs(scan_object.scan_dir)
         self.assertTrue(os.path.exists(scan_object.scan_dir))
         time.sleep(2)
-        Scan.cleanup_finished_scans(timedelta(minutes=1))
+        Scan.cleanup_finished_scans(datetime.now() - timedelta(minutes=1))
         self.assertFalse(os.path.exists(scan_object.scan_dir))
