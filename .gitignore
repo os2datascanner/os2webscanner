@@ -16,3 +16,4 @@ django-os2webscanner/django.os2webscanner.egg-info
 ._*
 **DS_Store
 var/prometheus/*.json
+local_settings.py
