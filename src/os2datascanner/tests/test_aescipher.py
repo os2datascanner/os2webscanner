@@ -1,10 +1,10 @@
-import unittest
+import django
 
 from os2datascanner.projects.admin.adminapp.aescipher import encrypt, decrypt
 from os2datascanner.projects.admin.adminapp.models.authentication_model import Authentication
 
 
-class AESCipherTest(unittest.TestCase):
+class AESCipherTest(django.test.TestCase):
 
     def test_encrypt_decrypt(self):
         password_to_encrypt = 'hemmeligtpassword'
@@ -23,12 +23,3 @@ class AESCipherTest(unittest.TestCase):
         stored_auth = Authentication.objects.filter()[:1].get()
         password_after_decrypt = decrypt(bytes(stored_auth.iv), bytes(stored_auth.ciphertext))
         self.assertEqual(password_to_encrypt, password_after_decrypt)
-
-
-def main():
-    """Run the unit tests."""
-    unittest.main()
-
-
-if __name__ == '__main__':
-    main()

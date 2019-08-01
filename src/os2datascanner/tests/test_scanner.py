@@ -1,6 +1,4 @@
 import os
-import sys
-import unittest
 import django
 
 from os2datascanner.projects.admin.adminapp.models.organization_model import Organization
@@ -12,11 +10,10 @@ from django.conf import settings
 from subprocess import Popen
 
 
-class ScannerTest(unittest.TestCase):
-
-    def setUp(self):
+class ScannerTest(django.test.TestCase):
+    def test_run_scan(self):
         """
-        Setup some data to test with.
+        Test running a scan.
         """
 
         # create organisations
@@ -24,14 +21,23 @@ class ScannerTest(unittest.TestCase):
         self.magenta_org.save()
         self.theydontwantyouto_org = Organization(name="TheyDontWantYouTo", pk=2)
         self.theydontwantyouto_org.save()
-        # create Webdomains
-        self.magenta_domain = WebDomain(url="http://magenta.dk", organization=self.magenta_org,
-                                        validation_status=WebDomain.VALID, download_sitemap=False)
-        self.theydontwantyouto_domain = WebDomain(url="http://theydontwantyou.to",
-                                                  organization=self.theydontwantyouto_org,
-                                                  validation_status=WebDomain.VALID, download_sitemap=False)
-        self.magenta_domain.save()
-        self.theydontwantyouto_domain.save()
+        # create scanners
+        self.magenta_scanner = WebScanner(
+            name="Magenta",
+            url="http://magenta.dk",
+            organization=self.magenta_org,
+            validation_status=WebScanner.VALID,
+            download_sitemap=False,
+        )
+        self.theydontwantyouto_scanner = WebScanner(
+            name="TheyDontWantYouTo",
+            url="http://theydontwantyou.to",
+            organization=self.theydontwantyouto_org,
+            validation_status=WebScanner.VALID,
+            download_sitemap=False,
+        )
+        self.magenta_scanner.save()
+        self.theydontwantyouto_scanner.save()
         # create Rules and rulesets
         self.reg1 = RegexPattern(pattern_string='fællesskaber', pk=1)
         self.reg2 = RegexPattern(pattern_string='Ombudsmand', pk=2)
@@ -60,42 +66,9 @@ class ScannerTest(unittest.TestCase):
         self.tr_set1.save()
         self.tr_set2.save()
 
-    def test_run_scan(self):
-        """
-        Test running a scan.
-        """
+        self.magenta_scanner.rules.add(self.tr_set1)
+        self.magenta_scanner.save()
 
-        scanner = WebScanner(name='MagentaTestScan', organization=self.magenta_org, pk=1)
-        scanner.save()
-        scanner.rules.add(self.tr_set1)
-        scanner.domains.add(self.magenta_domain)
+        self.magenta_scanner.run("test", blocking=True)
 
-        SCRAPY_WEBSCANNER_DIR = os.path.join(settings.PROJECT_DIR, "scrapy-webscanner")
-        LOG_FILE_U = os.path.join(settings.PROJECT_DIR, 'var', 'logs',  'scans', 'scan_1.log')
-
-        log_file = open(LOG_FILE_U, "a")
-
-        scanner.run()
-
-        try:
-            process = Popen([os.path.join(SCRAPY_WEBSCANNER_DIR, "run.sh"),
-                             str(scanner.pk)], cwd=SCRAPY_WEBSCANNER_DIR,
-                            stderr=log_file,
-                            stdout=log_file)
-            # stdout, stderr = process.communicate()
-
-        except Exception as e:
-            print(e)
-            return None
-
-        # self.assertTrue(isinstance(result, Scan))
-
-        stdout, stderr = process.communicate()
-
-def main():
-    """Run the unit tests."""
-    unittest.main()
-
-
-if __name__ == '__main__':
-    main()
+        # TODO: Now what?

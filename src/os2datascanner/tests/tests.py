@@ -27,6 +27,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import django
 import lxml
 import requests
 
@@ -63,7 +64,7 @@ from os2datascanner.projects.admin.adminapp.models.sensitivity_level import Sens
 from os2datascanner.projects.admin.adminapp.models.organization_model import Organization
 
 
-class AnalysisScanTest(unittest.TestCase):
+class AnalysisScanTest(django.test.TestCase):
 
     @staticmethod
     def get_folder_path():
@@ -72,7 +73,7 @@ class AnalysisScanTest(unittest.TestCase):
         return dir_path
 
 
-class FileExtractorTest(unittest.TestCase):
+class FileExtractorTest(django.test.TestCase):
     @unittest.expectedFailure
     def test_file_extractor(self):
         with tempfile.TemporaryDirectory(dir=str(data_dir)) as temp_dir:
@@ -96,7 +97,7 @@ class FileExtractorTest(unittest.TestCase):
             self.assertEqual(filepath2, encoded_file_path2.decode('utf-8').replace('file://', ''))
 
 
-class ExternalLinkCheckerTest(unittest.TestCase):
+class ExternalLinkCheckerTest(django.test.TestCase):
 
     """Test the external link checker."""
 
@@ -118,7 +119,7 @@ class ExternalLinkCheckerTest(unittest.TestCase):
             "http://asdfasdfasdf324afddsfasdf/"))
 
 
-class NameTest(unittest.TestCase):
+class NameTest(django.test.TestCase):
 
     """Test the name rule."""
 
@@ -156,7 +157,7 @@ class NameTest(unittest.TestCase):
                                  invalid_name + " is valid")
 
 
-class CPRTest(unittest.TestCase):
+class CPRTest(django.test.TestCase):
 
     """Test the CPR rule."""
 
@@ -257,7 +258,7 @@ class CPRTest(unittest.TestCase):
         self.assertEquals(dates, cpr.cpr_exception_dates)
 
 
-class PDF2HTMLTest(unittest.TestCase):
+class PDF2HTMLTest(django.test.TestCase):
 
     def create_ressources(self, filename):
         src = str(data_dir / 'pdf' / filename)
@@ -308,7 +309,7 @@ class PDF2HTMLTest(unittest.TestCase):
 
 @unittest.skipUnless(os.path.isfile("/usr/lib/libreoffice/program/soffice"),
                      "LibreOffice is unavailable")
-class LibreOfficeTest(unittest.TestCase):
+class LibreOfficeTest(django.test.TestCase):
 
     libreoffice_processor = None
 
@@ -361,7 +362,7 @@ class LibreOfficeTest(unittest.TestCase):
         self.assertEqual(self.libreoffice_processor.instance, None)
 
 
-class HTMLTest(unittest.TestCase):
+class HTMLTest(django.test.TestCase):
 
     def create_ressources(self, filename):
         src = str(data_dir / 'html' / filename)
@@ -396,7 +397,7 @@ class HTMLTest(unittest.TestCase):
         self.assertEqual(result, True)
 
 
-class ZIPTest(unittest.TestCase):
+class ZIPTest(django.test.TestCase):
 
     def create_ressources(self, filename):
         src = str(data_dir / 'zip' / filename)
@@ -441,7 +442,7 @@ class ZIPTest(unittest.TestCase):
 
 
 @unittest.skip("ScannerApp no longer exists")
-class StoreStatsTest(unittest.TestCase):
+class StoreStatsTest(django.test.TestCase):
 
     def test_store_stats(self):
         scan_id, scannerapp, webscan = self.create_ressources()
@@ -499,7 +500,7 @@ class StoreStatsTest(unittest.TestCase):
 
 
 @unittest.skip("process manager has been refactored")
-class ProcessManagerTest(unittest.TestCase):
+class ProcessManagerTest(django.test.TestCase):
 
     @classmethod
     def setUpClass(self):
@@ -573,7 +574,7 @@ def create_organization():
     )[0]
 
 
-class RegexRuleIsAllMatchTest(unittest.TestCase):
+class RegexRuleIsAllMatchTest(django.test.TestCase):
 
     organization = None
 
