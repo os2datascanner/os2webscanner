@@ -1,12 +1,8 @@
 """Unit-test util for tests os2webscanner.tests"""
 # flake8: noqa pydocstyle:noqa
-from ..models.organization_model import Organization
-from ..models.filedomain_model import FileDomain
-from ..models.exchangedomain_model import ExchangeDomain
-from ..models.exchangescan_model import ExchangeScan
-from ..models.scan_model import Scan
-from ..models.webscan_model import WebScan
-from ..models.filescan_model import FileScan
+from os2datascanner.projects.admin.adminapp.models.organization_model import Organization
+from os2datascanner.projects.admin.adminapp.models.scans.scan_model import Scan
+from os2datascanner.projects.admin.adminapp.models.scans.webscan_model import WebScan
 
 
 class CreateOrganization(object):

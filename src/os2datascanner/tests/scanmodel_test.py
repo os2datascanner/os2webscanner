@@ -4,7 +4,7 @@ from datetime import timedelta
 
 from django.test import TestCase
 
-from ..models.scan_model import Scan
+from os2datascanner.projects.admin.adminapp.models.scans.scan_model import Scan
 
 from .util import CreateOrganization, CreateExchangeDomain, \
     CreateExchangeScan, CreateWebScan, CreateFileScan

@@ -1,7 +1,7 @@
 import unittest
 
-from ...aescipher import encrypt, decrypt
-from ...models.authentication_model import Authentication
+from os2datascanner.projects.admin.adminapp.aescipher import encrypt, decrypt
+from os2datascanner.projects.admin.adminapp.models.authentication_model import Authentication
 
 
 class AESCipherTest(unittest.TestCase):

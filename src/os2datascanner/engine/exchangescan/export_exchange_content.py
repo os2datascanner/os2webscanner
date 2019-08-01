@@ -21,14 +21,9 @@ from exchangelib.errors import ErrorInvalidOperation
 from exchangelib.errors import ErrorTimeoutExpired
 from exchangelib.errors import ErrorMimeContentConversionFailed
 
-from exchange_assistant import ExchangeServerAssistant
-
-try:
-    from .stats import Stats
-    from .settings import AMQP_HOST
-except SystemError:
-    from stats import Stats
-    from settings import AMQP_HOST
+from .exchange_assistant import ExchangeServerAssistant
+from .stats import Stats
+from .settings import AMQP_HOST
 
 exchangelogger = logging.getLogger(__name__)
 exchangelogger.setLevel(logging.ERROR)

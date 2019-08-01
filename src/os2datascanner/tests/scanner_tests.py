@@ -3,19 +3,10 @@ import sys
 import unittest
 import django
 
-# Include the Django app
-base_dir = os.path.dirname(os.path.dirname(os.path.realpath(os.path.join(__file__, "../../../"))))
-print('\n===Base dir: ' + base_dir)
-print('\n===Current working dir: ' + os.getcwd())
-sys.path.append(base_dir + "/webscanner_site")
-os.environ["DJANGO_SETTINGS_MODULE"] = "os2datascanner.projects.admin.settings"
-django.setup()
-
-from os2webscanner.models.organization_model import Organization
-from os2webscanner.models.rules.regexrule_model import RegexRule, RegexPattern
-from os2webscanner.models.sensitivity_level import Sensitivity
-from os2webscanner.models.webdomain_model import WebDomain
-from os2webscanner.models.webscanner_model import WebScanner
+from os2datascanner.projects.admin.adminapp.models.organization_model import Organization
+from os2datascanner.projects.admin.adminapp.models.rules.regexrule_model import RegexRule, RegexPattern
+from os2datascanner.projects.admin.adminapp.models.sensitivity_level import Sensitivity
+from os2datascanner.projects.admin.adminapp.models.scannerjobs.webscanner_model import WebScanner
 
 from django.conf import settings
 from subprocess import Popen
