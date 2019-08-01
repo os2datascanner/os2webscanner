@@ -128,8 +128,10 @@ class WebResource(FileResource):
 
     # override
     def compute_type(self):
-        return self.get_header().get(
-                "Content-Type", "application/octet-stream")
+        # At least for now, strip off any extra parameters the media type might
+        # specify
+        return self.get_header().get("Content-Type",
+                "application/octet-stream").split(";", maxsplit=1)[0]
 
     @contextmanager
     def make_path(self):
