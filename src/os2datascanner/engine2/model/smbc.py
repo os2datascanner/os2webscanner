@@ -87,7 +87,6 @@ class SMBCResource(FileResource):
     def open_file(self):
         try:
             url, context = self._open_source()
-            h = self.get_handle()
             my_url = url + "/" + quote(self.get_handle().get_relative_path())
             return context.open(my_url, O_RDONLY)
         except smbc.NoEntryError as ex:
