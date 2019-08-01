@@ -22,7 +22,7 @@ class ZipSource(Source):
     def _open(self, sm):
         r = self._handle.follow(sm).make_path()
         path = r.__enter__()
-        return (r, ZipFile(path))
+        return (r, ZipFile(str(path)))
 
     def _close(self, cookie):
         r, zipfile = cookie

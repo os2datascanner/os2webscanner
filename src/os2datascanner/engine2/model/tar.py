@@ -22,7 +22,7 @@ class TarSource(Source):
     def _open(self, sm):
         r = self._handle.follow(sm).make_path()
         path = r.__enter__()
-        return (r, open_tar(path, "r"))
+        return (r, open_tar(str(path), "r"))
 
     def _close(self, cookie):
         r, tarfile = cookie

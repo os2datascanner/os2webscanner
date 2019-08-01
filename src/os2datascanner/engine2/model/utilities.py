@@ -8,21 +8,19 @@ class NamedTemporaryResource:
         self._dir = None
 
     def open(self, mode):
-        if not self._dir:
+        if self._dir is None:
             self._dir = Path(mkdtemp())
         try:
-            return open(self.get_path(), mode)
+            return self.get_path().open(mode)
         except:
             raise
 
-    def get_path(self):
-        assert self._dir
+    def get_path(self) -> Path:
         return self._dir.joinpath(self._name)
 
     def finished(self):
-        assert self._dir
-        remove(self.get_path())
-        rmdir(self._dir)
+        self.get_path().unlink()
+        self._dir.rmdir()
         self._dir = None
 
 class _TypPropEq:

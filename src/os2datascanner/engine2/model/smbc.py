@@ -139,6 +139,6 @@ class SMBCResource(FileResource):
     @contextmanager
     def make_stream(self):
         with self.make_path() as p:
-            yield open(p, "rb")
+            yield p.open("rb")
 
     DOWNLOAD_CHUNK_SIZE = 1024 * 512
