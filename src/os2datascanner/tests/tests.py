@@ -578,25 +578,12 @@ class RegexRuleIsAllMatchTest(django.test.TestCase):
 
     organization = None
 
-    def setUp(self):
-        self.create_organization()
-
     def create_regexrule(self, name, description, sensitivity):
-        if self.organization is None:
-            self.create_organization()
-
         rule = RegexRule(name=name,
-                         organization=self.organization,
+                         organization=create_organization(),
                          description=description,
                          sensitivity=sensitivity)
         return rule
-
-    def create_organization(self):
-        if self.organization is None:
-            self.organization = Organization(name='Magenta',
-                                             contact_email='info@magenta.dk',
-                                             contact_phone='39393939'
-                                             )
 
     def create_scanner_regexrule(self, pattern_objects, rule):
         regex_rule = regexrule.RegexRule(
@@ -716,13 +703,4 @@ class PatternMockObject(object):
                      '*(?:\s+[a-z][a-z\-]+){0,2}\s+[A-Z]([a-z]+|\.)'
 
     def all(self):
-        return [self]
-
-
-def main():
-    """Run the unit tests."""
-    unittest.main()
-
-
-if __name__ == '__main__':
-    main()
+        return[self]

@@ -1,11 +1,12 @@
+import unittest
+
 from django.contrib.auth.models import User
 from django.test import TestCase, RequestFactory
 
-from ...test.util import CreateOrganization, CreateFileDomain
-from ...models.domain_model import Domain
-from ...models.filedomain_model import FileDomain
+from .util import CreateOrganization
 
 
+@unittest.skip("File domain is gone!")
 class FileDomainTest(TestCase):
     """Unit-tests for the Create File Domain Form."""
 

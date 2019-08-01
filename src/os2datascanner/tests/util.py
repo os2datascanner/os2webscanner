@@ -15,33 +15,6 @@ class CreateOrganization(object):
         )
 
 
-class CreateFileDomain(object):
-
-    def create_filedomain(self):
-        return FileDomain.objects.create(
-            url='/something/test',
-            organization=Organization.objects.get()
-        )
-
-
-class CreateExchangeDomain(object):
-
-    def create_exchangedomain(self):
-        return ExchangeDomain.objects.create(
-            url='@magenta.dk',
-            organization=Organization.objects.get()
-        )
-
-
-class CreateExchangeScan(object):
-
-    def create_exchangescan(self):
-        return ExchangeScan.objects.create(
-            status=Scan.DONE,
-            mark_scan_as_done=True
-        )
-
-
 class CreateWebScan(object):
 
     def create_webscan(self):
@@ -50,9 +23,9 @@ class CreateWebScan(object):
         )
 
 
-class CreateFileScan(object):
+class CreateScan(object):
 
     def create_filescan(self):
-        return FileScan.objects.create(
+        return Scan.objects.create(
             status=Scan.DONE
         )
