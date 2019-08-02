@@ -30,27 +30,40 @@ tests:
 
     - coverage erase
     - coverage run -m django test os2datascanner
-    - coverage html --skip-covered -d build/coverage
+
+  after_script:
+    - coverage html --skip-covered
+    - coverage xml
     - coverage report
 
   artifacts:
     name: "$CI_JOB_STAGE-$CI_COMMIT_REF_NAME"
     paths:
-      - build/coverage
+      - htmlcov
+      - build/test-results.xml
+      - build/coverage.xml
     reports:
       junit: build/test-results.xml
 
-codequality:
+flake8:
   image: python:latest
+  allow_failure: true
   script:
-    - pip install black flake8 flake8-gl-codeclimate
-    - flake8 --exit-zero --format gl-codeclimate --output-file gl-code-quality-report.json src/
-    - black --check src || echo TODO
-    - python -m json.tool gl-code-quality-report.json
+    - pip install flake8 flake8-gl-codeclimate
+    - flake8 --exit-zero --format gl-codeclimate --tee --output-file build/code-quality.json src/
   artifacts:
     name: "$CI_JOB_STAGE-$CI_COMMIT_REF_NAME"
+    paths:
+      - build/code-quality.json
     reports:
-      codequality: gl-code-quality-report.json
+      codequality: build/code-quality.json
+
+black:
+  image: python:latest
+  allow_failure: true
+  script:
+    - pip install black
+    - black --check src
 
 docs:
   image: keimlink/sphinx-doc:latex
