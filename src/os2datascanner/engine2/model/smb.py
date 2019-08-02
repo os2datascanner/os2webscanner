@@ -70,7 +70,7 @@ class SMBSource(Source):
     @staticmethod
     @Source.url_handler("smb")
     def from_url(url):
-        scheme, netloc, path, _, _ = urlsplit(url)
+        scheme, netloc, path, _, _ = urlsplit(url.replace("\\", "/"))
         match = SMBSource.netloc_regex.match(netloc)
         if match:
             return SMBSource("//" + match.group("unc") + unquote(path),
@@ -85,7 +85,7 @@ class SMBHandle(Handle):
 
 # Third form from https://www.iana.org/assignments/uri-schemes/prov/smb
 def make_smb_url(schema, unc, user, domain, password):
-    server, path = unc.lstrip('/').split('/', maxsplit=1)
+    server, path = unc.replace("\\", "/").lstrip('/').split('/', maxsplit=1)
     netloc = ""
     if user:
         if domain:
