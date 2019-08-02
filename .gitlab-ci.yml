@@ -38,7 +38,7 @@ tests:
     - coverage run -m django test os2datascanner
 
   after_script:
-    - coverage html --skip-covered
+    - coverage html
     - coverage xml
     - coverage report
 
