@@ -1,3 +1,5 @@
+import structlog
+
 from .smb import make_smb_url, SMBSource
 from .core import Source, Handle, ShareableCookie, FileResource, ResourceUnavailableError
 from .utilities import NamedTemporaryResource
@@ -10,6 +12,10 @@ from hashlib import md5
 from datetime import datetime
 from urllib.parse import quote
 from contextlib import contextmanager
+
+
+logger = structlog.get_logger()
+
 
 class SMBCSource(Source):
     def __init__(self, unc, user=None, password=None, domain=None):
@@ -48,9 +54,13 @@ class SMBCSource(Source):
                     pass
             elif entity.smbc_type == smbc.FILE:
                 yield SMBCHandle(self, path)
-        obj = context.opendir(url)
-        for dent in obj.getdents():
-            yield from handle_dirent([], dent)
+
+        try:
+            obj = context.opendir(url)
+            for dent in obj.getdents():
+                yield from handle_dirent([], dent)
+        except Exception as exc:
+            raise ResourceUnavailableError(*exc.args)
 
     def to_url(self):
         return make_smb_url(

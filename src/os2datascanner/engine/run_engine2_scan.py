@@ -150,10 +150,6 @@ def _make_source(configuration, scanner):
     if variety == 'WebScanner':
         return WebSource(scanner.get_scanner_object().url)
     elif variety == 'FileScanner':
-        db_object = scanner.get_scanner_object()
-        return SMBCSource(db_object.url,
-                user=db_object.authentication.username,
-                password=db_object.authentication.get_password(),
-                domain=db_object.authentication.domain)
+        return scanner.get_scanner_object().get_source()
     else:
         raise Exception("Unknown variety {0}".format(variety))
