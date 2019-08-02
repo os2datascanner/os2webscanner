@@ -1,3 +1,8 @@
+stages:
+  - test
+  - check
+  - build
+
 variables:
   XDG_CACHE_HOME: "$CI_PROJECT_DIR/.cache"
 
@@ -7,6 +12,7 @@ cache:
     - .cache/
 
 tests:
+  stage: test
   services:
     - postgres:alpine
     - rabbitmq:alpine
@@ -46,6 +52,7 @@ tests:
       junit: build/test-results.xml
 
 flake8:
+  stage: check
   image: python:latest
   allow_failure: true
   script:
@@ -59,6 +66,7 @@ flake8:
       codequality: build/code-quality.json
 
 black:
+  stage: check
   image: python:latest
   allow_failure: true
   script:
@@ -66,6 +74,7 @@ black:
     - black --check src
 
 docs:
+  stage: build
   image: keimlink/sphinx-doc:latex
   script:
     - make -C doc PAPER=a4 html latexpdf
