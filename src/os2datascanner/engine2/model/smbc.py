@@ -1,5 +1,7 @@
+import structlog
+
 from .smb import make_smb_url, SMBSource
-from .core import Source, Handle, ShareableCookie, FileResource
+from .core import Source, Handle, ShareableCookie, FileResource, ResourceUnavailableError
 from .utilities import NamedTemporaryResource
 
 from os import rmdir, stat_result, O_RDONLY
@@ -7,8 +9,13 @@ import smbc
 from regex import compile, match
 from urllib.parse import quote, unquote, urlsplit, urlunsplit
 from hashlib import md5
-from pathlib import Path
+from datetime import datetime
+from urllib.parse import quote
 from contextlib import contextmanager
+
+
+logger = structlog.get_logger()
+
 
 class SMBCSource(Source):
     def __init__(self, unc, user=None, password=None, domain=None):
@@ -16,6 +23,9 @@ class SMBCSource(Source):
         self._user = user
         self._password = password
         self._domain = domain
+
+    def get_unc(self):
+        return self._unc
 
     def __str__(self):
         return "SMBCSource({0}, {1}, ****, {2})".format(
@@ -33,20 +43,24 @@ class SMBCSource(Source):
         url, context = sm.open(self)
         def handle_dirent(parents, entity):
             here = parents + [entity]
-            path = Path('/'.join([h.name for h in here]))
+            path = '/'.join([h.name for h in here])
             if entity.smbc_type == smbc.DIR and not (
                     entity.name == "." or entity.name == ".."):
                 try:
-                    obj = context.opendir(url + "/" + str(path))
+                    obj = context.opendir(url + "/" + path)
                     for dent in obj.getdents():
                         yield from handle_dirent(here, dent)
                 except ValueError:
                     pass
             elif entity.smbc_type == smbc.FILE:
                 yield SMBCHandle(self, path)
-        obj = context.opendir(url)
-        for dent in obj.getdents():
-            yield from handle_dirent([], dent)
+
+        try:
+            obj = context.opendir(url)
+            for dent in obj.getdents():
+                yield from handle_dirent([], dent)
+        except Exception as exc:
+            raise ResourceUnavailableError(*exc.args)
 
     def to_url(self):
         return make_smb_url(
@@ -81,10 +95,12 @@ class SMBCResource(FileResource):
         self._hash = None
 
     def open_file(self):
-        url, context = self._open_source()
-        h = self.get_handle()
-        my_url = url + "/" + str(self.get_handle().get_relative_path())
-        return context.open(my_url, O_RDONLY)
+        try:
+            url, context = self._open_source()
+            my_url = url + "/" + quote(self.get_handle().get_relative_path())
+            return context.open(my_url, O_RDONLY)
+        except smbc.NoEntryError as ex:
+            raise ResourceUnavailableError(self.get_handle(), ex)
 
     def get_stat(self):
         if not self._stat:
@@ -94,6 +110,9 @@ class SMBCResource(FileResource):
             finally:
                 f.close()
         return self._stat
+
+    def get_size(self):
+        return self.get_stat().st_size
 
     def get_last_modified(self):
         return datetime.fromtimestamp(self.get_stat().st_mtime)
@@ -112,12 +131,15 @@ class SMBCResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        ntr = NamedTemporaryResource(Path(self.get_handle().get_name()))
+        ntr = NamedTemporaryResource(self.get_handle().get_name())
         try:
             with ntr.open("wb") as f:
                 rf = self.open_file()
                 try:
-                    f.write(rf.read())
+                    buf = rf.read(self.DOWNLOAD_CHUNK_SIZE)
+                    while buf:
+                        f.write(buf)
+                        buf = rf.read(self.DOWNLOAD_CHUNK_SIZE)
                 finally:
                     rf.close()
             yield ntr.get_path()
@@ -127,4 +149,6 @@ class SMBCResource(FileResource):
     @contextmanager
     def make_stream(self):
         with self.make_path() as p:
-            yield open(p, "rb")
+            yield p.open("rb")
+
+    DOWNLOAD_CHUNK_SIZE = 1024 * 512

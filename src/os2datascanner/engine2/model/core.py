@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import magic
-from pathlib import Path
+import os.path
 from mimetypes import guess_type
 
 from .utilities import _TypPropEq
@@ -14,16 +14,21 @@ class Source(ABC, _TypPropEq):
     their hierarchy, but they aren't responsible for holding actual connection
     state -- that gets stashed in a SourceManager instead.
 
-    Sources are serialisable and persistent, and two different Sources with the
-    same type and properties compare equal. (One useful consequence of this is
-    that SourceManager will collapse several equal Sources together, only
-    opening one of them.)"""
+    Sources are serialisable and persistent, and two different Source objects
+    with the same type and properties compare equal. (One useful consequence of
+    this is that SourceManager will collapse several equal Sources together,
+    only opening one of them.)"""
 
     @abstractmethod
     def _open(self, sm):
         """Opens this Source in the given SourceManager. Returns a cookie of
         some kind that can be used to interact with the opened state, and which
-        SourceManager will later pass to _close."""
+        SourceManager will later pass to _close.
+
+        The relevant instance properties when considering Source equality are
+        normally only those properties used by this method. (The default
+        implementation is conservative, however, and compares all
+        properties.)"""
 
     @abstractmethod
     def _close(self, cookie):
@@ -31,15 +36,28 @@ class Source(ABC, _TypPropEq):
 
     @abstractmethod
     def handles(self, sm):
-        """Yields Handles corresponding to every leaf node in this hierarchy.
-        These Handles are generated in an undefined order."""
+        """Yields Handles corresponding to every identifiable leaf node in this
+        Source's hierarchy. These Handles are generated in an undefined order.
+
+        Note that this function can yield Handles that correspond to
+        identifiable *but non-existent* leaf nodes. These might correspond to,
+        for example, a broken link on a web page, or to an object that was
+        yielded by this function but was deleted before it could be examined.
+        These Handles can be detected by catching the ResourceUnavailableError
+        exception.
+
+        It is not necessarily the case that the result of the get_source call
+        on a Handle yielded by this function will be this Source."""
 
     __url_handlers = {}
     @staticmethod
     def url_handler(*schemes):
         def _url_handler(func):
             for scheme in schemes:
-                assert not scheme in Source.__url_handlers
+                if scheme in Source.__url_handlers:
+                    raise ValueError(
+                            "BUG: can't register two handlers" +
+                            " for the same URL scheme!", scheme)
                 Source.__url_handlers[scheme] = func
             return func
         return _url_handler
@@ -55,12 +73,20 @@ class Source(ABC, _TypPropEq):
         except ValueError:
             raise UnknownSchemeError()
 
+    # There is no general requirement that subclasses implement a to_url
+    # method (what's the URL of a file in a deeply-nested archive?), but many
+    # of them do. If a Source provides a to_url method, it is a requirement
+    # that Source.from_url(Source.to_url(src)) == src.
+
     __mime_handlers = {}
     @staticmethod
     def mime_handler(*mimes):
         def _mime_handler(func):
             for mime in mimes:
-                assert not mime in Source.__mime_handlers
+                if mime in Source.__mime_handlers:
+                    raise ValueError(
+                            "BUG: can't register two handlers" +
+                            " for the same MIME type!", mime)
                 Source.__mime_handlers[mime] = func
             return func
         return _mime_handler
@@ -81,8 +107,18 @@ class Source(ABC, _TypPropEq):
         else:
             return None
 
+    def to_handle(self):
+        """If this Source was created based on a Handle (typically by the
+        Source.from_handle function), then returns that Handle; otherwise,
+        returns None."""
+        return None
+
 class UnknownSchemeError(LookupError):
-    pass
+    """When Source.from_url does not know how to handle a given URL, either
+    because no Source subclass is registered as a handler for its scheme or
+    because the URL is not valid, an UnknownSchemeError will be raised.
+    Its only associated value is a string identifying the scheme, if one was
+    present in the URL."""
 
 class SourceManager:
     """A SourceManager is responsible for tracking all of the state associated
@@ -113,10 +149,14 @@ class SourceManager:
         self._ro = False
 
     def share(self):
-        """Returns a copy of this SourceManager that contains only
-        ShareableCookies. (The resulting SourceManager can only safely be used
-        as a parent.)"""
+        """Returns a SourceManager that contains only the ShareableCookies from
+        this SourceManager. This SourceManager will be read-only, and can only
+        be used as a parent for a writable SourceManager: attempting to open
+        things in it, or to enter its context, will raise a TypeError."""
+        if self._ro:
+            return self
         r = SourceManager()
+        r._parent = self._parent.share() if self._parent else None
         r._ro = True
         for v in self._order:
             cookie = self._opened[v]
@@ -129,8 +169,10 @@ class SourceManager:
         """Returns the cookie returned by opening the given Source. If
         @try_open is True, the Source will be opened in this SourceManager if
         necessary."""
-        assert not (self._ro and try_open), \
-                "BUG: open(try_open=True) called on a read-only SourceManager!"
+        if self._ro and try_open:
+            raise TypeError(
+                    "BUG: open(try_open=True) called on" +
+                    " a read-only SourceManager!")
         rv = None
         if not source in self._opened:
             cookie = None
@@ -149,8 +191,9 @@ class SourceManager:
             return rv
 
     def __enter__(self):
-        assert not self._ro, \
-                "BUG: __enter__ called on a read-only SourceManager!"
+        if self._ro:
+            raise TypeError(
+                    "BUG: __enter__ called on a read-only SourceManager!")
         return self
 
     def __exit__(self, exc_type, exc_value, backtrace):
@@ -177,9 +220,9 @@ class ShareableCookie:
     be shared across processes, because the operations that it has performed
     are not specific to a single process.
 
-    SourceManager will otherwise try to hide the existence of this class from the
-    outside world -- the value contained in this cookie, rather than the cookie
-    itself, will be returned from SourceManager.open and passed to
+    SourceManager will otherwise try to hide the existence of this class from
+    the outside world -- the value contained in this cookie, rather than the
+    cookie itself, will be returned from SourceManager.open and passed to
     Source._close."""
     def __init__(self, value):
         self.value = value
@@ -195,28 +238,29 @@ class Handle(ABC, _TypPropEq):
     Source. Handles can be followed to give a Resource, a concrete object.
 
     Although all Handle subclasses expose the same two-argument constructor,
-    which takes a Source and a pathlib.Path, each type of Source defines what
-    its Handles and their paths mean; the only general way to get a meaningful
-    Handle is the Source.handles() function (or to make a copy of an existing
-    one).
+    which takes a Source and a string representation of a path, each type of
+    Source defines what its Handles and their paths mean; the only general way
+    to get a meaningful Handle is the Source.handles() function (or to make a
+    copy of an existing one).
 
     Handles are serialisable and persistent, and two different Handles with the
     same type and properties compare equal."""
     def __init__(self, source, relpath):
         self._source = source
-        if isinstance(relpath, Path):
-            self._relpath = relpath
-        else:
-            self._relpath = Path(relpath)
+        self._relpath = relpath
 
     def get_source(self):
+        """Returns this Handle's Source."""
         return self._source
 
     def get_relative_path(self):
+        """Returns this Handle's path."""
         return self._relpath
 
     def get_name(self):
-        return self.get_relative_path().name
+        """Returns the base name -- everything after the last '/' -- of this
+        Handle's path, or "file" if the result would otherwise be empty."""
+        return os.path.basename(self._relpath) or 'file'
 
     def guess_type(self):
         """Guesses the type of this Handle's target based on its name. (For a
@@ -234,6 +278,12 @@ class Handle(ABC, _TypPropEq):
         """Follows this Handle using the state in the StateManager @sm,
         returning a concrete Resource."""
 
+    BASE_PROPERTIES = ('_source', '_relpath',)
+    """The properties defined by Handle. (If a subclass defines other
+    properties, but wants those properties to be ignored when comparing
+    objects, it should set the 'eq_properties' class attribute to this
+    value.)"""
+
 class Resource(ABC):
     """A Resource is a concrete embodiment of an object: it's the thing a
     Handle points to. If you have a Resource, then you have some way of getting
@@ -249,35 +299,57 @@ class Resource(ABC):
         self._sm = sm
 
     def get_handle(self):
+        """Returns this Resource's Handle."""
         return self._handle
+
     def _open_source(self):
+        """Returns the cookie obtained by opening the Source that backs this
+        Resource's Handle in the associated StateManager."""
         return self._sm.open(self.get_handle().get_source())
+
+class ResourceUnavailableError(Exception):
+    """When a function that tries to access a Resource's data or metadata
+    fails, a ResourceUnavailableError will be raised. The first associated
+    value will be the Handle backing the Resource in question; subsequent
+    values, if present, give specific details of the failure."""
+
+    def __str__(self):
+        hand, args = self.args[0], self.args[1:]
+        if args:
+            return "ResourceUnavailableError({0}, {1})".format(
+                    hand, ", ".join([str(arg) for arg in args]))
+        else:
+            return "ResourceUnavailableError({0})".format(hand)
 
 class FileResource(Resource):
     """A FileResource is a Resource that can, when necessary, be viewed as a
-    file.
-
-    The Resource.make_path() function returns a context manager that ensures
-    that the object the Resource refers to is available on the local filesystem
-    at the returned path for the life of the context. Resource.make_stream()
-    does the same thing, but returns an open, read-only Python stream for the
-    object instead of a path."""
+    file."""
     def get_hash(self):
-        """Returns a hash for this Resource. (No particular hash algorithm is
-        defined for this, but all Resources generated by a Source should use
-        the same one.)"""
+        """Returns a hash for this FileResource's content. (No particular hash
+        algorithm is defined for this, but all FileResources generated by a
+        Source should use the same one.)"""
+
+    @abstractmethod
+    def get_size(self):
+        """Returns the size of this FileResource's content, in bytes."""
 
     @abstractmethod
     def get_last_modified(self):
-        pass
+        """Returns the last modification date of this FileResource as a Python
+        datetime.datetime."""
 
     @abstractmethod
     def make_path(self):
-        pass
+        """Returns a context manager that, when entered, returns a path through
+        which the content of this FileResource can be accessed until the
+        context is exited. (Do not attempt to write to this path -- the result
+        is undefined.)"""
 
     @abstractmethod
     def make_stream(self):
-        pass
+        """Returns a context manager that, when entered, returns a read-only
+        Python stream through which the content of this FileResource can be
+        accessed until the context is exited."""
 
     def compute_type(self):
         """Guesses the type of this file, possibly examining its content in the

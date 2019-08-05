@@ -33,15 +33,14 @@ class ScannerTest(TestCase):
     # TODO: Capture the interaction so these tests can work without an
     # Internet connection! !!!
 
-    @classmethod
-    def setUpTestData(cls):
+    def setUp(self):
         """Setup some data to test with."""
         # Don't change the order of these, because Magenta needs
         # pk = 2 to pass the validation test
-        cls.magenta = Organization(name="Magenta", pk=1)
-        cls.magenta.save()
-        cls.google = Organization(name="Google", pk=2)
-        cls.google.save()
+        self.magenta = Organization(name="Magenta", pk=1)
+        self.magenta.save()
+        self.google = Organization(name="Google", pk=2)
+        self.google.save()
 
     def test_validate_domain(self):
         """Test validating domains."""

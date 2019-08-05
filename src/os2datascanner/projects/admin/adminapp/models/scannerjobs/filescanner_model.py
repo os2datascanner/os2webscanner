@@ -22,6 +22,9 @@ import structlog
 from django.conf import settings
 from django.db import models
 
+from os2datascanner.engine2.model.core import (SourceManager,
+                                               ResourceUnavailableError)
+from os2datascanner.engine2.model.smbc import SMBCSource
 from .scanner_model import Scanner
 
 # Get an instance of a logger
@@ -63,8 +66,31 @@ class FileScanner(Scanner):
         self.mountpath = tempdir
         self.save()
 
+    def get_source(self):
+        assert settings.USE_ENGINE2, "don't call this when using orig. engine"
+
+        return SMBCSource(
+            self.url,
+            user=self.authentication.username,
+            password=self.authentication.get_password(),
+            domain=self.authentication.domain,
+        )
+
     def smb_mount(self):
         """Mounts networkdrive if not already mounted."""
+        if settings.USE_ENGINE2:
+            with SourceManager() as sm:
+                try:
+                    return next(self.get_source().handles(sm), True)
+                except ResourceUnavailableError:
+                    logger.error(
+                        'mount_failed',
+                        mountpath=self.mountpath,
+                        url=self.url,
+                        exc_info=True,
+                    )
+
+                    return False
 
         if self.is_mounted:
             logger.info('mount_skipped', mountpath=self.mountpath, url=self.url)
@@ -103,7 +129,7 @@ class FileScanner(Scanner):
 
     def smb_umount(self):
         """Unmounts networkdrive if mounted."""
-        if self.is_mounted:
+        if not settings.USE_ENGINE2 and self.is_mounted:
             call(['sudo', 'umount', '-l', self.mountpath])
             if self.is_mounted:
                 call(['sudo', 'umount', '-f', self.mountpath])

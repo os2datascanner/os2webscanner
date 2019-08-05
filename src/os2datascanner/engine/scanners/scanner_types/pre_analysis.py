@@ -6,9 +6,10 @@ import mimetypes
 import structlog
 import numpy as np
 import matplotlib
-import matplotlib.pyplot as plt
 
 matplotlib.use('Agg')
+
+import matplotlib.pyplot as plt
 
 logger = structlog.get_logger()
 

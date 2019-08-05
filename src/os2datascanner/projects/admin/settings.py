@@ -206,6 +206,9 @@ DO_USE_GROUPS = False
 
 DO_USE_MD5 = True
 
+# Use engine2 components in the scan process where possible?
+USE_ENGINE2 = False
+
 # The threshold for number of OCR conversion queue items per scan above which
 # non-OCR conversion will be paused. The reason to have this feature is that
 # for large scans with OCR enabled, so many OCR items are extracted from

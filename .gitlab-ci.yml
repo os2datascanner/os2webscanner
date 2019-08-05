@@ -1,3 +1,8 @@
+stages:
+  - test
+  - check
+  - build
+
 variables:
   XDG_CACHE_HOME: "$CI_PROJECT_DIR/.cache"
 
@@ -7,6 +12,7 @@ cache:
     - .cache/
 
 tests:
+  stage: test
   services:
     - postgres:alpine
     - rabbitmq:alpine
@@ -19,7 +25,7 @@ tests:
     AMQP_HOST: rabbitmq
     DJANGO_SETTINGS_MODULE: os2datascanner.projects.admin.settings
 
-  coverage: '/^TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+\%)$/'
+  coverage: '/^TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+(?:\.\d+)?\%)$/'
 
   script:
     - apt-get update -qq
@@ -29,30 +35,46 @@ tests:
     - django-admin makemigrations --check --dry-run
 
     - coverage erase
-    - coverage run -m django test os2datascanner.tests
-    - coverage html --skip-covered -d build/coverage
+    - coverage run -m django test os2datascanner
+
+  after_script:
+    - coverage html
+    - coverage xml
     - coverage report
 
   artifacts:
     name: "$CI_JOB_STAGE-$CI_COMMIT_REF_NAME"
     paths:
-      - build/coverage
+      - htmlcov
+      - build/test-results.xml
+      - build/coverage.xml
     reports:
       junit: build/test-results.xml
 
-codequality:
+flake8:
+  stage: check
   image: python:latest
+  allow_failure: true
   script:
-    - pip install black flake8 flake8-gl-codeclimate
-    - flake8 --exit-zero --format gl-codeclimate --output-file gl-code-quality-report.json src/
-    - black --check src || echo TODO
-    - python -m json.tool gl-code-quality-report.json
+    - pip install flake8 flake8-gl-codeclimate
+    - flake8 --exit-zero --format gl-codeclimate --tee --output-file build/code-quality.json src/
   artifacts:
     name: "$CI_JOB_STAGE-$CI_COMMIT_REF_NAME"
+    paths:
+      - build/code-quality.json
     reports:
-      codequality: gl-code-quality-report.json
+      codequality: build/code-quality.json
+
+black:
+  stage: check
+  image: python:latest
+  allow_failure: true
+  script:
+    - pip install black
+    - black --check src
 
 docs:
+  stage: build
   image: keimlink/sphinx-doc:latex
   script:
     - make -C doc PAPER=a4 html latexpdf

@@ -1,10 +1,11 @@
-from .core import Source, Handle, FileResource
+from .core import Source, Handle, FileResource, ResourceUnavailableError
 from .utilities import NamedTemporaryResource
 
 from io import BytesIO
 from time import sleep
 from lxml.html import document_fromstring
 from urllib.parse import urljoin, urlsplit, urlunsplit
+from dateutil.parser import parse as parse_date
 from requests.sessions import Session
 from contextlib import contextmanager
 
@@ -33,36 +34,35 @@ class WebSource(Source):
         session = sm.open(self)
         to_visit = [self._url]
         visited = set()
+        referrer_map = {}
 
         scheme, netloc, path, query, fragment = urlsplit(self._url)
         while to_visit:
             here, to_visit = to_visit[0], to_visit[1:]
 
             response = session.head(here)
-            if response.status_code != 200:
-                print(here, response)
-                continue
+            if response.status_code == 200:
+                ct = response.headers['Content-Type']
+                if simplify_mime_type(ct) == 'text/html':
+                    response = session.get(here)
+                    doc = document_fromstring(response.content)
+                    doc.make_links_absolute(here, resolve_base_href=True)
+                    for el, _, li, _ in doc.iterlinks():
+                        if el.tag != 'a':
+                            continue
+                        new_url = urljoin(here, li)
+                        new_scheme, new_netloc, new_path, new_query, _ = urlsplit(new_url)
+                        if new_scheme == scheme and new_netloc == netloc:
+                            new_url = urlunsplit((new_scheme, new_netloc, new_path, new_query, None))
+                            referrer_map.setdefault(new_url, set()).add(here)
+                            if new_url not in visited:
+                                visited.add(new_url)
+                                to_visit.append(new_url)
 
-            ct = response.headers['Content-Type']
-            if simplify_mime_type(ct) == 'text/html':
-                response = session.get(here)
-                doc = document_fromstring(response.content)
-                doc.make_links_absolute(here, resolve_base_href=True)
-                for el, _, li, _ in doc.iterlinks():
-                    if el.tag != 'a':
-                        continue
-                    new_url = urljoin(here, li)
-                    new_scheme, new_netloc, new_path, new_query, _ = urlsplit(new_url)
-                    if new_scheme == scheme and new_netloc == netloc:
-                        new_url = urlunsplit((new_scheme, new_netloc, new_path, new_query, None))
-                        if new_url not in visited:
-                            visited.add(new_url)
-                            to_visit.append(new_url)
-
-            yield WebHandle(self, here[len(self._url):])
+            wh = WebHandle(self, here[len(self._url):])
+            wh.set_referrer_urls(referrer_map.get(here, set()))
+            yield wh
             sleep(SLEEP_TIME)
-
-        print(visited)
 
     def to_url(self):
         return self._url
@@ -75,12 +75,25 @@ class WebSource(Source):
 SecureWebSource = WebSource
 
 class WebHandle(Handle):
+    eq_properties = Handle.BASE_PROPERTIES
+
+    def __init__(self, source, path):
+        super().__init__(source, path)
+        self._referrer_urls = set()
+
+    def set_referrer_urls(self, referrer_urls):
+        self._referrer_urls = referrer_urls
+
+    def get_referrer_urls(self):
+        return self._referrer_urls
+
     def follow(self, sm):
         return WebResource(self, sm)
 
 class WebResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
+        self._status = None
         self._header = None
 
     def _make_url(self):
@@ -88,22 +101,41 @@ class WebResource(FileResource):
         base = handle.get_source().to_url()
         return base + str(handle.get_relative_path())
 
-    def get_header(self):
+    def _require_header_and_status(self):
         if not self._header:
             response = self._open_source().head(self._make_url())
+            self._status = response.status_code
             self._header = dict(response.headers)
+
+    def get_status(self):
+        self._require_header_and_status()
+        return self._status
+
+    def get_header(self):
+        self._require_header_and_status()
+        if self._status != 200:
+            raise ResourceUnavailableError(self.get_handle(), self._status)
         return self._header
 
+    def get_size(self):
+        return int(self.get_header()["Content-Length"])
+
     def get_last_modified(self):
-        return dateutil.parse(self.get_header()["Last-Modified"])
+        try:
+            return parse_date(self.get_header()["Last-Modified"])
+        except (KeyError, ValueError):
+            return None
 
     # override
     def compute_type(self):
-        return self.get_header()["Content-Type"] or "application/octet-stream"
+        # At least for now, strip off any extra parameters the media type might
+        # specify
+        return self.get_header().get("Content-Type",
+                "application/octet-stream").split(";", maxsplit=1)[0]
 
     @contextmanager
     def make_path(self):
-        ntr = NamedTemporaryResource(self._handle.get_name())
+        ntr = NamedTemporaryResource(self.get_handle().get_name())
         try:
             with ntr.open("wb") as res:
                 with self.make_stream() as s:
@@ -115,5 +147,9 @@ class WebResource(FileResource):
     @contextmanager
     def make_stream(self):
         response = self._open_source().get(self._make_url())
-        with BytesIO(response.content) as s:
-            yield s
+        if response.status_code != 200:
+            raise ResourceUnavailableError(
+                    self.get_handle(), response.status_code)
+        else:
+            with BytesIO(response.content) as s:
+                yield s

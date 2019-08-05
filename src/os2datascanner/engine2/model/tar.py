@@ -1,7 +1,6 @@
 from .core import Source, Handle, FileResource
 from .utilities import NamedTemporaryResource
 
-from pathlib import Path
 from tarfile import open as open_tar
 from datetime import datetime
 from contextlib import contextmanager
@@ -23,7 +22,7 @@ class TarSource(Source):
     def _open(self, sm):
         r = self._handle.follow(sm).make_path()
         path = r.__enter__()
-        return (r, open_tar(path, "r"))
+        return (r, open_tar(str(path), "r"))
 
     def _close(self, cookie):
         r, tarfile = cookie
@@ -39,31 +38,24 @@ class TarResource(FileResource):
         super().__init__(handle, sm)
         self._info = None
 
-    def _try_member_operation(self, operation):
-        path = str(self.get_handle().get_relative_path())
-        try:
-            return operation(path)
-        except KeyError:
-            # Because we use pathlib.Paths as our underlying path abstraction,
-            # if there were a leading "./", it would have been canonicalised
-            # away. Put it back and try the operation again
-            return operation("./" + path)
-
     def get_info(self):
         if not self._info:
-            self._info = self._try_member_operation(
-                    self._open_source()[1].gettarinfo)
+            self._info = self._open_source()[1].getmember(
+                    self.get_handle().get_relative_path())
         return self._info
 
     def get_hash(self):
         return self.get_info().chksum
 
+    def get_size(self):
+        return self.get_info().size
+
     def get_last_modified(self):
-        return datetime(*self.get_info().mtime)
+        return datetime.fromtimestamp(self.get_info().mtime)
 
     @contextmanager
     def make_path(self):
-        ntr = NamedTemporaryResource(Path(self._handle.get_name()))
+        ntr = NamedTemporaryResource(Path(self.get_handle().get_name()))
         try:
             with ntr.open("wb") as f:
                 with self.make_stream() as s:
@@ -74,7 +66,7 @@ class TarResource(FileResource):
 
     @contextmanager
     def make_stream(self):
-        with self._try_member_operation(
-                self._open_source()[1].extractfile) as s:
+        with self._open_source()[1].extractfile(
+                 self.get_handle().get_relative_path()) as s:
             yield s
 

@@ -1,6 +1,6 @@
 from django.test import TestCase
-from ...utils import get_codec_and_string
 
+from os2datascanner.projects.admin.adminapp.utils import get_codec_and_string
 
 class UnicodeTest(TestCase):
     """Unit-tests for Unicode Dammit"""
