@@ -36,8 +36,15 @@ class Source(ABC, _TypPropEq):
 
     @abstractmethod
     def handles(self, sm):
-        """Yields Handles corresponding to every leaf node in this Source's
-        hierarchy. These Handles are generated in an undefined order.
+        """Yields Handles corresponding to every identifiable leaf node in this
+        Source's hierarchy. These Handles are generated in an undefined order.
+
+        Note that this function can yield Handles that correspond to
+        identifiable *but non-existent* leaf nodes. These might correspond to,
+        for example, a broken link on a web page, or to an object that was
+        yielded by this function but was deleted before it could be examined.
+        These Handles can be detected by catching the ResourceUnavailableError
+        exception.
 
         It is not necessarily the case that the result of the get_source call
         on a Handle yielded by this function will be this Source."""
@@ -47,7 +54,10 @@ class Source(ABC, _TypPropEq):
     def url_handler(*schemes):
         def _url_handler(func):
             for scheme in schemes:
-                assert not scheme in Source.__url_handlers
+                if scheme in Source.__url_handlers:
+                    raise ValueError(
+                            "BUG: can't register two handlers" +
+                            " for the same URL scheme!", scheme)
                 Source.__url_handlers[scheme] = func
             return func
         return _url_handler
@@ -73,7 +83,10 @@ class Source(ABC, _TypPropEq):
     def mime_handler(*mimes):
         def _mime_handler(func):
             for mime in mimes:
-                assert not mime in Source.__mime_handlers
+                if mime in Source.__mime_handlers:
+                    raise ValueError(
+                            "BUG: can't register two handlers" +
+                            " for the same MIME type!", mime)
                 Source.__mime_handlers[mime] = func
             return func
         return _mime_handler
@@ -101,7 +114,11 @@ class Source(ABC, _TypPropEq):
         return None
 
 class UnknownSchemeError(LookupError):
-    pass
+    """When Source.from_url does not know how to handle a given URL, either
+    because no Source subclass is registered as a handler for its scheme or
+    because the URL is not valid, an UnknownSchemeError will be raised.
+    Its only associated value is a string identifying the scheme, if one was
+    present in the URL."""
 
 class SourceManager:
     """A SourceManager is responsible for tracking all of the state associated
@@ -133,8 +150,9 @@ class SourceManager:
 
     def share(self):
         """Returns a SourceManager that contains only the ShareableCookies from
-        this SourceManager. (The result can only safely be used as a
-        parent.)"""
+        this SourceManager. This SourceManager will be read-only, and can only
+        be used as a parent for a writable SourceManager: attempting to open
+        things in it, or to enter its context, will raise a TypeError."""
         if self._ro:
             return self
         r = SourceManager()
@@ -151,8 +169,10 @@ class SourceManager:
         """Returns the cookie returned by opening the given Source. If
         @try_open is True, the Source will be opened in this SourceManager if
         necessary."""
-        assert not (self._ro and try_open), \
-                "BUG: open(try_open=True) called on a read-only SourceManager!"
+        if self._ro and try_open:
+            raise TypeError(
+                    "BUG: open(try_open=True) called on" +
+                    " a read-only SourceManager!")
         rv = None
         if not source in self._opened:
             cookie = None
@@ -171,8 +191,9 @@ class SourceManager:
             return rv
 
     def __enter__(self):
-        assert not self._ro, \
-                "BUG: __enter__ called on a read-only SourceManager!"
+        if self._ro:
+            raise TypeError(
+                    "BUG: __enter__ called on a read-only SourceManager!")
         return self
 
     def __exit__(self, exc_type, exc_value, backtrace):
@@ -199,9 +220,9 @@ class ShareableCookie:
     be shared across processes, because the operations that it has performed
     are not specific to a single process.
 
-    SourceManager will otherwise try to hide the existence of this class from the
-    outside world -- the value contained in this cookie, rather than the cookie
-    itself, will be returned from SourceManager.open and passed to
+    SourceManager will otherwise try to hide the existence of this class from
+    the outside world -- the value contained in this cookie, rather than the
+    cookie itself, will be returned from SourceManager.open and passed to
     Source._close."""
     def __init__(self, value):
         self.value = value
@@ -229,12 +250,16 @@ class Handle(ABC, _TypPropEq):
         self._relpath = relpath
 
     def get_source(self):
+        """Returns this Handle's Source."""
         return self._source
 
     def get_relative_path(self):
+        """Returns this Handle's path."""
         return self._relpath
 
     def get_name(self):
+        """Returns the base name -- everything after the last '/' -- of this
+        Handle's path, or "file" if the result would otherwise be empty."""
         return os.path.basename(self._relpath) or 'file'
 
     def guess_type(self):
@@ -274,11 +299,12 @@ class Resource(ABC):
         self._sm = sm
 
     def get_handle(self):
+        """Returns this Resource's Handle."""
         return self._handle
 
     def _open_source(self):
-        """Returns the cookie obtained by opening the ultimate Source backing
-        this Resource in the associated StateManager."""
+        """Returns the cookie obtained by opening the Source that backs this
+        Resource's Handle in the associated StateManager."""
         return self._sm.open(self.get_handle().get_source())
 
 class ResourceUnavailableError(Exception):
@@ -299,9 +325,9 @@ class FileResource(Resource):
     """A FileResource is a Resource that can, when necessary, be viewed as a
     file."""
     def get_hash(self):
-        """Returns a hash for this Resource. (No particular hash algorithm is
-        defined for this, but all Resources generated by a Source should use
-        the same one.)"""
+        """Returns a hash for this FileResource's content. (No particular hash
+        algorithm is defined for this, but all FileResources generated by a
+        Source should use the same one.)"""
 
     @abstractmethod
     def get_size(self):

@@ -29,20 +29,34 @@ def print_source(manager, source, depth=0, guess=False, summarise=False):
                 print_source(derived_manager,
                         derived_source, depth + 1, guess, summarise)
 
-def main():
-    parser = argparse.ArgumentParser()
+
+def add_arguments(parser):
     parser.add_argument(
             "urls",
-            metavar="URL", nargs='+')
-    parser.add_argument(
-            "--compute-mime",
-            action='store_false', dest='guess')
-    parser.add_argument(
-            "--summarise",
-            action='store_true', dest='summarise')
+            metavar="URL",
+            help='A URL to be explored.',
+            nargs='+')
     parser.add_argument(
             "--guess-mime",
-            action='store_true', dest='guess', default=True)
+            action='store_true',
+            dest='guess',
+            help='Compute the MIME type of each file' +
+                    ' based on its filename. (default)',
+            default=True)
+    parser.add_argument(
+            "--compute-mime",
+            action='store_false',
+            dest='guess',
+            help='Compute the MIME type of each file based on its content.')
+    parser.add_argument(
+            "--summarise",
+            action='store_true',
+            dest='summarise',
+            help='Print a brief summary of the content of each file.')
+
+def main():
+    parser = argparse.ArgumentParser()
+    add_arguments(parser)
 
     args = parser.parse_args()
 
