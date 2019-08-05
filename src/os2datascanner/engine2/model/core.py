@@ -47,7 +47,10 @@ class Source(ABC, _TypPropEq):
     def url_handler(*schemes):
         def _url_handler(func):
             for scheme in schemes:
-                assert not scheme in Source.__url_handlers
+                if scheme in Source.__url_handlers:
+                    raise ValueError(
+                            "BUG: can't register two handlers" +
+                            " for the same URL scheme!", scheme)
                 Source.__url_handlers[scheme] = func
             return func
         return _url_handler
@@ -73,7 +76,10 @@ class Source(ABC, _TypPropEq):
     def mime_handler(*mimes):
         def _mime_handler(func):
             for mime in mimes:
-                assert not mime in Source.__mime_handlers
+                if mime in Source.__mime_handlers:
+                    raise ValueError(
+                            "BUG: can't register two handlers" +
+                            " for the same MIME type!", mime)
                 Source.__mime_handlers[mime] = func
             return func
         return _mime_handler
@@ -151,8 +157,10 @@ class SourceManager:
         """Returns the cookie returned by opening the given Source. If
         @try_open is True, the Source will be opened in this SourceManager if
         necessary."""
-        assert not (self._ro and try_open), \
-                "BUG: open(try_open=True) called on a read-only SourceManager!"
+        if self._ro and try_open:
+            raise TypeError(
+                    "BUG: open(try_open=True) called on" +
+                    " a read-only SourceManager!")
         rv = None
         if not source in self._opened:
             cookie = None
@@ -171,8 +179,9 @@ class SourceManager:
             return rv
 
     def __enter__(self):
-        assert not self._ro, \
-                "BUG: __enter__ called on a read-only SourceManager!"
+        if self._ro:
+            raise TypeError(
+                    "BUG: __enter__ called on a read-only SourceManager!")
         return self
 
     def __exit__(self, exc_type, exc_value, backtrace):
