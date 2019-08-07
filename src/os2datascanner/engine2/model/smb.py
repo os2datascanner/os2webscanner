@@ -15,6 +15,9 @@ class SMBSource(Source):
         self._password = password
         self._domain = domain
 
+    def get_unc(self):
+        return self._unc
+
     def _make_optarg(self, display=True):
         optarg = ["ro"]
         if self._user:
@@ -38,13 +41,12 @@ class SMBSource(Source):
             args.append(self._make_optarg(display=False))
             print(args)
             assert run(args).returncode == 0
-            return ShareableCookie(Path(mntdir))
+            return ShareableCookie(mntdir)
         except:
             rmdir(mntdir)
             raise
 
     def _close(self, mntdir):
-        mntdir = str(mntdir)
         args = ["umount", mntdir]
         try:
             assert run(args).returncode == 0
@@ -54,39 +56,43 @@ class SMBSource(Source):
             rmdir(mntdir)
 
     def handles(self, sm):
-        mntdir = sm.open(self)
-        for d in mntdir.glob("**"):
+        pathlib_mntdir = Path(sm.open(self))
+        for d in pathlib_mntdir.glob("**"):
             for f in d.iterdir():
                 if f.is_file():
-                    yield SMBHandle(self, f.relative_to(mntdir))
+                    yield SMBHandle(self, str(f.relative_to(pathlib_mntdir)))
 
-    # Third form from https://www.iana.org/assignments/uri-schemes/prov/smb
     def to_url(self):
-        server, path = self._unc.lstrip('/').split('/', maxsplit=1)
-        netloc = ""
-        if self._user:
-            if self._domain:
-                netloc += self._domain + ";"
-            netloc += self._user
-            if self._password:
-                netloc += ":" + self._password
-            netloc += "@"
-        netloc += server
-        return urlunsplit(('smb', netloc, quote(path), None, None))
+        return make_smb_url(
+                "smb", self._unc, self._user, self._domain, self._password)
 
-    netloc_regex = compile(r"^(((\w+);)?(\w+)(:(\w+))?@)?([\w.]+)$")
+    netloc_regex = compile(r"^(((?P<domain>\w+);)?(?P<username>\w+)(:(?P<password>\w+))?@)?(?P<unc>[\w.]+)$")
     @staticmethod
     @Source.url_handler("smb")
     def from_url(url):
-        scheme, netloc, path, _, _ = urlsplit(url)
+        scheme, netloc, path, _, _ = urlsplit(url.replace("\\", "/"))
         match = SMBSource.netloc_regex.match(netloc)
         if match:
-            _, _, domain, username, _, password, unc = match.groups()
-            return SMBSource("//" + unc + unquote(path),
-                username or None, password or None, domain or None)
+            return SMBSource("//" + match.group("unc") + unquote(path),
+                match.group("username"), match.group("password"),
+                match.group("domain"))
         else:
             return None
 
 class SMBHandle(Handle):
     def follow(self, sm):
         return FilesystemResource(self, sm)
+
+# Third form from https://www.iana.org/assignments/uri-schemes/prov/smb
+def make_smb_url(schema, unc, user, domain, password):
+    server, path = unc.replace("\\", "/").lstrip('/').split('/', maxsplit=1)
+    netloc = ""
+    if user:
+        if domain:
+            netloc += domain + ";"
+        netloc += user
+        if password:
+            netloc += ":" + password
+        netloc += "@"
+    netloc += server
+    return urlunsplit((schema, netloc, quote(path), None, None))

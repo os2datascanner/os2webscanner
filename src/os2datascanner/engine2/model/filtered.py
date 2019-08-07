@@ -1,11 +1,11 @@
 from .core import Source, Handle, FileResource
 from .utilities import NamedTemporaryResource
 
+import os.path
 from bz2 import BZ2File
 from gzip import GzipFile
 from lzma import LZMAFile
 from hashlib import md5
-from pathlib import Path
 from functools import partial
 from contextlib import contextmanager
 
@@ -18,8 +18,8 @@ class FilteredSource(Source):
         return "FilteredSource({0})".format(self._handle)
 
     def handles(self, sm):
-        yield FilteredHandle(
-                self, Path(self._handle.get_name()).with_suffix(""))
+        rest, ext = os.path.splitext(self._handle.get_name())
+        yield FilteredHandle(self, rest)
 
     def _open(self, sm):
         return self._handle.follow(sm)
@@ -58,13 +58,22 @@ class FilteredResource(FileResource):
                 self._md5 = md5(s.read())
         return self._md5
 
+    def get_size(self):
+        with self.make_stream() as s:
+            initial = s.seek(0, 1)
+            try:
+                s.seek(0, 2)
+                return s.tell()
+            finally:
+                s.seek(initial, 0)
+
     def get_last_modified(self):
         with self.make_stream() as s:
             return s.mtime
 
     @contextmanager
     def make_path(self):
-        ntr = NamedTemporaryResource(Path(self._handle.get_name()))
+        ntr = NamedTemporaryResource(Path(self.get_handle().get_name()))
         try:
             with ntr.open("wb") as f:
                 with self.make_stream() as s:

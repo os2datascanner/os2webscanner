@@ -15,17 +15,31 @@
 # source municipalities ( http://www.os2web.dk/ )
 """Base classes for rules."""
 
+from os2datascanner.projects.admin.adminapp.models.sensitivity_level import Sensitivity
+
 
 class Rule:
+    def __init__(self, name, sensitivity=Sensitivity.HIGH):
+        self.name = name
+        self.sensitivity = sensitivity
+
+    def _clamp_sensitivity(self, sensitivity_value):
+        return min(sensitivity_value, self.sensitivity)
+
     """Represents a rule which can be executed on text and returns matches."""
-
-    def __init__(self, *args, **kwargs):
-        self.cpr_pattern = r"\b(\d{2}[\s]?\d{2}[\s]?\d{2})(?:[\s\-/\.]|\s\-\s)?(\d{4})\b"
-
-
     def execute(self, text):
         """Execute the rule on the given text.
 
         Return a list of MatchItem's.
         """
         raise NotImplementedError
+
+    def is_all_match(self, matches):
+        """
+        Checks if each rule is matched with the provided list of matches
+        :param matches: List of matches
+        :return: {True | false}
+        """
+        # Most rules represent a single search, so the default implementation
+        # of this method returns true if there were any matches
+        return bool(matches)

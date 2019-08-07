@@ -1,7 +1,6 @@
 from .core import Source, Handle, FileResource
 from .utilities import NamedTemporaryResource
 
-from pathlib import Path
 from zipfile import ZipFile
 from datetime import datetime
 from contextlib import contextmanager
@@ -23,12 +22,15 @@ class ZipSource(Source):
     def _open(self, sm):
         r = self._handle.follow(sm).make_path()
         path = r.__enter__()
-        return (r, ZipFile(path))
+        return (r, ZipFile(str(path)))
 
     def _close(self, cookie):
         r, zipfile = cookie
         r.__exit__(None, None, None)
         zipfile.close()
+
+    def to_handle(self):
+        return self._handle
 
 class ZipHandle(Handle):
     def follow(self, sm):
@@ -42,18 +44,21 @@ class ZipResource(FileResource):
     def get_info(self):
         if not self._info:
             self._info = self._open_source()[1].getinfo(
-                    str(self._handle.get_relative_path()))
+                    str(self.get_handle().get_relative_path()))
         return self._info
 
     def get_hash(self):
         return self.get_info().CRC
+
+    def get_size(self):
+        return self.get_info().file_size
 
     def get_last_modified(self):
         return datetime(*self.get_info().date_time)
 
     @contextmanager
     def make_path(self):
-        ntr = NamedTemporaryResource(Path(self._handle.get_name()))
+        ntr = NamedTemporaryResource(self.get_handle().get_name())
         try:
             with ntr.open("wb") as f:
                 with self.make_stream() as s:
@@ -64,5 +69,6 @@ class ZipResource(FileResource):
 
     @contextmanager
     def make_stream(self):
-        with self._open_source()[1].open(str(self._handle.get_relative_path())) as s:
+        with self._open_source()[1].open(
+                self.get_handle().get_relative_path()) as s:
             yield s

@@ -17,8 +17,7 @@ class FileScannerCreate(ScannerCreate):
 
     model = FileScanner
     fields = ['name', 'schedule', 'url', 'exclusion_rules', 'alias',
-              'do_name_scan', 'do_ocr', 'do_address_scan', 'do_last_modified_check',
-              'regex_rules', 'recipients']
+              'do_ocr', 'do_last_modified_check', 'rules', 'recipients']
 
     def get_form(self, form_class=None):
         """Adds special field password."""
@@ -42,8 +41,7 @@ class FileScannerUpdate(ScannerUpdate):
 
     model = FileScanner
     fields = ['name', 'schedule', 'url', 'exclusion_rules', 'alias',
-              'do_name_scan', 'do_ocr', 'do_address_scan', 'do_last_modified_check',
-              'regex_rules', 'recipients']
+              'do_ocr', 'do_last_modified_check', 'rules', 'recipients']
 
     def get_form(self, form_class=None):
         """Adds special field password and decrypts password."""

@@ -29,6 +29,7 @@ from django.utils import timezone
 from os2datascanner.engine.run_webscan import StartWebScan
 from os2datascanner.engine.run_filescan import StartFileScan
 from os2datascanner.engine.run_exchangescan import StartExchangeScan
+from os2datascanner.engine.run_engine2_scan import StartEngine2Scan
 
 from ...models.scans.scan_model import Scan
 
@@ -106,15 +107,19 @@ async def process_message(message):
         logger.debug("scan_received", **body)
 
         # Collect scan object and map properties
-        if body['type'] == 'WebScanner':
-            scanjob = StartWebScan(body)
-        elif body['type'] == 'FileScanner':
-            scanjob = StartFileScan(body)
-        elif body['type'] == 'ExchangeScanner':
-            scanjob = StartExchangeScan(body)
+        if settings.USE_ENGINE2:
+            scanjob = StartEngine2Scan(body)
         else:
-            logger.error('invalid_scan_object', **body)
-            return
+            if body['type'] == 'WebScanner':
+                scanjob = StartWebScan(body)
+            elif body['type'] == 'FileScanner':
+                scanjob = StartFileScan(body)
+            elif body['type'] == 'ExchangeScanner':
+                scanjob = StartExchangeScan(body)
+            else:
+                logger.error('invalid_scan_object', **body)
+                return
+
 
         # sharing opened connections between processes leads to issues
         # with closed/open state getting out-of-sync -- so just close
@@ -179,7 +184,7 @@ class Command(BaseCommand):
             '-H',
             '--amqp-host',
             type=str,
-            default='localhost',
+            default=settings.AMQP_HOST,
             help='Host name of the AMQP server',
         )
         parser.add_argument(

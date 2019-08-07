@@ -1,0 +1,86 @@
+stages:
+  - test
+  - check
+  - build
+
+variables:
+  XDG_CACHE_HOME: "$CI_PROJECT_DIR/.cache"
+
+cache:
+  key: "$CI_COMMIT_REF_SLUG"
+  paths:
+    - .cache/
+
+tests:
+  stage: test
+  services:
+    - postgres:alpine
+    - rabbitmq:alpine
+  image: python:3.5
+  variables:
+    POSTGRES_DB: os2datascanner
+    POSTGRES_USER: os2datascanner
+    POSTGRES_PASSWORD: os2datascanner
+    POSTGRES_HOST: postgres
+    AMQP_HOST: rabbitmq
+    DJANGO_SETTINGS_MODULE: os2datascanner.projects.admin.settings
+
+  coverage: '/^TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+(?:\.\d+)?\%)$/'
+
+  script:
+    - apt-get update -qq
+    - apt-get install -qq $(cat doc/TEST_DEPENDENCIES)
+    - pip install -e . -r doc/requirements-dev.txt
+
+    - django-admin makemigrations --check --dry-run
+
+    - coverage erase
+    - coverage run -m django test os2datascanner
+
+  after_script:
+    - coverage html
+    - coverage xml
+    - coverage report
+
+  artifacts:
+    name: "$CI_JOB_STAGE-$CI_COMMIT_REF_NAME"
+    paths:
+      - htmlcov
+      - build/test-results.xml
+      - build/coverage.xml
+    reports:
+      junit: build/test-results.xml
+
+flake8:
+  stage: check
+  image: python:latest
+  allow_failure: true
+  script:
+    - pip install flake8 flake8-gl-codeclimate
+    - flake8 --exit-zero --format gl-codeclimate --tee --output-file build/code-quality.json src/
+  artifacts:
+    name: "$CI_JOB_STAGE-$CI_COMMIT_REF_NAME"
+    paths:
+      - build/code-quality.json
+    reports:
+      codequality: build/code-quality.json
+
+black:
+  stage: check
+  image: python:latest
+  allow_failure: true
+  script:
+    - pip install black
+    - black --check src
+
+docs:
+  stage: build
+  image: keimlink/sphinx-doc:latex
+  script:
+    - make -C doc PAPER=a4 html latexpdf
+    - mv doc/_build .
+
+  artifacts:
+    name: "$CI_JOB_STAGE-$CI_COMMIT_REF_NAME"
+    paths:
+      - _build

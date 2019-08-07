@@ -6,10 +6,11 @@ import structlog
 import subprocess
 import multiprocessing
 import psutil
+
 try:
-    from ..settings import export_path
+    from ..settings import export_path, AMQP_HOST
 except ImportError:
-    from .settings import export_path
+    from .settings import export_path, AMQP_HOST
 
 try:
     from PyExpLabSys.common.database_saver import DataSetSaver, CustomColumn
@@ -26,7 +27,7 @@ class Stats(multiprocessing.Process):
     def __init__(self, user_queue, log_data=False):
         psutil.cpu_percent(percpu=True)  # Initial dummy readout
         multiprocessing.Process.__init__(self)
-        conn_params = pika.ConnectionParameters('localhost')
+        conn_params = pika.ConnectionParameters(AMQP_HOST)
         connection = pika.BlockingConnection(conn_params)
         self.channel = connection.channel()
         self.channel.queue_declare('global')

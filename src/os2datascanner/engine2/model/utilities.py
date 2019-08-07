@@ -8,30 +8,34 @@ class NamedTemporaryResource:
         self._dir = None
 
     def open(self, mode):
-        if not self._dir:
+        if self._dir is None:
             self._dir = Path(mkdtemp())
         try:
-            return open(self.get_path(), mode)
+            return self.get_path().open(mode)
         except:
             raise
 
-    def get_path(self):
-        assert self._dir
+    def get_path(self) -> Path:
         return self._dir.joinpath(self._name)
 
     def finished(self):
-        assert self._dir
-        remove(self.get_path())
-        rmdir(self._dir)
+        self.get_path().unlink()
+        self._dir.rmdir()
         self._dir = None
 
 class _TypPropEq:
     """Secret mixin! Classes inheriting from _TypPropEq compare equal if their
-    types and properties -- as determined by __getstate__() or __dict__ --
-    compare equal."""
+    types and properties compare equal.
+
+    The relevant properties for this purpose are, in order of preference:
+    - those enumerated by the 'eq_properties' field;
+    - the keys of the dictionary returned by its __getstate__ function; or
+    - the keys of its __dict__ field."""
     @staticmethod
     def __get_state(obj):
-        if hasattr(obj, '__getstate__'):
+        if hasattr(obj, 'eq_properties'):
+            return {k: getattr(obj, k) for k in getattr(obj, 'eq_properties')}
+        elif hasattr(obj, '__getstate__'):
             return obj.__getstate__()
         else:
             return obj.__dict__

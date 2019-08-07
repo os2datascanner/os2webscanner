@@ -2,10 +2,10 @@
 """ Exchange cron job downloads exchange content on regular basis.
 
 """
-import os
-import time
-import shutil
 import multiprocessing
+import os
+import shutil
+import time
 
 from os2datascanner.engine.utils import run_django_setup
 
@@ -14,10 +14,12 @@ run_django_setup()
 from os2datascanner.engine.exchangescan import settings
 from os2datascanner.engine.exchangescan.export_exchange_content import ExchangeServerExport, read_users
 
+
+
 from os2datascanner.projects.admin.adminapp.models.scannerjobs.scanner_model import Scanner
 from os2datascanner.projects.admin.adminapp.models.scannerjobs.exchangescanner_model import ExchangeScanner
 
-def start_exchange_export():
+def start_exchange_export(exchange_scanner):
     """Starts the exchange server export"""
 
     # Collect credentials
@@ -69,19 +71,21 @@ def start_exchange_export():
             time.sleep(60)
 
     exchange_scanner.dir_to_scan = export_dir
-    exchange_scanner.save()
 
     exchange_scanner.is_exporting = False
     exchange_scanner.is_ready_to_scan = True
     exchange_scanner.save()
 
 
-for exchange_scanner in ExchangeScanner.objects.filter(
+if __name__ == '__main__':
+    for exchange_scanner in ExchangeScanner.objects.filter(
                             validation_status=Scanner.VALID):
-    """Foreach scan, x number of mail processors are started."""
-    if not exchange_scanner.is_exporting and not exchange_scanner.is_running:
-        start_exchange_export()
-    else:
-        print('Exchange export is already in progress '
-              'for exchange scanner {}'.format(exchange_scanner.name)
-              )
+        """Foreach domain x number of mail processors are started."""
+        if not exchange_scanner.is_exporting and not exchange_scanner.is_running:
+            start_exchange_export(exchange_scanner)
+        else:
+            print(
+                'Exchange export is already in progress for exchange scanner '
+                '{}'.format(
+                    exchange_scanner.name)
+            )
