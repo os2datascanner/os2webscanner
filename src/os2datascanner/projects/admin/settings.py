@@ -17,7 +17,7 @@ import structlog
 from django.utils.translation import gettext_lazy as _
 
 
-BASE_DIR = str(pathlib.Path(__file__).parent.parent.parent.parent.absolute())
+BASE_DIR = str(pathlib.Path(__file__).resolve().parent.parent.parent.parent.absolute())
 PROJECT_DIR = os.path.dirname(BASE_DIR)
 BUILD_DIR = os.path.join(PROJECT_DIR, 'build')
 VAR_DIR = os.path.join(PROJECT_DIR, 'var')

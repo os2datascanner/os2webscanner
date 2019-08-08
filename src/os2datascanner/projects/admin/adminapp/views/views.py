@@ -137,11 +137,11 @@ class OrganizationList(RestrictedListView):
                 return '.'.join(d.strip('/').split('.')[-2:])
 
             tlds = set([top_level(d.url) for d in
-                        org.scanners.all()])
+                        org.scanner_set.all()])
 
             for tld in tlds:
                 sub_domains = [
-                    d.url for d in org.scanners.all() if top_level(d.url) ==
+                    d.url for d in org.scanner_set.all() if top_level(d.url) ==
                                                          tld
                 ]
                 tld_list.append({'tld': tld, 'domains': sub_domains})

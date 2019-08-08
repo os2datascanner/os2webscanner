@@ -42,7 +42,13 @@ install_python_environment() {
 
 configure_development_environment() {
     echo "$0: configuring development environment"
+
+    # setup.py develop seems to assume that the current working directory is
+    # the thing that should be copied into python-env, which can mean copying
+    # references to files to which (say) a web server user has no access. Argh!
+    pushd "$DIR"
     "$VIRTUALENV/bin/python" "$DIR/setup.py" develop
+    popd
 }
 
 _psql_query() {

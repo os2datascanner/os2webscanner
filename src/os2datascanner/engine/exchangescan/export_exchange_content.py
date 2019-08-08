@@ -4,7 +4,7 @@ import pika
 import pickle
 import shutil
 import random
-import logging
+import structlog
 import multiprocessing
 from pathlib import Path
 from multiprocessing import Queue
@@ -25,14 +25,8 @@ from .exchange_assistant import ExchangeServerAssistant
 from .stats import Stats
 from .settings import AMQP_HOST
 
-exchangelogger = logging.getLogger(__name__)
-exchangelogger.setLevel(logging.ERROR)
-
-logger = logging.Logger('Mailscan_exchange')
-fh = logging.FileHandler('logfile.log')
-fh.setLevel(logging.DEBUG)
-logger.addHandler(fh)
-logger.error('Program start')
+logger = structlog.getLogger(__name__)
+logger.info('Program start')
 
 
 class ExportError(Exception):
@@ -239,6 +233,8 @@ class ExchangeMailboxScan(object):
             time.sleep(30)
             warning = '{}, {}: ErrorInternalServerTransientError'
             logger.warning(warning.format(self.export_path, folder))
+        except Exception as e:
+            logger.error('Unexpected exception happened: '+str(e))
         return attachments
 
     def _attempt_export(self, folder, start_dt=None, end_dt=None):

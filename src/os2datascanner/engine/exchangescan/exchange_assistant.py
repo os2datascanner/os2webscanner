@@ -76,8 +76,8 @@ class ExchangeServerAssistant(object):
                               autodiscover=False if self.is_office365 else True,
                               access_type=IMPERSONATION)
             account.root.refresh()
-            logger.info('{}: Init complete'.format(self.username))
+            logger.info('{}: Init complete'.format(self.user_name))
         except ErrorNonExistentMailbox:
-            logger.error('No such user: {}'.format(self.username))
+            logger.error('No such user: {}'.format(self.user_name))
 
         return account

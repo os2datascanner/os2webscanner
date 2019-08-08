@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Exchange cron job downloads exchange domain content on regular basis.
+""" Exchange cron job downloads exchange content on regular basis.
 
 """
 import multiprocessing
@@ -7,15 +7,17 @@ import os
 import shutil
 import time
 
-from .exchangescan import settings
-from .exchangescan.export_exchange_content import (ExchangeServerExport,
-                                                   read_users)
-from .utils import run_django_setup
+from os2datascanner.engine.utils import run_django_setup
 
 run_django_setup()
 
-from os2datascanner.projects.admin.adminapp.models.scannerjobs.exchangescanner_model import ExchangeScanner
+from os2datascanner.engine.exchangescan import settings
+from os2datascanner.engine.exchangescan.export_exchange_content import ExchangeServerExport, read_users
 
+
+
+from os2datascanner.projects.admin.adminapp.models.scannerjobs.scanner_model import Scanner
+from os2datascanner.projects.admin.adminapp.models.scannerjobs.exchangescanner_model import ExchangeScanner
 
 def start_exchange_export(exchange_scanner):
     """Starts the exchange server export"""
@@ -27,7 +29,7 @@ def start_exchange_export(exchange_scanner):
     # Create use queue and load in users.
     user_queue = multiprocessing.Queue()
     read_users(user_queue,
-               exchange_scanner.exchangedomain.get_userlist_file_path())
+               exchange_scanner.get_userlist_file_path())
 
     done_queue = multiprocessing.Queue()
 
@@ -69,13 +71,15 @@ def start_exchange_export(exchange_scanner):
             time.sleep(60)
 
     exchange_scanner.dir_to_scan = export_dir
+
     exchange_scanner.is_exporting = False
     exchange_scanner.is_ready_to_scan = True
     exchange_scanner.save()
 
 
 if __name__ == '__main__':
-    for exchange_scanner in ExchangeScanner.objects.all():
+    for exchange_scanner in ExchangeScanner.objects.filter(
+                            validation_status=Scanner.VALID):
         """Foreach domain x number of mail processors are started."""
         if not exchange_scanner.is_exporting and not exchange_scanner.is_running:
             start_exchange_export(exchange_scanner)

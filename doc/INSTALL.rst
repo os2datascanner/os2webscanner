@@ -114,10 +114,13 @@ like this:
 .. sourcecode:: python
 
     SITE_URL = 'http://webscanner.kommune.dk'
-    STATIC_ROOT = '/srv/os2datascanner/webscanner_site/static'
-    MEDIA_ROOT = '/srv/os2datascanner/webscanner_site/uploads'
+    STATIC_ROOT = '/srv/os2datascanner/projects/admin/adminapp/static'
+    MEDIA_ROOT = '/srv/os2datascanner/projects/admin/adminapp/uploads'
     DEFAULT_FROM_EMAIL = 'your@email'
     ADMIN_EMAIL = 'your@email'
+
+    # SECURITY WARNING: keep the secret key used in production secret!
+    SECRET_KEY = 'A_LONG_RANDOMLY_GENERATED_SECRET_STRING'
 
     # Database
     # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
@@ -138,9 +141,9 @@ Test and initialize
 
 .. sourcecode:: shell
 
-    cd /srv/os2datascanner/webscanner_site
+    cd /srv/os2datascanner
     source ../python-env/bin/activate
-    python manage.py test os2datascanner
+    bin/manage-admin test os2datascanner
 
 The test should pass. Now do:
 
@@ -165,7 +168,7 @@ Next, deploy Apache configuration:
 .. sourcecode:: shell
 
     cd /srv/os2datascanner
-    sudo cp config/apache.conf /etc/apache2/sites-available/webscanner
+    sudo cp contrib/config/apache.conf /etc/apache2/sites-available/os2datascanner
 
 Now, before activating the site, please *edit* the Apache configuration.
 
