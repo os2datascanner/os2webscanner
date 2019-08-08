@@ -1,27 +1,19 @@
 #!/usr/bin/env bash
 
+set -e
+
 prod_dir=/srv/os2datascanner
-repo_dir=`cat .pwd`
-install_dir=$repo_dir
+repo_dir="$(dirname ${BASH_SOURCE[0]})/../../"
 
 
 function prepare_ressources()
 {
+    sudo -H "$prod_dir/install.sh"
+    sudo chown --recursive www-data:www-data "$prod_dir/"
 
-    ./install.sh
-
-    # Migrate
-    source $prod_dir/python-env/bin/activate
-
-    managepy=django-admin
-
-    $managepy collectstatic --noinput
-    $managepy makemigrations --merge
-    $managepy migrate
-
-    $managepy makemessages --ignore=scrapy-webscanner/* --ignore=python-env/*
-    $managepy compilemessages
-
+    "$prod_dir/bin/manage-admin" collectstatic --noinput
+    "$prod_dir/bin/manage-admin" makemessages --ignore=scrapy-webscanner/* --ignore=python-env/*
+    "$prod_dir/bin/manage-admin" compilemessages
 }
 
 #
@@ -30,28 +22,35 @@ function prepare_ressources()
 
 function copy_to_prod_dir()
 {
-
-    echo 'Coyping to prod dir...'
-    sudo cp --recursive -u www-data src bin contrib $prod_dir
-    sudo cp NEWS LICENSE README VERSION $prod_dir
-
-    sudo chown --recursive www-data:www-data $prod_dir
-    echo 'Done Coyping.'
-
+    echo "Copying to production dir $prod_dir..."
+    sudo -H mkdir -p "$prod_dir"
+    sudo -H rsync \
+        --progress --recursive --delete  \
+        --links --safe-links \
+        --exclude ".git/" \
+        --exclude "var/" \
+        --exclude "python-env/" \
+        --exclude '*.pyc' \
+        --exclude "src/os2datascanner/projects/admin/local_settings.py" \
+        "$repo_dir"/ "$prod_dir"
+    sudo -H mkdir -p "$prod_dir/var"
+    echo 'Done Copying.'
 }
 
 function restart_ressources()
 {
     echo 'Restarting services...'
-    sudo pkill python
-    sudo pkill soffice.bin
 
-    sudo service datascanner-manager restart
-    sudo service supervisor reload
-    sudo service apache2 reload
+    # Everything here is allowed to fail
+    sudo pkill python || true
+    sudo pkill soffice.bin || true
+
+    sudo service datascanner-manager restart || true
+    sudo service supervisor reload || true
+    sudo service apache2 reload || true
     echo 'Services restarted.'
 }
 
-prepare_ressources
 copy_to_prod_dir
+prepare_ressources
 restart_ressources

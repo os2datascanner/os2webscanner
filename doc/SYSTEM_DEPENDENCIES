@@ -27,3 +27,4 @@ prometheus-postgres-exporter
 libsmbclient-dev
 moreutils
 linux-image-generic
+rsync
