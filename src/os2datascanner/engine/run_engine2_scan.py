@@ -87,18 +87,24 @@ class StartEngine2Scan(StartScan, multiprocessing.Process):
                 for idx, handle in enumerate(interesting):
                     url = self.make_presentation_url(handle)
 
-                    url_object = self.scanner.mint_url(
-                            url=url, mime_type=handle.guess_type())
+                    resource = handle.follow(sm)
                     try:
-                        with handle.follow(sm).make_stream() as s:
+                        url_object = self.scanner.mint_url(
+                                url=url, mime_type=resource.compute_type())
+                        with resource.make_stream() as s:
                             self.scanner.scan(s.read(), url_object)
                         self.logger.info("fetched_item",
-                                path=handle.get_relative_path(), pos=idx + 1)
-                    except ResourceUnavailableError:
+                                path=handle.get_relative_path(),
+                                url_object=url_object,
+                                mime_type=url_object.mime_type,
+                                pos=idx + 1)
+                    except ResourceUnavailableError as ex:
                         if hasattr(handle, 'get_referrer_urls'):
                             pass # XXX: actually build referrer URL structure
                         self.logger.info("item_unavailable",
-                            path=handle.get_relative_path(), pos=idx + 1)
+                                    status=ex.args,
+                                    path=handle.get_relative_path(),
+                                    pos=idx + 1)
                 self.logger.info("fetched_items")
 
             self.logger.info("awaiting_completion")
