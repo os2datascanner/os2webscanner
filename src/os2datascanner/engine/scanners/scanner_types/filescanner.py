@@ -5,7 +5,6 @@ from .scanner import Scanner
 from .scanner_with_statistics import ScannerWithStatistics
 
 from django.conf import settings
-from os2datascanner.projects.admin.adminapp.models.statistic_model import Statistic, TypeStatistics
 
 
 class FileScanner(Scanner, ScannerWithStatistics):
