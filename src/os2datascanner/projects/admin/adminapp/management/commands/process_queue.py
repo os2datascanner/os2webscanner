@@ -65,7 +65,7 @@ class Command(BaseCommand):
         logger = structlog.get_logger()
 
         with prometheus_session(str(os.getpid()),
-                settings.PROJECT_DIR + "/var/prometheus",
+                settings.VAR_DIR + "/prometheus",
                 processor_type=processor_type):
             if queued_processor is not None:
                 queued_processor.setup_queue_processing(os.getpid(), *extra_args)
