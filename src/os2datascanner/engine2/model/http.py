@@ -8,6 +8,7 @@ from urllib.parse import urljoin, urlsplit, urlunsplit
 from dateutil.parser import parse as parse_date
 from requests.sessions import Session
 from requests.exceptions import ConnectionError
+from requests.structures import CaseInsensitiveDict
 from contextlib import contextmanager
 
 MAX_REQUESTS_PER_SECOND = 10
@@ -109,7 +110,7 @@ class WebResource(FileResource):
         if not self._header:
             response = self._open_source().head(self._make_url())
             self._status = response.status_code
-            self._header = dict(response.headers)
+            self._header = CaseInsensitiveDict(response.headers)
 
     def get_status(self):
         self._require_header_and_status()
