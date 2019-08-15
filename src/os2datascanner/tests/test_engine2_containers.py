@@ -28,15 +28,41 @@ class Engine2ContainerTest(unittest.TestCase):
                             url = fp.read().decode("utf-8")
                         process(Source.from_url(url), depth + 1)
                     elif handle.get_name() == "test-vector" or isinstance(
-                        source, DataSource
-                    ):
-                        with handle.follow(sm).make_stream() as fp:
-                            content = fp.read().decode("utf-8")
+                            source, DataSource):
+                        r = handle.follow(sm)
+                        reported_size = r.get_size()
+                        with r.make_stream() as fp:
+                            stream_raw = fp.read()
+                            stream_size = len(stream_raw)
+                            stream_content = stream_raw.decode("utf-8")
+                        with r.make_path() as p:
+                            with open(p, "rb") as fp:
+                                file_raw = fp.read()
+                                file_size = len(file_raw)
+                                file_content = file_raw.decode("utf-8")
                         self.assertEqual(
-                            content,
-                            self.correct_content,
-                            "{0}{1} OK".format("  " * depth, handle),
-                        )
+                                stream_size,
+                                reported_size,
+                                "{0}: model stream length invalid".format(
+                                        handle))
+                        self.assertEqual(
+                                file_size,
+                                reported_size,
+                                "{0}: model stream length invalid".format(
+                                        handle))
+                        self.assertEqual(
+                                file_raw,
+                                stream_raw,
+                                "{0}: model file and stream not equal".format(
+                                        handle))
+                        self.assertEqual(
+                                stream_content,
+                                self.correct_content,
+                                "{0}: model stream invalid".format(handle)                        )
+                        self.assertEqual(
+                                file_content,
+                                self.correct_content,
+                                "{0}: model file invalid".format(handle))
 
             process(Source.from_url("file://" + test_data_path))
 
