@@ -22,9 +22,10 @@ class Engine2ContainerTest(unittest.TestCase):
             def process(source, depth=0):
                 for handle in source.handles(sm):
                     print("{0}{1}".format("  " * depth, handle))
-                    derived_source = Source.from_handle(handle)
-                    if derived_source:
-                        process(derived_source, depth + 1)
+                    guessed = Source.from_handle(handle)
+                    computed = Source.from_handle(handle, sm)
+                    if computed or guessed:
+                        process(computed or guessed, depth + 1)
                     elif handle.get_name() == "url":
                         with handle.follow(sm).make_stream() as fp:
                             url = fp.read().decode("utf-8")
