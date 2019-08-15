@@ -39,15 +39,15 @@ class Source(ABC, _TypPropEq):
         """Yields Handles corresponding to every identifiable leaf node in this
         Source's hierarchy. These Handles are generated in an undefined order.
 
-        Note that this function can yield Handles that correspond to
+        Note that this method can yield Handles that correspond to
         identifiable *but non-existent* leaf nodes. These might correspond to,
         for example, a broken link on a web page, or to an object that was
-        yielded by this function but was deleted before it could be examined.
+        yielded by this method but was deleted before it could be examined.
         These Handles can be detected by catching the ResourceUnavailableError
         exception.
 
         It is not necessarily the case that the result of the get_source call
-        on a Handle yielded by this function will be this Source."""
+        on a Handle yielded by this method will be this Source."""
 
     __url_handlers = {}
     @staticmethod
@@ -109,7 +109,7 @@ class Source(ABC, _TypPropEq):
 
     def to_handle(self):
         """If this Source was created based on a Handle (typically by the
-        Source.from_handle function), then returns that Handle; otherwise,
+        Source.from_handle method), then returns that Handle; otherwise,
         returns None."""
         return None
 
@@ -136,7 +136,7 @@ class SourceManager:
     their own state will be cleaned up before that of their antecedents.
 
     As SourceManagers track (potentially process-specific) state, they are not
-    usefully serialisable. See, however, the SourceManager.share function and
+    usefully serialisable. See, however, the SourceManager.share method and
     the ShareableCookie class below."""
     def __init__(self, parent=None):
         """Initialises this SourceManager.
@@ -215,7 +215,7 @@ class ShareableCookie:
     operation on a remote drive, or a connection to a server, or even nothing
     at all.
 
-    The Source._open function can return a ShareableCookie to indicate that a
+    The Source._open method can return a ShareableCookie to indicate that a
     cookie can (for the duration of its SourceManager's context) meaningfully
     be shared across processes, because the operations that it has performed
     are not specific to a single process.
@@ -240,7 +240,7 @@ class Handle(ABC, _TypPropEq):
     Although all Handle subclasses expose the same two-argument constructor,
     which takes a Source and a string representation of a path, each type of
     Source defines what its Handles and their paths mean; the only general way
-    to get a meaningful Handle is the Source.handles() function (or to make a
+    to get a meaningful Handle is the Source.handles() method (or to make a
     copy of an existing one).
 
     Handles are serialisable and persistent, and two different Handles with the
