@@ -42,14 +42,11 @@ class DataHandle(Handle):
         return DataResource(self, sm)
 
 class DataResource(FileResource):
-    def __init__(self, handle, sm):
-        super().__init__(handle, sm)
-
     def get_size(self):
         return len(self.get_handle().get_source()._content)
 
     def get_last_modified(self):
-        return None
+        return super().get_last_modified()
 
     @contextmanager
     def make_path(self):

@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import magic
 import os.path
+from datetime import datetime
 from mimetypes import guess_type
 
 from .utilities import _TypPropEq
@@ -325,6 +326,10 @@ class ResourceUnavailableError(Exception):
 class FileResource(Resource):
     """A FileResource is a Resource that can, when necessary, be viewed as a
     file."""
+    def __init__(self, handle, sm):
+        super().__init__(handle, sm)
+        self._lm_timestamp = None
+
     @abstractmethod
     def get_size(self):
         """Returns the number of bytes advertised as the download size of this
@@ -334,8 +339,16 @@ class FileResource(Resource):
 
     @abstractmethod
     def get_last_modified(self):
-        """Returns the last modification date of this FileResource as a Python
-        datetime.datetime."""
+        """Returns the last modification timestamp of this FileResource as a
+        Python datetime.datetime; this may be used to decide whether or not a
+        FileResource's content should be re-examined. Multiple calls to this
+        method should normally return the same value.
+
+        The default implementation of this method returns the time this
+        function was first called on this FileResource."""
+        if not self._lm_timestamp:
+            self._lm_timestamp = datetime.now()
+        return self._lm_timestamp
 
     @abstractmethod
     def make_path(self):

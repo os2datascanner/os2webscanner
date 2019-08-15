@@ -128,7 +128,7 @@ class WebResource(FileResource):
         try:
             return parse_date(self.get_header()["Last-Modified"])
         except (KeyError, ValueError):
-            return None
+            return super().get_last_modified()
 
     # override
     def compute_type(self):
