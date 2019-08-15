@@ -332,7 +332,10 @@ class FileResource(Resource):
 
     @abstractmethod
     def get_size(self):
-        """Returns the size of this FileResource's content, in bytes."""
+        """Returns the number of bytes advertised as the download size of this
+        FileResource's content. (Note that this is not necessarily the same as
+        the *actual* size of that content: some Sources support transparent
+        compression and decompression.)"""
 
     @abstractmethod
     def get_last_modified(self):
