@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from datetime import datetime
 import unittest
 
 from os2datascanner.engine2.model.core import Source, SourceManager
@@ -34,6 +35,7 @@ class Engine2ContainerTest(unittest.TestCase):
                             source, DataSource):
                         r = handle.follow(sm)
                         reported_size = r.get_size()
+                        last_modified = r.get_last_modified()
                         with r.make_stream() as fp:
                             stream_raw = fp.read()
                             stream_size = len(stream_raw)
@@ -43,6 +45,11 @@ class Engine2ContainerTest(unittest.TestCase):
                                 file_raw = fp.read()
                                 file_size = len(file_raw)
                                 file_content = file_raw.decode("utf-8")
+                        self.assertIsInstance(
+                                last_modified,
+                                datetime,
+                                ("{0}: last modification date is not a " +
+                                        "datetime.datetime").format(handle))
                         self.assertEqual(
                                 stream_size,
                                 reported_size,
