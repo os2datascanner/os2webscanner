@@ -7,6 +7,7 @@ from lxml.html import document_fromstring
 from urllib.parse import urljoin, urlsplit, urlunsplit
 from dateutil.parser import parse as parse_date
 from requests.sessions import Session
+from requests.exceptions import ConnectionError
 from contextlib import contextmanager
 
 MAX_REQUESTS_PER_SECOND = 10
@@ -31,38 +32,41 @@ class WebSource(Source):
         session.close()
 
     def handles(self, sm):
-        session = sm.open(self)
-        to_visit = [self._url]
-        visited = set()
-        referrer_map = {}
+        try:
+            session = sm.open(self)
+            to_visit = [self._url]
+            visited = set()
+            referrer_map = {}
 
-        scheme, netloc, path, query, fragment = urlsplit(self._url)
-        while to_visit:
-            here, to_visit = to_visit[0], to_visit[1:]
+            scheme, netloc, path, query, fragment = urlsplit(self._url)
+            while to_visit:
+                here, to_visit = to_visit[0], to_visit[1:]
 
-            response = session.head(here)
-            if response.status_code == 200:
-                ct = response.headers['Content-Type']
-                if simplify_mime_type(ct) == 'text/html':
-                    response = session.get(here)
-                    doc = document_fromstring(response.content)
-                    doc.make_links_absolute(here, resolve_base_href=True)
-                    for el, _, li, _ in doc.iterlinks():
-                        if el.tag != 'a':
-                            continue
-                        new_url = urljoin(here, li)
-                        new_scheme, new_netloc, new_path, new_query, _ = urlsplit(new_url)
-                        if new_scheme == scheme and new_netloc == netloc:
-                            new_url = urlunsplit((new_scheme, new_netloc, new_path, new_query, None))
-                            referrer_map.setdefault(new_url, set()).add(here)
-                            if new_url not in visited:
-                                visited.add(new_url)
-                                to_visit.append(new_url)
+                response = session.head(here)
+                if response.status_code == 200:
+                    ct = response.headers['Content-Type']
+                    if simplify_mime_type(ct) == 'text/html':
+                        response = session.get(here)
+                        doc = document_fromstring(response.content)
+                        doc.make_links_absolute(here, resolve_base_href=True)
+                        for el, _, li, _ in doc.iterlinks():
+                            if el.tag != 'a':
+                                continue
+                            new_url = urljoin(here, li)
+                            new_scheme, new_netloc, new_path, new_query, _ = urlsplit(new_url)
+                            if new_scheme == scheme and new_netloc == netloc:
+                                new_url = urlunsplit((new_scheme, new_netloc, new_path, new_query, None))
+                                referrer_map.setdefault(new_url, set()).add(here)
+                                if new_url not in visited:
+                                    visited.add(new_url)
+                                    to_visit.append(new_url)
 
-            wh = WebHandle(self, here[len(self._url):])
-            wh.set_referrer_urls(referrer_map.get(here, set()))
-            yield wh
-            sleep(SLEEP_TIME)
+                wh = WebHandle(self, here[len(self._url):])
+                wh.set_referrer_urls(referrer_map.get(here, set()))
+                yield wh
+                sleep(SLEEP_TIME)
+        except ConnectionError as e:
+            raise ResourceUnavailableError(self, *e.args)
 
     def to_url(self):
         return self._url

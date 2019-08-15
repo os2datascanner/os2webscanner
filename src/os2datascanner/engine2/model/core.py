@@ -308,10 +308,11 @@ class Resource(ABC):
         return self._sm.open(self.get_handle().get_source())
 
 class ResourceUnavailableError(Exception):
-    """When a function that tries to access a Resource's data or metadata
-    fails, a ResourceUnavailableError will be raised. The first associated
-    value will be the Handle backing the Resource in question; subsequent
-    values, if present, give specific details of the failure."""
+    """When a method of a Source or Resource (or of one of their subclasses)
+    fails to access an object, a ResourceUnavailableError will be raised. The
+    first associated value will be the Source, or the Handle of the Resource,
+    that triggered the error; subsequent values, if present, give specific
+    details of the failure."""
 
     def __str__(self):
         hand, args = self.args[0], self.args[1:]

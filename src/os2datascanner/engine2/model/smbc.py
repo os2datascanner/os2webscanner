@@ -60,7 +60,7 @@ class SMBCSource(Source):
             for dent in obj.getdents():
                 yield from handle_dirent([], dent)
         except Exception as exc:
-            raise ResourceUnavailableError(*exc.args)
+            raise ResourceUnavailableError(self, *exc.args)
 
     def to_url(self):
         return make_smb_url(
