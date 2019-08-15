@@ -2,6 +2,8 @@
 import unittest
 
 from os2datascanner.engine2.model.core import Source, SourceManager
+from os2datascanner.engine2.model.file import (
+        FilesystemSource, FilesystemHandle)
 from os2datascanner.engine2.model.data import DataSource
 import os.path
 
@@ -66,6 +68,12 @@ class Engine2ContainerTest(unittest.TestCase):
 
             process(Source.from_url("file://" + test_data_path))
 
+    def test_derived_source(self):
+        with SourceManager() as sm:
+            s = FilesystemSource(test_data_path)
+            h = FilesystemHandle(s, "data/engine2/zip-here/test-vector.zip")
 
-if __name__ == "__main__":
-    main()
+            zs = Source.from_handle(h)
+            self.assertIsNotNone(
+                    zs.to_handle(),
+                    "{0}: derived source has no handle".format(zs))
