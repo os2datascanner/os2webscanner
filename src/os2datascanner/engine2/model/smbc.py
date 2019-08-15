@@ -8,7 +8,6 @@ from os import rmdir, stat_result, O_RDONLY
 import smbc
 from regex import compile, match
 from urllib.parse import quote, unquote, urlsplit, urlunsplit
-from hashlib import md5
 from datetime import datetime
 from urllib.parse import quote
 from contextlib import contextmanager
@@ -92,7 +91,6 @@ class SMBCResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
         self._stat = None
-        self._hash = None
 
     def open_file(self):
         try:
@@ -116,12 +114,6 @@ class SMBCResource(FileResource):
 
     def get_last_modified(self):
         return datetime.fromtimestamp(self.get_stat().st_mtime)
-
-    def get_hash(self):
-        if not self._hash:
-            with self.make_stream() as f:
-                self._hash = md5(f.read())
-        return self._hash
 
     # At the moment, we implement make_stream in terms of make_path: we
     # download the file's content in order to get a file-like object out of

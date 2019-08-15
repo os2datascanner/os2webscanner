@@ -3,7 +3,6 @@ from .core import Source, Handle, FileResource, EMPTY_COOKIE
 from io import BytesIO
 from os import fsync
 from base64 import b64decode, b64encode
-from hashlib import md5
 from tempfile import NamedTemporaryFile
 from contextlib import contextmanager
 
@@ -45,13 +44,6 @@ class DataHandle(Handle):
 class DataResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
-        self._hash = None
-
-    def get_hash(self):
-        if not self._hash:
-            with self.make_stream() as s:
-                self._hash = md5(s.read())
-        return self._hash
 
     def get_size(self):
         return len(self.get_handle().get_source()._content)

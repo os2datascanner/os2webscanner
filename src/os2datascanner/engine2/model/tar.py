@@ -44,9 +44,6 @@ class TarResource(FileResource):
                     self.get_handle().get_relative_path())
         return self._info
 
-    def get_hash(self):
-        return self.get_info().chksum
-
     def get_size(self):
         return self.get_info().size
 

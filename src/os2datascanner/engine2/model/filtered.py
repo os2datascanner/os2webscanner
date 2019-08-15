@@ -5,7 +5,6 @@ import os.path
 from bz2 import BZ2File
 from gzip import GzipFile
 from lzma import LZMAFile
-from hashlib import md5
 from functools import partial
 from contextlib import contextmanager
 
@@ -50,13 +49,6 @@ class FilteredHandle(Handle):
 class FilteredResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
-        self._md5 = None
-
-    def get_hash(self):
-        if not self._md5:
-            with self.make_stream() as s:
-                self._md5 = md5(s.read())
-        return self._md5
 
     def get_size(self):
         with self.make_stream() as s:
