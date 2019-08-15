@@ -10,10 +10,7 @@ class NamedTemporaryResource:
     def open(self, mode):
         if self._dir is None:
             self._dir = Path(mkdtemp())
-        try:
-            return self.get_path().open(mode)
-        except:
-            raise
+        return self.get_path().open(mode)
 
     def get_path(self) -> Path:
         return self._dir.joinpath(self._name)
