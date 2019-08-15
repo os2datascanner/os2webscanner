@@ -73,7 +73,7 @@ class FilteredResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        ntr = NamedTemporaryResource(Path(self.get_handle().get_name()))
+        ntr = NamedTemporaryResource(self.get_handle().get_name())
         try:
             with ntr.open("wb") as f:
                 with self.make_stream() as s:
