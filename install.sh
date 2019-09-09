@@ -136,8 +136,8 @@ END
   - job_name: os2datascanner
     file_sd_configs:
       - files:
-        - $(readlink --canonicalize "$VAR/prometheus")/*.yml
-        - $(readlink --canonicalize "$VAR/prometheus")/*.json
+        - $(readlink --canonicalize "$VAR_DIR/prometheus")/*.yml
+        - $(readlink --canonicalize "$VAR_DIR/prometheus")/*.json
 END
         echo "$0: reloading prometheus configuration"
         sudo -H pkill -HUP prometheus
