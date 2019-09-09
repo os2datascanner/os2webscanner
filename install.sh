@@ -129,7 +129,7 @@ END
         echo "$0: no need to patch /etc/prometheus/prometheus.yml"
     else
         echo "$0: patching /etc/prometheus/prometheus.yml"
-        VAR="`$DIR/bin/manage-admin get_var_dir`"
+        VAR_DIR="`$DIR/bin/manage-admin get_var_dir`"
         # Yes, the indentation is significant in this YAML fragment (groan...)
         sudo -H tee --append /etc/prometheus/prometheus.yml <<END
 
