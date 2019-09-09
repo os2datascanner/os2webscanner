@@ -1,10 +1,10 @@
-
-
-
+from os2datascanner.projects.admin.adminapp.models.statistic_model import (
+    Statistic,
+    TypeStatistics,
+)
 
 
 class ScannerWithStatistics():
-
     def set_statistics(self,
             supported_count, supported_size,
             relevant_count, relevant_size,
