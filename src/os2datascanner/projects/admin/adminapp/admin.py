@@ -21,6 +21,8 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 
+from .models.aliases.adsidalias_model import ADSIDAlias
+from .models.aliases.emailalias_model import EmailAlias
 from .models.authentication_model import Authentication
 from .models.conversionqueueitem_model import ConversionQueueItem
 from .models.group_model import Group
@@ -123,9 +125,16 @@ class ReferrerUrlAdmin(admin.ModelAdmin):
 class ScannerAdmin(admin.ModelAdmin):
     list_display = ('name', 'url', 'validation_status')
 
+@admin.register(ADSIDAlias)
+class ADSIDAliasAdmin(admin.ModelAdmin):
+    list_display = ('sid', 'user', )
+
+@admin.register(EmailAlias)
+class EmailAliasAdmin(admin.ModelAdmin):
+    list_display = ('address', 'user', )
+
 for _cls in [Group, Organization]:
     admin.site.register(_cls)
-
 
 class ProfileInline(admin.TabularInline):
 
