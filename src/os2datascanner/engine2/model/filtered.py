@@ -16,6 +16,7 @@ class FilterType(Enum):
     LZMA = "lzma"
 
 class FilteredSource(Source):
+    eq_properties = ("_handle", "_filter_type")
     type_label = "filtered"
 
     def __init__(self, handle, filter_type):
