@@ -3,16 +3,35 @@ from .utilities import NamedTemporaryResource
 
 import os.path
 from bz2 import BZ2File
+from enum import Enum
 from gzip import GzipFile
 from lzma import LZMAFile
 from hashlib import md5
 from functools import partial
 from contextlib import contextmanager
 
+class FilterType(Enum):
+    GZIP = "gzip"
+    BZ2 = "bz2"
+    LZMA = "lzma"
+
 class FilteredSource(Source):
-    def __init__(self, handle, constructor):
+    def __init__(self, handle, filter_type):
         self._handle = handle
-        self._constructor = constructor
+        self._filter_type = filter_type
+
+        # Both BZ2File and LZMAFile accept either a file name or a file object
+        # as their first parameter, but GzipFile requires that we specify the
+        # fileobj positional parameter instead
+        if self._filter_type == FilterType.GZIP:
+            self._constructor = (
+                    lambda stream: GzipFile(fileobj=stream, mode='r'))
+        elif self._filter_type == FilterType.BZ2:
+            self._constructor = partial(BZ2File, mode='r')
+        elif self._filter_type == FilterType.LZMA:
+            self._constructor = partial(LZMAFile, mode='r')
+        else:
+            raise ValueError(self._filter_type)
 
     def __str__(self):
         return "FilteredSource({0})".format(self._handle)
@@ -29,19 +48,15 @@ class FilteredSource(Source):
 
 @Source.mime_handler("application/gzip")
 def _gzip(handle):
-    # Both BZ2File and LZMAFile accept either a file name or a file object as
-    # their first parameter, but GzipFile requires that we specify the fileobj
-    # positional parameter instead
-    return FilteredSource(handle,
-            lambda stream: GzipFile(fileobj=stream, mode='r'))
+    return FilteredSource(handle, FilterType.GZIP)
 
 @Source.mime_handler("application/x-bzip2")
 def _bz2(handle):
-    return FilteredSource(handle, partial(BZ2File, mode='r'))
+    return FilteredSource(handle, FilterType.BZ2)
 
 @Source.mime_handler("application/x-xz")
 def _lzma(handle):
-    return FilteredSource(handle, partial(LZMAFile, mode='r'))
+    return FilteredSource(handle, FilterType.LZMA)
 
 class FilteredHandle(Handle):
     def follow(self, sm):
