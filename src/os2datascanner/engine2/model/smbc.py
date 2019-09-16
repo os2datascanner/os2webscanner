@@ -14,9 +14,6 @@ from urllib.parse import quote
 from contextlib import contextmanager
 
 
-logger = structlog.get_logger()
-
-
 class SMBCSource(Source):
     def __init__(self, unc, user=None, password=None, domain=None):
         self._unc = unc
