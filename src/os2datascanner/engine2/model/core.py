@@ -19,6 +19,9 @@ class Source(ABC, _TypPropEq):
     this is that SourceManager will collapse several equal Sources together,
     only opening one of them.)"""
 
+    type_label = None
+    """A label that will be used to identify JSON forms of this Source."""
+
     @abstractmethod
     def _open(self, sm):
         """Opens this Source in the given SourceManager. Returns a cookie of
@@ -112,6 +115,36 @@ class Source(ABC, _TypPropEq):
         Source.from_handle function), then returns that Handle; otherwise,
         returns None."""
         return None
+
+    @abstractmethod
+    def to_json_object(self):
+        """Returns an object suitable for JSON serialisation that represents
+        this Source."""
+        return {
+            "type": self.type_label
+        }
+
+    __json_handlers = {}
+    @staticmethod
+    def json_handler(type_label):
+        def _json_handler(func):
+            if type_label in Source.__json_handlers:
+                raise ValueError(
+                        "BUG: can't register two handlers" +
+                        " for the same JSON type label!", type_label)
+            Source.__json_handlers[type_label] = func
+            return func
+        return _json_handler
+
+    @staticmethod
+    def from_json_object(obj):
+        """Converts a JSON representation of a Source, as returned by the
+        Source.to_json_object method, back into a Source."""
+        try:
+            return Source.__json_handlers[obj["type"]](obj)
+        except KeyError:
+            # XXX: better error handling would probably be a good idea
+            raise
 
 class UnknownSchemeError(LookupError):
     """When Source.from_url does not know how to handle a given URL, either
@@ -245,6 +278,10 @@ class Handle(ABC, _TypPropEq):
 
     Handles are serialisable and persistent, and two different Handles with the
     same type and properties compare equal."""
+
+    type_label = None
+    """A label that will be used to identify JSON forms of this Handle."""
+
     def __init__(self, source, relpath):
         self._source = source
         self._relpath = relpath
@@ -283,6 +320,42 @@ class Handle(ABC, _TypPropEq):
     properties, but wants those properties to be ignored when comparing
     objects, it should set the 'eq_properties' class attribute to this
     value.)"""
+
+    def to_json_object(self):
+        """Returns an object suitable for JSON serialisation that represents
+        this Handle."""
+        return {
+            "type": self.type_label,
+            "source": self.get_source().to_json_object(),
+            "path": self.get_relative_path()
+        }
+
+    __json_handlers = {}
+    @staticmethod
+    def json_handler(type_label):
+        def _json_handler(func):
+            if type_label in Handle.__json_handlers:
+                raise ValueError(
+                        "BUG: can't register two handlers" +
+                        " for the same JSON type label!", type_label)
+            Handle.__json_handlers[type_label] = func
+            return func
+        return _json_handler
+
+    @staticmethod
+    def stock_json_handler(type_label, constructor):
+        return Handle.json_handler(type_label)(lambda obj: constructor(
+                Source.from_json_object(obj["source"]), obj["path"]))
+
+    @staticmethod
+    def from_json_object(obj):
+        """Converts a JSON representation of a Handle, as returned by the
+        Handle.to_json_object method, back into a Handle."""
+        try:
+            return Handle.__json_handlers[obj["type"]](obj)
+        except KeyError:
+            # XXX: better error handling would probably be a good idea
+            raise
 
 class Resource(ABC):
     """A Resource is a concrete embodiment of an object: it's the thing a

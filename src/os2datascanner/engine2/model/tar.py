@@ -7,6 +7,8 @@ from contextlib import contextmanager
 
 @Source.mime_handler("application/x-tar")
 class TarSource(Source):
+    type_label = "tar"
+
     def __init__(self, handle):
         self._handle = handle
 
@@ -29,9 +31,22 @@ class TarSource(Source):
         r.__exit__(None, None, None)
         tarfile.close()
 
+    def to_json_object(self):
+        return dict(**super().to_json_object(), **{
+            "handle": self._handle.to_json_object()
+        })
+
+    @staticmethod
+    @Source.json_handler(type_label)
+    def from_json_object(obj):
+        return TarSource(Handle.from_json_object(obj["handle"]))
+
 class TarHandle(Handle):
+    type_label = "tar"
+
     def follow(self, sm):
         return TarResource(self, sm)
+Handle.stock_json_handler(TarHandle.type_label, TarHandle)
 
 class TarResource(FileResource):
     def __init__(self, handle, sm):

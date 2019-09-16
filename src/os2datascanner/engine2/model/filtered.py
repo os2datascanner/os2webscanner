@@ -16,6 +16,8 @@ class FilterType(Enum):
     LZMA = "lzma"
 
 class FilteredSource(Source):
+    type_label = "filtered"
+
     def __init__(self, handle, filter_type):
         self._handle = handle
         self._filter_type = filter_type
@@ -46,6 +48,19 @@ class FilteredSource(Source):
     def _close(self, cookie):
         pass
 
+    def to_json_object(self):
+        return dict(**super().to_json_object(), **{
+            "handle": self._handle.to_json_object(),
+            "filter_type": self._filter_type.value
+        })
+
+    @staticmethod
+    @Source.json_handler(type_label)
+    def from_json_object(obj):
+        return FilteredSource(
+                handle=Handle.from_json_object(obj["handle"]),
+                filter_type=FilterType(obj["filter_type"]))
+
 @Source.mime_handler("application/gzip")
 def _gzip(handle):
     return FilteredSource(handle, FilterType.GZIP)
@@ -59,8 +74,11 @@ def _lzma(handle):
     return FilteredSource(handle, FilterType.LZMA)
 
 class FilteredHandle(Handle):
+    type_label = "filtered"
+
     def follow(self, sm):
         return FilteredResource(self, sm)
+Handle.stock_json_handler(FilteredHandle.type_label, FilteredHandle)
 
 class FilteredResource(FileResource):
     def __init__(self, handle, sm):

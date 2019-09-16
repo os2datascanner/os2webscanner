@@ -9,6 +9,8 @@ from datetime import datetime
 from contextlib import contextmanager
 
 class FilesystemSource(Source):
+    type_label = "file"
+
     def __init__(self, path):
         if not os.path.isabs(path):
             raise ValueError("Path {0} is not absolute".format(path))
@@ -41,9 +43,22 @@ class FilesystemSource(Source):
         assert not netloc
         return FilesystemSource(unquote(path) if path else None)
 
+    def to_json_object(self):
+        return dict(**super().to_json_object(), **{
+            "path": self._path
+        })
+
+    @staticmethod
+    @Source.json_handler(type_label)
+    def from_json_object(obj):
+        return FilesystemSource(path=obj["path"])
+
 class FilesystemHandle(Handle):
+    type_label = "file"
+
     def follow(self, sm):
         return FilesystemResource(self, sm)
+Handle.stock_json_handler(FilesystemHandle.type_label, FilesystemHandle)
 
 class FilesystemResource(FileResource):
     def __init__(self, handle, sm):
