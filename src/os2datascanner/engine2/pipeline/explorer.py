@@ -1,11 +1,24 @@
 import pika
+from json import loads, dumps
 from ..model.core import Source, SourceManager
 from .utils import notify_ready, make_common_argument_parser
+
+args = None
 
 def message_received(channel, method, properties, body):
     print("message_received({0}, {1}, {2}, {3})".format(
             channel, method, properties, body))
     try:
+        body = loads(body.decode("utf-8"))
+        source = Source.from_json_object(body)
+
+        with SourceManager() as sm:
+            for handle in source.handles(sm):
+                print(handle)
+                channel.basic_publish(exchange='',
+                        routing_key=args.conversions,
+                        body=dumps(handle.to_json_object()).encode())
+
         channel.basic_ack(method.delivery_tag)
     except Exception:
         channel.basic_reject(method.delivery_tag)
@@ -37,6 +50,7 @@ def main():
                     + " written",
             default="os2ds_problems")
 
+    global args
     args = parser.parse_args()
 
     parameters = pika.ConnectionParameters(host=args.host, heartbeat=6000)
