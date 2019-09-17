@@ -1,5 +1,5 @@
 import pika
-from .utils import notify_ready, make_common_argument_parser
+from .utils import notify_ready, notify_stopping, make_common_argument_parser
 
 def message_received(channel, method, properties, body):
     print("message_received({0}, {1}, {2}, {3})".format(
@@ -54,10 +54,13 @@ def main():
 
     try:
         print("Start")
+        notify_ready()
         channel.start_consuming()
     finally:
         print("Stop")
+        notify_stopping()
         channel.stop_consuming()
+        connection.close()
 
 if __name__ == "__main__":
     main()

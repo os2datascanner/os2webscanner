@@ -1,7 +1,7 @@
 import pika
 from json import loads, dumps
 from ..model.core import Source, SourceManager
-from .utils import notify_ready, make_common_argument_parser
+from .utils import notify_ready, notify_stopping, make_common_argument_parser
 
 args = None
 
@@ -68,10 +68,13 @@ def main():
 
     try:
         print("Start")
+        notify_ready()
         channel.start_consuming()
     finally:
         print("Stop")
+        notify_stopping()
         channel.stop_consuming()
+        connection.close()
 
 if __name__ == "__main__":
     main()
