@@ -28,3 +28,6 @@ libsmbclient-dev
 moreutils
 linux-image-generic
 rsync
+libsystemd-journal-dev
+libsystemd-daemon-dev
+libsystemd-dev
