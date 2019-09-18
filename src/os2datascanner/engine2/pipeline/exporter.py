@@ -33,6 +33,12 @@ def main():
             help="the name of the AMQP queue from which problems should be"
                     + " read",
             default="os2ds_problems")
+    inputs.add_argument(
+            "--metadata",
+            metavar="NAME",
+            help="the name of the AMQP queue from which matches should be"
+                    + " read",
+            default="os2ds_metadata")
 
     args = parser.parse_args()
 
@@ -44,9 +50,12 @@ def main():
             durable=True, exclusive=False, auto_delete=False)
     channel.queue_declare(args.problems, passive=False,
             durable=True, exclusive=False, auto_delete=False)
+    channel.queue_declare(args.metadata, passive=False,
+            durable=True, exclusive=False, auto_delete=False)
 
     channel.basic_consume(args.matches, message_received)
     channel.basic_consume(args.problems, message_received)
+    channel.basic_consume(args.metadata, message_received)
 
     try:
         print("Start")

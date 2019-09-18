@@ -36,6 +36,12 @@ def main():
             help="the name of the AMQP queue to which conversions should be"
                     + " written",
             default="os2ds_conversions")
+    outputs.add_argument(
+            "--handles",
+            metavar="NAME",
+            help="the name of the AMQP queue to which handles (for metadata"
+                    + " extraction) should be written",
+            default="os2ds_handles")
 
     args = parser.parse_args()
 
@@ -48,6 +54,8 @@ def main():
     channel.queue_declare(args.matches, passive=False,
             durable=True, exclusive=False, auto_delete=False)
     channel.queue_declare(args.conversions, passive=False,
+            durable=True, exclusive=False, auto_delete=False)
+    channel.queue_declare(args.handles, passive=False,
             durable=True, exclusive=False, auto_delete=False)
 
     channel.basic_consume(args.representations, message_received)
