@@ -1,16 +1,16 @@
 import pika
-from json import loads, dumps
 from ..model.core import Handle, SourceManager, ResourceUnavailableError
-from .utils import notify_ready, notify_stopping, make_common_argument_parser
+from .utils import (json_event_processor, notify_ready, notify_stopping,
+        make_common_argument_parser)
 from ...utils.metadata import guess_responsible_party
 
 args = None
 
+@json_event_processor
 def message_received(channel, method, properties, body):
     print("message_received({0}, {1}, {2}, {3})".format(
             channel, method, properties, body))
     try:
-        body = loads(body.decode("utf-8"))
         handle = Handle.from_json_object(body)
 
         with SourceManager() as sm:
@@ -19,14 +19,10 @@ def message_received(channel, method, properties, body):
                 
                 with resource.make_path() as p:
                     print(p)
-                    result = {
+                    yield (args.metadata, {
                         "handle": body,
                         "metadata": guess_responsible_party(str(p))
-                    }
-
-                channel.basic_publish(exchange='',
-                        routing_key=args.metadata,
-                        body=dumps(result).encode())
+                    })
             except ResourceUnavailableError as ex:
                 print(ex)
                 pass

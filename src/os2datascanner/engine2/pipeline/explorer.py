@@ -1,23 +1,21 @@
 import pika
-from json import loads, dumps
 from ..model.core import Source, SourceManager
-from .utils import notify_ready, notify_stopping, make_common_argument_parser
+from .utils import (notify_ready, notify_stopping, json_event_processor,
+        make_common_argument_parser)
 
 args = None
 
+@json_event_processor
 def message_received(channel, method, properties, body):
     print("message_received({0}, {1}, {2}, {3})".format(
             channel, method, properties, body))
     try:
-        body = loads(body.decode("utf-8"))
         source = Source.from_json_object(body)
 
         with SourceManager() as sm:
             for handle in source.handles(sm):
                 print(handle)
-                channel.basic_publish(exchange='',
-                        routing_key=args.conversions,
-                        body=dumps(handle.to_json_object()).encode())
+                yield (args.conversions, handle.to_json_object())
 
         channel.basic_ack(method.delivery_tag)
     except Exception:

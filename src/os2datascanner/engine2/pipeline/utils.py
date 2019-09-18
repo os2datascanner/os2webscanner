@@ -1,3 +1,4 @@
+import json
 import argparse
 
 def make_common_argument_parser():
@@ -30,3 +31,13 @@ def notify_status(msg):
 
 def notify_watchdog():
     sd_notify("WATCHDOG=1")
+
+def json_event_processor(listener):
+    def _wrapper(channel, method, properties, body):
+        body = json.loads(body.decode("utf-8"))
+        for routing_key, message in listener(
+                channel, method, properties, body):
+            channel.basic_publish(exchange='',
+                    routing_key=routing_key,
+                    body=json.dumps(message).encode())
+    return _wrapper
