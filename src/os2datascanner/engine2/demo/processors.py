@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import sys
 from subprocess import run, PIPE, DEVNULL
 
 def plain_text_processor(r, **kwargs):

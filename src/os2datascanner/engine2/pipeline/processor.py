@@ -1,10 +1,36 @@
 import pika
-from .utils import notify_ready, notify_stopping, make_common_argument_parser
+from .utils import (notify_ready, notify_stopping, json_event_processor,
+        make_common_argument_parser)
+from ..model.core import Handle, SourceManager, ResourceUnavailableError
+from ..demo import processors
 
+args = None
+
+@json_event_processor
 def message_received(channel, method, properties, body):
     print("message_received({0}, {1}, {2}, {3})".format(
             channel, method, properties, body))
     try:
+        handle = Handle.from_json_object(body)
+        with SourceManager() as sm:
+            try:
+                resource = handle.follow(sm)
+                mime_type = resource.compute_type()
+
+                processor_function = processors.processors.get(mime_type)
+                if processor_function:
+                    content = processor_function(resource)
+                    if content:
+                        yield (args.representations, {
+                            "handle": body,
+                            "representation": {
+                                "type": "text",
+                                "content": content
+                            }
+                        })
+            except ResourceUnavailableError as ex:
+                pass
+
         channel.basic_ack(method.delivery_tag)
     except Exception:
         channel.basic_reject(method.delivery_tag)
@@ -37,6 +63,7 @@ def main():
                     + " should be written",
             default="os2ds_sources")
 
+    global args
     args = parser.parse_args()
 
     parameters = pika.ConnectionParameters(host=args.host, heartbeat=6000)
