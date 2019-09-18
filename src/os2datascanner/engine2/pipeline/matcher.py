@@ -1,10 +1,30 @@
 import pika
-from .utils import notify_ready, notify_stopping, make_common_argument_parser
+from .utils import (notify_ready, notify_stopping, json_event_processor,
+        make_common_argument_parser)
+from ...engine.scanners.rules.cpr import CPRRule
+from ...projects.admin.adminapp.models.sensitivity_level import Sensitivity
 
+args = None
+
+@json_event_processor
 def message_received(channel, method, properties, body):
     print("message_received({0}, {1}, {2}, {3})".format(
             channel, method, properties, body))
     try:
+        rule = CPRRule("CPR", Sensitivity.HIGH, True, True)
+        matches = rule.execute(body["representation"]["content"])
+        if matches:
+            for match in matches:
+                yield (args.matches, {
+                    "handle": body["handle"],
+                    "match": {
+                        "matched_data": match["matched_data"],
+                        "sensitivity": match["sensitivity"],
+                        "match_context": match["match_context"]
+                    }
+                })
+            yield (args.handles, body["handle"])
+
         channel.basic_ack(method.delivery_tag)
     except Exception:
         channel.basic_reject(method.delivery_tag)
@@ -43,6 +63,7 @@ def main():
                     + " extraction) should be written",
             default="os2ds_handles")
 
+    global args
     args = parser.parse_args()
 
     parameters = pika.ConnectionParameters(host=args.host, heartbeat=6000)
