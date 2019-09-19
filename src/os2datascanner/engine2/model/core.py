@@ -141,17 +141,30 @@ class Source(ABC, _TypPropEq):
         """Converts a JSON representation of a Source, as returned by the
         Source.to_json_object method, back into a Source."""
         try:
-            return Source.__json_handlers[obj["type"]](obj)
-        except KeyError:
-            # XXX: better error handling would probably be a good idea
-            raise
+            tl = obj["type"]
+            if not tl in Source.__json_handlers:
+                raise UnknownSchemeError(tl)
+            return Source.__json_handlers[tl](obj)
+        except KeyError as k:
+            tl = obj.get("type", None)
+            raise DeserialisationError(tl, k.args[0])
 
 class UnknownSchemeError(LookupError):
     """When Source.from_url does not know how to handle a given URL, either
     because no Source subclass is registered as a handler for its scheme or
     because the URL is not valid, an UnknownSchemeError will be raised.
     Its only associated value is a string identifying the scheme, if one was
-    present in the URL."""
+    present in the URL.
+
+    An UnknownSchemeError can also be raised by the JSON deserialisation code
+    if no handler exists for an object's type label; in these circumstances,
+    the single associated value is the type label."""
+
+class DeserialisationError(KeyError):
+    """When converting a JSON representation of an object back into an object,
+    if a required property is missing or has a nonsensical value, a
+    DeserialisationError will be raised. It has two associated values: the
+    type of object being deserialised, if known, and the property at issue."""
 
 class SourceManager:
     """A SourceManager is responsible for tracking all of the state associated
@@ -352,10 +365,13 @@ class Handle(ABC, _TypPropEq):
         """Converts a JSON representation of a Handle, as returned by the
         Handle.to_json_object method, back into a Handle."""
         try:
-            return Handle.__json_handlers[obj["type"]](obj)
-        except KeyError:
-            # XXX: better error handling would probably be a good idea
-            raise
+            tl = obj["type"]
+            if not tl in Handle.__json_handlers:
+                raise UnknownSchemeError(tl)
+            return Handle.__json_handlers[tl](obj)
+        except KeyError as k:
+            tl = obj.get("type", None)
+            raise DeserialisationError(tl, k.args[0])
 
 class Resource(ABC):
     """A Resource is a concrete embodiment of an object: it's the thing a
