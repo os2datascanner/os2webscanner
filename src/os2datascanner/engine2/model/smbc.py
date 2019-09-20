@@ -10,7 +10,6 @@ from regex import compile, match
 from urllib.parse import quote, unquote, urlsplit, urlunsplit
 from hashlib import md5
 from datetime import datetime
-from urllib.parse import quote
 from contextlib import contextmanager
 
 
