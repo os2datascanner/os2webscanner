@@ -36,17 +36,19 @@ class SMBSource(Source):
     def __str__(self):
         return "SMBSource({0}, {1})".format(self._unc, self._make_optarg())
 
-    def _open(self, sm):
+    def _generate_state(self, sm):
         mntdir = mkdtemp()
         try:
             args = ["mount", "-t", "cifs", self._unc, mntdir, '-o']
             args.append(self._make_optarg(display=False))
             print(args)
             assert run(args).returncode == 0
-            return ShareableCookie(mntdir)
-        except:
+
+            yield ShareableCookie(mntdir)
+
+            assert run(["umount", mntdir]).returncode == 0
+        finally:
             rmdir(mntdir)
-            raise
 
     def _close(self, mntdir):
         args = ["umount", mntdir]
