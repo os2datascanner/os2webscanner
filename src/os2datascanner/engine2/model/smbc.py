@@ -91,19 +91,19 @@ class SMBCResource(FileResource):
         self._hash = None
 
     def _make_url(self):
-        url, _ = self._open_source()
+        url, _ = self._get_cookie()
         return url + "/" + quote(self.get_handle().get_relative_path())
 
     def open_file(self):
         try:
-            _, context = self._open_source()
+            _, context = self._get_cookie()
             return context.open(self._make_url(), O_RDONLY)
         except smbc.NoEntryError as ex:
             raise ResourceUnavailableError(self.get_handle(), ex)
 
     def get_xattr(self, attr):
         try:
-            _, context = self._open_source()
+            _, context = self._get_cookie()
             return context.getxattr(self._make_url(), attr)
             # Don't attempt to catch the ValueError if attr isn't valid
         except smbc.NoEntryError as ex:

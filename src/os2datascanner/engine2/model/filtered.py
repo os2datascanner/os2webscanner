@@ -81,6 +81,6 @@ class FilteredResource(FileResource):
 
     @contextmanager
     def make_stream(self):
-        with self._open_source().make_stream() as s_:
+        with self._get_cookie().make_stream() as s_:
             with self.get_handle().get_source()._constructor(s_) as s:
                 yield s

@@ -298,9 +298,10 @@ class Resource(ABC):
         """Returns this Resource's Handle."""
         return self._handle
 
-    def _open_source(self):
-        """Returns the cookie obtained by opening the Source that backs this
-        Resource's Handle in the associated StateManager."""
+    def _get_cookie(self):
+        """Returns the magic cookie produced when the Source behind this
+        Resource's Handle is opened in the associated StateManager. (Note that
+        each Source will only be opened once by a given StateManager.)"""
         return self._sm.open(self.get_handle().get_source())
 
 class ResourceUnavailableError(Exception):

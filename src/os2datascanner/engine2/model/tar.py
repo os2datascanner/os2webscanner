@@ -35,7 +35,7 @@ class TarResource(FileResource):
 
     def get_info(self):
         if not self._info:
-            self._info = self._open_source().getmember(
+            self._info = self._get_cookie().getmember(
                     self.get_handle().get_relative_path())
         return self._info
 
@@ -61,7 +61,7 @@ class TarResource(FileResource):
 
     @contextmanager
     def make_stream(self):
-        with self._open_source().extractfile(
+        with self._get_cookie().extractfile(
                  self.get_handle().get_relative_path()) as s:
             yield s
 

@@ -38,7 +38,7 @@ class ZipResource(FileResource):
 
     def get_info(self):
         if not self._info:
-            self._info = self._open_source().getinfo(
+            self._info = self._get_cookie().getinfo(
                     str(self.get_handle().get_relative_path()))
         return self._info
 
@@ -64,6 +64,6 @@ class ZipResource(FileResource):
 
     @contextmanager
     def make_stream(self):
-        with self._open_source().open(
+        with self._get_cookie().open(
                 self.get_handle().get_relative_path()) as s:
             yield s
