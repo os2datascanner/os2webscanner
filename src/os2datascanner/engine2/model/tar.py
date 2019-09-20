@@ -14,20 +14,15 @@ class TarSource(Source):
         return "TarSource({0})".format(self._handle)
 
     def handles(self, sm):
-        _, tarfile = sm.open(self)
+        tarfile = sm.open(self)
         for f in tarfile.getmembers():
             if f.isfile():
                 yield TarHandle(self, f.name)
 
-    def _open(self, sm):
-        r = self._handle.follow(sm).make_path()
-        path = r.__enter__()
-        return (r, open_tar(str(path), "r"))
-
-    def _close(self, cookie):
-        r, tarfile = cookie
-        r.__exit__(None, None, None)
-        tarfile.close()
+    def _generate_state(self, sm):
+        with self._handle.follow(sm).make_path() as r:
+            with open_tar(str(r), "r") as tp:
+                yield tp
 
 class TarHandle(Handle):
     def follow(self, sm):
@@ -40,7 +35,7 @@ class TarResource(FileResource):
 
     def get_info(self):
         if not self._info:
-            self._info = self._open_source()[1].getmember(
+            self._info = self._get_cookie().getmember(
                     self.get_handle().get_relative_path())
         return self._info
 
@@ -66,7 +61,7 @@ class TarResource(FileResource):
 
     @contextmanager
     def make_stream(self):
-        with self._open_source()[1].extractfile(
+        with self._get_cookie().extractfile(
                  self.get_handle().get_relative_path()) as s:
             yield s
 

@@ -24,11 +24,9 @@ class WebSource(Source):
     def __str__(self):
         return "WebSource({0})".format(self._url)
 
-    def _open(self, sm):
-        return Session()
-
-    def _close(self, session):
-        session.close()
+    def _generate_state(self, sm):
+        with requests.Session() as session:
+            yield session
 
     def handles(self, sm):
         session = sm.open(self)
@@ -103,7 +101,7 @@ class WebResource(FileResource):
 
     def _require_header_and_status(self):
         if not self._header:
-            response = self._open_source().head(self._make_url())
+            response = self._get_cookie().head(self._make_url())
             self._status = response.status_code
             self._header = dict(response.headers)
 
@@ -146,7 +144,7 @@ class WebResource(FileResource):
 
     @contextmanager
     def make_stream(self):
-        response = self._open_source().get(self._make_url())
+        response = self._get_cookie().get(self._make_url())
         if response.status_code != 200:
             raise ResourceUnavailableError(
                     self.get_handle(), response.status_code)

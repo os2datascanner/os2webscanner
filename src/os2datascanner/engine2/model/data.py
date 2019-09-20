@@ -18,11 +18,8 @@ class DataSource(Source):
     def __str__(self):
         return "DataSource(content=..., mime={0})".format(self._mime)
 
-    def _open(self, sm):
-        return EMPTY_COOKIE
-
-    def _close(self, sm):
-        pass
+    def _generate_state(self, sm):
+        yield EMPTY_COOKIE
 
     def to_url(self):
         return "data:{0};base64,{1}".format(self._mime, b64encode(self._content).decode(encoding='ascii'))

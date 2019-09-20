@@ -20,19 +20,16 @@ class Source(ABC, _TypPropEq):
     only opening one of them.)"""
 
     @abstractmethod
-    def _open(self, sm):
-        """Opens this Source in the given SourceManager. Returns a cookie of
-        some kind that can be used to interact with the opened state, and which
-        SourceManager will later pass to _close.
+    def _generate_state(self, sm):
+        """Returns a state management generator. This generator will only be
+        executed once: this will yield a magic cookie representing any state
+        that this Source might require. The generator will be closed when
+        this state is no longer needed.
 
         The relevant instance properties when considering Source equality are
         normally only those properties used by this method. (The default
         implementation is conservative, however, and compares all
         properties.)"""
-
-    @abstractmethod
-    def _close(self, cookie):
-        """Closes a cookie previously returned by _open."""
 
     @abstractmethod
     def handles(self, sm):
@@ -179,12 +176,13 @@ class SourceManager:
             if self._parent:
                 cookie = self._parent.open(source, try_open=False)
             if not cookie and try_open:
-                cookie = source._open(self)
+                generator = source._generate_state(self)
+                cookie = next(generator)
                 self._order.append(source)
-                self._opened[source] = cookie
+                self._opened[source] = (generator, cookie)
             rv = cookie
         else:
-            rv = self._opened[source]
+            _, rv = self._opened[source]
         if isinstance(rv, ShareableCookie):
             return rv.get()
         else:
@@ -201,10 +199,8 @@ class SourceManager:
         this SourceManager."""
         try:
             for k in reversed(self._order):
-                cookie = self._opened[k]
-                if isinstance(cookie, ShareableCookie):
-                    cookie = cookie.get()
-                k._close(cookie)
+                generator, _ = self._opened[k]
+                generator.close()
         finally:
             self._order = []
             self._opened = {}
@@ -215,7 +211,7 @@ class ShareableCookie:
     operation on a remote drive, or a connection to a server, or even nothing
     at all.
 
-    The Source._open function can return a ShareableCookie to indicate that a
+    Source._generate_state can yield a ShareableCookie to indicate that a
     cookie can (for the duration of its SourceManager's context) meaningfully
     be shared across processes, because the operations that it has performed
     are not specific to a single process.
@@ -302,9 +298,10 @@ class Resource(ABC):
         """Returns this Resource's Handle."""
         return self._handle
 
-    def _open_source(self):
-        """Returns the cookie obtained by opening the Source that backs this
-        Resource's Handle in the associated StateManager."""
+    def _get_cookie(self):
+        """Returns the magic cookie produced when the Source behind this
+        Resource's Handle is opened in the associated StateManager. (Note that
+        each Source will only be opened once by a given StateManager.)"""
         return self._sm.open(self.get_handle().get_source())
 
 class ResourceUnavailableError(Exception):

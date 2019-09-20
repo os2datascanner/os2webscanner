@@ -21,11 +21,8 @@ class FilteredSource(Source):
         rest, ext = os.path.splitext(self._handle.get_name())
         yield FilteredHandle(self, rest)
 
-    def _open(self, sm):
-        return self._handle.follow(sm)
-
-    def _close(self, cookie):
-        pass
+    def _generate_state(self, sm):
+        yield self._handle.follow(sm)
 
 @Source.mime_handler("application/gzip")
 def _gzip(handle):
@@ -84,6 +81,6 @@ class FilteredResource(FileResource):
 
     @contextmanager
     def make_stream(self):
-        with self._open_source().make_stream() as s_:
+        with self._get_cookie().make_stream() as s_:
             with self.get_handle().get_source()._constructor(s_) as s:
                 yield s

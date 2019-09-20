@@ -10,7 +10,6 @@ from regex import compile, match
 from urllib.parse import quote, unquote, urlsplit, urlunsplit
 from hashlib import md5
 from datetime import datetime
-from urllib.parse import quote
 from contextlib import contextmanager
 
 
@@ -31,13 +30,9 @@ class SMBCSource(Source):
         return "SMBCSource({0}, {1}, ****, {2})".format(
                 self._unc, self._user, self._domain)
 
-    def _open(self, sm):
-        context = smbc.Context()
-        return (self._to_url(), context)
-
-    def _close(self, cookie):
-        # There seems to be no way to shut down a context
-        pass
+    def _generate_state(self, sm):
+        yield (self._to_url(), smbc.Context())
+        # There seems to be no way to shut down a context...
 
     def handles(self, sm):
         url, context = sm.open(self)
@@ -94,11 +89,25 @@ class SMBCResource(FileResource):
         self._stat = None
         self._hash = None
 
+    def _make_url(self):
+        url, _ = self._get_cookie()
+        return url + "/" + quote(self.get_handle().get_relative_path())
+
     def open_file(self):
         try:
-            url, context = self._open_source()
-            my_url = url + "/" + quote(self.get_handle().get_relative_path())
-            return context.open(my_url, O_RDONLY)
+            _, context = self._get_cookie()
+            return context.open(self._make_url(), O_RDONLY)
+        except smbc.NoEntryError as ex:
+            raise ResourceUnavailableError(self.get_handle(), ex)
+
+    def get_xattr(self, attr):
+        """Retrieves a SMB extended attribute for this file. (See the
+        documentation for smbc.Context.getxattr for *most* of the supported
+        attribute names.)"""
+        try:
+            _, context = self._get_cookie()
+            return context.getxattr(self._make_url(), attr)
+            # Don't attempt to catch the ValueError if attr isn't valid
         except smbc.NoEntryError as ex:
             raise ResourceUnavailableError(self.get_handle(), ex)
 
@@ -122,6 +131,11 @@ class SMBCResource(FileResource):
             with self.make_stream() as f:
                 self._hash = md5(f.read())
         return self._hash
+
+    def get_owner_sid(self):
+        """Returns the Windows security identifier of the owner of this file,
+        which libsmbclient exposes as an extended attribute."""
+        return self.get_xattr("system.nt_sec_desc.owner")
 
     # At the moment, we implement make_stream in terms of make_path: we
     # download the file's content in order to get a file-like object out of
