@@ -31,13 +31,9 @@ class SMBCSource(Source):
         return "SMBCSource({0}, {1}, ****, {2})".format(
                 self._unc, self._user, self._domain)
 
-    def _open(self, sm):
-        context = smbc.Context()
-        return (self._to_url(), context)
-
-    def _close(self, cookie):
-        # There seems to be no way to shut down a context
-        pass
+    def _generate_state(self, sm):
+        yield (self._to_url(), smbc.Context())
+        # There seems to be no way to shut down a context...
 
     def handles(self, sm):
         url, context = sm.open(self)

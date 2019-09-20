@@ -25,11 +25,8 @@ class FilesystemSource(Source):
     def __str__(self):
         return "FilesystemSource({0})".format(self._path)
 
-    def _open(self, sm):
-        return ShareableCookie(self._path)
-
-    def _close(self, sm):
-        pass
+    def _generate_state(self, sm):
+        yield ShareableCookie(self._path)
 
     def to_url(self):
         return urlunsplit(('file', '', quote(str(self._path)), None, None))

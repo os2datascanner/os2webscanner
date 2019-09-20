@@ -24,11 +24,9 @@ class WebSource(Source):
     def __str__(self):
         return "WebSource({0})".format(self._url)
 
-    def _open(self, sm):
-        return Session()
-
-    def _close(self, session):
-        session.close()
+    def _generate_state(self, sm):
+        with requests.Session() as session:
+            yield session
 
     def handles(self, sm):
         session = sm.open(self)
