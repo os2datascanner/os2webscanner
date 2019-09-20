@@ -102,6 +102,9 @@ class SMBCResource(FileResource):
             raise ResourceUnavailableError(self.get_handle(), ex)
 
     def get_xattr(self, attr):
+        """Retrieves a SMB extended attribute for this file. (See the
+        documentation for smbc.Context.getxattr for *most* of the supported
+        attribute names.)"""
         try:
             _, context = self._get_cookie()
             return context.getxattr(self._make_url(), attr)
@@ -131,6 +134,8 @@ class SMBCResource(FileResource):
         return self._hash
 
     def get_owner_sid(self):
+        """Returns the Windows security identifier of the owner of this file,
+        which libsmbclient exposes as an extended attribute."""
         return self.get_xattr("system.nt_sec_desc.owner")
 
     # At the moment, we implement make_stream in terms of make_path: we
