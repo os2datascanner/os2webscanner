@@ -52,6 +52,12 @@ class Source(ABC, _TypPropEq):
     __url_handlers = {}
     @staticmethod
     def url_handler(*schemes):
+        """Decorator: registers the decorated function as the handler for the
+        URL schemes given as arguments. This handler will be called by from_url
+        when it finds one of these schemes.
+
+        Subclasses should use this decorator to register their from_url factory
+        methods."""
         def _url_handler(func):
             for scheme in schemes:
                 if scheme in Source.__url_handlers:
@@ -81,6 +87,12 @@ class Source(ABC, _TypPropEq):
     __mime_handlers = {}
     @staticmethod
     def mime_handler(*mimes):
+        """Decorator: registers the decorated function as the handler for the
+        MIME types given as arguments. This handler will be called by
+        from_handle when it finds one of these MIME types.
+
+        Subclasses should use this decorator to register their from_handle
+        factory methods, if they implement such a method."""
         def _mime_handler(func):
             for mime in mimes:
                 if mime in Source.__mime_handlers:
@@ -124,6 +136,12 @@ class Source(ABC, _TypPropEq):
     __json_handlers = {}
     @staticmethod
     def json_handler(type_label):
+        """Decorator: registers the decorated function as the handler for the
+        type label given as an argument. This handler will be called by
+        from_json_object when it finds this type label.
+
+        Subclasses should use this decorator to register their from_json_object
+        factory methods."""
         def _json_handler(func):
             if type_label in Source.__json_handlers:
                 raise ValueError(
@@ -342,6 +360,12 @@ class Handle(ABC, _TypPropEq):
     __json_handlers = {}
     @staticmethod
     def json_handler(type_label):
+        """Decorator: registers the decorated function as the handler for the
+        type label given as an argument. This handler will be called by
+        from_json_object when it finds this type label.
+
+        Subclasses should use this method to decorate their from_json_object
+        factory methods."""
         def _json_handler(func):
             if type_label in Handle.__json_handlers:
                 raise ValueError(
