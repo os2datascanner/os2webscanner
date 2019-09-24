@@ -1,5 +1,3 @@
-import structlog
-
 from .smb import make_smb_url, SMBSource
 from .core import Source, Handle, ShareableCookie, FileResource, ResourceUnavailableError
 from .utilities import NamedTemporaryResource
