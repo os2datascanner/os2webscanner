@@ -7,6 +7,8 @@ from contextlib import contextmanager
 
 @Source.mime_handler("application/zip")
 class ZipSource(Source):
+    type_label = "zip"
+
     def __init__(self, handle):
         self._handle = handle
 
@@ -27,9 +29,22 @@ class ZipSource(Source):
     def to_handle(self):
         return self._handle
 
+    def to_json_object(self):
+        return dict(**super().to_json_object(), **{
+            "handle": self._handle.to_json_object()
+        })
+
+    @staticmethod
+    @Source.json_handler(type_label)
+    def from_json_object(obj):
+        return ZipSource(Handle.from_json_object(obj["handle"]))
+
 class ZipHandle(Handle):
+    type_label = "zip"
+
     def follow(self, sm):
         return ZipResource(self, sm)
+Handle.stock_json_handler(ZipHandle.type_label, ZipHandle)
 
 class ZipResource(FileResource):
     def __init__(self, handle, sm):

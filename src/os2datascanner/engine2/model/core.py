@@ -19,6 +19,9 @@ class Source(ABC, _TypPropEq):
     this is that SourceManager will collapse several equal Sources together,
     only opening one of them.)"""
 
+    type_label = None
+    """A label that will be used to identify JSON forms of this Source."""
+
     @abstractmethod
     def _generate_state(self, sm):
         """Returns a state management generator. This generator will only be
@@ -49,6 +52,12 @@ class Source(ABC, _TypPropEq):
     __url_handlers = {}
     @staticmethod
     def url_handler(*schemes):
+        """Decorator: registers the decorated function as the handler for the
+        URL schemes given as arguments. This handler will be called by from_url
+        when it finds one of these schemes.
+
+        Subclasses should use this decorator to register their from_url factory
+        methods."""
         def _url_handler(func):
             for scheme in schemes:
                 if scheme in Source.__url_handlers:
@@ -78,6 +87,12 @@ class Source(ABC, _TypPropEq):
     __mime_handlers = {}
     @staticmethod
     def mime_handler(*mimes):
+        """Decorator: registers the decorated function as the handler for the
+        MIME types given as arguments. This handler will be called by
+        from_handle when it finds one of these MIME types.
+
+        Subclasses should use this decorator to register their from_handle
+        factory methods, if they implement such a method."""
         def _mime_handler(func):
             for mime in mimes:
                 if mime in Source.__mime_handlers:
@@ -110,12 +125,61 @@ class Source(ABC, _TypPropEq):
         returns None."""
         return None
 
+    @abstractmethod
+    def to_json_object(self):
+        """Returns an object suitable for JSON serialisation that represents
+        this Source."""
+        return {
+            "type": self.type_label
+        }
+
+    __json_handlers = {}
+    @staticmethod
+    def json_handler(type_label):
+        """Decorator: registers the decorated function as the handler for the
+        type label given as an argument. This handler will be called by
+        from_json_object when it finds this type label.
+
+        Subclasses should use this decorator to register their from_json_object
+        factory methods."""
+        def _json_handler(func):
+            if type_label in Source.__json_handlers:
+                raise ValueError(
+                        "BUG: can't register two handlers" +
+                        " for the same JSON type label!", type_label)
+            Source.__json_handlers[type_label] = func
+            return func
+        return _json_handler
+
+    @staticmethod
+    def from_json_object(obj):
+        """Converts a JSON representation of a Source, as returned by the
+        Source.to_json_object method, back into a Source."""
+        try:
+            tl = obj["type"]
+            if not tl in Source.__json_handlers:
+                raise UnknownSchemeError(tl)
+            return Source.__json_handlers[tl](obj)
+        except KeyError as k:
+            tl = obj.get("type", None)
+            raise DeserialisationError(tl, k.args[0])
+
 class UnknownSchemeError(LookupError):
     """When Source.from_url does not know how to handle a given URL, either
     because no Source subclass is registered as a handler for its scheme or
     because the URL is not valid, an UnknownSchemeError will be raised.
     Its only associated value is a string identifying the scheme, if one was
-    present in the URL."""
+    present in the URL.
+
+    An UnknownSchemeError can also be raised by the JSON deserialisation code
+    if no handler exists for an object's type label; in these circumstances,
+    the single associated value is the type label."""
+
+class DeserialisationError(KeyError):
+    """When converting a JSON representation of an object back into an object,
+    if a required property is missing or has a nonsensical value, a
+    DeserialisationError will be raised. It has two associated values: the
+    type of object being deserialised, if known, and the property at issue."""
 
 class SourceManager:
     """A SourceManager is responsible for tracking all of the state associated
@@ -241,6 +305,10 @@ class Handle(ABC, _TypPropEq):
 
     Handles are serialisable and persistent, and two different Handles with the
     same type and properties compare equal."""
+
+    type_label = None
+    """A label that will be used to identify JSON forms of this Handle."""
+
     def __init__(self, source, relpath):
         self._source = source
         self._relpath = relpath
@@ -279,6 +347,51 @@ class Handle(ABC, _TypPropEq):
     properties, but wants those properties to be ignored when comparing
     objects, it should set the 'eq_properties' class attribute to this
     value.)"""
+
+    def to_json_object(self):
+        """Returns an object suitable for JSON serialisation that represents
+        this Handle."""
+        return {
+            "type": self.type_label,
+            "source": self.get_source().to_json_object(),
+            "path": self.get_relative_path()
+        }
+
+    __json_handlers = {}
+    @staticmethod
+    def json_handler(type_label):
+        """Decorator: registers the decorated function as the handler for the
+        type label given as an argument. This handler will be called by
+        from_json_object when it finds this type label.
+
+        Subclasses should use this method to decorate their from_json_object
+        factory methods."""
+        def _json_handler(func):
+            if type_label in Handle.__json_handlers:
+                raise ValueError(
+                        "BUG: can't register two handlers" +
+                        " for the same JSON type label!", type_label)
+            Handle.__json_handlers[type_label] = func
+            return func
+        return _json_handler
+
+    @staticmethod
+    def stock_json_handler(type_label, constructor):
+        return Handle.json_handler(type_label)(lambda obj: constructor(
+                Source.from_json_object(obj["source"]), obj["path"]))
+
+    @staticmethod
+    def from_json_object(obj):
+        """Converts a JSON representation of a Handle, as returned by the
+        Handle.to_json_object method, back into a Handle."""
+        try:
+            tl = obj["type"]
+            if not tl in Handle.__json_handlers:
+                raise UnknownSchemeError(tl)
+            return Handle.__json_handlers[tl](obj)
+        except KeyError as k:
+            tl = obj.get("type", None)
+            raise DeserialisationError(tl, k.args[0])
 
 class Resource(ABC):
     """A Resource is a concrete embodiment of an object: it's the thing a
