@@ -14,3 +14,6 @@ prometheus
 prometheus-postgres-exporter
 libsmbclient-dev
 moreutils
+libsystemd-journal-dev
+libsystemd-daemon-dev
+libsystemd-dev
