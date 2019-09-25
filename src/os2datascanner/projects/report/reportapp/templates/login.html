@@ -1,0 +1,34 @@
+{% include "partials/header.html" %}
+
+<section class="form form--login">
+  <form action="login">
+
+    <legend class="form__legend">Login:</legend>
+
+    <fieldset>
+
+      <div class="form__group">
+        <label for="username">Username:</label>
+        <input type="text" id="username" placeholder="handle@example.com" autofocus>
+      </div>
+
+      <div class="form__group">
+        <label for="password">Password:</label>
+        <input type="text" id="password" placeholder="[a-z][0-9]">
+      </div>
+
+      <div class="form__group">
+        <input type="checkbox" name="remember-me" id="remember-me">
+        <label for="remember-me">Remember me</label>
+      </div>
+
+      <div class="form__group">
+        <button type="button" class="button">Login</button>
+        <div class="form__error">Fejl i brugernavn eller password</div>
+      </div>
+
+    </fieldset>
+  </form>
+</section>
+
+{% include "partials/footer.html" %}

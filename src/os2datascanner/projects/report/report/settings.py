@@ -25,7 +25,7 @@ SECRET_KEY = 'rtt$!(67bg1np)@b5mt6f=j(k#0nzek)r1k(^swyp9g^zs#^=#'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition

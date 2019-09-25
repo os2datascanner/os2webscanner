@@ -1,0 +1,40 @@
+html {
+  color: var(--color-text-main);
+  font: normal normal normal var(--size-base-font-size)/1.3 "Avenir", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+ol,
+ul,
+dl {
+  margin: 1em 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+strong {
+  font-weight: 900;
+}
+
+p,
+ol,
+ul,
+dl {
+  max-width: 40rem;
+}
+
+a {
+  text-decoration-skip-ink: auto;
+}

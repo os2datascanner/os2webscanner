@@ -1,0 +1,81 @@
+.form fieldset {
+  border: none;
+}
+
+.form__legend {
+  font-size: 2rem;
+  font-weight: 900;
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.form__group {
+  display: block;
+}
+
+.form__group + .form__group {
+  margin-top: 1rem;
+}
+
+.form label {
+  display: block;
+  font-size: 0.8em;
+  text-transform: uppercase;
+}
+
+.form label + input {
+  margin-top: 0.125rem;
+}
+
+.form input[type=checkbox] + label {
+  display: inline;
+}
+
+.form input[type=text],
+.form input[type=password] {
+  background-color: #fff;
+  background-color: rgba(0, 0, 0, 0.1);
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  font-size: 1rem;
+  outline: none;
+  padding: 0.5rem;
+  transition: var(--transition-default);
+  width: 100%;
+}
+
+.form input[type=text]:focus,
+.form input[type=password]:focus {
+  border-color: var(--color-main);
+}
+
+.form__error {
+  background-color: var(--color-error);
+  border: 1px solid var(--color-error-dark);
+  font-size: 0.8rem;
+  line-height: 1;
+  margin-top: 1rem;
+  padding: 0.5rem;
+}
+
+.button {
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  font-size: 1rem;
+  outline: none;
+  padding: 0.5rem 1rem;
+  transition: var(--transition-default);
+}
+
+.button:focus,
+.button:hover {
+  border-color: var(--color-main);
+}
+
+/* Login form specifics, start */
+.form--login {
+  background-color: #fff;
+  box-shadow: var(--box-shadow-large);
+  max-width: 40rem;
+  padding: 2rem;
+  width: 100%;
+}
+/* Login form specifics, stop */
