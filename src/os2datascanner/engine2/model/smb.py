@@ -9,6 +9,8 @@ from tempfile import mkdtemp
 from subprocess import run
 
 class SMBSource(Source):
+    type_label = "smb"
+
     def __init__(self, unc, user=None, password=None, domain=None):
         self._unc = unc
         self._user = user
@@ -81,9 +83,26 @@ class SMBSource(Source):
         else:
             return None
 
+    def to_json_object(self):
+        return dict(**super().to_json_object(), **{
+            "unc": self._unc,
+            "user": self._user,
+            "password": self._password,
+            "domain": self._domain
+        })
+
+    @staticmethod
+    @Source.json_handler(type_label)
+    def from_json_object(obj):
+        return SMBSource(
+                obj["unc"], obj["user"], obj["password"], obj["domain"])
+
 class SMBHandle(Handle):
+    type_label = "smb"
+
     def follow(self, sm):
         return FilesystemResource(self, sm)
+Handle.stock_json_handler(SMBHandle.type_label, SMBHandle)
 
 # Third form from https://www.iana.org/assignments/uri-schemes/prov/smb
 def make_smb_url(schema, unc, user, domain, password):

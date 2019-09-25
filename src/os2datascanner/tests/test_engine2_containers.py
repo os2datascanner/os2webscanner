@@ -39,7 +39,3 @@ class Engine2ContainerTest(unittest.TestCase):
                         )
 
             process(Source.from_url("file://" + test_data_path))
-
-
-if __name__ == "__main__":
-    main()
