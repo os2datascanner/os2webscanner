@@ -15,6 +15,16 @@ cache:
 notice:
   stage: notices
   image: python:3.5
+  services:
+    - postgres:alpine
+    - rabbitmq:alpine
+  variables:
+    POSTGRES_DB: os2datascanner
+    POSTGRES_USER: os2datascanner
+    POSTGRES_PASSWORD: os2datascanner
+    POSTGRES_HOST: postgres
+    AMQP_HOST: rabbitmq
+    DJANGO_SETTINGS_MODULE: os2datascanner.projects.admin.settings
 
   script:
     - apt-get update -qq
