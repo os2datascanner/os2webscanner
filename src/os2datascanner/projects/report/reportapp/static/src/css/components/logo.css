@@ -1,0 +1,17 @@
+.logo {}
+
+.logo a {
+  display: block;
+}
+
+.logo svg {
+  vertical-align: middle;
+}
+
+.logo .cls-1 {
+  fill: var(--color-logo-mark);
+}
+
+.logo .cls-2 {
+  fill: var(--color-logo-text);
+}

@@ -35,21 +35,25 @@
   transition: background-color 0.2s ease-in-out;
 }
 
-.datatable__icon {
-  border-radius: 50%;
+.datatable__level {
+  /* border-radius: 50%; */
   display: inline-block;
-  height: 1rem;
-  width: 1rem;
+  font-size: 0.8rem;
+  line-height: 1;
+  padding: 0.1rem;
+  text-transform: uppercase;
+  /* height: 1rem; */
+  /* width: 1rem; */
 }
 
-.datatable__icon--alert {
+.datatable__level--1 {
   background-color: #e74c3c;
 }
 
-.datatable__icon--warning {
+.datatable__level--2 {
   background-color: #f1c40f;
 }
 
-.datatable__icon--ok {
+.datatable__level--3 {
   background-color: #2ecc71;
 }
