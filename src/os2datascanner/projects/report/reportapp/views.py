@@ -15,6 +15,9 @@ class LoginPageView(TemplateView):
 class MainPageView(TemplateView):
   template_name = 'index.html'
 
+class RulePageView(TemplateView):
+  template_name = 'rule.html'
+
 class ApprovalPageView(TemplateView):
   template_name = 'approval.html'
 

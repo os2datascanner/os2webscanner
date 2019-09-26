@@ -1,0 +1,38 @@
+/* datatable severity icons, start */
+.datatable__level {
+  display: inline-block;
+  font-size: 0.8rem;
+  line-height: 1;
+  padding: 0.1rem;
+  text-transform: uppercase;
+}
+
+.datatable__level--1 {
+  background-color: #e74c3c;
+}
+
+.datatable__level--2 {
+  background-color: #f1c40f;
+}
+
+.datatable__level--3 {
+  background-color: #2ecc71;
+}
+/* datatable severity icons, stop */
+
+
+/* file type icons, start */
+.icon-filetype {
+  background-color: #ccc;
+  display: block;
+  height: 2rem;
+  width: 2rem;
+}
+.icon-filetype--docx {
+  background-color: #50bee8;
+}
+
+.icon-filetype--pdf {
+  background-color: #f15642;
+}
+/* file type icons, stop */

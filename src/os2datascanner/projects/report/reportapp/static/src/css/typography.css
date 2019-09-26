@@ -38,3 +38,15 @@ dl {
 a {
   text-decoration-skip-ink: auto;
 }
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 900;
+}
+
+.page-title__sub {
+  display: block;
+  font-size: 1rem;
+  margin-top: 0.5rem;
+  max-width: 60rem;
+}
