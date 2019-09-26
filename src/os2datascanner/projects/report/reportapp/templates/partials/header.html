@@ -24,7 +24,7 @@
     :root {
       --transition-property: all;
       --transition-timing: 0.2s;
-      --transition-timing-function: ease-in-out;
+      --transition-timing-function: cubic-bezier(.86,0,.07,1);
       --transition-delay: 0s;
       --transition-default: var(--transition-property) var(--transition-timing) var(--transition-timing-function) var(--transition-delay);
 
@@ -53,11 +53,7 @@
     }
   </style>
 
-  <link href="{% static "css/base.css" %}" rel="stylesheet" />
-  <link href="{% static "css/layout.css" %}" rel="stylesheet" />
-  <link href="{% static "css/typography.css" %}" rel="stylesheet" />
-  <link href="{% static "css/datatable.css" %}" rel="stylesheet" />
-  <link href="{% static "css/forms.css" %}" rel="stylesheet" />
+  <link href="{% static "src/css/master.css" %}" rel="stylesheet" />
 
 </head>
 
