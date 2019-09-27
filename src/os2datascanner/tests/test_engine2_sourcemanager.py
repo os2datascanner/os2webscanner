@@ -2,13 +2,8 @@ import unittest
 import contextlib
 from os import stat
 
-from os2datascanner.engine2.model.core import (
-        Source, ShareableCookie, SourceManager, UnknownSchemeError,
-        ResourceUnavailableError)
+from os2datascanner.engine2.model.core import (ShareableCookie, SourceManager)
 from os2datascanner.engine2.model.http import WebSource, WebHandle
-
-
-magenta = WebSource("https://www.magenta.dk/")
 
 
 class Tracker:
