@@ -6,11 +6,16 @@
   width: 100%;
 }
 
+.datatable tr:hover td {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
 .datatable th,
 .datatable td {
   line-height: 1;
   padding: 2rem;
   text-align: left;
+  vertical-align: top;
 }
 
 .datatable th {
@@ -21,6 +26,7 @@
 
 .datatable td {
   border-top: 1px solid rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s ease-in-out;
 }
 
 .datatable a {
@@ -32,14 +38,9 @@
   padding: 0;
 }
 
-.datatable--w-links tr:hover a {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
 .datatable--w-links a {
   display: block;
   padding: 2rem;
   text-decoration: none;
-  transition: background-color 0.2s ease-in-out;
 }
 /* .datatable--w-links, stop */

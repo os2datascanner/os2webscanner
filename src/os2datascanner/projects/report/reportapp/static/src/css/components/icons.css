@@ -1,7 +1,7 @@
 /* datatable severity icons, start */
 .datatable__level {
   display: inline-block;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   line-height: 1;
   padding: 0.1rem;
   text-transform: uppercase;
