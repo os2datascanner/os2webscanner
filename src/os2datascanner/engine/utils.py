@@ -82,6 +82,7 @@ def prometheus_session(name, advertisement_directory, **kwargs):
                 raise
 
     # ... advertise this port, and this service, to Prometheus...
+    os.makedirs(advertisement_directory, exist_ok=True)
     with NamedTemporaryFile(mode="wt", dir=advertisement_directory,
             delete=False) as fp:
         tmpfile = fp.name

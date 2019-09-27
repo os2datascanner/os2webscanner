@@ -19,6 +19,8 @@ def simplify_mime_type(mime):
     return r[0]
 
 class WebSource(Source):
+    type_label = "web"
+
     def __init__(self, url):
         assert url.startswith("http:") or url.startswith("https:")
         self._url = url
@@ -26,11 +28,9 @@ class WebSource(Source):
     def __str__(self):
         return "WebSource({0})".format(self._url)
 
-    def _open(self, sm):
-        return Session()
-
-    def _close(self, session):
-        session.close()
+    def _generate_state(self, sm):
+        with requests.Session() as session:
+            yield session
 
     def handles(self, sm):
         try:
@@ -77,9 +77,21 @@ class WebSource(Source):
     def from_url(url):
         return WebSource(url)
 
+    def to_json_object(self):
+        return dict(**super().to_json_object(), **{
+            "url": self._url
+        })
+
+    @staticmethod
+    @Source.json_handler(type_label)
+    def from_json_object(obj):
+        return WebSource(url=obj["url"])
+
 SecureWebSource = WebSource
 
 class WebHandle(Handle):
+    type_label = "web"
+
     eq_properties = Handle.BASE_PROPERTIES
 
     def __init__(self, source, path):
@@ -94,6 +106,7 @@ class WebHandle(Handle):
 
     def follow(self, sm):
         return WebResource(self, sm)
+Handle.stock_json_handler(WebHandle.type_label, WebHandle)
 
 class WebResource(FileResource):
     def __init__(self, handle, sm):
@@ -108,7 +121,7 @@ class WebResource(FileResource):
 
     def _require_header_and_status(self):
         if not self._header:
-            response = self._open_source().head(self._make_url())
+            response = self._get_cookie().head(self._make_url())
             self._status = response.status_code
             self._header = CaseInsensitiveDict(response.headers)
 
@@ -151,7 +164,7 @@ class WebResource(FileResource):
 
     @contextmanager
     def make_stream(self):
-        response = self._open_source().get(self._make_url())
+        response = self._get_cookie().get(self._make_url())
         if response.status_code != 200:
             raise ResourceUnavailableError(
                     self.get_handle(), response.status_code)

@@ -8,6 +8,8 @@ from datetime import datetime
 from contextlib import contextmanager
 
 class FilesystemSource(Source):
+    type_label = "file"
+
     def __init__(self, path):
         if not os.path.isabs(path):
             raise ValueError("Path {0} is not absolute".format(path))
@@ -24,11 +26,8 @@ class FilesystemSource(Source):
     def __str__(self):
         return "FilesystemSource({0})".format(self._path)
 
-    def _open(self, sm):
-        return ShareableCookie(self._path)
-
-    def _close(self, sm):
-        pass
+    def _generate_state(self, sm):
+        yield ShareableCookie(self._path)
 
     def to_url(self):
         return urlunsplit(('file', '', quote(str(self._path)), None, None))
@@ -40,15 +39,28 @@ class FilesystemSource(Source):
         assert not netloc
         return FilesystemSource(unquote(path) if path else None)
 
+    def to_json_object(self):
+        return dict(**super().to_json_object(), **{
+            "path": self._path
+        })
+
+    @staticmethod
+    @Source.json_handler(type_label)
+    def from_json_object(obj):
+        return FilesystemSource(path=obj["path"])
+
 class FilesystemHandle(Handle):
+    type_label = "file"
+
     def follow(self, sm):
         return FilesystemResource(self, sm)
+Handle.stock_json_handler(FilesystemHandle.type_label, FilesystemHandle)
 
 class FilesystemResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
         self._full_path = os.path.join(
-                self._open_source(), self.get_handle().get_relative_path())
+                self._get_cookie(), self.get_handle().get_relative_path())
         self._stat = None
 
     def get_stat(self):

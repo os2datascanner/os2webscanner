@@ -7,6 +7,8 @@ from tempfile import NamedTemporaryFile
 from contextlib import contextmanager
 
 class DataSource(Source):
+    type_label = "data"
+
     def __init__(self, content, mime="application/octet-stream"):
         self._content = content
         self._mime = mime
@@ -17,11 +19,8 @@ class DataSource(Source):
     def __str__(self):
         return "DataSource(content=..., mime={0})".format(self._mime)
 
-    def _open(self, sm):
-        return EMPTY_COOKIE
-
-    def _close(self, sm):
-        pass
+    def _generate_state(self, sm):
+        yield EMPTY_COOKIE
 
     def to_url(self):
         return "data:{0};base64,{1}".format(self._mime, b64encode(self._content).decode(encoding='ascii'))
@@ -34,12 +33,26 @@ class DataSource(Source):
         _, content = rest.split(',', maxsplit=1)
         return DataSource(b64decode(content), mime)
 
+    def to_json_object(self):
+        return dict(**super().to_json_object(), **{
+            "content": b64encode(self._content).decode(encoding="ascii"),
+            "mime": self._mime
+        })
+
+    @staticmethod
+    @Source.json_handler(type_label)
+    def from_json_object(obj):
+        return DataSource(b64decode(obj["content"]), obj["mime"])
+
 class DataHandle(Handle):
+    type_label = "data"
+
     def guess_type(self):
         return self.get_source()._mime
 
     def follow(self, sm):
         return DataResource(self, sm)
+Handle.stock_json_handler(DataHandle.type_label, DataHandle)
 
 class DataResource(FileResource):
     def get_size(self):

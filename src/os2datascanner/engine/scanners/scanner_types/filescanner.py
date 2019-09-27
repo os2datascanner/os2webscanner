@@ -5,7 +5,6 @@ from .scanner import Scanner
 from .scanner_with_statistics import ScannerWithStatistics
 
 from django.conf import settings
-from os2datascanner.projects.admin.adminapp.models.statistic_model import Statistic, TypeStatistics
 
 
 class FileScanner(Scanner, ScannerWithStatistics):
@@ -20,7 +19,7 @@ class FileScanner(Scanner, ScannerWithStatistics):
             p = pathlib.PureWindowsPath(self.scan_object.webscanner.url) / p
 
             return super().get_location_for(p.as_uri())
-        except ValueError:
+        except (ValueError, AttributeError):
             # If fixing up the mountpoint failed, then presumably we're running
             # in engine2 mode?
             assert settings.USE_ENGINE2
