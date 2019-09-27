@@ -17,11 +17,9 @@ class Tracker:
     def __init__(self):
         self.count = 0
 
-    def _open(self, sm):
+    def _generate_state(self, sm):
         self.count += 1
-        return self.special_cookie
-
-    def _close(self, cookie):
+        yield self.special_cookie
         self.count -= 1
 
 
