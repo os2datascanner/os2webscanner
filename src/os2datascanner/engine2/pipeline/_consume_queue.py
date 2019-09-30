@@ -1,7 +1,5 @@
 import pika
-from json import dumps, loads
 
-from ..model.core import Source, SourceManager, UnknownSchemeError
 from .utils import notify_ready, notify_stopping, make_common_argument_parser
 
 def message_received(channel, method, properties, body):

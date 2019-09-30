@@ -1,5 +1,11 @@
 import json
 import argparse
+import systemd.daemon
+if systemd.daemon.booted():
+    from systemd.daemon import notify as sd_notify
+else:
+    def sd_notify(status):
+        return False
 
 def make_common_argument_parser():
     parser = argparse.ArgumentParser(
@@ -10,12 +16,6 @@ def make_common_argument_parser():
             help="the AMQP host to connect to",
             default="localhost")
     return parser
-
-import systemd.daemon
-if systemd.daemon.booted():
-    from systemd.daemon import notify as sd_notify
-else:
-    sd_notify = lambda status: False
 
 def notify_ready():
     sd_notify("READY=1")

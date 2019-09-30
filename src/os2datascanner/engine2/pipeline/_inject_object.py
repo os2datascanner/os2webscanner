@@ -1,8 +1,8 @@
 import pika
 from json import dumps, loads
 
-from ..model.core import Source, SourceManager, UnknownSchemeError
-from .utils import notify_ready, make_common_argument_parser
+from ..model.core import Source
+from .utils import make_common_argument_parser
 
 def main():
     parser = make_common_argument_parser()

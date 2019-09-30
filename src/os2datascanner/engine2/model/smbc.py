@@ -1,12 +1,11 @@
 from .smb import make_smb_url, SMBSource
-from .core import Source, Handle, ShareableCookie, FileResource, ResourceUnavailableError
+from .core import Source, Handle, FileResource, ResourceUnavailableError
 from .utilities import NamedTemporaryResource
 
 import io
-from os import rmdir, stat_result, O_RDONLY
+from os import stat_result, O_RDONLY
 import smbc
-from regex import compile, match
-from urllib.parse import quote, unquote, urlsplit, urlunsplit
+from urllib.parse import quote, unquote, urlsplit
 from hashlib import md5
 from datetime import datetime
 from contextlib import contextmanager
