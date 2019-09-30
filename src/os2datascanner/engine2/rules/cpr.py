@@ -11,7 +11,7 @@ class CPRRule(RegexRule):
     def __init__(self, modulus_11=True, ignore_irrelevant=True):
         super().__init__(cpr_regex)
         self._modulus_11 = modulus_11
-        self._ignore_irrelevant = True
+        self._ignore_irrelevant = ignore_irrelevant
 
     def match(self, content):
         for m in self._compiled_expression.finditer(content):
