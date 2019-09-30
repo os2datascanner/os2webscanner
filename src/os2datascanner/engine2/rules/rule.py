@@ -53,4 +53,3 @@ class Rule(ABC):
         except KeyError:
             # XXX: better error handling would probably be a good idea
             raise
-
