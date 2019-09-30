@@ -28,3 +28,5 @@ libsmbclient-dev
 moreutils
 linux-image-generic
 rsync
+libsystemd-dev
+html2text

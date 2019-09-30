@@ -29,7 +29,7 @@ class WebSource(Source):
         return "WebSource({0})".format(self._url)
 
     def _generate_state(self, sm):
-        with requests.Session() as session:
+        with Session() as session:
             yield session
 
     def handles(self, sm):
