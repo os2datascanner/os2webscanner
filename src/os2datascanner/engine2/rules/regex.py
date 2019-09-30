@@ -14,8 +14,8 @@ class RegexRule(Rule):
     def match(self, content):
         for match in self._compiled_expression.finditer(content):
             yield {
-                "offset": m.start(),
-                "match": m.string
+                "offset": match.start(),
+                "match": match.string[match.start():match.end()]
             }
 
     def to_json_object(self):
