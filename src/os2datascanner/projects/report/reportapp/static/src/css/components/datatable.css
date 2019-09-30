@@ -33,14 +33,14 @@
   color: inherit;
 }
 
-/* .datatable--w-links, start */
-.datatable--w-links td {
+/* .datatable--click-rows, start */
+.datatable--click-rows td {
   padding: 0;
 }
 
-.datatable--w-links a {
+.datatable--click-rows a {
   display: block;
   padding: 2rem;
   text-decoration: none;
 }
-/* .datatable--w-links, stop */
+/* .datatable--click-rows, stop */
