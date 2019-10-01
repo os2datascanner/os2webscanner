@@ -8,15 +8,15 @@
 }
 
 .datatable__level--1 {
-  background-color: #e74c3c;
+  background-color: var(--color-error);
 }
 
 .datatable__level--2 {
-  background-color: #f1c40f;
+  background-color: var(--color-warning);
 }
 
 .datatable__level--3 {
-  background-color: #2ecc71;
+  background-color: var(--color-ok);
 }
 /* datatable severity icons, stop */
 
