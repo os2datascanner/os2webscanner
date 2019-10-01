@@ -1,13 +1,11 @@
-import structlog
-
 from .smb import make_smb_url, SMBSource
-from .core import Source, Handle, ShareableCookie, FileResource, ResourceUnavailableError
+from .core import Source, Handle, FileResource, ResourceUnavailableError
 from .utilities import NamedTemporaryResource
 
-from os import rmdir, stat_result, O_RDONLY
+import io
+from os import stat_result, O_RDONLY
 import smbc
-from regex import compile, match
-from urllib.parse import quote, unquote, urlsplit, urlunsplit
+from urllib.parse import quote, unquote, urlsplit
 from hashlib import md5
 from datetime import datetime
 from contextlib import contextmanager
@@ -99,6 +97,52 @@ class SMBCHandle(Handle):
         return SMBCResource(self, sm)
 Handle.stock_json_handler(SMBCHandle.type_label, SMBCHandle)
 
+class _SMBCFile(io.RawIOBase):
+    def __init__(self, obj):
+        self._file = obj
+
+    def read(self, n):
+        return self._file.read(n)
+
+    def readinto(self, b):
+        r = self.read(len(b))
+        b[0:r] = r
+        return r
+
+    def write(self, bytes):
+        raise TypeError("_SMBCFile is read-only")
+
+    def seek(self, pos, whence):
+        r = self._file.lseek(pos, whence)
+        if r != -1:
+            return r
+        else:
+            raise IOError("lseek failed")
+
+    def tell(self):
+        r = self._file.lseek(0, io.SEEK_CUR)
+        if r != -1:
+            return r
+        else:
+            raise IOError("lseek failed")
+
+    def truncate(self, n=None):
+        raise TypeError("_SMBCFile is read-only")
+
+    def close(self):
+        r = self._file.close()
+        if r and r < 0:
+            raise IOError("Failed to close {0}".format(self), r)
+
+    def readable(self):
+        return True
+
+    def writable(self):
+        return False
+
+    def seekable(self):
+        return True
+
 class SMBCResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
@@ -153,32 +197,23 @@ class SMBCResource(FileResource):
         which libsmbclient exposes as an extended attribute."""
         return self.get_xattr("system.nt_sec_desc.owner")
 
-    # At the moment, we implement make_stream in terms of make_path: we
-    # download the file's content in order to get a file-like object out of
-    # it. We could, in theory, do this the other way round by implementing an
-    # io.RawIOBase subclass that wraps smbc.File, but that seems more
-    # complicated -- and, in early testing, actually had worse performance!
-
     @contextmanager
     def make_path(self):
         ntr = NamedTemporaryResource(self.get_handle().get_name())
         try:
             with ntr.open("wb") as f:
-                rf = self.open_file()
-                try:
+                with self.make_stream() as rf:
                     buf = rf.read(self.DOWNLOAD_CHUNK_SIZE)
                     while buf:
                         f.write(buf)
                         buf = rf.read(self.DOWNLOAD_CHUNK_SIZE)
-                finally:
-                    rf.close()
             yield ntr.get_path()
         finally:
             ntr.finished()
 
     @contextmanager
     def make_stream(self):
-        with self.make_path() as p:
-            yield p.open("rb")
+        with _SMBCFile(self.open_file()) as fp:
+            yield fp
 
     DOWNLOAD_CHUNK_SIZE = 1024 * 512
