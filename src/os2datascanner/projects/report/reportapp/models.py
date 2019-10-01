@@ -8,4 +8,4 @@ class DocumentReport(models.Model):
     # data = JSONField()
 
     def _str_(self):
-      return self.path
+        return self.path
