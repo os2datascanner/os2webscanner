@@ -1,22 +1,25 @@
 /* datatable severity icons, start */
-.datatable__level {
+.level-label {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-left: 5px solid rgba(0, 0, 0, 0.1);
+  border-radius: 3px 1px 1px 3px;
   display: inline-block;
-  font-size: 0.75rem;
+  font-size: 0.5rem;
   line-height: 1;
-  padding: 0.1rem;
+  padding: 0.25rem 0.5rem;
   text-transform: uppercase;
 }
 
-.datatable__level--1 {
-  background-color: var(--color-error);
+.level-label--1 {
+  border-left-color: var(--color-error);
 }
 
-.datatable__level--2 {
-  background-color: var(--color-warning);
+.level-label--2 {
+  border-left-color: var(--color-warning);
 }
 
-.datatable__level--3 {
-  background-color: var(--color-ok);
+.level-label--3 {
+  border-left-color: var(--color-ok);
 }
 /* datatable severity icons, stop */
 
