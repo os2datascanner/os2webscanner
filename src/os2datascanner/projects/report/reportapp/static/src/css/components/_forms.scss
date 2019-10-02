@@ -21,6 +21,7 @@
   display: block;
   font-size: 0.8em;
   text-transform: uppercase;
+  user-select: none;
 }
 
 .form label + input {
