@@ -92,7 +92,14 @@ module.exports = {
   },
   plugins: [
     new MiniCssExtractPlugin({
-      filename: "master.css"
+      filename: "bundle.css"
     })
-  ]
+  ],
+
+  watch: true,
+  watchOptions: {
+    aggregateTimeout: 300,
+    poll: 500,
+    ignored: ['node_modules']
+  }
 };
