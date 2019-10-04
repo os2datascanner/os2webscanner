@@ -1,0 +1,45 @@
+.filter {
+  display: inline-block;
+  font-size: 0;
+  line-height: 1;
+  width: 100%;
+  z-index: 1;
+}
+
+.filter__option {
+  display: block;
+  float: left;
+  margin-right: 1rem;
+}
+
+.filter__option input {
+  -webkit-appearance: none;
+}
+
+.filter__option input:checked + label {
+  background-color: var(--color-main);
+  color: #fff;
+  opacity: 1;
+}
+
+.filter__option label {
+  background-color: rgba(255, 255, 255, 0.75);
+  display: inline-block;
+  font-size: 1rem;
+  border-radius: 1.5rem;
+  padding: 1rem 2rem;
+  transition: var(--transition-default);
+}
+
+.filter__option input:focus + label {
+  box-shadow: var(--box-shadow);
+}
+
+.filter__option label:hover {
+  background-color: rgba(255, 255, 255, 1);
+  box-shadow: var(--box-shadow);
+}
+
+.filter + .datatable {
+  margin-top: 1rem;
+}
