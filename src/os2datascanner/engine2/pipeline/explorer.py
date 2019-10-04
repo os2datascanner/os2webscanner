@@ -10,12 +10,15 @@ def message_received(channel, method, properties, body):
     print("message_received({0}, {1}, {2}, {3})".format(
             channel, method, properties, body))
     try:
-        source = Source.from_json_object(body)
+        source = Source.from_json_object(body["source"])
 
         with SourceManager() as sm:
             for handle in source.handles(sm):
                 print(handle)
-                yield (args.conversions, handle.to_json_object())
+                yield (args.conversions, {
+                    "scan_spec": body,
+                    "handle": handle.to_json_object()
+                })
 
         channel.basic_ack(method.delivery_tag)
     except Exception:

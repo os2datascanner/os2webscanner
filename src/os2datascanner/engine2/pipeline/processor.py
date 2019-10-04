@@ -1,7 +1,9 @@
 import pika
 from .utils import (notify_ready, notify_stopping, json_event_processor,
         make_common_argument_parser)
-from ..model.core import Handle, SourceManager, ResourceUnavailableError
+from ..rules.types import InputType
+from ..model.core import (Source,
+        Handle, SourceManager, ResourceUnavailableError)
 from ..demo import processors
 
 args = None
@@ -11,7 +13,8 @@ def message_received(channel, method, properties, body):
     print("message_received({0}, {1}, {2}, {3})".format(
             channel, method, properties, body))
     try:
-        handle = Handle.from_json_object(body)
+        handle = Handle.from_json_object(body["handle"])
+
         with SourceManager() as sm:
             try:
                 resource = handle.follow(sm)
@@ -22,11 +25,25 @@ def message_received(channel, method, properties, body):
                     content = processor_function(resource)
                     if content:
                         yield (args.representations, {
-                            "handle": body,
+                            "scan_spec": body["scan_spec"],
+                            "handle": body["handle"],
                             "representation": {
-                                "type": "text",
+                                "type": InputType.Text.value,
                                 "content": content
                             }
+                        })
+                else:
+                    # If we have a conversion we don't support, then check if
+                    # the current handle can be reinterpreted as a Source; if
+                    # it can, then try again with that
+                    derived_source = Source.from_handle(handle, sm)
+                    if derived_source:
+                        yield (args.sources, {
+                            # Preserve the scan_tag value to indicate that this
+                            # "new" scan is part of an existing one
+                            "scan_tag": body["scan_spec"]["scan_tag"],
+                            "source": derived_source.to_json_object(),
+                            "rule": body["scan_spec"]["rule"]
                         })
             except ResourceUnavailableError as ex:
                 pass

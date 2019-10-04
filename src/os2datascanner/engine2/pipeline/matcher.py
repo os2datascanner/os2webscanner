@@ -1,8 +1,7 @@
 import pika
+from ..rules.rule import Rule
 from .utils import (notify_ready, notify_stopping, json_event_processor,
         make_common_argument_parser)
-from ...engine.scanners.rules.cpr import CPRRule
-from ...projects.admin.adminapp.models.sensitivity_level import Sensitivity
 
 args = None
 
@@ -11,19 +10,28 @@ def message_received(channel, method, properties, body):
     print("message_received({0}, {1}, {2}, {3})".format(
             channel, method, properties, body))
     try:
-        rule = CPRRule("CPR", Sensitivity.HIGH, True, True)
-        matches = rule.execute(body["representation"]["content"])
+        rule = Rule.from_json_object(body["scan_spec"]["rule"])
+        matches = list(rule.match(body["representation"]["content"]))
         if matches:
             for match in matches:
                 yield (args.matches, {
+                    "scan_spec": body["scan_spec"],
                     "handle": body["handle"],
-                    "match": {
-                        "matched_data": match["matched_data"],
-                        "sensitivity": match["sensitivity"],
-                        "match_context": match["match_context"]
-                    }
+                    "match": match
                 })
-            yield (args.handles, body["handle"])
+            yield (args.handles, {
+                "scan_tag": body["scan_spec"]["scan_tag"],
+                "handle": body["handle"]
+            })
+        else:
+            # Explicitly generate a false match so that we can distinguish
+            # between "not scanned yet" and "not matched". (Obviously there's
+            # no reason to extract metadata in this case!)
+            yield (args.matches, {
+                "scan_spec": body["scan_spec"],
+                "handle": body["handle"],
+                "match": False
+            })
 
         channel.basic_ack(method.delivery_tag)
     except Exception:
