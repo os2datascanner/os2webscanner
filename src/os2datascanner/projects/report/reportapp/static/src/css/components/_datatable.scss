@@ -3,7 +3,7 @@
   border-collapse: collapse;
   box-shadow: var(--box-shadow-large);
   max-width: 90rem;
-  width: 100%;
+  width: calc(100% - 2rem);
 }
 
 .datatable tr:hover td {
@@ -29,16 +29,13 @@
   transition: background-color 0.2s ease-in-out;
 }
 
-.datatable a {
-  // color: inherit;
-}
-
 /* .datatable--click-rows, start */
 .datatable--click-rows td {
   padding: 0;
 }
 
 .datatable--click-rows a {
+  color: inherit;
   display: block;
   padding: 2rem;
   text-decoration: none;
