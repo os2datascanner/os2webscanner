@@ -1,13 +1,13 @@
 import lxml.html
-import datetime
+import datetime # noqa
 import requests
 import unittest
 
 from os2datascanner.engine.utils import run_django_setup
+from os2datascanner.engine.scanners.rules import cpr
 
 run_django_setup()
 
-from os2datascanner.engine.scanners.rules import cpr
 
 class CPRTest(unittest.TestCase):
     def test_is_exception_dates_up_to_date(self):
@@ -49,4 +49,3 @@ class CPRTest(unittest.TestCase):
         }
 
         self.assertEquals(dates, cpr.cpr_exception_dates)
-
