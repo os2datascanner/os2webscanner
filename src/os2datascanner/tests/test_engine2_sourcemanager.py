@@ -51,7 +51,22 @@ class Engine2SourceManagerTest(unittest.TestCase):
                     shared.open(tracker2, try_open=False),
                     "shared SourceManager did not contain shareable cookie")
 
+            self.assertTrue(
+                    id(shared) == id(shared.share()),
+                    "shared SourceManager did not share itself")
+
     def test_read_only(self):
         with self.assertRaises(TypeError):
             with SourceManager().share() as sm:
-                sm.open(tracker)
+                sm.open(Tracker())
+
+    def test_nesting(self):
+        tracker = Tracker()
+        with SourceManager() as sm:
+            sm.open(tracker)
+            with SourceManager(sm) as sm2:
+                sm2.open(tracker)
+                self.assertEqual(
+                        tracker.count,
+                        1,
+                        "child SourceManager did not defer to parent")
