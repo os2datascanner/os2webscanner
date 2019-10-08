@@ -1,10 +1,5 @@
 import pika
-from ...engine.utils import run_django_setup
 from .utils import notify_ready, notify_stopping, make_common_argument_parser
-
-# Exporters are the only part of the pipeline allowed to use the database, and
-# even only to write to it
-run_django_setup()
 
 def message_received(channel, method, properties, body):
     print("message_received({0}, {1}, {2}, {3})".format(
