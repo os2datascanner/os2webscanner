@@ -6,6 +6,7 @@ from bz2 import BZ2File
 from enum import Enum
 from gzip import GzipFile
 from lzma import LZMAFile
+from datetime import datetime
 from functools import partial
 from contextlib import contextmanager
 
@@ -92,7 +93,11 @@ class FilteredResource(FileResource):
 
     def get_last_modified(self):
         with self.make_stream() as s:
-            return s.mtime
+            # The mtime field won't have a meaningful value until the first
+            # read operation has been performed, so read a single byte from
+            # this new stream
+            s.read(1)
+            return datetime.fromtimestamp(s.mtime)
 
     @contextmanager
     def make_path(self):
