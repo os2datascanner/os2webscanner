@@ -32,14 +32,8 @@ class Engine2TestErrors(unittest.TestCase):
                 pass
 
     def test_handles_failure(self):
-        print("thf")
         with self.assertRaises(ResourceUnavailableError):
-            try:
-                with SourceManager() as sm:
-                    source = Source.from_url("http://example.invalid/")
-                    with contextlib.closing(source.handles(sm)) as handles:
-                        print(next(handles))
-            except Exception as ex:
-                print(ex)
-                raise ex
-        print("/thf")
+            with SourceManager() as sm:
+                source = Source.from_url("http://example.invalid./")
+                with contextlib.closing(source.handles(sm)) as handles:
+                    next(handles)
