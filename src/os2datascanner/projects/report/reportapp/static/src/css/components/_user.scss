@@ -1,0 +1,20 @@
+.user a {
+  color: inherit;
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+}
+
+.user__name {
+  color: inherit;
+}
+
+.user__avatar {
+  background-color: var(--color-main);
+  background-size: cover;
+  border-radius: 50%;
+  display: inline-block;
+  height: 2rem;
+  vertical-align: top;
+  width: 2rem;
+}

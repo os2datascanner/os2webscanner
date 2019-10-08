@@ -1,0 +1,35 @@
+.navigation {
+  margin-left: 1rem;
+}
+
+.navigation a {
+  color: inherit;
+  display: block;
+  float: left;
+  margin-right: 1rem;
+  padding: 0.5rem 0;
+  text-decoration: none;
+  transition: var(--transition-default);
+}
+
+.navigation a::after {
+  background-color: var(--color-main);
+  bottom: 0;
+  content: "";
+  display: block;
+  height: 2px;
+  left: 0;
+  position: absolute;
+  transform: scale(0);
+  width: 100%;
+  transition: transform 0.2s cubic-bezier(0.86, 0, 0.07, 1);
+}
+
+.navigation a.active::after,
+.navigation a:hover::after {
+  transform: scale(1);
+}
+
+.navigation a.router-link-exact-active {
+  color: var(--color-main);
+}

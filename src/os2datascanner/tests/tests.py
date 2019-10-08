@@ -18,7 +18,6 @@
 """Unit tests for the scanner."""
 
 # Include the Django app
-import datetime
 import os
 import re
 import shutil
@@ -28,8 +27,6 @@ import unittest
 from pathlib import Path
 
 import django
-import lxml
-import requests
 
 from os2datascanner.engine.utils import run_django_setup
 
@@ -216,47 +213,6 @@ class CPRTest(django.test.TestCase):
         # they have an invalid check digit.
         self.assertTrue(cpr.modulus11_check("0101650123"))
         self.assertTrue(cpr.modulus11_check("0101660123"))
-
-    if False:
-        def test_is_exception_dates_up_to_date(self):
-            """
-            Compare our list of exception dates to the official list from the
-            CPR Office.
-            """
-            def parsedate(s: str) -> datetime.date:
-                """
-                Quick-and-dirty parser for strings such as "1. januar 1991"
-                """
-                danish_months = (
-                    "januar", "februar", "marts", "april", "maj", "juni",
-                    "juli", "august", "september", "oktober", "november",
-                    "december",
-                )
-
-                day, month, year = s.strip().replace(".", "").split()
-
-                return datetime.date(
-                    int(year),
-                    danish_months.index(month) + 1,
-                    int(day)
-                )
-
-            r = requests.get(
-                "https://cpr.dk/cpr-systemet/"
-                "personnumre-uden-kontrolciffer-modulus-11-kontrol/"
-            )
-
-            r.raise_for_status()
-
-            doc = lxml.html.document_fromstring(r.text)
-
-            dates = {
-                parsedate(cell.text_content())
-                for cell in doc.findall('*//*[@class="web-page"]//td')
-                if cell.text.strip()
-            }
-
-            self.assertEquals(dates, cpr.cpr_exception_dates)
 
 
 class PDF2HTMLTest(django.test.TestCase):
