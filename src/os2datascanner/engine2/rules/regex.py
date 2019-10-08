@@ -3,6 +3,7 @@ import re
 from .rule import Rule
 from .types import InputType
 
+
 class RegexRule(Rule):
     operates_on = InputType.Text
     type_label = "regex"

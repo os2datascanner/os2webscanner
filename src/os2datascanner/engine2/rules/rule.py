@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 from .types import InputType
 
+
 class Rule(ABC):
     """A Rule represents a test to be applied to a representation of an object.
     Rules declare of what type they expect that representation to be; working
@@ -33,7 +34,7 @@ class Rule(ABC):
         }
 
     __json_handlers = {}
-    @staticmethod 
+    @staticmethod
     def json_handler(type_label):
         def _json_handler(func):
             if type_label in Rule.__json_handlers:

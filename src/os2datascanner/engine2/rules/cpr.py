@@ -5,6 +5,7 @@ from .regex import RegexRule
 
 cpr_regex = r"\b(\d{2}[\s]?\d{2}[\s]?\d{2})(?:[\s\-/\.]|\s\-\s)?(\d{4})\b"
 
+
 class CPRRule(RegexRule):
     type_label = "cpr"
 
@@ -55,6 +56,7 @@ class CPRRule(RegexRule):
         return CPRRule(modulus_11=obj["modulus_11"],
                 ignore_irrelevant=obj["ignore_irrelevant"])
 
+
 # Updated list of dates with CPR numbers violating the Modulo-11 check,
 # as of July 2019.
 # Source: https://cpr.dk/cpr-systemet/personnumre-uden-kontrolciffer-modulus-11-kontrol/
@@ -80,6 +82,7 @@ cpr_exception_dates = {
 }
 
 THIS_YEAR = date.today().year
+
 
 def date_check(cpr, ignore_irrelevant=True):
     """Check a CPR number for a valid date.
