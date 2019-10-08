@@ -18,7 +18,6 @@
 """Unit tests for the scanner."""
 
 # Include the Django app
-import datetime
 import os
 import re
 import shutil
@@ -28,8 +27,6 @@ import unittest
 from pathlib import Path
 
 import django
-import lxml
-import requests
 
 from os2datascanner.engine.utils import run_django_setup
 
