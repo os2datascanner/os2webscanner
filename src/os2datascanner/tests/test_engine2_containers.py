@@ -74,7 +74,11 @@ class Engine2ContainerTest(unittest.TestCase):
                                 self.correct_content,
                                 "{0}: model file invalid".format(handle))
 
-            process(Source.from_url("file://" + test_data_path))
+            source = Source.from_url("file://" + test_data_path)
+            self.assertIsNone(
+                    source.to_handle(),
+                    "{0}: unexpected backing handle for file: URL".format(source))
+            process(source)
 
     def test_derived_source(self):
         with SourceManager() as sm:
