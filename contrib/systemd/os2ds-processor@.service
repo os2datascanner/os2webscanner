@@ -1,0 +1,12 @@
+[Unit]
+Description=OS2datascanner pipeline: processor %i
+After=rabbitmq-server.service
+Requires=rabbitmq-server.service
+
+[Service]
+ProtectSystem=strict
+PrivateTmp=true
+DynamicUser=true
+StandardOutput=journal
+SyslogIdentifier=OS2ds-proc%i
+ExecStart=/vagrant/bin/ripe python -m os2datascanner.engine2.pipeline.processor
