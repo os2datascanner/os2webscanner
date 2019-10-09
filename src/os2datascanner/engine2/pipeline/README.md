@@ -86,6 +86,11 @@ every stage with whatever management tool you want. (A terminal will do for
 testing and debugging purposes; a multiplexer like `screen` or `tmux` is
 obviously recommended!)
 
+The repository includes `systemd` service templates for managing arbitrarily
+many appropriately-isolated instances of each pipeline stage; the use of these
+is recommended, but not required. See the `contrib/systemd/` folder for more
+information.
+
 Stages are normal Python CLI programs and can be started with `python3 -m
 os2datascanner.engine2.pipeline.*stage-name*`. All of them have various
 parameters to tweak their AMQP interactions; run one with the `--help`
