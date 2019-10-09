@@ -34,7 +34,11 @@ def notify_watchdog():
 
 def json_event_processor(listener):
     def _wrapper(channel, method, properties, body):
-        body = json.loads(body.decode("utf-8"))
+        try:
+            body = json.loads(body.decode("utf-8"))
+        except json.JSONDecodeError:
+            print("* Invalid JSON: {0}".format(body))
+            return
         for routing_key, message in listener(
                 channel, method, properties, body):
             channel.basic_publish(exchange='',
