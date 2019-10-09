@@ -12,8 +12,8 @@ def message_received(channel, method, properties, body):
 
 def main():
     parser = make_common_argument_parser()
-    parser.description = ("Consume problems and matches and write them to the"
-            + " database.")
+    parser.description = ("Consume problems, metadata and matches, and convert"
+            + " them into forms suitable for the outside world.")
 
     inputs = parser.add_argument_group("inputs")
     inputs.add_argument(
@@ -35,6 +35,14 @@ def main():
                     + " read",
             default="os2ds_metadata")
 
+    outputs = parser.add_argument_group("outputs")
+    outputs.add_argument(
+            "--results",
+            metavar="NAME",
+            help="the name of the AMQP queue to which filtered result objects"
+                    + " should be written",
+            default="os2ds_results")
+
     args = parser.parse_args()
 
     parameters = pika.ConnectionParameters(host=args.host, heartbeat=6000)
@@ -46,6 +54,8 @@ def main():
     channel.queue_declare(args.problems, passive=False,
             durable=True, exclusive=False, auto_delete=False)
     channel.queue_declare(args.metadata, passive=False,
+            durable=True, exclusive=False, auto_delete=False)
+    channel.queue_declare(args.results, passive=False,
             durable=True, exclusive=False, auto_delete=False)
 
     channel.basic_consume(args.matches, message_received)

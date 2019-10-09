@@ -18,11 +18,17 @@ The pipeline implementation consists of five stages:
 * the Tagger, which consumes a *handle* message, extracts useful metadata from
   the object that it references, and produces a *metadata* message; and
 * the Exporter, which consumes *match*, *problem* and *metadata* messages and
-  writes them to an external data store.
+  produces *result* messages suitable for the outside world.
 
 A "message" is an AMQP message containing a JSON object.
 
 ## What are the pipeline's design principles?
+
+* Simple external interfaces
+
+  The pipeline should expose a clear API for getting instructions into the
+  pipeline and results out of it; interacting with the pipeline in any other
+  way should not be supported.
 
 * Always in motion
 
@@ -60,7 +66,7 @@ A "message" is an AMQP message containing a JSON object.
   sensitive information, each stage should have clear security boundaries. To
   the extent that this is possible, a stage should be capable of being run as
   an unprivileged user with no network access in a read-only filesystem.
-  
+
   Adding a new stage should be preferred to extending the security boundaries
   of an existing stage; this was another reason why Tagger, which requires
   access to content and metadata, was added instead of extending Matcher,
@@ -70,9 +76,8 @@ A "message" is an AMQP message containing a JSON object.
 
   Stages should read JSON-formatted messages from AMQP queues, perform some
   appropriate work, and then write JSON-formatted messages to AMQP queues. No
-  stage should maintain any state of any kind (apart from trivial caching), and
-  no stage (apart from the final Exporter stage) should attempt to read or
-  write any results to a data store.
+  stage should maintain any internal (apart from trivial caching) or external
+  state.
 
 ## How can I start the pipeline?
 
