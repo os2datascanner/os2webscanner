@@ -13,24 +13,33 @@ def message_received(channel, method, properties, body):
         rule = Rule.from_json_object(body["scan_spec"]["rule"])
         matches = list(rule.match(body["representation"]["content"]))
         if matches:
-            for match in matches:
-                yield (args.matches, {
-                    "scan_spec": body["scan_spec"],
-                    "handle": body["handle"],
-                    "match": match
-                })
+            yield (args.matches, {
+                "scan_spec": body["scan_spec"],
+                "handle": body["handle"],
+                "matches": [
+                    {
+                        "rule": body["scan_spec"]["rule"],
+                        "matches": matches
+                    }
+                ]
+            })
             yield (args.handles, {
                 "scan_tag": body["scan_spec"]["scan_tag"],
                 "handle": body["handle"]
             })
         else:
-            # Explicitly generate a false match so that we can distinguish
-            # between "not scanned yet" and "not matched". (Obviously there's
-            # no reason to extract metadata in this case!)
+            # Explicitly generate a contentless match so that we can tell the
+            # difference between "not scanned yet" and "not matched".
+            # (Obviously there's no reason to extract metadata in this case!)
             yield (args.matches, {
                 "scan_spec": body["scan_spec"],
                 "handle": body["handle"],
-                "match": False
+                "matches": [
+                    {
+                        "rule": body["scan_spec"]["rule"],
+                        "matches": None
+                    }
+                ]
             })
 
         channel.basic_ack(method.delivery_tag)
