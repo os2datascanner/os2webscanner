@@ -101,13 +101,11 @@ class _SMBCFile(io.RawIOBase):
     def __init__(self, obj):
         self._file = obj
 
-    def read(self, n):
-        return self._file.read(n)
-
     def readinto(self, b):
-        r = self.read(len(b))
-        b[0:r] = r
-        return r
+        data = self._file.read(len(b))
+        count = len(data)
+        b[0:count] = data
+        return count
 
     def write(self, bytes):
         raise TypeError("_SMBCFile is read-only")
