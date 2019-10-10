@@ -1,9 +1,10 @@
 import pika
 from ..rules.rule import Rule
-from .utils import (notify_ready, notify_stopping, json_event_processor,
+from .utilities import (notify_ready, notify_stopping, json_event_processor,
         make_common_argument_parser)
 
 args = None
+
 
 @json_event_processor
 def message_received(channel, method, properties, body):
@@ -46,6 +47,7 @@ def message_received(channel, method, properties, body):
     except Exception:
         channel.basic_reject(method.delivery_tag)
         raise
+
 
 def main():
     parser = make_common_argument_parser()
@@ -107,6 +109,7 @@ def main():
         notify_stopping()
         channel.stop_consuming()
         connection.close()
+
 
 if __name__ == "__main__":
     main()

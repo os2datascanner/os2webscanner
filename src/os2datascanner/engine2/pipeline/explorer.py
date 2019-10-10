@@ -1,10 +1,12 @@
 import pika
+
 from ..model.core import (Source, SourceManager, ResourceUnavailableError,
         DeserialisationError)
-from .utils import (notify_ready, notify_stopping, json_event_processor,
+from .utilities import (notify_ready, notify_stopping, json_event_processor,
         make_common_argument_parser)
 
 args = None
+
 
 @json_event_processor
 def message_received(channel, method, properties, body):
@@ -40,6 +42,7 @@ def message_received(channel, method, properties, body):
             "problem": "malformed",
             "extra": [str(arg) for arg in ex.args]
         })
+
 
 def main():
     parser = make_common_argument_parser()

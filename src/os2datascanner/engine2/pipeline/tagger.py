@@ -1,10 +1,12 @@
 import pika
-from ..model.core import Handle, SourceManager, ResourceUnavailableError
-from .utils import (json_event_processor, notify_ready, notify_stopping,
-        make_common_argument_parser)
+
 from ...utils.metadata import guess_responsible_party
+from ..model.core import Handle, SourceManager, ResourceUnavailableError
+from .utilities import (json_event_processor, notify_ready, notify_stopping,
+        make_common_argument_parser)
 
 args = None
+
 
 @json_event_processor
 def message_received(channel, method, properties, body):

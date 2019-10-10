@@ -7,6 +7,7 @@ else:
     def sd_notify(status):
         return False
 
+
 def make_common_argument_parser():
     parser = argparse.ArgumentParser(
             formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -17,20 +18,26 @@ def make_common_argument_parser():
             default="localhost")
     return parser
 
+
 def notify_ready():
     sd_notify("READY=1")
+
 
 def notify_reloading():
     sd_notify("RELOADING=1")
 
+
 def notify_stopping():
     sd_notify("STOPPING=1")
+
 
 def notify_status(msg):
     sd_notify("STATUS={0}".format(msg))
 
+
 def notify_watchdog():
     sd_notify("WATCHDOG=1")
+
 
 def json_event_processor(listener):
     def _wrapper(channel, method, properties, body):
