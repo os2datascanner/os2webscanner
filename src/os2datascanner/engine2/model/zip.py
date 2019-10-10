@@ -1,4 +1,4 @@
-from .core import Source, Handle, FileResource
+from .core import Source, Handle, FileResource, SourceManager
 from .utilities import NamedTemporaryResource
 
 from zipfile import ZipFile
@@ -22,9 +22,12 @@ class ZipSource(Source):
                 yield ZipHandle(self, f)
 
     def _generate_state(self, sm):
-        with self._handle.follow(sm).make_path() as r:
-            with ZipFile(str(r)) as zp:
-                yield zp
+        # Using a nested SourceManager means that closing this generator will
+        # automatically clean up as much as possible
+        with SourceManager(sm) as derived:
+            with self._handle.follow(derived).make_path() as r:
+                with ZipFile(str(r)) as zp:
+                    yield zp
 
     def to_handle(self):
         return self._handle

@@ -1,4 +1,4 @@
-from .core import Source, Handle, FileResource
+from .core import Source, Handle, FileResource, SourceManager
 from .utilities import NamedTemporaryResource
 
 import os.path
@@ -44,7 +44,10 @@ class FilteredSource(Source):
         yield FilteredHandle(self, rest)
 
     def _generate_state(self, sm):
-        yield self._handle.follow(sm)
+        # Using a nested SourceManager means that closing this generator will
+        # automatically clean up as much as possible
+        with SourceManager(sm) as derived:
+            yield self._handle.follow(derived)
 
     def to_json_object(self):
         return dict(**super().to_json_object(), **{

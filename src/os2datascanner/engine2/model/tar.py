@@ -1,4 +1,4 @@
-from .core import Source, Handle, FileResource
+from .core import Source, Handle, FileResource, SourceManager
 from .utilities import NamedTemporaryResource
 
 from tarfile import open as open_tar
@@ -22,9 +22,12 @@ class TarSource(Source):
                 yield TarHandle(self, f.name)
 
     def _generate_state(self, sm):
-        with self._handle.follow(sm).make_path() as r:
-            with open_tar(str(r), "r") as tp:
-                yield tp
+        # Using a nested SourceManager means that closing this generator will
+        # automatically clean up as much as possible
+        with SourceManager(sm) as derived:
+            with self._handle.follow(derived).make_path() as r:
+                with open_tar(str(r), "r") as tp:
+                    yield tp
 
     def to_json_object(self):
         return dict(**super().to_json_object(), **{
