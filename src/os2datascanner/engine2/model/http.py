@@ -123,7 +123,7 @@ class WebResource(FileResource):
         if not self._header:
             response = self._get_cookie().head(self._make_url())
             self._status = response.status_code
-            self._header = CaseInsensitiveDict(response.headers)
+            self._header = response.headers.copy()
 
     def get_status(self):
         self._require_header_and_status()
