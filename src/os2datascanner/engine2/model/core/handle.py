@@ -2,6 +2,7 @@ import os.path
 from abc import ABC, abstractmethod
 from mimetypes import guess_type
 
+from .errors import UnknownSchemeError, DeserialisationError
 from .source import Source
 from .utilities import _TypPropEq
 

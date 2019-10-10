@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import magic
-import datetime
+from datetime import datetime
 
 
 class Resource(ABC):
