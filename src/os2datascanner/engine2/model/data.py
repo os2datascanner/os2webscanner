@@ -58,6 +58,9 @@ class DataResource(FileResource):
     def get_size(self):
         return len(self.get_handle().get_source()._content)
 
+    def get_last_modified(self):
+        return super().get_last_modified()
+
     @contextmanager
     def make_path(self):
         with NamedTemporaryFile() as fp, self.make_stream() as s:
