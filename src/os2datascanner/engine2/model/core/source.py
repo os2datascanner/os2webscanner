@@ -17,8 +17,10 @@ class Source(ABC, _TypPropEq):
     this is that SourceManager will collapse several equal Sources together,
     only opening one of them.)"""
 
-    type_label = None
-    """A label that will be used to identify JSON forms of this Source."""
+    @property
+    @abstractmethod
+    def type_label(self) -> str:
+        """A label that will be used to identify JSON forms of this Source."""
 
     @abstractmethod
     def _generate_state(self, sm):

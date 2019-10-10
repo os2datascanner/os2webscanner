@@ -19,8 +19,10 @@ class Handle(ABC, _TypPropEq):
     Handles are serialisable and persistent, and two different Handles with the
     same type and properties compare equal."""
 
-    type_label = None
-    """A label that will be used to identify JSON forms of this Handle."""
+    @property
+    @abstractmethod
+    def type_label(self) -> str:
+        """A label that will be used to identify JSON forms of this Handle."""
 
     def __init__(self, source, relpath):
         self._source = source

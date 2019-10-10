@@ -10,13 +10,13 @@ class Rule(ABC):
 
     @property
     @abstractmethod
-    def operates_on():
+    def operates_on(self) -> InputType:
         """The type of input expected by this Rule."""
         return InputType.Text
 
     @property
     @abstractmethod
-    def type_label():
+    def type_label(self) -> str:
         """A label that will be used to identify JSON forms of this Rule."""
 
     @abstractmethod
