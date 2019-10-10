@@ -1,10 +1,10 @@
 import re
 
-from .rule import Rule
+from .rule import Rule, SimpleRule
 from .types import InputType
 
 
-class RegexRule(Rule):
+class RegexRule(SimpleRule):
     operates_on = InputType.Text
     type_label = "regex"
 
