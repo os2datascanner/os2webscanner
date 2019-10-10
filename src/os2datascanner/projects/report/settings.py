@@ -11,10 +11,17 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+import pathlib
+import structlog
+
+from django.utils.translation import gettext_lazy as _
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
+BASE_DIR = str(pathlib.Path(__file__).resolve().parent.parent.parent.parent.absolute())
+PROJECT_DIR = os.path.dirname(BASE_DIR)
+BUILD_DIR = os.path.join(PROJECT_DIR, 'build')
+VAR_DIR = os.path.join(PROJECT_DIR, 'var')
+LOGS_DIR = os.path.join(VAR_DIR, 'logs')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
@@ -27,7 +34,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -37,7 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'reportapp',
+    'os2datascanner.projects.report.reportapp.apps.ReportappConfig',
 ]
 
 MIDDLEWARE = [
@@ -50,7 +56,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'report.urls'
+ROOT_URLCONF = 'os2datascanner.projects.report.urls'
+
+WSGI_APPLICATION = 'os2datascanner.projects.report.wsgi.application'
 
 TEMPLATES = [
     {
@@ -68,19 +76,23 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'report.wsgi.application'
-
-
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'os2datascanner-report',
+        'USER': 'os2datascanner',
+        'PASSWORD': 'os2datascanner',
+        'HOST': os.getenv('POSTGRES_HOST', '127.0.0.1'),
     }
 }
 
+DATABASE_POOL_ARGS = {
+    'max_overflow': 10,
+    'pool_size': 5,
+    'recycle': 300
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
@@ -112,13 +124,21 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'da-dk'
 
-TIME_ZONE = 'UTC'
+LOCALE_PATHS = (
+    os.path.join(BASE_DIR, 'reportapp', 'locale'),
+)
+
+LANGUAGES = (
+    ('da', _('Danish')),
+    ('en', _('English')),
+)
+
+TIME_ZONE = 'Europe/Copenhagen'
 
 USE_I18N = True
 
@@ -126,8 +146,139 @@ USE_L10N = True
 
 USE_TZ = True
 
+USE_THOUSAND_SEPARATOR = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
-
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# AUTH_PROFILE_MODULE = 'os2datascanner.projects.report.reportapp.UserProfile'
+
+LOGIN_REDIRECT_URL = '/'
+
+# Email settings
+
+DEFAULT_FROM_EMAIL = 'os2datascanner@magenta.dk'
+ADMIN_EMAIL = 'os2datascanner@magenta.dk'
+EMAIL_HOST = 'localhost'
+EMAIL_PORT = 25
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+GRAYLOG_HOST = os.getenv('DJANGO_GRAYLOG_HOST')
+
+structlog.configure(
+    processors=[
+        structlog.stdlib.filter_by_level,
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.stdlib.add_logger_name,
+        structlog.stdlib.add_log_level,
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.processors.UnicodeDecoder(),
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+    ],
+    context_class=structlog.threadlocal.wrap_dict(dict),
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    wrapper_class=structlog.stdlib.BoundLogger,
+    cache_logger_on_first_use=True,
+)
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+        "gelf": {
+            "()": "os2datascanner.utils.gelf.GELFFormatter",
+        },
+        "json": {
+            "()": "structlog.stdlib.ProcessorFormatter",
+            "processor": structlog.processors.JSONRenderer(),
+        },
+        "console": {
+            "()": "structlog.stdlib.ProcessorFormatter",
+            "processor": structlog.dev.ConsoleRenderer(),
+        },
+        "key_value": {
+            "()": "structlog.stdlib.ProcessorFormatter",
+            "processor": structlog.processors.KeyValueRenderer(key_order=[
+                'timestamp',
+                'level',
+                'event',
+                'logger',
+            ]),
+        },
+        'verbose': {
+            'format': (
+                '%(levelname)s %(asctime)s %(module)s %(process)d '
+                '%(thread)d %(message)s'
+            ),
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+        "requires_graylog_host": {
+            "()": "django.utils.log.CallbackFilter",
+            "callback": lambda record: bool(GRAYLOG_HOST),
+        },
+    },
+    'handlers': {
+        'mail_admins': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'django.utils.log.AdminEmailHandler'
+        },
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            'filters': ['require_debug_true'],
+            "formatter": "console",
+        },
+        "debug_log": {
+            "level": "DEBUG",
+            "class": "logging.handlers.WatchedFileHandler",
+            "filename": VAR_DIR + '/debug.log',
+            'filters': ['require_debug_true'],
+            "formatter": "key_value",
+        },
+        "graylog": {
+            "level": "DEBUG",
+            "class": "os2datascanner.utils.gelf.GraylogDatagramHandler",
+            "host": GRAYLOG_HOST,
+            "filters": ["requires_graylog_host"],
+            "formatter": "gelf",
+        },
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'django_structlog': {
+            'handlers': ['console', 'debug_log', 'graylog'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'propagate': True,
+        },
+        'os2datascanner': {
+            'handlers': ['console', 'debug_log', 'graylog'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'propagate': True,
+        },
+    }
+}
+
+local_settings_file = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    'local_settings.py'
+)
+if os.path.exists(local_settings_file):
+    from .local_settings import *  # noqa

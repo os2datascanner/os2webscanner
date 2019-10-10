@@ -1,4 +1,4 @@
-# OS2datascanner
+# OS2datascanner - Report module
 
 To run webpack for frontend asset bundeling, run:
 
