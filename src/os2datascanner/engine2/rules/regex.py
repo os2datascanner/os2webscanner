@@ -28,3 +28,6 @@ class RegexRule(SimpleRule):
     @Rule.json_handler(type_label)
     def from_json_object(obj):
         return RegexRule(expression=obj["expression"])
+
+    def __str__(self):
+        return "RegexRule({0})".format(self._expression)

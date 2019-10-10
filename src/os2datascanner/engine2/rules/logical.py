@@ -55,6 +55,9 @@ class AndRule(CompoundRule):
         return AndRule.make(
                 *[Rule.from_json_object(o) for o in obj["components"]])
 
+    def __str__(self):
+        return "AndRule({0})".format(
+                ", ".join([str(r) for r in self._components]))
 
 class OrRule(CompoundRule):
     """An AndRule is a CompoundRule corresponding to the C "||" operator or the
@@ -75,6 +78,10 @@ class OrRule(CompoundRule):
     def from_json_object(obj):
         return OrRule.make(
                 *[Rule.from_json_object(o) for o in obj["components"]])
+
+    def __str__(self):
+        return "OrRule({0})".format(
+                ", ".join([str(r) for r in self._components]))
 
 
 class NotRule(Rule):
@@ -113,3 +120,6 @@ class NotRule(Rule):
     @Rule.json_handler(type_label)
     def from_json_object(obj):
         return NotRule.make(Rule.from_json_object(obj["rule"]))
+
+    def __str__(self):
+        return "NotRule({0})".format(str(self._rule))
