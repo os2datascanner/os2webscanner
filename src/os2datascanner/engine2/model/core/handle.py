@@ -91,9 +91,18 @@ class Handle(ABC, _TypPropEq):
         return _json_handler
 
     @staticmethod
-    def stock_json_handler(type_label, constructor):
-        return Handle.json_handler(type_label)(lambda obj: constructor(
-                Source.from_json_object(obj["source"]), obj["path"]))
+    def stock_json_handler(type_label):
+        """Decorator: registers the decorated class as a simple handler
+        for the type label given as an argument. The class's two-argument
+        constructor will be called with a Source and a path."""
+        def _stock_json_handler(cls):
+            @Handle.json_handler(type_label)
+            def _invoke_constructor(obj):
+                return cls(
+                        Source.from_json_object(obj["source"]),
+                        obj["path"])
+            return cls
+        return _stock_json_handler
 
     @staticmethod
     def from_json_object(obj):

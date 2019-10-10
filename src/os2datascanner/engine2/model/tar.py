@@ -5,6 +5,7 @@ from tarfile import open as open_tar
 from datetime import datetime
 from contextlib import contextmanager
 
+
 @Source.mime_handler("application/x-tar")
 class TarSource(Source):
     type_label = "tar"
@@ -39,12 +40,14 @@ class TarSource(Source):
     def from_json_object(obj):
         return TarSource(Handle.from_json_object(obj["handle"]))
 
+
+@Handle.stock_json_handler("tar")
 class TarHandle(Handle):
     type_label = "tar"
 
     def follow(self, sm):
         return TarResource(self, sm)
-Handle.stock_json_handler(TarHandle.type_label, TarHandle)
+
 
 class TarResource(FileResource):
     def __init__(self, handle, sm):
@@ -79,4 +82,3 @@ class TarResource(FileResource):
         with self._get_cookie().extractfile(
                  self.get_handle().get_relative_path()) as s:
             yield s
-

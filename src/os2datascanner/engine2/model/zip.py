@@ -5,6 +5,7 @@ from zipfile import ZipFile
 from datetime import datetime
 from contextlib import contextmanager
 
+
 @Source.mime_handler("application/zip")
 class ZipSource(Source):
     type_label = "zip"
@@ -42,12 +43,14 @@ class ZipSource(Source):
     def from_json_object(obj):
         return ZipSource(Handle.from_json_object(obj["handle"]))
 
+
+@Handle.stock_json_handler("zip")
 class ZipHandle(Handle):
     type_label = "zip"
 
     def follow(self, sm):
         return ZipResource(self, sm)
-Handle.stock_json_handler(ZipHandle.type_label, ZipHandle)
+
 
 class ZipResource(FileResource):
     def __init__(self, handle, sm):

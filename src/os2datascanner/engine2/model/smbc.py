@@ -89,12 +89,14 @@ class SMBCSource(Source):
         return SMBCSource(
                 obj["unc"], obj["user"], obj["password"], obj["domain"])
 
+
+@Handle.stock_json_handler("smbc")
 class SMBCHandle(Handle):
     type_label = "smbc"
 
     def follow(self, sm):
         return SMBCResource(self, sm)
-Handle.stock_json_handler(SMBCHandle.type_label, SMBCHandle)
+
 
 class _SMBCFile(io.RawIOBase):
     def __init__(self, obj):
@@ -139,6 +141,7 @@ class _SMBCFile(io.RawIOBase):
 
     def seekable(self):
         return True
+
 
 class SMBCResource(FileResource):
     def __init__(self, handle, sm):

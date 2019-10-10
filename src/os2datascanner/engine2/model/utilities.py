@@ -19,4 +19,3 @@ class NamedTemporaryResource:
         remove(self.get_path())
         rmdir(self._dir)
         self._dir = None
-

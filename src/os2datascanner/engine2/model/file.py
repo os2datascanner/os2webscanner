@@ -7,6 +7,7 @@ from pathlib import Path
 from datetime import datetime
 from contextlib import contextmanager
 
+
 class FilesystemSource(Source):
     type_label = "file"
 
@@ -49,12 +50,14 @@ class FilesystemSource(Source):
     def from_json_object(obj):
         return FilesystemSource(path=obj["path"])
 
+
+@Handle.stock_json_handler("file")
 class FilesystemHandle(Handle):
     type_label = "file"
 
     def follow(self, sm):
         return FilesystemResource(self, sm)
-Handle.stock_json_handler(FilesystemHandle.type_label, FilesystemHandle)
+
 
 class FilesystemResource(FileResource):
     def __init__(self, handle, sm):

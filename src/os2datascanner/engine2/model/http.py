@@ -10,12 +10,15 @@ from requests.sessions import Session
 from requests.exceptions import ConnectionError
 from contextlib import contextmanager
 
+
 MAX_REQUESTS_PER_SECOND = 10
 SLEEP_TIME = 1 / MAX_REQUESTS_PER_SECOND
+
 
 def simplify_mime_type(mime):
     r = mime.split(';', maxsplit=1)
     return r[0]
+
 
 class WebSource(Source):
     type_label = "web"
@@ -86,8 +89,11 @@ class WebSource(Source):
     def from_json_object(obj):
         return WebSource(url=obj["url"])
 
+
 SecureWebSource = WebSource
 
+
+@Handle.stock_json_handler("web")
 class WebHandle(Handle):
     type_label = "web"
 
@@ -105,7 +111,7 @@ class WebHandle(Handle):
 
     def follow(self, sm):
         return WebResource(self, sm)
-Handle.stock_json_handler(WebHandle.type_label, WebHandle)
+
 
 class WebResource(FileResource):
     def __init__(self, handle, sm):
