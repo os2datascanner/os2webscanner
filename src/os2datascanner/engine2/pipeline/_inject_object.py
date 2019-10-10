@@ -2,6 +2,7 @@ import pika
 from json import dumps, loads
 
 from ..model.core import Source
+from ..rules.cpr import CPRRule
 from .utils import make_common_argument_parser
 
 def main():
@@ -9,9 +10,10 @@ def main():
     parser.description = "Inject objects into a queue."
 
     parser.add_argument(
-            "-U", "--url",
-            metavar="URL",
-            help="a Source URL to inject")
+            "-S", "--scan-spec",
+            nargs=2,
+            metavar=("SOURCE-URL", "SCAN-TAG"),
+            help="a scan specification to inject")
     parser.add_argument(
             "-J", "--json",
             metavar="OBJECT",
@@ -37,8 +39,13 @@ def main():
             durable=True, exclusive=False, auto_delete=False)
 
     obj = None
-    if args.url:
-        obj = Source.from_url(args.url).to_json_object()
+    if args.scan_spec:
+        url, tag = args.scan_spec
+        obj = {
+            "scan_tag": tag,
+            "source": Source.from_url(url).to_json_object(),
+            "rule": CPRRule().to_json_object()
+        }
     elif args.json:
         obj = loads(args.json)
 

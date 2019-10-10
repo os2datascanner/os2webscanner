@@ -11,7 +11,7 @@ def message_received(channel, method, properties, body):
     print("message_received({0}, {1}, {2}, {3})".format(
             channel, method, properties, body))
     try:
-        handle = Handle.from_json_object(body)
+        handle = Handle.from_json_object(body["handle"])
 
         with SourceManager() as sm:
             try:
@@ -20,7 +20,8 @@ def message_received(channel, method, properties, body):
                 with resource.make_path() as p:
                     print(p)
                     yield (args.metadata, {
-                        "handle": body,
+                        "scan_tag": body["scan_tag"],
+                        "handle": body["handle"],
                         "metadata": guess_responsible_party(str(p))
                     })
             except ResourceUnavailableError as ex:
