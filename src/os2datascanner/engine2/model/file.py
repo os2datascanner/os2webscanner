@@ -3,7 +3,6 @@ from .core import Source, Handle, FileResource, ShareableCookie
 from os import stat
 import os.path
 from urllib.parse import quote, unquote, urlsplit, urlunsplit
-from hashlib import md5
 from pathlib import Path
 from datetime import datetime
 from contextlib import contextmanager
@@ -62,14 +61,7 @@ class FilesystemResource(FileResource):
         super().__init__(handle, sm)
         self._full_path = os.path.join(
                 self._get_cookie(), self.get_handle().get_relative_path())
-        self._hash = None
         self._stat = None
-
-    def get_hash(self):
-        if not self._hash:
-            with self.make_stream() as f:
-                self._hash = md5(f.read())
-        return self._hash
 
     def get_stat(self):
         if not self._stat:

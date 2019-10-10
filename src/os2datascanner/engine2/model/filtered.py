@@ -6,7 +6,7 @@ from bz2 import BZ2File
 from enum import Enum
 from gzip import GzipFile
 from lzma import LZMAFile
-from hashlib import md5
+from datetime import datetime
 from functools import partial
 from contextlib import contextmanager
 
@@ -81,13 +81,6 @@ Handle.stock_json_handler(FilteredHandle.type_label, FilteredHandle)
 class FilteredResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
-        self._md5 = None
-
-    def get_hash(self):
-        if not self._md5:
-            with self.make_stream() as s:
-                self._md5 = md5(s.read())
-        return self._md5
 
     def get_size(self):
         with self.make_stream() as s:
@@ -100,11 +93,15 @@ class FilteredResource(FileResource):
 
     def get_last_modified(self):
         with self.make_stream() as s:
-            return s.mtime
+            # The mtime field won't have a meaningful value until the first
+            # read operation has been performed, so read a single byte from
+            # this new stream
+            s.read(1)
+            return datetime.fromtimestamp(s.mtime)
 
     @contextmanager
     def make_path(self):
-        ntr = NamedTemporaryResource(Path(self.get_handle().get_name()))
+        ntr = NamedTemporaryResource(self.get_handle().get_name())
         try:
             with ntr.open("wb") as f:
                 with self.make_stream() as s:
