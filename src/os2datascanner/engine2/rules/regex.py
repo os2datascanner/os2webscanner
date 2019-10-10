@@ -24,6 +24,7 @@ class RegexRule(Rule):
             "expression": self._expression
         })
 
+    @staticmethod
     @Rule.json_handler(type_label)
     def from_json_object(obj):
         return RegexRule(expression=obj["expression"])

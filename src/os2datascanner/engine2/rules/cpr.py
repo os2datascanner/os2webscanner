@@ -51,6 +51,7 @@ class CPRRule(RegexRule):
             "ignore_irrelevant": self._ignore_irrelevant
         })
 
+    @staticmethod
     @Rule.json_handler(type_label)
     def from_json_object(obj):
         return CPRRule(modulus_11=obj["modulus_11"],
