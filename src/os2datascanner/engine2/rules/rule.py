@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
 
+from ..model.core.utilities import _TypPropEq
 from .types import InputType
 
 
-class Rule(ABC):
+class Rule(ABC, _TypPropEq):
     """A Rule represents a test to be applied to a representation of an
     object.
 
