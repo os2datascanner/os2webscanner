@@ -1,0 +1,6 @@
+#!/bin/bash
+
+DIR="`dirname "${BASH_SOURCE[0]}"`"
+cd "$DIR/../src"
+. "../python-env/bin/activate"
+exec "$@"

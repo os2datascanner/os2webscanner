@@ -9,4 +9,4 @@ PrivateTmp=true
 DynamicUser=true
 StandardOutput=journal
 SyslogIdentifier=OS2ds-expo%i
-ExecStart=/vagrant/bin/ripe python -m os2datascanner.engine2.pipeline.exporter
+ExecStart=/vagrant/bin/pex python -m os2datascanner.engine2.pipeline.exporter
