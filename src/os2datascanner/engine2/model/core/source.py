@@ -37,15 +37,15 @@ class Source(ABC, _TypPropEq):
         """Yields Handles corresponding to every identifiable leaf node in this
         Source's hierarchy. These Handles are generated in an undefined order.
 
-        Note that this function can yield Handles that correspond to
+        Note that this method can yield Handles that correspond to
         identifiable *but non-existent* leaf nodes. These might correspond to,
         for example, a broken link on a web page, or to an object that was
-        yielded by this function but was deleted before it could be examined.
+        yielded by this method but was deleted before it could be examined.
         These Handles can be detected by catching the ResourceUnavailableError
         exception.
 
         It is not necessarily the case that the result of the get_source call
-        on a Handle yielded by this function will be this Source."""
+        on a Handle yielded by this method will be this Source."""
 
     __url_handlers = {}
     @staticmethod
@@ -119,7 +119,7 @@ class Source(ABC, _TypPropEq):
 
     def to_handle(self):
         """If this Source was created based on a Handle (typically by the
-        Source.from_handle function), then returns that Handle; otherwise,
+        Source.from_handle method), then returns that Handle; otherwise,
         returns None."""
         return None
 

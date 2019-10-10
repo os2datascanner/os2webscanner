@@ -1,7 +1,10 @@
 #!/usr/bin/env python
+from datetime import datetime
 import unittest
 
 from os2datascanner.engine2.model.core import Source, SourceManager
+from os2datascanner.engine2.model.file import (
+        FilesystemSource, FilesystemHandle)
 from os2datascanner.engine2.model.data import DataSource
 import os.path
 
@@ -20,22 +23,74 @@ class Engine2ContainerTest(unittest.TestCase):
             def process(source, depth=0):
                 for handle in source.handles(sm):
                     print("{0}{1}".format("  " * depth, handle))
-                    derived_source = Source.from_handle(handle)
-                    if derived_source:
-                        process(derived_source, depth + 1)
+                    guessed = Source.from_handle(handle)
+                    computed = Source.from_handle(handle, sm)
+
+                    if computed or guessed:
+                        process(computed or guessed, depth + 1)
+
                     elif handle.get_name() == "url":
                         with handle.follow(sm).make_stream() as fp:
                             url = fp.read().decode("utf-8")
                         process(Source.from_url(url), depth + 1)
-                    elif handle.get_name() == "test-vector" or isinstance(
-                        source, DataSource
-                    ):
-                        with handle.follow(sm).make_stream() as fp:
-                            content = fp.read().decode("utf-8")
-                        self.assertEqual(
-                            content,
-                            self.correct_content,
-                            "{0}{1} OK".format("  " * depth, handle),
-                        )
 
-            process(Source.from_url("file://" + test_data_path))
+                    elif handle.get_name() == "test-vector" or isinstance(
+                            source, DataSource):
+                        r = handle.follow(sm)
+                        reported_size = r.get_size()
+                        last_modified = r.get_last_modified()
+
+                        with r.make_stream() as fp:
+                            stream_raw = fp.read()
+                            stream_size = len(stream_raw)
+                            stream_content = stream_raw.decode("utf-8")
+                        with r.make_path() as p:
+                            with open(p, "rb") as fp:
+                                file_raw = fp.read()
+                                file_size = len(file_raw)
+                                file_content = file_raw.decode("utf-8")
+
+                        self.assertIsInstance(
+                                last_modified,
+                                datetime,
+                                ("{0}: last modification date is not a " +
+                                        "datetime.datetime").format(handle))
+                        self.assertEqual(
+                                stream_size,
+                                reported_size,
+                                "{0}: model stream length invalid".format(
+                                        handle))
+                        self.assertEqual(
+                                file_size,
+                                reported_size,
+                                "{0}: model stream length invalid".format(
+                                        handle))
+                        self.assertEqual(
+                                file_raw,
+                                stream_raw,
+                                "{0}: model file and stream not equal".format(
+                                        handle))
+                        self.assertEqual(
+                                stream_content,
+                                self.correct_content,
+                                "{0}: model stream invalid".format(handle)                        )
+                        self.assertEqual(
+                                file_content,
+                                self.correct_content,
+                                "{0}: model file invalid".format(handle))
+
+            source = Source.from_url("file://" + test_data_path)
+            self.assertIsNone(
+                    source.to_handle(),
+                    "{0}: unexpected backing handle for file: URL".format(source))
+            process(source)
+
+    def test_derived_source(self):
+        with SourceManager() as sm:
+            s = FilesystemSource(test_data_path)
+            h = FilesystemHandle(s, "data/engine2/zip-here/test-vector.zip")
+
+            zs = Source.from_handle(h)
+            self.assertIsNotNone(
+                    zs.to_handle(),
+                    "{0}: derived source has no handle".format(zs))

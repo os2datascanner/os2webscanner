@@ -6,7 +6,6 @@ import io
 from os import stat_result, O_RDONLY
 import smbc
 from urllib.parse import quote, unquote, urlsplit
-from hashlib import md5
 from datetime import datetime
 from contextlib import contextmanager
 
@@ -52,7 +51,7 @@ class SMBCSource(Source):
             for dent in obj.getdents():
                 yield from handle_dirent([], dent)
         except Exception as exc:
-            raise ResourceUnavailableError(*exc.args)
+            raise ResourceUnavailableError(self, *exc.args)
 
     def to_url(self):
         return make_smb_url(
@@ -145,7 +144,6 @@ class SMBCResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
         self._stat = None
-        self._hash = None
 
     def _make_url(self):
         url, _ = self._get_cookie()
@@ -183,12 +181,6 @@ class SMBCResource(FileResource):
 
     def get_last_modified(self):
         return datetime.fromtimestamp(self.get_stat().st_mtime)
-
-    def get_hash(self):
-        if not self._hash:
-            with self.make_stream() as f:
-                self._hash = md5(f.read())
-        return self._hash
 
     def get_owner_sid(self):
         """Returns the Windows security identifier of the owner of this file,

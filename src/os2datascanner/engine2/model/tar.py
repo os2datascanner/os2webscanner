@@ -57,9 +57,6 @@ class TarResource(FileResource):
                     self.get_handle().get_relative_path())
         return self._info
 
-    def get_hash(self):
-        return self.get_info().chksum
-
     def get_size(self):
         return self.get_info().size
 
@@ -68,7 +65,7 @@ class TarResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        ntr = NamedTemporaryResource(Path(self.get_handle().get_name()))
+        ntr = NamedTemporaryResource(self.get_handle().get_name())
         try:
             with ntr.open("wb") as f:
                 with self.make_stream() as s:

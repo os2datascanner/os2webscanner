@@ -12,7 +12,7 @@ class Handle(ABC, _TypPropEq):
     Although all Handle subclasses expose the same two-argument constructor,
     which takes a Source and a string representation of a path, each type of
     Source defines what its Handles and their paths mean; the only general way
-    to get a meaningful Handle is the Source.handles() function (or to make a
+    to get a meaningful Handle is the Source.handles() method (or to make a
     copy of an existing one).
 
     Handles are serialisable and persistent, and two different Handles with the

@@ -38,7 +38,7 @@ class SourceManager:
     their own state will be cleaned up before that of their antecedents.
 
     As SourceManagers track (potentially process-specific) state, they are not
-    usefully serialisable. See, however, the SourceManager.share function and
+    usefully serialisable. See, however, the SourceManager.share method and
     the ShareableCookie class below."""
     def __init__(self, parent=None):
         """Initialises this SourceManager.
@@ -61,10 +61,10 @@ class SourceManager:
         r._parent = self._parent.share() if self._parent else None
         r._ro = True
         for v in self._order:
-            cookie = self._opened[v]
+            (generator, cookie) = self._opened[v]
             if isinstance(cookie, ShareableCookie):
-                r._order.append(cookie)
-                r._opened[v] = cookie
+                r._order.append(v)
+                r._opened[v] = (None, cookie)
         return r
 
     def open(self, source, try_open=True):
@@ -105,7 +105,12 @@ class SourceManager:
         try:
             for k in reversed(self._order):
                 generator, _ = self._opened[k]
-                generator.close()
+                if not generator and not self._ro:
+                    raise TypeError(
+                            "BUG: __exit__ on a normal SourceManager"
+                            + " encountered a None generator!")
+                else:
+                    generator.close()
         finally:
             self._order = []
             self._opened = {}

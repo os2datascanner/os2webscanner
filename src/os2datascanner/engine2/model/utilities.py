@@ -1,5 +1,5 @@
 from os import rmdir, remove
-from pathlib import Path
+import os.path
 from tempfile import mkdtemp
 
 class NamedTemporaryResource:
@@ -9,17 +9,14 @@ class NamedTemporaryResource:
 
     def open(self, mode):
         if self._dir is None:
-            self._dir = Path(mkdtemp())
-        try:
-            return self.get_path().open(mode)
-        except:
-            raise
+            self._dir = mkdtemp()
+        return open(self.get_path(), mode)
 
-    def get_path(self) -> Path:
-        return self._dir.joinpath(self._name)
+    def get_path(self) -> str:
+        return os.path.join(self._dir, self._name)
 
     def finished(self):
-        self.get_path().unlink()
-        self._dir.rmdir()
+        remove(self.get_path())
+        rmdir(self._dir)
         self._dir = None
 
