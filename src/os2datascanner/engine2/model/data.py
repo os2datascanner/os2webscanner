@@ -59,6 +59,8 @@ class DataResource(FileResource):
         return len(self.get_handle().get_source()._content)
 
     def get_last_modified(self):
+        # This is not redundant -- the superclass's default implementation is
+        # an abstract method that can only be called explicitly
         return super().get_last_modified()
 
     @contextmanager

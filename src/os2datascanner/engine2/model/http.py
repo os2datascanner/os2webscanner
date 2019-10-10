@@ -8,7 +8,6 @@ from urllib.parse import urljoin, urlsplit, urlunsplit
 from dateutil.parser import parse as parse_date
 from requests.sessions import Session
 from requests.exceptions import ConnectionError
-from requests.structures import CaseInsensitiveDict
 from contextlib import contextmanager
 
 MAX_REQUESTS_PER_SECOND = 10
