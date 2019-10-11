@@ -55,8 +55,8 @@ tests:
 
   script:
     - apt-get update -qq
-    - apt-get install -qq $(cat doc/TEST_DEPENDENCIES)
-    - pip install -e . -r doc/requirements-dev.txt
+    - apt-get install -qq $(cat requirements/test-dependencies.txt)
+    - pip install -e . -r requirements/requirements-dev.txt
 
     - django-admin makemigrations --check --dry-run
 
