@@ -1,3 +1,4 @@
+import json
 import pika
 
 from .utilities import (notify_ready,
@@ -5,8 +6,7 @@ from .utilities import (notify_ready,
 
 
 def message_received(channel, method, properties, body):
-    print("message_received({0}, {1}, {2}, {3})".format(
-            channel, method, properties, body))
+    print(json.dumps(json.loads(body.decode("utf-8")), indent=True))
     try:
         channel.basic_ack(method.delivery_tag)
     except Exception:

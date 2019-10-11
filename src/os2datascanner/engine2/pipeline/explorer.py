@@ -22,7 +22,11 @@ def message_received(channel, method, properties, body):
                 print(handle)
                 yield (args.conversions, {
                     "scan_spec": body,
-                    "handle": handle.to_json_object()
+                    "handle": handle.to_json_object(),
+                    "progress": body["progress"] if "progress" in body else {
+                        "rule": body["rule"],
+                        "matches": []
+                    }
                 })
     except ResourceUnavailableError as ex:
         yield (args.problems, {

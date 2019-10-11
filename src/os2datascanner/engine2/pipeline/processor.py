@@ -1,5 +1,6 @@
 import pika
 
+from ..rules.rule import Rule
 from ..rules.types import InputType
 from ..model.core import (Source,
         Handle, SourceManager, ResourceUnavailableError)
@@ -10,25 +11,35 @@ from .utilities import (notify_ready, notify_stopping, json_event_processor,
 args = None
 
 
+def get_processor(sm, handle, required):
+    if required == InputType.Text:
+        resource = handle.follow(sm)
+        mime_type = resource.compute_type()
+        processor = processors.processors.get(mime_type)
+        if processor:
+            return lambda handle: processor(handle.follow(sm))
+    return None
+
+
 @json_event_processor
 def message_received(channel, method, properties, body):
     print("message_received({0}, {1}, {2}, {3})".format(
             channel, method, properties, body))
     try:
         handle = Handle.from_json_object(body["handle"])
+        rule = Rule.from_json_object(body["progress"]["rule"])
+        head, _, _ = rule.split()
 
         with SourceManager() as sm:
             try:
-                resource = handle.follow(sm)
-                mime_type = resource.compute_type()
-
-                processor_function = processors.processors.get(mime_type)
-                if processor_function:
-                    content = processor_function(resource)
+                processor = get_processor(sm, handle, head.operates_on)
+                if processor:
+                    content = processor(handle)
                     if content:
                         yield (args.representations, {
                             "scan_spec": body["scan_spec"],
                             "handle": body["handle"],
+                            "progress": body["progress"],
                             "representation": {
                                 "type": InputType.Text.value,
                                 "content": content
@@ -45,7 +56,7 @@ def message_received(channel, method, properties, body):
                             # "new" scan is part of an existing one
                             "scan_tag": body["scan_spec"]["scan_tag"],
                             "source": derived_source.to_json_object(),
-                            "rule": body["scan_spec"]["rule"]
+                            "progress": body["progress"]
                         })
             except ResourceUnavailableError as ex:
                 pass
