@@ -1,7 +1,9 @@
+from dateutil import tz
 import pika
 
 from ..rules.rule import Rule
 from ..rules.types import InputType
+from ..rules.last_modified import DATE_FORMAT # XXX FIXME XXX
 from ..model.core import (Source,
         Handle, SourceManager, ResourceUnavailableError)
 from ..demo import processors
@@ -18,6 +20,16 @@ def get_processor(sm, handle, required):
         processor = processors.processors.get(mime_type)
         if processor:
             return lambda handle: processor(handle.follow(sm))
+    elif required == InputType.LastModified:
+        resource = handle.follow(sm)
+        if hasattr(resource, "get_last_modified"):
+            def _get_time(handle):
+                r = handle.follow(sm)
+                lm = r.get_last_modified()
+                if not lm.tzname():
+                    lm = lm.astimezone(tz.gettz())
+                return lm.strftime(DATE_FORMAT)
+            return _get_time
     return None
 
 
@@ -41,7 +53,7 @@ def message_received(channel, method, properties, body):
                             "handle": body["handle"],
                             "progress": body["progress"],
                             "representation": {
-                                "type": InputType.Text.value,
+                                "type": head.operates_on.value,
                                 "content": content
                             }
                         })
