@@ -33,7 +33,7 @@ install_python_environment() {
     then
         echo "$0: Python environment already installed" 1>&2
     else
-        python3 -m venv "$VIRTUALENV"
+        python3 -m venv --system-site-packages "$VIRTUALENV"
     fi &&
 
     "$VIRTUALENV/bin/pip" install -U setuptools wheel pip &&

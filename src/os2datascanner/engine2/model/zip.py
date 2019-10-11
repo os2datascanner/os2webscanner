@@ -57,9 +57,6 @@ class ZipResource(FileResource):
                     str(self.get_handle().get_relative_path()))
         return self._info
 
-    def get_hash(self):
-        return self.get_info().CRC
-
     def get_size(self):
         return self.get_info().file_size
 
