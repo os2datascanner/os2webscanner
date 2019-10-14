@@ -1,12 +1,19 @@
 import json
 import pika
+import argparse
 
 from .utilities import (notify_ready,
         notify_stopping, make_common_argument_parser)
 
+args = None
+
 
 def message_received(channel, method, properties, body):
-    print(json.dumps(json.loads(body.decode("utf-8")), indent=True))
+    decoded_body = body.decode("utf-8")
+    print(json.dumps(json.loads(decoded_body), indent=True))
+    if args.dump:
+        args.dump.write(decoded_body + "\n")
+        args.dump.flush()
     try:
         channel.basic_ack(method.delivery_tag)
     except Exception:
@@ -46,7 +53,16 @@ def main():
             help="the name of the AMQP queue to which filtered result objects"
                     + " should be written",
             default="os2ds_results")
+    outputs.add_argument(
+            "--debug-dump",
+            dest="dump",
+            metavar="PATH",
+            help="the name of a JSON Lines file to which all incoming messages"
+                    + "should be dumped (existing content will be deleted!)",
+            type=argparse.FileType(mode="wt"),
+            default=None)
 
+    global args
     args = parser.parse_args()
 
     parameters = pika.ConnectionParameters(host=args.host, heartbeat=6000)
