@@ -11,6 +11,7 @@ from .utilities import (notify_ready, notify_stopping, json_event_processor,
         make_common_argument_parser)
 
 args = None
+source_manager = None
 
 
 def get_processor(sm, handle, required):
@@ -42,36 +43,35 @@ def message_received(channel, method, properties, body):
         rule = Rule.from_json_object(body["progress"]["rule"])
         head, _, _ = rule.split()
 
-        with SourceManager() as sm:
-            try:
-                processor = get_processor(sm, handle, head.operates_on)
-                if processor:
-                    content = processor(handle)
-                    if content:
-                        yield (args.representations, {
-                            "scan_spec": body["scan_spec"],
-                            "handle": body["handle"],
-                            "progress": body["progress"],
-                            "representation": {
-                                "type": head.operates_on.value,
-                                "content": content
-                            }
-                        })
-                else:
-                    # If we have a conversion we don't support, then check if
-                    # the current handle can be reinterpreted as a Source; if
-                    # it can, then try again with that
-                    derived_source = Source.from_handle(handle, sm)
-                    if derived_source:
-                        yield (args.sources, {
-                            # Preserve the scan_tag value to indicate that this
-                            # "new" scan is part of an existing one
-                            "scan_tag": body["scan_spec"]["scan_tag"],
-                            "source": derived_source.to_json_object(),
-                            "progress": body["progress"]
-                        })
-            except ResourceUnavailableError as ex:
-                pass
+        try:
+            processor = get_processor(source_manager, handle, head.operates_on)
+            if processor:
+                content = processor(handle)
+                if content:
+                    yield (args.representations, {
+                        "scan_spec": body["scan_spec"],
+                        "handle": body["handle"],
+                        "progress": body["progress"],
+                        "representation": {
+                            "type": head.operates_on.value,
+                            "content": content
+                        }
+                    })
+            else:
+                # If we have a conversion we don't support, then check if
+                # the current handle can be reinterpreted as a Source; if
+                # it can, then try again with that
+                derived_source = Source.from_handle(handle, source_manager)
+                if derived_source:
+                    yield (args.sources, {
+                        # Preserve the scan_tag value to indicate that this
+                        # "new" scan is part of an existing one
+                        "scan_tag": body["scan_spec"]["scan_tag"],
+                        "source": derived_source.to_json_object(),
+                        "progress": body["progress"]
+                    })
+        except ResourceUnavailableError as ex:
+            pass
 
         channel.basic_ack(method.delivery_tag)
     except Exception:
@@ -121,6 +121,9 @@ def main():
             durable=True, exclusive=False, auto_delete=False)
 
     channel.basic_consume(args.conversions, message_received)
+
+    global source_manager
+    source_manager = SourceManager()
 
     try:
         print("Start")
