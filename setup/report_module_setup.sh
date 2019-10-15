@@ -19,7 +19,7 @@ configure_database() {
         echo "$0: PostgreSQL database 'os2datascanner-report' already exists"
     else
         echo "$0: creating PostgreSQL database 'os2datascanner-report'"
-        sudo -Hu postgres createdb -O os2datascanner-report os2datascanner
+        sudo -Hu postgres createdb -O os2datascanner os2datascanner-report 
     fi
 }
 
