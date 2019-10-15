@@ -1,4 +1,5 @@
 import os
+import json
 from django.views.generic import TemplateView
 
 
@@ -16,7 +17,13 @@ class RulePageView(TemplateView):
         context = super().get_context_data(**kwargs)
         path = os.path.dirname(os.path.abspath(__file__))
         with open(path + '/results-and-metadata.json','r') as fp:
-            context['hits'] = fp.readlines()
+            lines = fp.readlines()
+            json_list = []
+            for line in lines:
+                json_list.append(json.loads(line))
+            context['hits'] = json_list
+
+        print(type(context['hits'][0]))
 
         return context
 
