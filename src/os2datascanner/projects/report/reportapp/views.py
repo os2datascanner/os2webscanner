@@ -16,7 +16,7 @@ class RulePageView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         path = os.path.dirname(os.path.abspath(__file__))
-        with open(path + '/results-and-metadata.json','r') as fp:
+        with open(path + '/results-and-metadata.jsonl','r') as fp:
             lines = fp.readlines()
             json_list = []
             for line in lines:

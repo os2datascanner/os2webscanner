@@ -27,15 +27,17 @@
 /* file type icons, start */
 .icon-filetype {
   background-color: #ccc;
+  border-radius: 50%;
   display: block;
   height: 2rem;
   width: 2rem;
 }
-.icon-filetype--docx {
+
+.icon-filetype--smbc {
   background-color: #50bee8;
 }
 
-.icon-filetype--pdf {
+.icon-filetype--zip {
   background-color: #f15642;
 }
 /* file type icons, stop */
