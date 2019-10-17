@@ -3,13 +3,19 @@
   <thead>
     <tr>
       <th>Type:</th>
-      <th>URL:</th>
+      <th>Item:</th>
       <th>Match:</th>
       <th>Context:</th>
     </tr>
   </thead>
 
   <tbody>
+    {% include "components/rule-hits--office365.html" %}
+    {% include "components/rule-hits--exchange.html" %}
+    {% include "components/rule-hits--webpage.html" %}
+    {% include "components/rule-hits--smbc.html" %}
+    
+    <!--
     {% for hit in hits %}
       {% for match in hit.matches %}
         {% for single in match.matches %}
@@ -34,6 +40,7 @@
         {% endfor %}
       {% endfor %}
     {% endfor %}
+    -->
   </tbody>
 
 </table>

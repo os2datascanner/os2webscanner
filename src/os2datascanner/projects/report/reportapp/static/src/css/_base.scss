@@ -15,3 +15,9 @@
 .align-left {
   text-align: left !important;
 }
+
+.hlp {
+  &--block {
+    display: block;
+  }
+}

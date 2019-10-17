@@ -6,7 +6,12 @@
   line-height: 1;
   position: sticky;
   top: var(--size-ds-unit);
+  transition: background-color 0.2s ease-in-out;
   z-index: 99;
+
+  &:hover {
+    background-color: #fff;
+  }
 }
 
 .banner .logo {
