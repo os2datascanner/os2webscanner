@@ -1,14 +1,16 @@
 <table class="datatable">
 
-  <thead>
-    <tr>
-      <th>Type:</th>
-      <th>Item:</th>
-      <th>Match:</th>
-      <th>Context:</th>
-    </tr>
-  </thead>
-
+    <thead>
+      <tr>
+        <th class="datatable__column--filetype-icon">
+          <span class="screen-reader-only">Type:</span>
+        </th>
+        <th class="datatable__column--item">Item:</th>
+        <th class="datatable__column--match">Match:</th>
+        <th class="datatable__column--context">Context:</th>
+      </tr>
+    </thead>
+    
   <tbody>
     {% include "components/rule-hits--office365.html" %}
     {% include "components/rule-hits--exchange.html" %}
