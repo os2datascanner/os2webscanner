@@ -29,8 +29,16 @@
   background-color: rgba(0, 0, 0, 0.1);
   border-radius: 50%;
   display: block;
-  height: 1.5rem;
-  width: 1.5rem;
+  height: 2rem;
+  width: 2rem;
+
+  > svg {
+    display: block;
+    fill: #fff;
+    height: 100%;
+    padding: var(--size-ds-unit);
+    width: 100%;
+  }
 }
 
 .icon-filetype--office365 {
@@ -38,7 +46,7 @@
 }
 
 .icon-filetype--exchange {
-  background-color: #f0a;
+  background-color: #bada55;
 }
 
 .icon-filetype--webpage {

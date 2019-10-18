@@ -6,7 +6,7 @@
   background-color: #fff;
   border-collapse: collapse;
   box-shadow: var(--box-shadow-large);
-  max-width: 90rem;
+  max-width: 80rem;
   table-layout: fixed;
   width: calc(100% - 2rem);
 
@@ -26,7 +26,7 @@
     }
 
     &--filetype-icon {
-      width: 4.5rem;
+      width: 5rem;
     }
 
     &--item {
@@ -41,8 +41,15 @@
   }
 }
 
-.datatable tr:hover td {
-  background-color: rgba(0, 0, 0, 0.05);
+.datatable tr:focus, 
+.datatable tr:hover {
+  td {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+    
+  .hit-link {
+    opacity: 1;
+  }
 }
 
 .datatable th,
@@ -90,3 +97,20 @@
   text-decoration: none;
 }
 /* .datatable--click-rows, stop */
+
+.scan {
+  &__item-title {
+    display: block;
+  }
+
+  &__item-meta {
+    margin-top: var(--size-ds-unit);
+
+    span {
+      display: inline-block;
+      font-size: 0.75rem;
+      margin-right: 0.5rem;
+      opacity: 0.75;
+    }
+  }
+}
