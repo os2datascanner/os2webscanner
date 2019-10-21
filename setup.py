@@ -7,7 +7,7 @@ import setuptools
 setuptools.setup(
     install_requires=(
         pathlib.Path(__file__)
-        .parent.joinpath("doc", "requirements.txt")
+        .parent.joinpath("requirements", "requirements.txt")
         .read_text()
         .splitlines()
     )
