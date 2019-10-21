@@ -1,3 +1,7 @@
+.form {
+  line-height: 1;
+}
+
 .form fieldset {
   border: none;
 }
@@ -19,13 +23,13 @@
 
 .form label {
   display: block;
-  font-size: 0.8em;
+  font-size: 0.75em;
   text-transform: uppercase;
   user-select: none;
 }
 
 .form label + input {
-  margin-top: 0.125rem;
+  margin-top: 0.25rem;
 }
 
 .form input[type=checkbox] + label {
@@ -34,24 +38,27 @@
 
 .form input[type=text],
 .form input[type=password] {
-  background-color: #fff;
   background-color: rgba(0, 0, 0, 0.1);
-  border: 2px solid rgba(0, 0, 0, 0.1);
+  border: none;
+  border-radius: var(--border-radius-small);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
   font-size: 1rem;
+  line-height: 1;
   outline: none;
-  padding: 0.5rem;
+  padding: 1rem;
   transition: var(--transition-default);
   width: 100%;
 }
 
 .form input[type=text]:focus,
 .form input[type=password]:focus {
-  border-color: var(--color-main);
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.2);
 }
 
 .form__error {
   background-color: var(--color-error);
   border: 1px solid var(--color-error-dark);
+  color: #fff;
   font-size: 0.75rem;
   line-height: 1;
   margin-top: 1rem;
@@ -70,13 +77,3 @@
 .button:hover {
   border-color: var(--color-main);
 }
-
-/* Login form specifics, start */
-.form--login {
-  background-color: #fff;
-  box-shadow: var(--box-shadow-large);
-  max-width: 40rem;
-  padding: 2rem;
-  width: 100%;
-}
-/* Login form specifics, stop */

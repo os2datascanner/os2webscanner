@@ -53,6 +53,7 @@
       --color-logo-text: var(--color-text-main);
 
       --border-radius: 0.5rem;
+      --border-radius-small: 0.125rem;
       --box-shadow: 0 0 1rem rgba(0, 0, 0, 0.2);
       --box-shadow-large: 0 0 2rem rgba(0, 0, 0, 0.2);
     }
@@ -62,12 +63,14 @@
 
 </head>
 
-<body>
+<body class="{{ body_class|default:'page' }}">
   <noscript>
     <strong>We're sorry but <em>OS2Datascanner</em> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
   </noscript>
 
-    {% include "components/banner.html" %}
+  {% if request.user.is_authenticated %}
+  {% include "components/banner.html" %}
+  {% else %}
+  {% endif %}
 
-    <main class="wrapper">
-  
+  <main class="wrapper">
