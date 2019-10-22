@@ -90,6 +90,23 @@ more!""",
                 ("BC", True, 1),
                 ("AC", False, 3)
             ]
+        ),
+        (
+            AndRule(
+                NotRule(
+                    OrRule(
+                        RegexRule("B"),
+                        RegexRule("C")
+                    )
+                ),
+                RegexRule("A")
+            ), [
+                ("A", True, 3),
+                ("AB", False, 1),
+                ("ABC", False, 1),
+                ("BC", False, 1),
+                ("AC", False, 2)
+            ]
         )
     ]
 
