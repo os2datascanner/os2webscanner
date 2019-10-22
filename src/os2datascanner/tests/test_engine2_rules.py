@@ -58,35 +58,6 @@ more!""",
                 self.assertEqual(
                         [match["match"] for match in matches], expected)
 
-    def test_negation(self):
-        candidates = [
-            (
-                AndRule(
-                    RegexRule("A"),
-                    RegexRule("B"),
-                    RegexRule("C")
-                ),
-                OrRule(
-                    NotRule(RegexRule("A")),
-                    NotRule(RegexRule("B")),
-                    NotRule(RegexRule("C"))
-                )
-            )
-        ]
-        for rule, complement in candidates:
-            derived_complement = NotRule.make(rule)
-            derived_rule = NotRule.make(complement)
-            self.assertEqual(
-                derived_complement,
-                complement,
-                "negating {0} produced {1}, expected {2}".format(
-                        rule, derived_complement, complement))
-            self.assertEqual(
-                rule,
-                derived_rule,
-                "negating {0} produced {1}, expected {2}".format(
-                        complement, derived_rule, rule))
-
     def test_compound_rule_matches(self):
         candidates = [
             (

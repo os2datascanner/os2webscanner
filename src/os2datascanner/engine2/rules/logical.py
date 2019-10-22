@@ -98,12 +98,6 @@ class NotRule(Rule):
             return True
         elif isinstance(component, NotRule):
             return component._rule
-        elif isinstance(component, AndRule):
-            return OrRule.make(
-                    *[NotRule.make(c) for c in component._components])
-        elif isinstance(component, OrRule):
-            return AndRule.make(
-                    *[NotRule.make(c) for c in component._components])
         else:
             return NotRule(component)
 
