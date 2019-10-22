@@ -1,10 +1,11 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
+from ..utilities.json import JSONSerialisable
 from ..model.core.utilities import _TypPropEq
 from .types import InputType
 
 
-class Rule(ABC, _TypPropEq):
+class Rule(_TypPropEq, JSONSerialisable):
     """A Rule represents a test to be applied to a representation of an
     object.
 
@@ -32,6 +33,8 @@ class Rule(ABC, _TypPropEq):
         (Following a chain of continuations will always eventually reduce to
         True, if the rule as a whole has matched, or False if it has not.)"""
 
+    _json_handlers = {}
+
     @abstractmethod
     def to_json_object(self):
         """Returns an object suitable for JSON serialisation that represents
@@ -39,28 +42,6 @@ class Rule(ABC, _TypPropEq):
         return {
             "type": self.type_label
         }
-
-    __json_handlers = {}
-    @staticmethod
-    def json_handler(type_label):
-        def _json_handler(func):
-            if type_label in Rule.__json_handlers:
-                raise ValueError(
-                        "BUG: can't register two handlers" +
-                        " for the same JSON type label!", type_label)
-            Rule.__json_handlers[type_label] = func
-            return func
-        return _json_handler
-
-    @staticmethod
-    def from_json_object(obj):
-        """Converts a JSON representation of a Rule, as returned by the
-        Rule.to_json_object method, back into a Rule."""
-        try:
-            return Rule.__json_handlers[obj["type"]](obj)
-        except KeyError:
-            # XXX: better error handling would probably be a good idea
-            raise
 
 
 class SimpleRule(Rule):

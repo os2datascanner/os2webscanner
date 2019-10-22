@@ -1,12 +1,14 @@
 import os.path
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from mimetypes import guess_type
 
+from ...utilities.json import JSONSerialisable
 from .errors import UnknownSchemeError, DeserialisationError
 from .source import Source
 from .utilities import _TypPropEq
 
-class Handle(ABC, _TypPropEq):
+
+class Handle(_TypPropEq, JSONSerialisable):
     """A Handle is a reference to a leaf node in a hierarchy maintained by a
     Source. Handles can be followed to give a Resource, a concrete object.
 
@@ -63,6 +65,8 @@ class Handle(ABC, _TypPropEq):
     objects, it should set the 'eq_properties' class attribute to this
     value.)"""
 
+    _json_handlers = {}
+
     def to_json_object(self):
         """Returns an object suitable for JSON serialisation that represents
         this Handle."""
@@ -71,24 +75,6 @@ class Handle(ABC, _TypPropEq):
             "source": self.get_source().to_json_object(),
             "path": self.get_relative_path()
         }
-
-    __json_handlers = {}
-    @staticmethod
-    def json_handler(type_label):
-        """Decorator: registers the decorated function as the handler for the
-        type label given as an argument. This handler will be called by
-        from_json_object when it finds this type label.
-
-        Subclasses should use this method to decorate their from_json_object
-        factory methods."""
-        def _json_handler(func):
-            if type_label in Handle.__json_handlers:
-                raise ValueError(
-                        "BUG: can't register two handlers" +
-                        " for the same JSON type label!", type_label)
-            Handle.__json_handlers[type_label] = func
-            return func
-        return _json_handler
 
     @staticmethod
     def stock_json_handler(type_label):
@@ -103,16 +89,3 @@ class Handle(ABC, _TypPropEq):
                         obj["path"])
             return cls
         return _stock_json_handler
-
-    @staticmethod
-    def from_json_object(obj):
-        """Converts a JSON representation of a Handle, as returned by the
-        Handle.to_json_object method, back into a Handle."""
-        try:
-            tl = obj["type"]
-            if not tl in Handle.__json_handlers:
-                raise UnknownSchemeError(tl)
-            return Handle.__json_handlers[tl](obj)
-        except KeyError as k:
-            tl = obj.get("type", None)
-            raise DeserialisationError(tl, k.args[0])

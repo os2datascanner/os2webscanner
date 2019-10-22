@@ -1,9 +1,11 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
+from ...utilities.json import JSONSerialisable
 from .errors import UnknownSchemeError, DeserialisationError
 from .utilities import _TypPropEq
 
-class Source(ABC, _TypPropEq):
+
+class Source(_TypPropEq, JSONSerialisable):
     """A Source represents the root of a hierarchy to be explored. It
     constructs Handles, which represent the position of an object in the
     hierarchy.
@@ -125,6 +127,8 @@ class Source(ABC, _TypPropEq):
         returns None."""
         return None
 
+    _json_handlers = {}
+
     @abstractmethod
     def to_json_object(self):
         """Returns an object suitable for JSON serialisation that represents
@@ -132,34 +136,3 @@ class Source(ABC, _TypPropEq):
         return {
             "type": self.type_label
         }
-
-    __json_handlers = {}
-    @staticmethod
-    def json_handler(type_label):
-        """Decorator: registers the decorated function as the handler for the
-        type label given as an argument. This handler will be called by
-        from_json_object when it finds this type label.
-
-        Subclasses should use this decorator to register their from_json_object
-        factory methods."""
-        def _json_handler(func):
-            if type_label in Source.__json_handlers:
-                raise ValueError(
-                        "BUG: can't register two handlers" +
-                        " for the same JSON type label!", type_label)
-            Source.__json_handlers[type_label] = func
-            return func
-        return _json_handler
-
-    @staticmethod
-    def from_json_object(obj):
-        """Converts a JSON representation of a Source, as returned by the
-        Source.to_json_object method, back into a Source."""
-        try:
-            tl = obj["type"]
-            if not tl in Source.__json_handlers:
-                raise UnknownSchemeError(tl)
-            return Source.__json_handlers[tl](obj)
-        except KeyError as k:
-            tl = obj.get("type", None)
-            raise DeserialisationError(tl, k.args[0])
