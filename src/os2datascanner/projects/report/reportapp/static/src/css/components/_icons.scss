@@ -26,16 +26,34 @@
 
 /* file type icons, start */
 .icon-filetype {
-  background-color: #ccc;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
   display: block;
   height: 2rem;
   width: 2rem;
-}
-.icon-filetype--docx {
-  background-color: #50bee8;
+
+  > svg {
+    display: block;
+    fill: #fff;
+    height: 100%;
+    padding: var(--size-ds-unit);
+    width: 100%;
+  }
 }
 
-.icon-filetype--pdf {
-  background-color: #f15642;
+.icon-filetype--office365 {
+  background-color: var(--color-office365);
+}
+
+.icon-filetype--exchange {
+  background-color: #bada55;
+}
+
+.icon-filetype--webpage {
+  background-color: #369;
+}
+
+.icon-filetype--smbc {
+  background-color: #50bee8;
 }
 /* file type icons, stop */

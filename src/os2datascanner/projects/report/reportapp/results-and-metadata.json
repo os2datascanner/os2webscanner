@@ -1,0 +1,180 @@
+[
+  {
+    "scan_spec": {
+      "source": {
+        "type": "smbc",
+        "unc": "//127.0.0.1/OS2datascanner shared resource",
+        "user": "datascanner",
+        "password": "datascanner",
+        "domain": null
+      },
+      "rule": {
+        "type": "and",
+        "components": [
+          {
+            "type": "last-modified",
+            "after": "2019-02-01T14:26:59+0200"
+          },
+          {
+            "type": "cpr",
+            "modulus_11": true,
+            "ignore_irrelevant": false
+          }
+        ]
+      },
+      "scan_tag": "post-february-cpr-round3"
+    },
+    "handle": {
+      "type": "smbc",
+      "source": {
+        "type": "smbc",
+        "unc": "//127.0.0.1/OS2datascanner shared resource",
+        "user": "datascanner",
+        "password": "datascanner",
+        "domain": null
+      },
+      "path": "secrets/bluesecret.jpg"
+    },
+    "matched": true,
+    "matches": [
+      {
+        "rule": {
+          "type": "last-modified",
+          "after": "2019-02-01T14:26:59+0200"
+        },
+        "matches": [
+          "2019-03-04T09:45:34+0000"
+        ]
+      },
+      {
+        "rule": {
+          "type": "cpr",
+          "modulus_11": true,
+          "ignore_irrelevant": false
+        },
+        "matches": [
+          {
+            "offset": 25,
+            "match": "2205XXXXXX",
+            "context": "Blue Secret Information\n\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\n22055",
+            "context_offset": 25
+          },
+          {
+            "offset": 36,
+            "match": "2205XXXXXX",
+            "context": "Blue Secret Information\n\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\n22055",
+            "context_offset": 36
+          },
+          {
+            "offset": 47,
+            "match": "2205XXXXXX",
+            "context": "Blue Secret Information\n\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\n22055",
+            "context_offset": 47
+          },
+          {
+            "offset": 58,
+            "match": "2205XXXXXX",
+            "context": "ret Information\n\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\n22055",
+            "context_offset": 50
+          },
+          {
+            "offset": 69,
+            "match": "2205XXXXXX",
+            "context": "tion\n\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\n22055",
+            "context_offset": 50
+          },
+          {
+            "offset": 80,
+            "match": "2205XXXXXX",
+            "context": "85004\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\n22055",
+            "context_offset": 50
+          },
+          {
+            "offset": 91,
+            "match": "2205XXXXXX",
+            "context": "85012\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\n22055",
+            "context_offset": 50
+          },
+          {
+            "offset": 102,
+            "match": "2205XXXXXX",
+            "context": "85020\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\n22055",
+            "context_offset": 50
+          },
+          {
+            "offset": 113,
+            "match": "2205XXXXXX",
+            "context": "85039\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\n22055",
+            "context_offset": 50
+          },
+          {
+            "offset": 124,
+            "match": "2205XXXXXX",
+            "context": "85047\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\n22055",
+            "context_offset": 50
+          },
+          {
+            "offset": 135,
+            "match": "2205XXXXXX",
+            "context": "85055\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\n22055",
+            "context_offset": 50
+          },
+          {
+            "offset": 146,
+            "match": "2205XXXXXX",
+            "context": "85063\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\n22055",
+            "context_offset": 50
+          },
+          {
+            "offset": 157,
+            "match": "2205XXXXXX",
+            "context": "85071\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\n22055",
+            "context_offset": 50
+          },
+          {
+            "offset": 168,
+            "match": "2205XXXXXX",
+            "context": "85098\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\n22055",
+            "context_offset": 50
+          },
+          {
+            "offset": 179,
+            "match": "2205XXXXXX",
+            "context": "85101\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\n22055",
+            "context_offset": 50
+          },
+          {
+            "offset": 190,
+            "match": "2205XXXXXX",
+            "context": "85128\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\n22055",
+            "context_offset": 50
+          },
+          {
+            "offset": 201,
+            "match": "2205XXXXXX",
+            "context": "85136\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\n22055",
+            "context_offset": 50
+          },
+          {
+            "offset": 212,
+            "match": "2205XXXXXX",
+            "context": "85144\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\n22055",
+            "context_offset": 50
+          },
+          {
+            "offset": 223,
+            "match": "2205XXXXXX",
+            "context": "85152\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\n22055",
+            "context_offset": 50
+          },
+          {
+            "offset": 1257,
+            "match": "2205XXXXXX",
+            "context": "86175\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX\nXXXXXX-XXXX",
+            "context_offset": 50
+          }
+        ]
+      }
+    ]
+  }
+]
