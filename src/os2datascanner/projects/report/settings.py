@@ -84,7 +84,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'os2datascanner-report',
         'USER': 'os2datascanner',
-        'PASSWORD': '1qaz',
+        'PASSWORD': 'os2datascanner',
         'HOST': os.getenv('POSTGRES_HOST', '127.0.0.1'),
     }
 }
