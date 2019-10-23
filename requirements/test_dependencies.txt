@@ -14,4 +14,3 @@ prometheus
 prometheus-postgres-exporter
 libsmbclient-dev
 moreutils
-python3-systemd
