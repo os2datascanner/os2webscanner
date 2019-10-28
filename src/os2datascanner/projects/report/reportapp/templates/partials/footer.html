@@ -1,8 +1,11 @@
-  </main><!-- .wrapper -->
+  </main>
 
+  {% if request.user.is_authenticated %}
   <footer class="footer">
     <span>OS2datascanner</span>
   </footer>
+  {% else %}
+  {% endif %}
 
 </body>
 
