@@ -3,7 +3,8 @@ from json import dumps, loads
 
 from ..model.core import Source
 from ..rules.cpr import CPRRule
-from .utils import make_common_argument_parser
+from .utilities import make_common_argument_parser
+
 
 def main():
     parser = make_common_argument_parser()
@@ -55,6 +56,7 @@ def main():
                 body=dumps(obj).encode())
 
     connection.close()
+
 
 if __name__ == "__main__":
     main()

@@ -1,6 +1,3 @@
 #!/usr/bin/env bash
 
-DIR="`dirname "${BASH_SOURCE[0]}"`"
-cd "$DIR/../src"
-. "../python-env/bin/activate"
-exec python -m os2datascanner.projects.admin.manage "$@"
+exec "`dirname "${BASH_SOURCE[0]}"`/pex" python -m os2datascanner.projects.admin.manage "$@"

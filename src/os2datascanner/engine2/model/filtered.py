@@ -1,4 +1,4 @@
-from .core import Source, Handle, FileResource
+from .core import Source, Handle, FileResource, SourceManager
 from .utilities import NamedTemporaryResource
 
 import os.path
@@ -10,10 +10,12 @@ from datetime import datetime
 from functools import partial
 from contextlib import contextmanager
 
+
 class FilterType(Enum):
     GZIP = "gzip"
     BZ2 = "bz2"
     LZMA = "lzma"
+
 
 class FilteredSource(Source):
     eq_properties = ("_handle", "_filter_type")
@@ -44,7 +46,10 @@ class FilteredSource(Source):
         yield FilteredHandle(self, rest)
 
     def _generate_state(self, sm):
-        yield self._handle.follow(sm)
+        # Using a nested SourceManager means that closing this generator will
+        # automatically clean up as much as possible
+        with SourceManager(sm) as derived:
+            yield self._handle.follow(derived)
 
     def to_json_object(self):
         return dict(**super().to_json_object(), **{
@@ -59,24 +64,29 @@ class FilteredSource(Source):
                 handle=Handle.from_json_object(obj["handle"]),
                 filter_type=FilterType(obj["filter_type"]))
 
+
 @Source.mime_handler("application/gzip")
 def _gzip(handle):
     return FilteredSource(handle, FilterType.GZIP)
+
 
 @Source.mime_handler("application/x-bzip2")
 def _bz2(handle):
     return FilteredSource(handle, FilterType.BZ2)
 
+
 @Source.mime_handler("application/x-xz")
 def _lzma(handle):
     return FilteredSource(handle, FilterType.LZMA)
 
+
+@Handle.stock_json_handler("filtered")
 class FilteredHandle(Handle):
     type_label = "filtered"
 
     def follow(self, sm):
         return FilteredResource(self, sm)
-Handle.stock_json_handler(FilteredHandle.type_label, FilteredHandle)
+
 
 class FilteredResource(FileResource):
     def __init__(self, handle, sm):

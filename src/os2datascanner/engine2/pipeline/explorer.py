@@ -1,14 +1,19 @@
 import pika
-from ..model.core import Source, SourceManager
-from .utils import (notify_ready, notify_stopping, json_event_processor,
+
+from ..model.core import (Source, SourceManager, ResourceUnavailableError,
+        DeserialisationError)
+from .utilities import (notify_ready, notify_stopping, json_event_processor,
         make_common_argument_parser)
 
 args = None
+
 
 @json_event_processor
 def message_received(channel, method, properties, body):
     print("message_received({0}, {1}, {2}, {3})".format(
             channel, method, properties, body))
+    channel.basic_ack(method.delivery_tag)
+
     try:
         source = Source.from_json_object(body["source"])
 
@@ -17,13 +22,31 @@ def message_received(channel, method, properties, body):
                 print(handle)
                 yield (args.conversions, {
                     "scan_spec": body,
-                    "handle": handle.to_json_object()
+                    "handle": handle.to_json_object(),
+                    "progress": body["progress"] if "progress" in body else {
+                        "rule": body["rule"],
+                        "matches": []
+                    }
                 })
+    except ResourceUnavailableError as ex:
+        yield (args.problems, {
+            "where": body["source"],
+            "problem": "unavailable",
+            "extra": [str(arg) for arg in ex.args]
+        })
+    except DeserialisationError as ex:
+        yield (args.problems, {
+            "where": body["source"],
+            "problem": "malformed",
+            "extra": [str(arg) for arg in ex.args]
+        })
+    except KeyError as ex:
+        yield (args.problems, {
+            "where": body,
+            "problem": "malformed",
+            "extra": [str(arg) for arg in ex.args]
+        })
 
-        channel.basic_ack(method.delivery_tag)
-    except Exception:
-        channel.basic_reject(method.delivery_tag)
-        raise
 
 def main():
     parser = make_common_argument_parser()

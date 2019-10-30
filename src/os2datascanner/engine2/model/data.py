@@ -6,6 +6,7 @@ from base64 import b64decode, b64encode
 from tempfile import NamedTemporaryFile
 from contextlib import contextmanager
 
+
 class DataSource(Source):
     type_label = "data"
 
@@ -44,6 +45,8 @@ class DataSource(Source):
     def from_json_object(obj):
         return DataSource(b64decode(obj["content"]), obj["mime"])
 
+
+@Handle.stock_json_handler("data")
 class DataHandle(Handle):
     type_label = "data"
 
@@ -52,7 +55,7 @@ class DataHandle(Handle):
 
     def follow(self, sm):
         return DataResource(self, sm)
-Handle.stock_json_handler(DataHandle.type_label, DataHandle)
+
 
 class DataResource(FileResource):
     def get_size(self):

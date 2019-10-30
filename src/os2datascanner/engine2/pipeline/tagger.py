@@ -1,10 +1,12 @@
 import pika
-from ..model.core import Handle, SourceManager, ResourceUnavailableError
-from .utils import (json_event_processor, notify_ready, notify_stopping,
-        make_common_argument_parser)
+
 from ...utils.metadata import guess_responsible_party
+from ..model.core import Handle, SourceManager, ResourceUnavailableError
+from .utilities import (json_event_processor, notify_ready, notify_stopping,
+        make_common_argument_parser)
 
 args = None
+
 
 @json_event_processor
 def message_received(channel, method, properties, body):
@@ -19,10 +21,19 @@ def message_received(channel, method, properties, body):
                 
                 with resource.make_path() as p:
                     print(p)
+
+                    metadata = guess_responsible_party(str(p))
+                    # FIXME: this should go away once guess_responsible_party
+                    # stops needing to care about engine1 compatibility
+                    if ("filesystem-owner-sid" not in metadata
+                            and hasattr(resource, "get_owner_sid")):
+                        metadata["filesystem-owner-sid"] = \
+                            resource.get_owner_sid()
+
                     yield (args.metadata, {
                         "scan_tag": body["scan_tag"],
                         "handle": body["handle"],
-                        "metadata": guess_responsible_party(str(p))
+                        "metadata": metadata
                     })
             except ResourceUnavailableError as ex:
                 print(ex)

@@ -1,0 +1,12 @@
+[Unit]
+Description=OS2datascanner pipeline: exporter %i
+After=rabbitmq-server.service
+Requires=rabbitmq-server.service
+
+[Service]
+ProtectSystem=strict
+PrivateTmp=true
+DynamicUser=true
+StandardOutput=journal
+SyslogIdentifier=OS2ds-expo%i
+ExecStart=/vagrant/bin/pex python -m os2datascanner.engine2.pipeline.exporter

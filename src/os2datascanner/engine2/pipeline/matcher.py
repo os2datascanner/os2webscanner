@@ -1,42 +1,70 @@
 import pika
+
 from ..rules.rule import Rule
-from .utils import (notify_ready, notify_stopping, json_event_processor,
+from ..rules.types import InputType
+from .utilities import (notify_ready, notify_stopping, json_event_processor,
         make_common_argument_parser)
 
 args = None
+
 
 @json_event_processor
 def message_received(channel, method, properties, body):
     print("message_received({0}, {1}, {2}, {3})".format(
             channel, method, properties, body))
     try:
-        rule = Rule.from_json_object(body["scan_spec"]["rule"])
-        matches = list(rule.match(body["representation"]["content"]))
+        progress = body["progress"]
+        representation = body["representation"]
+
+        rule = Rule.from_json_object(progress["rule"])
+        content = representation["content"]
+        content_type = InputType(representation["type"])
+
+        new_matches = []
+
+        # For now, we only do this once in order to exercise the pipeline. In
+        # future, we'll want to have a loop here: while the head of the rule
+        # wants the type of representation we have, keep finding more matches
+        head, pve, nve = rule.split()
+        matches = list(head.match(content))
+        new_matches.append({
+            "rule": head.to_json_object(),
+            "matches": matches if matches else None
+        })
         if matches:
-            for match in matches:
-                yield (args.matches, {
-                    "scan_spec": body["scan_spec"],
-                    "handle": body["handle"],
-                    "match": match
-                })
-            yield (args.handles, {
-                "scan_tag": body["scan_spec"]["scan_tag"],
-                "handle": body["handle"]
-            })
+            rule = pve
         else:
-            # Explicitly generate a false match so that we can distinguish
-            # between "not scanned yet" and "not matched". (Obviously there's
-            # no reason to extract metadata in this case!)
+            rule = nve
+
+        if isinstance(rule, bool):
+            # We've come to a conclusion!
             yield (args.matches, {
                 "scan_spec": body["scan_spec"],
                 "handle": body["handle"],
-                "match": False
+                "matched": rule,
+                "matches": progress["matches"] + new_matches
+            })
+            # Only trigger metadata scanning if the match succeeded
+            if rule:
+                yield (args.handles, {
+                    "scan_tag": body["scan_spec"]["scan_tag"],
+                    "handle": body["handle"]
+                })
+        else:
+            yield (args.conversions, {
+                "scan_spec": body["scan_spec"],
+                "handle": body["handle"],
+                "progress": {
+                    "rule": rule.to_json_object(),
+                    "matches": progress["matches"] + new_matches
+                }
             })
 
         channel.basic_ack(method.delivery_tag)
     except Exception:
         channel.basic_reject(method.delivery_tag)
         raise
+
 
 def main():
     parser = make_common_argument_parser()
@@ -98,6 +126,7 @@ def main():
         notify_stopping()
         channel.stop_consuming()
         connection.close()
+
 
 if __name__ == "__main__":
     main()

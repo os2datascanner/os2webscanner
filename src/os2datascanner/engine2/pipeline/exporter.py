@@ -1,24 +1,30 @@
+import json
 import pika
-from ...engine.utils import run_django_setup
-from .utils import notify_ready, notify_stopping, make_common_argument_parser
+import argparse
 
-# Exporters are the only part of the pipeline allowed to use the database, and
-# even only to write to it
-run_django_setup()
+from .utilities import (notify_ready,
+        notify_stopping, make_common_argument_parser)
+
+args = None
+
 
 def message_received(channel, method, properties, body):
-    print("message_received({0}, {1}, {2}, {3})".format(
-            channel, method, properties, body))
+    decoded_body = body.decode("utf-8")
+    print(json.dumps(json.loads(decoded_body), indent=True))
+    if args.dump:
+        args.dump.write(decoded_body + "\n")
+        args.dump.flush()
     try:
         channel.basic_ack(method.delivery_tag)
     except Exception:
         channel.basic_reject(method.delivery_tag)
         raise
 
+
 def main():
     parser = make_common_argument_parser()
-    parser.description = ("Consume problems and matches and write them to the"
-            + " database.")
+    parser.description = ("Consume problems, metadata and matches, and convert"
+            + " them into forms suitable for the outside world.")
 
     inputs = parser.add_argument_group("inputs")
     inputs.add_argument(
@@ -40,6 +46,23 @@ def main():
                     + " read",
             default="os2ds_metadata")
 
+    outputs = parser.add_argument_group("outputs")
+    outputs.add_argument(
+            "--results",
+            metavar="NAME",
+            help="the name of the AMQP queue to which filtered result objects"
+                    + " should be written",
+            default="os2ds_results")
+    outputs.add_argument(
+            "--debug-dump",
+            dest="dump",
+            metavar="PATH",
+            help="the name of a JSON Lines file to which all incoming messages"
+                    + "should be dumped (existing content will be deleted!)",
+            type=argparse.FileType(mode="wt"),
+            default=None)
+
+    global args
     args = parser.parse_args()
 
     parameters = pika.ConnectionParameters(host=args.host, heartbeat=6000)
@@ -51,6 +74,8 @@ def main():
     channel.queue_declare(args.problems, passive=False,
             durable=True, exclusive=False, auto_delete=False)
     channel.queue_declare(args.metadata, passive=False,
+            durable=True, exclusive=False, auto_delete=False)
+    channel.queue_declare(args.results, passive=False,
             durable=True, exclusive=False, auto_delete=False)
 
     channel.basic_consume(args.matches, message_received)
@@ -66,6 +91,7 @@ def main():
         notify_stopping()
         channel.stop_consuming()
         connection.close()
+
 
 if __name__ == "__main__":
     main()

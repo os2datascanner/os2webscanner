@@ -2,7 +2,7 @@ import unittest
 import contextlib
 from os import stat
 
-from os2datascanner.engine2.model.utilities import _TypPropEq
+from os2datascanner.engine2.model.core.utilities import _TypPropEq
 
 
 class Plain:

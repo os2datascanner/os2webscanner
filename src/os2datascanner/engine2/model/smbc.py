@@ -89,24 +89,24 @@ class SMBCSource(Source):
         return SMBCSource(
                 obj["unc"], obj["user"], obj["password"], obj["domain"])
 
+
+@Handle.stock_json_handler("smbc")
 class SMBCHandle(Handle):
     type_label = "smbc"
 
     def follow(self, sm):
         return SMBCResource(self, sm)
-Handle.stock_json_handler(SMBCHandle.type_label, SMBCHandle)
+
 
 class _SMBCFile(io.RawIOBase):
     def __init__(self, obj):
         self._file = obj
 
-    def read(self, n):
-        return self._file.read(n)
-
     def readinto(self, b):
-        r = self.read(len(b))
-        b[0:r] = r
-        return r
+        data = self._file.read(len(b))
+        count = len(data)
+        b[0:count] = data
+        return count
 
     def write(self, bytes):
         raise TypeError("_SMBCFile is read-only")
@@ -141,6 +141,7 @@ class _SMBCFile(io.RawIOBase):
 
     def seekable(self):
         return True
+
 
 class SMBCResource(FileResource):
     def __init__(self, handle, sm):

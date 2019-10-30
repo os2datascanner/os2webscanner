@@ -1,11 +1,14 @@
 import pika
 
-from .utils import notify_ready, notify_stopping, make_common_argument_parser
+from .utilities import (notify_ready,
+        notify_stopping, make_common_argument_parser)
+
 
 def message_received(channel, method, properties, body):
     print("message_received({0}, {1}, {2}, {3})".format(
             channel, method, properties, body))
     channel.basic_ack(method.delivery_tag)
+
 
 def main():
     parser = make_common_argument_parser()
@@ -43,6 +46,7 @@ def main():
         connection.close()
 
     connection.close()
+
 
 if __name__ == "__main__":
     main()

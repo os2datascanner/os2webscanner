@@ -1,9 +1,10 @@
-from .core import Source, Handle, FileResource
+from .core import Source, Handle, FileResource, SourceManager
 from .utilities import NamedTemporaryResource
 
 from tarfile import open as open_tar
 from datetime import datetime
 from contextlib import contextmanager
+
 
 @Source.mime_handler("application/x-tar")
 class TarSource(Source):
@@ -22,9 +23,12 @@ class TarSource(Source):
                 yield TarHandle(self, f.name)
 
     def _generate_state(self, sm):
-        with self._handle.follow(sm).make_path() as r:
-            with open_tar(str(r), "r") as tp:
-                yield tp
+        # Using a nested SourceManager means that closing this generator will
+        # automatically clean up as much as possible
+        with SourceManager(sm) as derived:
+            with self._handle.follow(derived).make_path() as r:
+                with open_tar(str(r), "r") as tp:
+                    yield tp
 
     def to_json_object(self):
         return dict(**super().to_json_object(), **{
@@ -36,12 +40,14 @@ class TarSource(Source):
     def from_json_object(obj):
         return TarSource(Handle.from_json_object(obj["handle"]))
 
+
+@Handle.stock_json_handler("tar")
 class TarHandle(Handle):
     type_label = "tar"
 
     def follow(self, sm):
         return TarResource(self, sm)
-Handle.stock_json_handler(TarHandle.type_label, TarHandle)
+
 
 class TarResource(FileResource):
     def __init__(self, handle, sm):
@@ -76,4 +82,3 @@ class TarResource(FileResource):
         with self._get_cookie().extractfile(
                  self.get_handle().get_relative_path()) as s:
             yield s
-

@@ -1,9 +1,10 @@
-from .core import Source, Handle, FileResource
+from .core import Source, Handle, FileResource, SourceManager
 from .utilities import NamedTemporaryResource
 
 from zipfile import ZipFile
 from datetime import datetime
 from contextlib import contextmanager
+
 
 @Source.mime_handler("application/zip")
 class ZipSource(Source):
@@ -22,9 +23,12 @@ class ZipSource(Source):
                 yield ZipHandle(self, f)
 
     def _generate_state(self, sm):
-        with self._handle.follow(sm).make_path() as r:
-            with ZipFile(str(r)) as zp:
-                yield zp
+        # Using a nested SourceManager means that closing this generator will
+        # automatically clean up as much as possible
+        with SourceManager(sm) as derived:
+            with self._handle.follow(derived).make_path() as r:
+                with ZipFile(str(r)) as zp:
+                    yield zp
 
     def to_handle(self):
         return self._handle
@@ -39,12 +43,14 @@ class ZipSource(Source):
     def from_json_object(obj):
         return ZipSource(Handle.from_json_object(obj["handle"]))
 
+
+@Handle.stock_json_handler("zip")
 class ZipHandle(Handle):
     type_label = "zip"
 
     def follow(self, sm):
         return ZipResource(self, sm)
-Handle.stock_json_handler(ZipHandle.type_label, ZipHandle)
+
 
 class ZipResource(FileResource):
     def __init__(self, handle, sm):
