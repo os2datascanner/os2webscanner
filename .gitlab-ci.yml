@@ -61,7 +61,7 @@ tests:
     - django-admin makemigrations --check --dry-run
 
     - coverage erase
-    - coverage run -m django test os2datascanner
+    - coverage run -m django test os2datascanner.tests
 
   after_script:
     - coverage html
