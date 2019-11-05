@@ -12,15 +12,21 @@ from contextlib import contextmanager
 
 class SMBCSource(Source):
     type_label = "smbc"
+    eq_properties = ("_unc", "_user", "_password", "_domain",)
 
-    def __init__(self, unc, user=None, password=None, domain=None):
+    def __init__(self, unc, user=None, password=None, domain=None,
+            driveletter=None):
         self._unc = unc
         self._user = user
         self._password = password
         self._domain = domain
+        self._driveletter = driveletter
 
     def get_unc(self):
         return self._unc
+
+    def get_driveletter(self):
+        return self._driveletter
 
     def __str__(self):
         return "SMBCSource({0}, {1}, ****, {2})".format(
@@ -80,14 +86,16 @@ class SMBCSource(Source):
             "unc": self._unc,
             "user": self._user,
             "password": self._password,
-            "domain": self._domain
+            "domain": self._domain,
+            "driveletter": self._driveletter
         })
 
     @staticmethod
     @Source.json_handler(type_label)
     def from_json_object(obj):
         return SMBCSource(
-                obj["unc"], obj["user"], obj["password"], obj["domain"])
+                obj["unc"], obj["user"], obj["password"], obj["domain"],
+                obj["driveletter"])
 
 
 @Handle.stock_json_handler("smbc")
@@ -96,7 +104,11 @@ class SMBCHandle(Handle):
 
     @property
     def presentation(self):
-        p = self.get_source()._unc
+        p = self.get_source().get_driveletter()
+        if p:
+            p += ":"
+        else:
+            p = self.get_source().get_unc()
         if p[-1] != "/":
             p += "/"
         return (p + self.get_relative_path()).replace("/", "\\")

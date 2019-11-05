@@ -44,7 +44,7 @@ class JSONTests(unittest.TestCase):
                             SMBCHandle(
                                     SMBCSource(
                                             "//SERVER/Resource",
-                                            "username"),
+                                            "username", driveletter="W"),
                                     "Confidential Documents.zip")),
                     "doc/Personal Information.docx"),
             WebHandle(
