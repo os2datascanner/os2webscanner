@@ -33,8 +33,12 @@ class SMBCSource(Source):
                 self._unc, self._user, self._domain)
 
     def _generate_state(self, sm):
-        yield (self._to_url(), smbc.Context())
-        # There seems to be no way to shut down a context...
+        c = smbc.Context()
+        try:
+            yield (self._to_url(), c)
+        finally:
+            # Brutal, but apparently necessary to shut the connection down...
+            del c
 
     def handles(self, sm):
         url, context = sm.open(self)
