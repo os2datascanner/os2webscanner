@@ -51,6 +51,9 @@ class FilteredSource(Source):
         with SourceManager(sm) as derived:
             yield self._handle.follow(derived)
 
+    def to_handle(self):
+        return self._handle
+
     def to_json_object(self):
         return dict(**super().to_json_object(), **{
             "handle": self._handle.to_json_object(),

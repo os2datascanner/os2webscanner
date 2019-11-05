@@ -30,6 +30,9 @@ class TarSource(Source):
                 with open_tar(str(r), "r") as tp:
                     yield tp
 
+    def to_handle(self):
+        return self._handle
+
     def to_json_object(self):
         return dict(**super().to_json_object(), **{
             "handle": self._handle.to_json_object()
