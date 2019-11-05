@@ -68,8 +68,7 @@ class Handle(_TypPropEq, JSONSerialisable):
         return None
 
     def __str__(self):
-        return "{0}({1}, {2})".format(
-                type(self).__name__, self._source, self._relpath)
+        return self.presentation
 
     @abstractmethod
     def follow(self, sm):
