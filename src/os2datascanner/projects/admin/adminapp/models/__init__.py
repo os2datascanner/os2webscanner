@@ -17,4 +17,3 @@ from . import urllastmodified_model  # noqa
 from . import userprofile_model  # noqa
 from . import version_model  # noqa
 from . import webversion_model  # noqa
-from . import aliases # noqa
