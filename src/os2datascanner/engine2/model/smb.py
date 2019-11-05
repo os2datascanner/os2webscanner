@@ -8,7 +8,10 @@ from pathlib import Path
 from tempfile import mkdtemp
 from subprocess import run
 
+
 class SMBSource(Source):
+    type_label = "smb"
+
     def __init__(self, unc, user=None, password=None, domain=None):
         self._unc = unc
         self._user = user
@@ -34,17 +37,19 @@ class SMBSource(Source):
     def __str__(self):
         return "SMBSource({0}, {1})".format(self._unc, self._make_optarg())
 
-    def _open(self, sm):
+    def _generate_state(self, sm):
         mntdir = mkdtemp()
         try:
             args = ["mount", "-t", "cifs", self._unc, mntdir, '-o']
             args.append(self._make_optarg(display=False))
             print(args)
             assert run(args).returncode == 0
-            return ShareableCookie(mntdir)
-        except:
+
+            yield ShareableCookie(mntdir)
+
+            assert run(["umount", mntdir]).returncode == 0
+        finally:
             rmdir(mntdir)
-            raise
 
     def _close(self, mntdir):
         args = ["umount", mntdir]
@@ -79,9 +84,28 @@ class SMBSource(Source):
         else:
             return None
 
+    def to_json_object(self):
+        return dict(**super().to_json_object(), **{
+            "unc": self._unc,
+            "user": self._user,
+            "password": self._password,
+            "domain": self._domain
+        })
+
+    @staticmethod
+    @Source.json_handler(type_label)
+    def from_json_object(obj):
+        return SMBSource(
+                obj["unc"], obj["user"], obj["password"], obj["domain"])
+
+
+@Handle.stock_json_handler("smb")
 class SMBHandle(Handle):
+    type_label = "smb"
+
     def follow(self, sm):
         return FilesystemResource(self, sm)
+
 
 # Third form from https://www.iana.org/assignments/uri-schemes/prov/smb
 def make_smb_url(schema, unc, user, domain, password):

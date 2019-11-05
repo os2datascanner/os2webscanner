@@ -1,23 +1,18 @@
-import structlog
-
 from .smb import make_smb_url, SMBSource
-from .core import Source, Handle, ShareableCookie, FileResource, ResourceUnavailableError
+from .core import Source, Handle, FileResource, ResourceUnavailableError
 from .utilities import NamedTemporaryResource
 
-from os import rmdir, stat_result, O_RDONLY
+import io
+from os import stat_result, O_RDONLY
 import smbc
-from regex import compile, match
-from urllib.parse import quote, unquote, urlsplit, urlunsplit
-from hashlib import md5
+from urllib.parse import quote, unquote, urlsplit
 from datetime import datetime
-from urllib.parse import quote
 from contextlib import contextmanager
 
 
-logger = structlog.get_logger()
-
-
 class SMBCSource(Source):
+    type_label = "smbc"
+
     def __init__(self, unc, user=None, password=None, domain=None):
         self._unc = unc
         self._user = user
@@ -31,13 +26,9 @@ class SMBCSource(Source):
         return "SMBCSource({0}, {1}, ****, {2})".format(
                 self._unc, self._user, self._domain)
 
-    def _open(self, sm):
-        context = smbc.Context()
-        return (self._to_url(), context)
-
-    def _close(self, cookie):
-        # There seems to be no way to shut down a context
-        pass
+    def _generate_state(self, sm):
+        yield (self._to_url(), smbc.Context())
+        # There seems to be no way to shut down a context...
 
     def handles(self, sm):
         url, context = sm.open(self)
@@ -60,7 +51,7 @@ class SMBCSource(Source):
             for dent in obj.getdents():
                 yield from handle_dirent([], dent)
         except Exception as exc:
-            raise ResourceUnavailableError(*exc.args)
+            raise ResourceUnavailableError(self, *exc.args)
 
     def to_url(self):
         return make_smb_url(
@@ -84,21 +75,98 @@ class SMBCSource(Source):
         else:
             return None
 
+    def to_json_object(self):
+        return dict(**super().to_json_object(), **{
+            "unc": self._unc,
+            "user": self._user,
+            "password": self._password,
+            "domain": self._domain
+        })
+
+    @staticmethod
+    @Source.json_handler(type_label)
+    def from_json_object(obj):
+        return SMBCSource(
+                obj["unc"], obj["user"], obj["password"], obj["domain"])
+
+
+@Handle.stock_json_handler("smbc")
 class SMBCHandle(Handle):
+    type_label = "smbc"
+
     def follow(self, sm):
         return SMBCResource(self, sm)
+
+
+class _SMBCFile(io.RawIOBase):
+    def __init__(self, obj):
+        self._file = obj
+
+    def readinto(self, b):
+        data = self._file.read(len(b))
+        count = len(data)
+        b[0:count] = data
+        return count
+
+    def write(self, bytes):
+        raise TypeError("_SMBCFile is read-only")
+
+    def seek(self, pos, whence):
+        r = self._file.lseek(pos, whence)
+        if r != -1:
+            return r
+        else:
+            raise IOError("lseek failed")
+
+    def tell(self):
+        r = self._file.lseek(0, io.SEEK_CUR)
+        if r != -1:
+            return r
+        else:
+            raise IOError("lseek failed")
+
+    def truncate(self, n=None):
+        raise TypeError("_SMBCFile is read-only")
+
+    def close(self):
+        r = self._file.close()
+        if r and r < 0:
+            raise IOError("Failed to close {0}".format(self), r)
+
+    def readable(self):
+        return True
+
+    def writable(self):
+        return False
+
+    def seekable(self):
+        return True
+
 
 class SMBCResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
         self._stat = None
-        self._hash = None
+
+    def _make_url(self):
+        url, _ = self._get_cookie()
+        return url + "/" + quote(self.get_handle().get_relative_path())
 
     def open_file(self):
         try:
-            url, context = self._open_source()
-            my_url = url + "/" + quote(self.get_handle().get_relative_path())
-            return context.open(my_url, O_RDONLY)
+            _, context = self._get_cookie()
+            return context.open(self._make_url(), O_RDONLY)
+        except smbc.NoEntryError as ex:
+            raise ResourceUnavailableError(self.get_handle(), ex)
+
+    def get_xattr(self, attr):
+        """Retrieves a SMB extended attribute for this file. (See the
+        documentation for smbc.Context.getxattr for *most* of the supported
+        attribute names.)"""
+        try:
+            _, context = self._get_cookie()
+            return context.getxattr(self._make_url(), attr)
+            # Don't attempt to catch the ValueError if attr isn't valid
         except smbc.NoEntryError as ex:
             raise ResourceUnavailableError(self.get_handle(), ex)
 
@@ -117,38 +185,28 @@ class SMBCResource(FileResource):
     def get_last_modified(self):
         return datetime.fromtimestamp(self.get_stat().st_mtime)
 
-    def get_hash(self):
-        if not self._hash:
-            with self.make_stream() as f:
-                self._hash = md5(f.read())
-        return self._hash
-
-    # At the moment, we implement make_stream in terms of make_path: we
-    # download the file's content in order to get a file-like object out of
-    # it. We could, in theory, do this the other way round by implementing an
-    # io.RawIOBase subclass that wraps smbc.File, but that seems more
-    # complicated -- and, in early testing, actually had worse performance!
+    def get_owner_sid(self):
+        """Returns the Windows security identifier of the owner of this file,
+        which libsmbclient exposes as an extended attribute."""
+        return self.get_xattr("system.nt_sec_desc.owner")
 
     @contextmanager
     def make_path(self):
         ntr = NamedTemporaryResource(self.get_handle().get_name())
         try:
             with ntr.open("wb") as f:
-                rf = self.open_file()
-                try:
+                with self.make_stream() as rf:
                     buf = rf.read(self.DOWNLOAD_CHUNK_SIZE)
                     while buf:
                         f.write(buf)
                         buf = rf.read(self.DOWNLOAD_CHUNK_SIZE)
-                finally:
-                    rf.close()
             yield ntr.get_path()
         finally:
             ntr.finished()
 
     @contextmanager
     def make_stream(self):
-        with self.make_path() as p:
-            yield p.open("rb")
+        with _SMBCFile(self.open_file()) as fp:
+            yield fp
 
     DOWNLOAD_CHUNK_SIZE = 1024 * 512

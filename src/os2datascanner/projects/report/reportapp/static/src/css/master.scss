@@ -1,0 +1,21 @@
+/* Generic styling */
+@import 'base';
+@import 'layout';
+@import '../fonts/inter/inter.css';
+@import 'typography';
+
+/* Areas */
+@import 'components/banner';
+@import 'components/logo';
+@import 'components/login';
+@import 'components/navigation';
+@import 'components/user';
+@import 'components/footer';
+
+/* Single components */
+@import 'components/datatable';
+@import 'components/filter-options';
+@import 'components/icons';
+@import 'components/forms';
+@import 'components/buttons';
+@import 'components/hit-links';

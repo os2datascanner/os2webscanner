@@ -1,0 +1,17 @@
+python3-dev
+libxml2-dev
+libxslt1-dev
+tesseract-ocr
+tesseract-ocr-dan
+pdftohtml
+unzip
+imagemagick
+mailutils
+libssl-dev
+libkrb5-dev
+gettext
+prometheus
+prometheus-postgres-exporter
+libsmbclient-dev
+moreutils
+libsystemd-dev

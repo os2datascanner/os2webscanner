@@ -1,12 +1,15 @@
-from .core import Source, Handle, FileResource
+from .core import Source, Handle, FileResource, SourceManager
 from .utilities import NamedTemporaryResource
 
 from zipfile import ZipFile
 from datetime import datetime
 from contextlib import contextmanager
 
+
 @Source.mime_handler("application/zip")
 class ZipSource(Source):
+    type_label = "zip"
+
     def __init__(self, handle):
         self._handle = handle
 
@@ -14,27 +17,40 @@ class ZipSource(Source):
         return "ZipSource({0})".format(self._handle)
 
     def handles(self, sm):
-        _, zipfile = sm.open(self)
+        zipfile = sm.open(self)
         for f in zipfile.namelist():
             if not f[-1] == "/":
                 yield ZipHandle(self, f)
 
-    def _open(self, sm):
-        r = self._handle.follow(sm).make_path()
-        path = r.__enter__()
-        return (r, ZipFile(str(path)))
-
-    def _close(self, cookie):
-        r, zipfile = cookie
-        r.__exit__(None, None, None)
-        zipfile.close()
+    def _generate_state(self, sm):
+        # Using a nested SourceManager means that closing this generator will
+        # automatically clean up as much as possible
+        with SourceManager(sm) as derived:
+            with self._handle.follow(derived).make_path() as r:
+                with ZipFile(str(r)) as zp:
+                    yield zp
 
     def to_handle(self):
         return self._handle
 
+    def to_json_object(self):
+        return dict(**super().to_json_object(), **{
+            "handle": self._handle.to_json_object()
+        })
+
+    @staticmethod
+    @Source.json_handler(type_label)
+    def from_json_object(obj):
+        return ZipSource(Handle.from_json_object(obj["handle"]))
+
+
+@Handle.stock_json_handler("zip")
 class ZipHandle(Handle):
+    type_label = "zip"
+
     def follow(self, sm):
         return ZipResource(self, sm)
+
 
 class ZipResource(FileResource):
     def __init__(self, handle, sm):
@@ -43,12 +59,9 @@ class ZipResource(FileResource):
 
     def get_info(self):
         if not self._info:
-            self._info = self._open_source()[1].getinfo(
+            self._info = self._get_cookie().getinfo(
                     str(self.get_handle().get_relative_path()))
         return self._info
-
-    def get_hash(self):
-        return self.get_info().CRC
 
     def get_size(self):
         return self.get_info().file_size
@@ -69,6 +82,6 @@ class ZipResource(FileResource):
 
     @contextmanager
     def make_stream(self):
-        with self._open_source()[1].open(
+        with self._get_cookie().open(
                 self.get_handle().get_relative_path()) as s:
             yield s

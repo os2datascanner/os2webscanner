@@ -1,12 +1,15 @@
-from .core import Source, Handle, FileResource
+from .core import Source, Handle, FileResource, SourceManager
 from .utilities import NamedTemporaryResource
 
 from tarfile import open as open_tar
 from datetime import datetime
 from contextlib import contextmanager
 
+
 @Source.mime_handler("application/x-tar")
 class TarSource(Source):
+    type_label = "tar"
+
     def __init__(self, handle):
         self._handle = handle
 
@@ -14,24 +17,37 @@ class TarSource(Source):
         return "TarSource({0})".format(self._handle)
 
     def handles(self, sm):
-        _, tarfile = sm.open(self)
+        tarfile = sm.open(self)
         for f in tarfile.getmembers():
             if f.isfile():
                 yield TarHandle(self, f.name)
 
-    def _open(self, sm):
-        r = self._handle.follow(sm).make_path()
-        path = r.__enter__()
-        return (r, open_tar(str(path), "r"))
+    def _generate_state(self, sm):
+        # Using a nested SourceManager means that closing this generator will
+        # automatically clean up as much as possible
+        with SourceManager(sm) as derived:
+            with self._handle.follow(derived).make_path() as r:
+                with open_tar(str(r), "r") as tp:
+                    yield tp
 
-    def _close(self, cookie):
-        r, tarfile = cookie
-        r.__exit__(None, None, None)
-        tarfile.close()
+    def to_json_object(self):
+        return dict(**super().to_json_object(), **{
+            "handle": self._handle.to_json_object()
+        })
 
+    @staticmethod
+    @Source.json_handler(type_label)
+    def from_json_object(obj):
+        return TarSource(Handle.from_json_object(obj["handle"]))
+
+
+@Handle.stock_json_handler("tar")
 class TarHandle(Handle):
+    type_label = "tar"
+
     def follow(self, sm):
         return TarResource(self, sm)
+
 
 class TarResource(FileResource):
     def __init__(self, handle, sm):
@@ -40,12 +56,9 @@ class TarResource(FileResource):
 
     def get_info(self):
         if not self._info:
-            self._info = self._open_source()[1].getmember(
+            self._info = self._get_cookie().getmember(
                     self.get_handle().get_relative_path())
         return self._info
-
-    def get_hash(self):
-        return self.get_info().chksum
 
     def get_size(self):
         return self.get_info().size
@@ -55,7 +68,7 @@ class TarResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        ntr = NamedTemporaryResource(Path(self.get_handle().get_name()))
+        ntr = NamedTemporaryResource(self.get_handle().get_name())
         try:
             with ntr.open("wb") as f:
                 with self.make_stream() as s:
@@ -66,7 +79,6 @@ class TarResource(FileResource):
 
     @contextmanager
     def make_stream(self):
-        with self._open_source()[1].extractfile(
+        with self._get_cookie().extractfile(
                  self.get_handle().get_relative_path()) as s:
             yield s
-

@@ -7,16 +7,22 @@ from lxml.html import document_fromstring
 from urllib.parse import urljoin, urlsplit, urlunsplit
 from dateutil.parser import parse as parse_date
 from requests.sessions import Session
+from requests.exceptions import ConnectionError
 from contextlib import contextmanager
+
 
 MAX_REQUESTS_PER_SECOND = 10
 SLEEP_TIME = 1 / MAX_REQUESTS_PER_SECOND
+
 
 def simplify_mime_type(mime):
     r = mime.split(';', maxsplit=1)
     return r[0]
 
+
 class WebSource(Source):
+    type_label = "web"
+
     def __init__(self, url):
         assert url.startswith("http:") or url.startswith("https:")
         self._url = url
@@ -24,45 +30,46 @@ class WebSource(Source):
     def __str__(self):
         return "WebSource({0})".format(self._url)
 
-    def _open(self, sm):
-        return Session()
-
-    def _close(self, session):
-        session.close()
+    def _generate_state(self, sm):
+        with Session() as session:
+            yield session
 
     def handles(self, sm):
-        session = sm.open(self)
-        to_visit = [self._url]
-        visited = set()
-        referrer_map = {}
+        try:
+            session = sm.open(self)
+            to_visit = [self._url]
+            visited = set()
+            referrer_map = {}
 
-        scheme, netloc, path, query, fragment = urlsplit(self._url)
-        while to_visit:
-            here, to_visit = to_visit[0], to_visit[1:]
+            scheme, netloc, path, query, fragment = urlsplit(self._url)
+            while to_visit:
+                here, to_visit = to_visit[0], to_visit[1:]
 
-            response = session.head(here)
-            if response.status_code == 200:
-                ct = response.headers['Content-Type']
-                if simplify_mime_type(ct) == 'text/html':
-                    response = session.get(here)
-                    doc = document_fromstring(response.content)
-                    doc.make_links_absolute(here, resolve_base_href=True)
-                    for el, _, li, _ in doc.iterlinks():
-                        if el.tag != 'a':
-                            continue
-                        new_url = urljoin(here, li)
-                        new_scheme, new_netloc, new_path, new_query, _ = urlsplit(new_url)
-                        if new_scheme == scheme and new_netloc == netloc:
-                            new_url = urlunsplit((new_scheme, new_netloc, new_path, new_query, None))
-                            referrer_map.setdefault(new_url, set()).add(here)
-                            if new_url not in visited:
-                                visited.add(new_url)
-                                to_visit.append(new_url)
+                response = session.head(here)
+                if response.status_code == 200:
+                    ct = response.headers['Content-Type']
+                    if simplify_mime_type(ct) == 'text/html':
+                        response = session.get(here)
+                        doc = document_fromstring(response.content)
+                        doc.make_links_absolute(here, resolve_base_href=True)
+                        for el, _, li, _ in doc.iterlinks():
+                            if el.tag != 'a':
+                                continue
+                            new_url = urljoin(here, li)
+                            new_scheme, new_netloc, new_path, new_query, _ = urlsplit(new_url)
+                            if new_scheme == scheme and new_netloc == netloc:
+                                new_url = urlunsplit((new_scheme, new_netloc, new_path, new_query, None))
+                                referrer_map.setdefault(new_url, set()).add(here)
+                                if new_url not in visited:
+                                    visited.add(new_url)
+                                    to_visit.append(new_url)
 
-            wh = WebHandle(self, here[len(self._url):])
-            wh.set_referrer_urls(referrer_map.get(here, set()))
-            yield wh
-            sleep(SLEEP_TIME)
+                wh = WebHandle(self, here[len(self._url):])
+                wh.set_referrer_urls(referrer_map.get(here, set()))
+                yield wh
+                sleep(SLEEP_TIME)
+        except ConnectionError as e:
+            raise ResourceUnavailableError(self, *e.args)
 
     def to_url(self):
         return self._url
@@ -72,9 +79,24 @@ class WebSource(Source):
     def from_url(url):
         return WebSource(url)
 
+    def to_json_object(self):
+        return dict(**super().to_json_object(), **{
+            "url": self._url
+        })
+
+    @staticmethod
+    @Source.json_handler(type_label)
+    def from_json_object(obj):
+        return WebSource(url=obj["url"])
+
+
 SecureWebSource = WebSource
 
+
+@Handle.stock_json_handler("web")
 class WebHandle(Handle):
+    type_label = "web"
+
     eq_properties = Handle.BASE_PROPERTIES
 
     def __init__(self, source, path):
@@ -90,6 +112,7 @@ class WebHandle(Handle):
     def follow(self, sm):
         return WebResource(self, sm)
 
+
 class WebResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
@@ -103,9 +126,9 @@ class WebResource(FileResource):
 
     def _require_header_and_status(self):
         if not self._header:
-            response = self._open_source().head(self._make_url())
+            response = self._get_cookie().head(self._make_url())
             self._status = response.status_code
-            self._header = dict(response.headers)
+            self._header = response.headers.copy()
 
     def get_status(self):
         self._require_header_and_status()
@@ -124,7 +147,7 @@ class WebResource(FileResource):
         try:
             return parse_date(self.get_header()["Last-Modified"])
         except (KeyError, ValueError):
-            return None
+            return super().get_last_modified()
 
     # override
     def compute_type(self):
@@ -146,7 +169,7 @@ class WebResource(FileResource):
 
     @contextmanager
     def make_stream(self):
-        response = self._open_source().get(self._make_url())
+        response = self._get_cookie().get(self._make_url())
         if response.status_code != 200:
             raise ResourceUnavailableError(
                     self.get_handle(), response.status_code)

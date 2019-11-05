@@ -1,6 +1,0 @@
--r requirements.txt
-ipython
-pycodestyle==2.5.0
-unittest-xml-reporting==2.5.1
-django_extensions
-coverage

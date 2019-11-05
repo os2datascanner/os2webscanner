@@ -1,0 +1,59 @@
+/* datatable severity icons, start */
+.level-label {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-left: 5px solid rgba(0, 0, 0, 0.1);
+  border-radius: 3px 1px 1px 3px;
+  display: inline-block;
+  font-size: 0.5rem;
+  line-height: 1;
+  padding: 0.25rem 0.5rem;
+  text-transform: uppercase;
+}
+
+.level-label--1 {
+  border-left-color: var(--color-error);
+}
+
+.level-label--2 {
+  border-left-color: var(--color-warning);
+}
+
+.level-label--3 {
+  border-left-color: var(--color-ok);
+}
+/* datatable severity icons, stop */
+
+
+/* file type icons, start */
+.icon-filetype {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  display: block;
+  height: 2rem;
+  width: 2rem;
+
+  > svg {
+    display: block;
+    fill: #fff;
+    height: 100%;
+    padding: var(--size-ds-unit);
+    width: 100%;
+  }
+}
+
+.icon-filetype--office365 {
+  background-color: var(--color-office365);
+}
+
+.icon-filetype--exchange {
+  background-color: #bada55;
+}
+
+.icon-filetype--webpage {
+  background-color: #369;
+}
+
+.icon-filetype--smbc {
+  background-color: #50bee8;
+}
+/* file type icons, stop */
