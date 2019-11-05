@@ -50,6 +50,10 @@ class DataSource(Source):
 class DataHandle(Handle):
     type_label = "data"
 
+    @property
+    def presentation(self):
+        return "(embedded file of type {0})".format(self.guess_type())
+
     def guess_type(self):
         return self.get_source()._mime
 

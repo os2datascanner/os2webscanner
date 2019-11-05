@@ -87,6 +87,11 @@ def _lzma(handle):
 class FilteredHandle(Handle):
     type_label = "filtered"
 
+    @property
+    def presentation(self):
+        return "({0}, decompressed)".format(
+                self.get_source().to_handle().presentation)
+
     def follow(self, sm):
         return FilteredResource(self, sm)
 

@@ -50,6 +50,23 @@ class Handle(_TypPropEq, JSONSerialisable):
         mime, _ = guess_type(self.get_name())
         return mime or "application/octet-stream"
 
+    @property
+    @abstractmethod
+    def presentation(self):
+        """Returns a (perhaps localised) human-readable string representing
+        this Handle, for use in user interfaces."""
+
+    @property
+    def presentation_url(self):
+        """Returns a URL that points to a user-meaningful webpage that
+        corresponds to this Handle, if there is one.
+
+        The returned URL is not necessarily the result of appending this
+        Handle's path to the URL representation of its Source. (For example,
+        this function might, for a Handle identifying an email, return a URL
+        that points at that email in an appropriate webmail system.)"""
+        return None
+
     def __str__(self):
         return "{0}({1}, {2})".format(
                 type(self).__name__, self._source, self._relpath)

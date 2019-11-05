@@ -103,6 +103,13 @@ class SMBSource(Source):
 class SMBHandle(Handle):
     type_label = "smb"
 
+    @property
+    def presentation(self):
+        p = self.get_source()._unc
+        if p[-1] != "/":
+            p += "/"
+        return (p + self.get_relative_path()).replace("/", "\\")
+
     def follow(self, sm):
         return FilesystemResource(self, sm)
 

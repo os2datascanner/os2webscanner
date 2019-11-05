@@ -94,6 +94,13 @@ class SMBCSource(Source):
 class SMBCHandle(Handle):
     type_label = "smbc"
 
+    @property
+    def presentation(self):
+        p = self.get_source()._unc
+        if p[-1] != "/":
+            p += "/"
+        return (p + self.get_relative_path()).replace("/", "\\")
+
     def follow(self, sm):
         return SMBCResource(self, sm)
 

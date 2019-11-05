@@ -109,6 +109,17 @@ class WebHandle(Handle):
     def get_referrer_urls(self):
         return self._referrer_urls
 
+    @property
+    def presentation(self):
+        return self.presentation_url
+
+    @property
+    def presentation_url(self):
+        p = self.get_source().to_url()
+        if p[-1] != "/":
+            p += "/"
+        return p + self.get_relative_path()
+
     def follow(self, sm):
         return WebResource(self, sm)
 
