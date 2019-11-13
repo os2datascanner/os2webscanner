@@ -1,7 +1,9 @@
-from .core import Source, Handle, Resource, ResourceUnavailableError
+from .core import (Source, Handle,
+        Resource, FileResource, SourceManager, ResourceUnavailableError)
 
 import io
 from os import stat_result, O_RDONLY
+import email
 from datetime import datetime
 from contextlib import contextmanager
 from exchangelib import Account, Credentials, IMPERSONATION, Configuration
@@ -40,7 +42,7 @@ class InsensitiveDict(dict):
         return super().__setitem__(key.lower(), value)
 
 
-class EWSSource(Source):
+class EWSAccountSource(Source):
     type_label = "ews"
 
     def __init__(self, domain, server, admin_user, admin_password, user):
@@ -83,7 +85,7 @@ class EWSSource(Source):
         try:
             yield account
         finally:
-            account.protocol.close()
+            pass # account.protocol.close()
 
     def handles(self, sm):
         account = sm.open(self)
@@ -97,12 +99,12 @@ class EWSSource(Source):
 
         def relevant_mails(relevant_folders):
             for folder in relevant_folders:
-                for mail in folder.all():
+                for mail in folder.all().only("id", "headers"):
                     headers = _dictify_headers(mail.headers)
                     if headers:
-                        yield EWSHandle(self,
+                        yield EWSMailHandle(self,
                                 "{0}.{1}".format(folder.id, mail.id),
-                                folder.name, headers["subject"])
+                                headers["subject"])
 
         yield from relevant_mails(relevant_folders())
 
@@ -123,12 +125,14 @@ class EWSSource(Source):
                 obj["admin_password"], obj["user"])
 
 
-class EWSHandle(Handle):
+MAIL_MIME = "application/x-os2datascanner-mailhandle"
+
+
+class EWSMailHandle(Handle):
     type_label = "ews"
 
-    def __init__(self, source, path, folder_name, mail_subject):
+    def __init__(self, source, path, mail_subject):
         super().__init__(source, path)
-        self._folder_name = folder_name
         self._mail_subject = mail_subject
 
     @property
@@ -140,4 +144,64 @@ class EWSHandle(Handle):
         return self.representation
 
     def follow(self, sm):
-        raise NotImplementedError("EWSHandle.follow")
+        return EWSMailResource(self, sm)
+
+    def guess_type(self):
+        return MAIL_MIME
+
+
+class EWSMailResource(Resource):
+    def __init__(self, handle, sm):
+        super().__init__(handle, sm)
+        self._ids = self.get_handle().get_relative_path().split(
+                ".", maxsplit=1)
+        self._message = None
+
+    def get_message_object(self):
+        if not self._message:
+            folder_id, mail_id = self._ids
+            account = self._get_cookie()
+            self._message = account.root.get_folder(folder_id).get(id=mail_id)
+        return self._message
+
+    def get_email_message(self):
+        return email.message_from_string(
+                self.get_message_object().mime_content)
+
+    def compute_type(self):
+        return MAIL_MIME
+
+
+@Source.mime_handler(MAIL_MIME)
+class MailSource(Source):
+    type_label = "mail"
+
+    def __init__(self, mh):
+        self._handle = mh
+
+    def to_handle(self):
+        return self._handle
+
+    def _generate_state(self, sm):
+        with SourceManager(sm) as sm:
+            yield self.to_handle().follow(sm).get_email_message()
+
+    def handles(self, sm):
+        def _process_message(path, m):
+            ct = m.get_content_maintype()
+            if ct == "multipart":
+                for idx, fragment in enumerate(m.get_payload()):
+                    yield from _process_message(path + [str(idx)], fragment)
+            else:
+                yield ("/".join(path), m.get_filename(), m.get_content_type(), m.get_payload())
+        yield from _process_message([], sm.open(self))
+
+    def to_json_object(self):
+        return dict(**super().to_json_object, **{
+            "handle": self.to_handle().to_json_object()
+        })
+
+    @staticmethod
+    @Source.json_handler(type_label)
+    def from_json_object(obj):
+        return MailSource(Handle.from_json_object(obj))
