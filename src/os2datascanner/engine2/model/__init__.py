@@ -28,4 +28,5 @@ from . import tar # noqa
 from . import zip # noqa
 from . import data # noqa
 from . import http # noqa
+from . import special # noqa
 from . import filtered # noqa
