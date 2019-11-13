@@ -1,5 +1,6 @@
 from .core import (Source, Handle,
         Resource, FileResource, SourceManager, ResourceUnavailableError)
+from .utilities import NamedTemporaryResource
 
 import io
 from os import stat_result, O_RDONLY
@@ -187,13 +188,15 @@ class MailSource(Source):
             yield self.to_handle().follow(sm).get_email_message()
 
     def handles(self, sm):
-        def _process_message(path, m):
-            ct = m.get_content_maintype()
+        def _process_message(path, part):
+            ct = part.get_content_maintype()
             if ct == "multipart":
-                for idx, fragment in enumerate(m.get_payload()):
+                for idx, fragment in enumerate(part.get_payload()):
                     yield from _process_message(path + [str(idx)], fragment)
             else:
-                yield ("/".join(path), m.get_filename(), m.get_content_type(), m.get_payload())
+                filename = part.get_filename()
+                full_path = "/".join(path + [filename or ''])
+                yield MailPartHandle(self, full_path, part.get_content_type())
         yield from _process_message([], sm.open(self))
 
     def to_json_object(self):
@@ -205,3 +208,76 @@ class MailSource(Source):
     @Source.json_handler(type_label)
     def from_json_object(obj):
         return MailSource(Handle.from_json_object(obj))
+
+
+class MailPartHandle(Handle):
+    type_label = "mail-part"
+
+    def __init__(self, source, path, mime):
+        super().__init__(source, path)
+        self._mime = mime
+
+    @property
+    def presentation(self):
+        return "{0} (in {1})".format(
+                self.get_name(), self.get_source().get_handle())
+
+    def follow(self, sm):
+        return MailPartResource(self, sm)
+
+    def guess_type(self):
+        return self._mime
+
+    def to_json_object(self):
+        return dict(**super().to_json_object(), **{
+            "mime": self._mime
+        })
+
+    @staticmethod
+    @Handle.json_handler(type_label)
+    def from_json_object(obj):
+        return MailPartHandle(Source.from_json_object(obj["source"]),
+                obj["path"], obj["mime"])
+
+
+class MailPartResource(FileResource):
+    def __init__(self, handle, sm):
+        super().__init__(handle, sm)
+        self._fragment = None
+
+    def _get_fragment(self):
+        if not self._fragment:
+            where = self._get_cookie()
+            path = self.get_handle().get_relative_path().split("/")[:-1]
+            while path:
+                next_idx, path = int(path[0]), path[1:]
+                where = where.get_payload()[next_idx]
+            self._fragment = where
+        return self._fragment
+
+    def get_last_modified(self):
+        return super().get_last_modified()
+
+    def get_size(self):
+        with self.make_stream() as s:
+            initial = s.seek(0, 1)
+            try:
+                s.seek(0, 2)
+                return s.tell()
+            finally:
+                s.seek(initial, 0)
+
+    @contextmanager
+    def make_path(self):
+        ntr = NamedTemporaryResource(self.get_handle().get_name())
+        try:
+            with ntr.open("wb") as res:
+                with self.make_stream() as s:
+                    res.write(s.read())
+            yield ntr.get_path()
+        finally:
+            ntr.finished()
+
+    @contextmanager
+    def make_stream(self):
+        yield io.BytesIO(self._get_fragment().get_payload(decode=True))
