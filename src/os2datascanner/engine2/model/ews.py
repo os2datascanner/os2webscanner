@@ -5,7 +5,11 @@ from os import stat_result, O_RDONLY
 from datetime import datetime
 from contextlib import contextmanager
 from exchangelib import Account, Credentials, IMPERSONATION, Configuration
+from exchangelib.protocol import BaseProtocol
 from exchangelib.errors import ErrorNonExistentMailbox
+
+
+BaseProtocol.SESSION_POOLSIZE = 1
 
 
 OFFICE_365_ENDPOINT = "https://outlook.office365.com/EWS/Exchange.asmx"
