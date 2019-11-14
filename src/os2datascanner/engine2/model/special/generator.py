@@ -43,7 +43,7 @@ class GeneratorSource(Source):
     @staticmethod
     @Source.mime_handler(MAGIC_MIME)
     def from_handle(handle):
-        return Source.from_json_object(handle._json)
+        return Source.from_json_object(handle.get_json())
 
 
 class GeneratorHandle(Handle):
@@ -58,6 +58,10 @@ class GeneratorHandle(Handle):
 
     def guess_type(self):
         return MAGIC_MIME
+
+    @property
+    def presentation(self):
+        return "(generated)" # XXX
 
     def to_json_object(self):
         return dict(**super().to_json_object(), **{

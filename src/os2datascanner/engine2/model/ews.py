@@ -131,12 +131,9 @@ class EWSMailHandle(Handle):
         self._mail_subject = mail_subject
 
     @property
-    def representation(self):
+    def presentation(self):
         return "\"{0}\" (in {1}@{2})".format(self._mail_subject,
                 self.get_source().get_user(), self.get_source().get_domain())
-
-    def __str__(self):
-        return self.representation
 
     def follow(self, sm):
         return EWSMailResource(self, sm)
