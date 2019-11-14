@@ -9,11 +9,11 @@ class NamedTemporaryResource:
         self._dir = None
 
     def open(self, mode):
-        if self._dir is None:
-            self._dir = mkdtemp()
         return open(self.get_path(), mode)
 
     def get_path(self) -> str:
+        if self._dir is None:
+            self._dir = mkdtemp()
         return os.path.join(self._dir, self._name)
 
     def __enter__(self):
