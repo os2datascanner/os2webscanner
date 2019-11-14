@@ -5,7 +5,7 @@ from ..core import Source, Handle, FileResource, DerivedSource, SourceManager
 from ..utilities import NamedTemporaryResource
 
 
-MIME_TYPE = "application/x-os2datascanner-mailhandle"
+MIME_TYPE = "message/rfc822"
 """A special MIME type for explorable emails. Resources (and their associated
 Handles) that represent an email message, and that have a to_email_message
 function that returns the content of that message as a Python
