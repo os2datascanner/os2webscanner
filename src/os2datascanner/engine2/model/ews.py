@@ -83,7 +83,10 @@ class EWSAccountSource(Source):
         try:
             yield account
         finally:
-            pass # account.protocol.close()
+            # XXX: we should, in principle, close account.protocol here, but
+            # exchangelib seems to keep a reference to it internally and so
+            # waits forever if we do
+            pass
 
     def handles(self, sm):
         account = sm.open(self)
@@ -171,8 +174,10 @@ class EWSMailResource(Resource):
         return self._message
 
     def get_email_message(self):
-        return email.message_from_string(
-                self.get_message_object().mime_content)
+        msg = self.get_message_object().mime_content
+        if isinstance(msg, bytes):
+            msg = msg.decode("utf-8") # XXX: is this always correct?
+        return email.message_from_string(msg)
 
     def compute_type(self):
         return MAIL_MIME
