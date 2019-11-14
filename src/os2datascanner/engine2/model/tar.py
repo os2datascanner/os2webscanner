@@ -65,14 +65,11 @@ class TarResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        ntr = NamedTemporaryResource(self.get_handle().get_name())
-        try:
+        with NamedTemporaryResource(self.get_handle().get_name()) as ntr:
             with ntr.open("wb") as f:
                 with self.make_stream() as s:
                     f.write(s.read())
             yield ntr.get_path()
-        finally:
-            ntr.finished()
 
     @contextmanager
     def make_stream(self):

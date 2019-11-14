@@ -1,6 +1,7 @@
 from os import rmdir, remove
 import os.path
 from tempfile import mkdtemp
+from contextlib import suppress
 
 class NamedTemporaryResource:
     def __init__(self, name):
@@ -15,7 +16,13 @@ class NamedTemporaryResource:
     def get_path(self) -> str:
         return os.path.join(self._dir, self._name)
 
-    def finished(self):
-        remove(self.get_path())
-        rmdir(self._dir)
-        self._dir = None
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, backtrace):
+        if self._dir:
+            with suppress(FileNotFoundError):
+                remove(self.get_path())
+            with suppress(FileNotFoundError):
+                rmdir(self._dir)
+            self._dir = None
