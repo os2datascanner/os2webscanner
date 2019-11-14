@@ -55,6 +55,11 @@ class FilesystemSource(Source):
 class FilesystemHandle(Handle):
     type_label = "file"
 
+    @property
+    def presentation(self):
+        return str(Path(self.get_source()._path).joinpath(
+                self.get_relative_path()))
+
     def follow(self, sm):
         return FilesystemResource(self, sm)
 
