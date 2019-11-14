@@ -118,7 +118,7 @@ class EWSAccountSource(Source):
     @staticmethod
     @Source.json_handler(type_label)
     def from_json_object(obj):
-        return EWSSource(
+        return EWSAccountSource(
                 obj["domain"], obj["server"], obj["admin_user"],
                 obj["admin_password"], obj["user"])
 
