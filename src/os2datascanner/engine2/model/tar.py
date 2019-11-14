@@ -1,4 +1,4 @@
-from .core import Source, Handle, FileResource, SourceManager
+from .core import Source, Handle, FileResource, DerivedSource, SourceManager
 from .utilities import NamedTemporaryResource
 
 from tarfile import open as open_tar
@@ -7,14 +7,11 @@ from contextlib import contextmanager
 
 
 @Source.mime_handler("application/x-tar")
-class TarSource(Source):
+class TarSource(DerivedSource):
     type_label = "tar"
 
-    def __init__(self, handle):
-        self._handle = handle
-
     def __str__(self):
-        return "TarSource({0})".format(self._handle)
+        return "TarSource({0})".format(self.to_handle())
 
     def handles(self, sm):
         tarfile = sm.open(self)
@@ -26,17 +23,9 @@ class TarSource(Source):
         # Using a nested SourceManager means that closing this generator will
         # automatically clean up as much as possible
         with SourceManager(sm) as derived:
-            with self._handle.follow(derived).make_path() as r:
+            with self.to_handle().follow(derived).make_path() as r:
                 with open_tar(str(r), "r") as tp:
                     yield tp
-
-    def to_handle(self):
-        return self._handle
-
-    def to_json_object(self):
-        return dict(**super().to_json_object(), **{
-            "handle": self._handle.to_json_object()
-        })
 
     @staticmethod
     @Source.json_handler(type_label)

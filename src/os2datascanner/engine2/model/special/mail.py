@@ -1,7 +1,7 @@
 from io import BytesIO
 from contextlib import contextmanager
 
-from ..core import Source, Handle, FileResource, SourceManager
+from ..core import Source, Handle, FileResource, DerivedSource, SourceManager
 from ..utilities import NamedTemporaryResource
 
 
@@ -14,14 +14,8 @@ explorable."""
 
 
 @Source.mime_handler(MIME_TYPE)
-class MailSource(Source):
+class MailSource(DerivedSource):
     type_label = "mail"
-
-    def __init__(self, mh):
-        self._handle = mh
-
-    def to_handle(self):
-        return self._handle
 
     def _generate_state(self, sm):
         with SourceManager(sm) as sm:
@@ -39,15 +33,10 @@ class MailSource(Source):
                 yield MailPartHandle(self, full_path, part.get_content_type())
         yield from _process_message([], sm.open(self))
 
-    def to_json_object(self):
-        return dict(**super().to_json_object, **{
-            "handle": self.to_handle().to_json_object()
-        })
-
     @staticmethod
     @Source.json_handler(type_label)
     def from_json_object(obj):
-        return MailSource(Handle.from_json_object(obj))
+        return MailSource(Handle.from_json_object(obj["handle"]))
 
 
 class MailPartHandle(Handle):
@@ -60,7 +49,7 @@ class MailPartHandle(Handle):
     @property
     def presentation(self):
         return "{0} (in {1})".format(
-                self.get_name(), self.get_source().get_handle())
+                self.get_name(), self.get_source().to_handle())
 
     def follow(self, sm):
         return MailPartResource(self, sm)
