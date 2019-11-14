@@ -3,12 +3,12 @@ from abc import abstractmethod
 from mimetypes import guess_type
 
 from ...utilities.json import JSONSerialisable
+from ...utilities.equality import TypePropertyEquality
 from .errors import UnknownSchemeError, DeserialisationError
 from .source import Source
-from .utilities import _TypPropEq
 
 
-class Handle(_TypPropEq, JSONSerialisable):
+class Handle(TypePropertyEquality, JSONSerialisable):
     """A Handle is a reference to a leaf node in a hierarchy maintained by a
     Source. Handles can be followed to give a Resource, a concrete object.
 

@@ -2,7 +2,7 @@ import unittest
 import contextlib
 from os import stat
 
-from os2datascanner.engine2.model.core.utilities import _TypPropEq
+from os2datascanner.engine2.utilities.equality import TypePropertyEquality
 
 
 class Plain:
@@ -10,18 +10,18 @@ class Plain:
         self._prop = 1
 
 
-class Equal1(_TypPropEq):
+class Equal1(TypePropertyEquality):
     def __init__(self):
         self._prop = 2
 
 
-class Equal1a(_TypPropEq):
+class Equal1a(TypePropertyEquality):
     def __init__(self, other):
         self._prop = 2
         self._other = other
 
 
-class Equal2(_TypPropEq):
+class Equal2(TypePropertyEquality):
     eq_properties = ('_prop', )
 
     def __init__(self, other):
@@ -29,7 +29,7 @@ class Equal2(_TypPropEq):
         self._other = other
 
 
-class Equal3(_TypPropEq):
+class Equal3(TypePropertyEquality):
     def __init__(self, other):
         self._prop = 4
         self._other = other
@@ -47,16 +47,16 @@ class Engine2EqualityTest(unittest.TestCase):
         self.assertEqual(
                 Equal1(),
                 Equal1(),
-                "_TypPropEq(__dict__) is broken")
+                "TypePropertyEquality(__dict__) is broken")
         self.assertNotEqual(
                 Equal1a(2),
                 Equal1a(3),
-                "_TypPropEq(__dict__) claims that 2 == 3")
+                "TypePropertyEquality(__dict__) claims that 2 == 3")
         self.assertEqual(
                 Equal2(4),
                 Equal2(5),
-                "_TypPropEq(eq_properties) is broken")
+                "TypePropertyEquality(eq_properties) is broken")
         self.assertEqual(
                 Equal3(4),
                 Equal3(5),
-                "_TypPropEq(__getstate__) is broken")
+                "TypePropertyEquality(__getstate__) is broken")

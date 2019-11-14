@@ -1,11 +1,11 @@
 from abc import abstractmethod
 
 from ...utilities.json import JSONSerialisable
+from ...utilities.equality import TypePropertyEquality
 from .errors import UnknownSchemeError, DeserialisationError
-from .utilities import _TypPropEq
 
 
-class Source(_TypPropEq, JSONSerialisable):
+class Source(TypePropertyEquality, JSONSerialisable):
     """A Source represents the root of a hierarchy to be explored. It
     constructs Handles, which represent the position of an object in the
     hierarchy.
