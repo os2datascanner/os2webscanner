@@ -126,6 +126,10 @@ class EWSAccountSource(Source):
 class EWSMailHandle(Handle):
     type_label = "ews"
 
+    # The mail subject is useful for presentation purposes, but not important
+    # when computing equality
+    eq_properties = Handle.BASE_PROPERTIES
+
     def __init__(self, source, path, mail_subject):
         super().__init__(source, path)
         self._mail_subject = mail_subject
@@ -141,6 +145,16 @@ class EWSMailHandle(Handle):
     def guess_type(self):
         return MAIL_MIME
 
+    def to_json_object(self):
+        return dict(**super().to_json_object(), **{
+            "mail_subject": self._mail_subject
+        })
+
+    @staticmethod
+    @Handle.json_handler(type_label)
+    def from_json_object(obj):
+        return EWSMailHandle(Source.from_json_object(obj["source"]),
+                obj["path"], obj["mail_subject"])
 
 class EWSMailResource(Resource):
     def __init__(self, handle, sm):
