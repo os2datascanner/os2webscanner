@@ -1,6 +1,4 @@
 import unittest
-import contextlib
-from os import stat
 
 from os2datascanner.engine2.utilities.equality import TypePropertyEquality
 

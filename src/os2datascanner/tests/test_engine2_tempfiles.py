@@ -1,5 +1,4 @@
 import unittest
-import contextlib
 import os.path
 
 from os2datascanner.engine2.model.utilities import NamedTemporaryResource
