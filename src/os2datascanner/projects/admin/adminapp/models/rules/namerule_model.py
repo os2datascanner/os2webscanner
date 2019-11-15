@@ -40,3 +40,7 @@ class NameRule(Rule):
     blacklist = models.TextField(blank=True,
                                  default="",
                                  verbose_name='Sortlistede navne')
+
+    def make_engine2_rule(self):
+        # engine2 doesn't have name rules yet
+        raise NotImplementedError("NameRule.make_engine2_rule")
