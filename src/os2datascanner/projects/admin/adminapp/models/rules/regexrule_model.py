@@ -15,15 +15,19 @@
 # source municipalities ( http://www.os2web.dk/ )
 
 from django.db import models
+from ..sensitivity_level import Sensitivity
 
 
+from os2datascanner.engine2.rules.regex import RegexRule as RegexTwule
 from .rule_model import Rule
 
 
 class RegexRule(Rule):
     """Represents matching rules based on regular expressions."""
-
-    pass
+    def make_engine2_rule(self) -> RegexTwule:
+        # Use the original engine's RegexRule abstraction to make the required
+        # compound expression
+        return RegexTwule(compund_rules(self))
 
 
 class RegexPattern(models.Model):
@@ -46,3 +50,30 @@ class RegexPattern(models.Model):
 
     class Meta:
         ordering = ('pk', )
+
+
+# Copied-and-pasted from os2datascanner.engine.scanners.rules.regexrule; if
+# we try to import that package directly, we recursively initialise Django and
+# crash (groan...)
+def compund_rules(rule):
+    """
+    This method compounds all the regex patterns in the rule set into one regex rule that is OR'ed
+    e.g. A ruleSet of {pattern1, pattern2, pattern3} becomes (pattern1 | pattern2 | pattern3)
+    :return: RegexRule representing the compound rule
+    """
+
+    rule_set = set(rule.patterns.all())
+    if len(rule_set) == 1:
+        return rule_set.pop().pattern_string
+    if len(rule_set) > 1:
+        compound_rule = '('
+        for _ in rule.patterns.all():
+            compound_rule += rule_set.pop().pattern_string
+            if not rule_set:
+                compound_rule += ')'
+            else:
+                compound_rule += '|'
+        print('Returning< '+compound_rule+' >')
+        return compound_rule
+    if len(rule_set) < 1:
+        return None

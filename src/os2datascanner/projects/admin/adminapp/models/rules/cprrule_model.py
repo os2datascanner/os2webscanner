@@ -19,6 +19,7 @@
 from django.db import models
 
 
+from os2datascanner.engine2.rules.cpr import CPRRule as CPRTwule
 from .rule_model import Rule
 
 
@@ -27,6 +28,11 @@ class CPRRule(Rule):
             default=False, verbose_name='Tjek modulus-11')
     ignore_irrelevant = models.BooleanField(
             default=False, verbose_name='Ignorer ugyldige fødselsdatoer')
+
+    def make_engine2_rule(self):
+        return CPRTwule(
+                modulus_11=self.do_modulus11,
+                ignore_irrelevant=self.ignore_irrelevant)
 
     whitelist = models.TextField(blank=True,
                                  default="",
