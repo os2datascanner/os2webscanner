@@ -23,6 +23,7 @@ import datetime
 import json
 import re
 
+from django.conf import settings
 from django.core.validators import validate_comma_separated_integer_list
 from django.db import models
 from django.contrib.postgres.fields import JSONField
@@ -30,12 +31,17 @@ from django.contrib.postgres.fields import JSONField
 from model_utils.managers import InheritanceManager
 from recurrence.fields import RecurrenceField
 
+from os2datascanner.engine2.model.core import Source
+from os2datascanner.engine2.rules.logical import OrRule, AndRule
+from os2datascanner.engine2.rules.last_modified import LastModifiedRule
+
 from ..authentication_model import Authentication
 from ..organization_model import Organization
 from ..group_model import Group
 from ..rules.rule_model import Rule
 from ..userprofile_model import UserProfile
 from ...amqp_communication import amqp_connection_manager
+
 
 base_dir = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
@@ -136,6 +142,8 @@ class Scanner(models.Model):
                                        default="",
                                        verbose_name='Ekskluderingsregler')
 
+    e2_last_run_at = models.DateTimeField(null=True)
+
     def exclusion_rule_list(self):
         """Return the exclusion rules as a list of strings or regexes."""
         REGEX_PREFIX = "regex:"
@@ -225,36 +233,65 @@ class Scanner(models.Model):
         Return None if there is already a scanner running,
         or if there was a problem running the scanner.
         """
-        if self.is_running:
-            return Scanner.ALREADY_RUNNING
+        if not settings.USE_ENGINE2:
+            if self.is_running:
+                return Scanner.ALREADY_RUNNING
 
-        # Create a new Scan
-        scan = self.create_scan()
-        if isinstance(scan, str):
-            return scan
-        # Add user as recipient on scan
-        if user:
-            try:
-                profile = user.profile
-            except UserProfile.DoesNotExist:
-                profile = None
+            # Create a new Scan
+            scan = self.create_scan()
+            if isinstance(scan, str):
+                return scan
+            # Add user as recipient on scan
+            if user:
+                try:
+                    profile = user.profile
+                except UserProfile.DoesNotExist:
+                    profile = None
 
-            if profile is not None:
-                scan.recipients.add(user.profile)
+                if profile is not None:
+                    scan.recipients.add(user.profile)
 
-        queue_name = 'datascanner'
-        completed_scans = \
-            self.webscans.all().filter(start_time__isnull=False,
-                    end_time__isnull=False).order_by('pk')
-        last_scan_started_at = \
-            completed_scans.last().start_time.isoformat() \
-            if completed_scans else None
-        message = {
-            'type': type,
-            'id': scan.pk,
-            'logfile': scan.scan_log_file,
-            'last_started': last_scan_started_at
-        }
+            completed_scans = \
+                self.webscans.all().filter(start_time__isnull=False,
+                        end_time__isnull=False).order_by('pk')
+            last_scan_started_at = \
+                completed_scans.last().start_time.isoformat() \
+                if completed_scans else None
+
+            queue_name = "datascanner"
+            message = {
+                'type': type,
+                'id': scan.pk,
+                'logfile': scan.scan_log_file,
+                'last_started': last_scan_started_at
+            }
+        else:
+            now = datetime.datetime.now().replace(microsecond=0)
+
+            # Create a new engine2 scan specification and submit it to the
+            # pipeline
+            rule = OrRule.make(
+                    *[r.make_engine2_rule()
+                            for r in self.rules.all().select_subclasses()])
+            if self.do_last_modified_check:
+                rule = AndRule(
+                        LastModifiedRule(
+                                self.e2_last_run_at or datetime.datetime.min),
+                        rule)
+
+            message = {
+                'scan_tag': now.isoformat(),
+                'source': self.make_engine2_source().to_json_object(),
+                'rule': rule.to_json_object()
+            }
+            queue_name = settings.AMQP_PIPELINE_TARGET
+
+            self.e2_last_run_at = now
+            self.save()
+
+            scan = now.isoformat()
+
+        print(queue_name, json.dumps(message))
         amqp_connection_manager.start_amqp(queue_name)
         amqp_connection_manager.send_message(queue_name, json.dumps(message))
         amqp_connection_manager.close_connection()
