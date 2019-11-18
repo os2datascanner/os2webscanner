@@ -273,6 +273,13 @@ class Scanner(models.Model):
     def path_for(self, uri):
         return uri
 
+    def make_engine2_source(self) -> Source:
+        """Construct an engine2 Source corresponding to the target of this
+        Scanner."""
+        # (this can't use the @abstractmethod decorator because of metaclass
+        # conflicts with Django, but subclasses should override this method!)
+        raise NotImplementedError("Scanner.make_engine2_source")
+
     class Meta:
         abstract = False
         ordering = ['name']

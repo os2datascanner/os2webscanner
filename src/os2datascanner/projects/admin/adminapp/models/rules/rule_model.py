@@ -15,6 +15,8 @@
 # source municipalities ( http://www.os2web.dk/ )
 
 from django.db import models
+from model_utils.managers import InheritanceManager
+
 from ..group_model import Group
 from ..organization_model import Organization
 from ..sensitivity_level import Sensitivity
@@ -24,6 +26,8 @@ from os2datascanner.engine2.rules.rule import Rule as Twule
 
 
 class Rule(models.Model):
+    objects = InheritanceManager()
+
     name = models.CharField(max_length=256, unique=True, null=False,
                             verbose_name='Navn')
     organization = models.ForeignKey(Organization, null=False,
