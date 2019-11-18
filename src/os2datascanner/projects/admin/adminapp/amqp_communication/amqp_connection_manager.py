@@ -25,7 +25,9 @@ def _create_channel(queue_name):
     """
     if _amqp_obj['connection']:
         _amqp_obj['amqp_channel'] = _amqp_obj['connection'].channel()
-        _amqp_obj['amqp_channel'].queue_declare(queue=queue_name)
+        _amqp_obj['amqp_channel'].queue_declare(queue=queue_name,
+                passive=False, durable=True,
+                exclusive=False, auto_delete=False)
 
 
 def _create_connection():
