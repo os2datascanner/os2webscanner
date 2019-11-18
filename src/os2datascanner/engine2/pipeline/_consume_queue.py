@@ -16,13 +16,13 @@ def main():
 
     parser.add_argument(
             "--queue",
-            choices=("os2ds_sources", "os2ds_conversions",
+            choices=("os2ds_scan_specs", "os2ds_conversions",
                     "os2ds_representations", "os2ds_matches",
                     "os2ds_handles", "os2ds_metadata", "os2ds_problems",),
             metavar="NAME",
             help="the name of the AMQP queue to which an object should be"
                     + " written",
-            default="os2ds_sources")
+            default="os2ds_scan_specs")
 
     args = parser.parse_args()
 

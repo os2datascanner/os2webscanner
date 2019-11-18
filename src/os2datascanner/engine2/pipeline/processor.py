@@ -104,7 +104,7 @@ def main():
             metavar="NAME",
             help="the name of the AMQP queue to which scan specifications"
                     + " should be written",
-            default="os2ds_sources")
+            default="os2ds_scan_specs")
 
     global args
     args = parser.parse_args()
