@@ -3,10 +3,7 @@ import datetime # noqa
 import requests
 import unittest
 
-from os2datascanner.engine.utils import run_django_setup
-from os2datascanner.engine.scanners.rules import cpr
-
-run_django_setup()
+from os2datascanner.engine2.rules import cpr
 
 
 class CPRTest(unittest.TestCase):
