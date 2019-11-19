@@ -18,6 +18,8 @@ import urllib
 from django.conf import settings
 from django.db import models
 
+from os2datascanner.engine2.model.http import WebSource
+
 from ..scans.webscan_model import WebScan
 from .scanner_model import Scanner
 
@@ -117,3 +119,6 @@ class WebScanner(Scanner):
     def get_absolute_url(self):
         """Get the absolute URL for scanners."""
         return '/webscanners/'
+
+    def make_engine2_source(self):
+        return WebSource(self.root_url)

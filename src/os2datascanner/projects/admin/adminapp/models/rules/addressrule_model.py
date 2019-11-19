@@ -40,3 +40,7 @@ class AddressRule(Rule):
     blacklist = models.TextField(blank=True,
                                  default="",
                                  verbose_name='Sortlistede adresser')
+
+    def make_engine2_rule(self):
+        # engine2 doesn't have address rules yet
+        raise NotImplementedError("AddressRule.make_engine2_rule")

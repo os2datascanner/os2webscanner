@@ -68,13 +68,7 @@ class FileScanner(Scanner):
 
     def get_source(self):
         assert settings.USE_ENGINE2, "don't call this when using orig. engine"
-
-        return SMBCSource(
-            self.url,
-            user=self.authentication.username,
-            password=self.authentication.get_password(),
-            domain=self.authentication.domain,
-        )
+        return self.make_engine2_source()
 
     def smb_mount(self):
         """Mounts networkdrive if not already mounted."""
@@ -166,3 +160,10 @@ class FileScanner(Scanner):
     def get_absolute_url(self):
         """Get the absolute URL for scanners."""
         return '/filescanners/'
+
+    def make_engine2_source(self):
+        return SMBCSource(
+                self.url,
+                user=self.authentication.username,
+                password=self.authentication.get_password(),
+                domain=self.authentication.domain)

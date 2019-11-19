@@ -88,6 +88,9 @@ TEST_OUTPUT_VERBOSE = True
 
 AMQP_HOST = os.getenv("AMQP_HOST", "localhost")
 
+# The name of the AMQP queue that the engine2 pipeline expects input on
+AMQP_PIPELINE_TARGET = "os2ds_scan_specs"
+
 # Application definition
 
 INSTALLED_APPS = (

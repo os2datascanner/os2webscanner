@@ -15,12 +15,19 @@
 # source municipalities ( http://www.os2web.dk/ )
 
 from django.db import models
+from model_utils.managers import InheritanceManager
+
 from ..group_model import Group
 from ..organization_model import Organization
 from ..sensitivity_level import Sensitivity
 
 
+from os2datascanner.engine2.rules.rule import Rule as Twule
+
+
 class Rule(models.Model):
+    objects = InheritanceManager()
+
     name = models.CharField(max_length=256, unique=True, null=False,
                             verbose_name='Navn')
     organization = models.ForeignKey(Organization, null=False,
@@ -48,3 +55,8 @@ class Rule(models.Model):
         """Return the name of the rule."""
         return self.name
 
+    def make_engine2_rule(self) -> Twule:
+        """Construct an engine2 Rule corresponding to this Rule."""
+        # (this can't use the @abstractmethod decorator because of metaclass
+        # conflicts with Django, but subclasses should override this method!)
+        raise NotImplementedError("Rule.make_engine2_rule")
