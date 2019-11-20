@@ -48,6 +48,11 @@ class ZipSource(Source):
 class ZipHandle(Handle):
     type_label = "zip"
 
+    @property
+    def presentation(self):
+        return "{0} (in {1})".format(
+                self.get_relative_path(), self.get_source().to_handle())
+
     def follow(self, sm):
         return ZipResource(self, sm)
 

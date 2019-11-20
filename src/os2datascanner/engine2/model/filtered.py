@@ -51,6 +51,9 @@ class FilteredSource(Source):
         with SourceManager(sm) as derived:
             yield self._handle.follow(derived)
 
+    def to_handle(self):
+        return self._handle
+
     def to_json_object(self):
         return dict(**super().to_json_object(), **{
             "handle": self._handle.to_json_object(),
@@ -83,6 +86,11 @@ def _lzma(handle):
 @Handle.stock_json_handler("filtered")
 class FilteredHandle(Handle):
     type_label = "filtered"
+
+    @property
+    def presentation(self):
+        return "({0}, decompressed)".format(
+                self.get_source().to_handle().presentation)
 
     def follow(self, sm):
         return FilteredResource(self, sm)

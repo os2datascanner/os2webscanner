@@ -45,3 +45,6 @@ class ExchangeScanner(Scanner):
     def get_absolute_url(self):
         """Get the absolute URL for scanners."""
         return '/exchangescanners/'
+
+    def make_engine2_source(self):
+        raise NotImplementedError("ExchangeScanner.make_engine2_source")

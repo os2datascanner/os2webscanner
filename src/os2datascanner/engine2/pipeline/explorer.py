@@ -58,7 +58,7 @@ def main():
             metavar="NAME",
             help="the name of the AMQP queue from which scan specifications"
                     + " should be read",
-            default="os2ds_sources")
+            default="os2ds_scan_specs")
 
     outputs = parser.add_argument_group("outputs")
     outputs.add_argument(
