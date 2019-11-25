@@ -63,13 +63,12 @@ def message_received(channel, method, properties, body):
                 # it can, then try again with that
                 derived_source = Source.from_handle(handle, source_manager)
                 if derived_source:
-                    yield (args.sources, {
-                        # Preserve the scan_tag value to indicate that this
-                        # "new" scan is part of an existing one
-                        "scan_tag": body["scan_spec"]["scan_tag"],
-                        "source": derived_source.to_json_object(),
-                        "progress": body["progress"]
-                    })
+                    # Copy almost all of the existing scan spec, but note the
+                    # progress of rule execution and replace the source
+                    scan_spec = body["scan_spec"].copy()
+                    scan_spec["source"] = derived_source.to_json_object()
+                    scan_spec["progress"] = body["progress"]
+                    yield (args.sources, scan_spec)
         except ResourceUnavailableError as ex:
             pass
 
