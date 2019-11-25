@@ -14,7 +14,7 @@ args = None
 source_manager = None
 
 
-def get_processor(sm, handle, required):
+def get_processor(sm, handle, required, configuration):
     if required == InputType.Text:
         resource = handle.follow(sm)
         mime_type = resource.compute_type()
@@ -44,7 +44,11 @@ def message_received(channel, method, properties, body):
         head, _, _ = rule.split()
 
         try:
-            processor = get_processor(source_manager, handle, head.operates_on)
+            processor = get_processor(
+                    source_manager,
+                    handle,
+                    head.operates_on,
+                    body["scan_spec"]["configuration"])
             if processor:
                 content = processor(handle)
                 if content:

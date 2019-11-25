@@ -17,6 +17,10 @@ def message_received(channel, method, properties, body):
     try:
         source = Source.from_json_object(body["source"])
 
+        # The configuration dictionary was added fairly late to scan specs, so
+        # not all clients will send it. Add an empty one if necessary
+        body.setdefault("configuration", {})
+
         if "progress" in body:
             # If this scan spec is based on a derived source and so contains
             # scan progress information, then take it out; the rest of the
