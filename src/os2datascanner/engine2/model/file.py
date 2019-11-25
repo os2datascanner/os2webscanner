@@ -67,7 +67,7 @@ class FilesystemResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
         self._full_path = os.path.join(
-                self._get_cookie(), self.get_handle().relative_path)
+                self._get_cookie(), self.handle.relative_path)
         self._stat = None
 
     def get_stat(self):

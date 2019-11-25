@@ -119,7 +119,7 @@ class FilteredResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        ntr = NamedTemporaryResource(self.get_handle().name)
+        ntr = NamedTemporaryResource(self.handle.name)
         try:
             with ntr.open("wb") as f:
                 with self.make_stream() as s:
@@ -131,5 +131,5 @@ class FilteredResource(FileResource):
     @contextmanager
     def make_stream(self):
         with self._get_cookie().make_stream() as s_:
-            with self.get_handle().source._constructor(s_) as s:
+            with self.handle.source._constructor(s_) as s:
                 yield s

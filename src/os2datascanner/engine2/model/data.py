@@ -63,7 +63,7 @@ class DataHandle(Handle):
 
 class DataResource(FileResource):
     def get_size(self):
-        return len(self.get_handle().source._content)
+        return len(self.handle.source._content)
 
     def get_last_modified(self):
         # This is not redundant -- the superclass's default implementation is
@@ -81,5 +81,5 @@ class DataResource(FileResource):
 
     @contextmanager
     def make_stream(self):
-        with BytesIO(self.get_handle().source._content) as s:
+        with BytesIO(self.handle.source._content) as s:
             yield s

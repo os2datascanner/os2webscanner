@@ -173,14 +173,14 @@ class SMBCResource(FileResource):
 
     def _make_url(self):
         url, _ = self._get_cookie()
-        return url + "/" + quote(self.get_handle().relative_path)
+        return url + "/" + quote(self.handle.relative_path)
 
     def open_file(self):
         try:
             _, context = self._get_cookie()
             return context.open(self._make_url(), O_RDONLY)
         except smbc.NoEntryError as ex:
-            raise ResourceUnavailableError(self.get_handle(), ex)
+            raise ResourceUnavailableError(self.handle, ex)
 
     def get_xattr(self, attr):
         """Retrieves a SMB extended attribute for this file. (See the
@@ -191,7 +191,7 @@ class SMBCResource(FileResource):
             return context.getxattr(self._make_url(), attr)
             # Don't attempt to catch the ValueError if attr isn't valid
         except smbc.NoEntryError as ex:
-            raise ResourceUnavailableError(self.get_handle(), ex)
+            raise ResourceUnavailableError(self.handle, ex)
 
     def get_stat(self):
         if not self._stat:
@@ -215,7 +215,7 @@ class SMBCResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        ntr = NamedTemporaryResource(self.get_handle().name)
+        ntr = NamedTemporaryResource(self.handle.name)
         try:
             with ntr.open("wb") as f:
                 with self.make_stream() as rf:

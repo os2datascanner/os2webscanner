@@ -65,7 +65,7 @@ class TarResource(FileResource):
     def get_info(self):
         if not self._info:
             self._info = self._get_cookie().getmember(
-                    self.get_handle().relative_path)
+                    self.handle.relative_path)
         return self._info
 
     def get_size(self):
@@ -76,7 +76,7 @@ class TarResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        ntr = NamedTemporaryResource(self.get_handle().name)
+        ntr = NamedTemporaryResource(self.handle.name)
         try:
             with ntr.open("wb") as f:
                 with self.make_stream() as s:
@@ -87,6 +87,5 @@ class TarResource(FileResource):
 
     @contextmanager
     def make_stream(self):
-        with self._get_cookie().extractfile(
-                 self.get_handle().relative_path) as s:
+        with self._get_cookie().extractfile(self.handle.relative_path) as s:
             yield s

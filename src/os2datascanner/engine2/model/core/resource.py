@@ -17,7 +17,8 @@ class Resource(ABC):
         self._handle = handle
         self._sm = sm
 
-    def get_handle(self):
+    @property
+    def handle(self):
         """Returns this Resource's Handle."""
         return self._handle
 
@@ -25,7 +26,7 @@ class Resource(ABC):
         """Returns the magic cookie produced when the Source behind this
         Resource's Handle is opened in the associated StateManager. (Note that
         each Source will only be opened once by a given StateManager.)"""
-        return self._sm.open(self.get_handle().source)
+        return self._sm.open(self.handle.source)
 
 
 class FileResource(Resource):

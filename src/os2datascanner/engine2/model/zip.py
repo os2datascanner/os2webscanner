@@ -65,7 +65,7 @@ class ZipResource(FileResource):
     def get_info(self):
         if not self._info:
             self._info = self._get_cookie().getinfo(
-                    str(self.get_handle().relative_path))
+                    str(self.handle.relative_path))
         return self._info
 
     def get_size(self):
@@ -76,7 +76,7 @@ class ZipResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        ntr = NamedTemporaryResource(self.get_handle().name)
+        ntr = NamedTemporaryResource(self.handle.name)
         try:
             with ntr.open("wb") as f:
                 with self.make_stream() as s:
@@ -87,6 +87,5 @@ class ZipResource(FileResource):
 
     @contextmanager
     def make_stream(self):
-        with self._get_cookie().open(
-                self.get_handle().relative_path) as s:
+        with self._get_cookie().open(self.handle.relative_path) as s:
             yield s

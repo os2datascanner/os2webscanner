@@ -131,7 +131,7 @@ class WebResource(FileResource):
         self._header = None
 
     def _make_url(self):
-        handle = self.get_handle()
+        handle = self.handle
         base = handle.source.to_url()
         return base + str(handle.relative_path)
 
@@ -148,7 +148,7 @@ class WebResource(FileResource):
     def get_header(self):
         self._require_header_and_status()
         if self._status != 200:
-            raise ResourceUnavailableError(self.get_handle(), self._status)
+            raise ResourceUnavailableError(self.handle, self._status)
         return self._header
 
     def get_size(self):
@@ -169,7 +169,7 @@ class WebResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        ntr = NamedTemporaryResource(self.get_handle().name)
+        ntr = NamedTemporaryResource(self.handle.name)
         try:
             with ntr.open("wb") as res:
                 with self.make_stream() as s:
@@ -182,8 +182,7 @@ class WebResource(FileResource):
     def make_stream(self):
         response = self._get_cookie().get(self._make_url())
         if response.status_code != 200:
-            raise ResourceUnavailableError(
-                    self.get_handle(), response.status_code)
+            raise ResourceUnavailableError(self.handle, response.status_code)
         else:
             with BytesIO(response.content) as s:
                 yield s
