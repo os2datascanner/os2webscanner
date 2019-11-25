@@ -48,8 +48,8 @@ class Source(_TypPropEq, JSONSerialisable):
         These Handles can be detected by catching the ResourceUnavailableError
         exception.
 
-        It is not necessarily the case that the result of the get_source call
-        on a Handle yielded by this method will be this Source."""
+        It is not necessarily the case that the value of the source property on
+        a Handle yielded by this method will be this Source."""
 
     __url_handlers = {}
     @staticmethod

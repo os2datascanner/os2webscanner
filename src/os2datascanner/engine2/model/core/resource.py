@@ -25,7 +25,7 @@ class Resource(ABC):
         """Returns the magic cookie produced when the Source behind this
         Resource's Handle is opened in the associated StateManager. (Note that
         each Source will only be opened once by a given StateManager.)"""
-        return self._sm.open(self.get_handle().get_source())
+        return self._sm.open(self.get_handle().source)
 
 
 class FileResource(Resource):

@@ -113,14 +113,14 @@ class SMBHandle(Handle):
 
     @property
     def presentation(self):
-        p = self.get_source().get_driveletter()
+        p = self.source.get_driveletter()
         if p:
             p += ":"
         else:
-            p = self.get_source().get_unc()
+            p = self.source.get_unc()
         if p[-1] != "/":
             p += "/"
-        return (p + self.get_relative_path()).replace("/", "\\")
+        return (p + self.relative_path).replace("/", "\\")
 
     def follow(self, sm):
         return FilesystemResource(self, sm)

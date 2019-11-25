@@ -57,8 +57,7 @@ class FilesystemHandle(Handle):
 
     @property
     def presentation(self):
-        return str(Path(self.get_source()._path).joinpath(
-                self.get_relative_path()))
+        return str(Path(self.source._path).joinpath(self.relative_path))
 
     def follow(self, sm):
         return FilesystemResource(self, sm)
@@ -68,7 +67,7 @@ class FilesystemResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
         self._full_path = os.path.join(
-                self._get_cookie(), self.get_handle().get_relative_path())
+                self._get_cookie(), self.get_handle().relative_path)
         self._stat = None
 
     def get_stat(self):

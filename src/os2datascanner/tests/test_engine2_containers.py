@@ -29,12 +29,12 @@ class Engine2ContainerTest(unittest.TestCase):
                     if computed or guessed:
                         process(computed or guessed, depth + 1)
 
-                    elif handle.get_name() == "url":
+                    elif handle.name == "url":
                         with handle.follow(sm).make_stream() as fp:
                             url = fp.read().decode("utf-8")
                         process(Source.from_url(url), depth + 1)
 
-                    elif handle.get_name() == "test-vector" or isinstance(
+                    elif handle.name == "test-vector" or isinstance(
                             source, DataSource):
                         r = handle.follow(sm)
                         reported_size = r.get_size()

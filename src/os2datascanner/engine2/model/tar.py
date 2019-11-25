@@ -51,7 +51,7 @@ class TarHandle(Handle):
     @property
     def presentation(self):
         return "{0} (in {1})".format(
-                self.get_relative_path(), self.get_source().to_handle())
+                self.relative_path, self.source.to_handle())
 
     def follow(self, sm):
         return TarResource(self, sm)
@@ -65,7 +65,7 @@ class TarResource(FileResource):
     def get_info(self):
         if not self._info:
             self._info = self._get_cookie().getmember(
-                    self.get_handle().get_relative_path())
+                    self.get_handle().relative_path)
         return self._info
 
     def get_size(self):
@@ -76,7 +76,7 @@ class TarResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        ntr = NamedTemporaryResource(self.get_handle().get_name())
+        ntr = NamedTemporaryResource(self.get_handle().name)
         try:
             with ntr.open("wb") as f:
                 with self.make_stream() as s:
@@ -88,5 +88,5 @@ class TarResource(FileResource):
     @contextmanager
     def make_stream(self):
         with self._get_cookie().extractfile(
-                 self.get_handle().get_relative_path()) as s:
+                 self.get_handle().relative_path) as s:
             yield s

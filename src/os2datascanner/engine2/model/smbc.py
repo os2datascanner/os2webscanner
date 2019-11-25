@@ -108,14 +108,14 @@ class SMBCHandle(Handle):
 
     @property
     def presentation(self):
-        p = self.get_source().get_driveletter()
+        p = self.source.get_driveletter()
         if p:
             p += ":"
         else:
-            p = self.get_source().get_unc()
+            p = self.source.get_unc()
         if p[-1] != "/":
             p += "/"
-        return (p + self.get_relative_path()).replace("/", "\\")
+        return (p + self.relative_path).replace("/", "\\")
 
     def follow(self, sm):
         return SMBCResource(self, sm)
@@ -173,7 +173,7 @@ class SMBCResource(FileResource):
 
     def _make_url(self):
         url, _ = self._get_cookie()
-        return url + "/" + quote(self.get_handle().get_relative_path())
+        return url + "/" + quote(self.get_handle().relative_path)
 
     def open_file(self):
         try:
@@ -215,7 +215,7 @@ class SMBCResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        ntr = NamedTemporaryResource(self.get_handle().get_name())
+        ntr = NamedTemporaryResource(self.get_handle().name)
         try:
             with ntr.open("wb") as f:
                 with self.make_stream() as rf:

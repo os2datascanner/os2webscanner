@@ -55,7 +55,7 @@ class DataHandle(Handle):
         return "(embedded file of type {0})".format(self.guess_type())
 
     def guess_type(self):
-        return self.get_source()._mime
+        return self.source._mime
 
     def follow(self, sm):
         return DataResource(self, sm)
@@ -63,7 +63,7 @@ class DataHandle(Handle):
 
 class DataResource(FileResource):
     def get_size(self):
-        return len(self.get_handle().get_source()._content)
+        return len(self.get_handle().source._content)
 
     def get_last_modified(self):
         # This is not redundant -- the superclass's default implementation is
@@ -81,5 +81,5 @@ class DataResource(FileResource):
 
     @contextmanager
     def make_stream(self):
-        with BytesIO(self.get_handle().get_source()._content) as s:
+        with BytesIO(self.get_handle().source._content) as s:
             yield s

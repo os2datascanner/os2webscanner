@@ -115,10 +115,10 @@ class WebHandle(Handle):
 
     @property
     def presentation_url(self):
-        p = self.get_source().to_url()
+        p = self.source.to_url()
         if p[-1] != "/":
             p += "/"
-        return p + self.get_relative_path()
+        return p + self.relative_path
 
     def follow(self, sm):
         return WebResource(self, sm)
@@ -132,8 +132,8 @@ class WebResource(FileResource):
 
     def _make_url(self):
         handle = self.get_handle()
-        base = handle.get_source().to_url()
-        return base + str(handle.get_relative_path())
+        base = handle.source.to_url()
+        return base + str(handle.relative_path)
 
     def _require_header_and_status(self):
         if not self._header:
@@ -169,7 +169,7 @@ class WebResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        ntr = NamedTemporaryResource(self.get_handle().get_name())
+        ntr = NamedTemporaryResource(self.get_handle().name)
         try:
             with ntr.open("wb") as res:
                 with self.make_stream() as s:

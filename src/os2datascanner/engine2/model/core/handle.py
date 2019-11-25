@@ -30,15 +30,18 @@ class Handle(_TypPropEq, JSONSerialisable):
         self._source = source
         self._relpath = relpath
 
-    def get_source(self):
+    @property
+    def source(self):
         """Returns this Handle's Source."""
         return self._source
 
-    def get_relative_path(self):
+    @property
+    def relative_path(self):
         """Returns this Handle's path."""
         return self._relpath
 
-    def get_name(self):
+    @property
+    def name(self):
         """Returns the base name -- everything after the last '/' -- of this
         Handle's path, or "file" if the result would otherwise be empty."""
         return os.path.basename(self._relpath) or 'file'
@@ -47,7 +50,7 @@ class Handle(_TypPropEq, JSONSerialisable):
         """Guesses the type of this Handle's target based on its name. (For a
         potentially better, but more expensive, guess, follow this Handle to
         get a Resource and call its compute_type() method instead.)"""
-        mime, _ = guess_type(self.get_name())
+        mime, _ = guess_type(self.name)
         return mime or "application/octet-stream"
 
     @property
@@ -88,8 +91,8 @@ class Handle(_TypPropEq, JSONSerialisable):
         this Handle."""
         return {
             "type": self.type_label,
-            "source": self.get_source().to_json_object(),
-            "path": self.get_relative_path()
+            "source": self.source.to_json_object(),
+            "path": self.relative_path
         }
 
     @staticmethod
