@@ -62,9 +62,8 @@ def message_received(channel, method, properties, body):
                         "scan_spec": body["scan_spec"],
                         "handle": body["handle"],
                         "progress": body["progress"],
-                        "representation": {
-                            "type": head.operates_on.value,
-                            "content": content
+                        "representations": {
+                            head.operates_on.value: content
                         }
                     })
             else:
