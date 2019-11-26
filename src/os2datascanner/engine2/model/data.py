@@ -14,17 +14,22 @@ class DataSource(Source):
         self._content = content
         self._mime = mime
 
+    @property
+    def mime(self):
+        return self._mime
+
     def handles(self, sm):
         yield DataHandle(self, "file")
 
     def __str__(self):
-        return "DataSource(content=..., mime={0})".format(self._mime)
+        return "DataSource(content=..., mime={0})".format(self.mime)
 
     def _generate_state(self, sm):
         yield EMPTY_COOKIE
 
     def to_url(self):
-        return "data:{0};base64,{1}".format(self._mime, b64encode(self._content).decode(encoding='ascii'))
+        return "data:{0};base64,{1}".format(self.mime,
+                b64encode(self._content).decode(encoding='ascii'))
 
     @staticmethod
     @Source.url_handler("data")
@@ -37,7 +42,7 @@ class DataSource(Source):
     def to_json_object(self):
         return dict(**super().to_json_object(), **{
             "content": b64encode(self._content).decode(encoding="ascii"),
-            "mime": self._mime
+            "mime": self.mime
         })
 
     @staticmethod
@@ -55,7 +60,7 @@ class DataHandle(Handle):
         return "(embedded file of type {0})".format(self.guess_type())
 
     def guess_type(self):
-        return self.source._mime
+        return self.source.mime
 
     def follow(self, sm):
         return DataResource(self, sm)

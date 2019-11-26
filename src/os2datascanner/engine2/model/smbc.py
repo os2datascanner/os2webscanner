@@ -22,10 +22,12 @@ class SMBCSource(Source):
         self._domain = domain
         self._driveletter = driveletter
 
-    def get_unc(self):
+    @property
+    def unc(self):
         return self._unc
 
-    def get_driveletter(self):
+    @property
+    def driveletter(self):
         return self._driveletter
 
     def __str__(self):
@@ -108,11 +110,11 @@ class SMBCHandle(Handle):
 
     @property
     def presentation(self):
-        p = self.source.get_driveletter()
+        p = self.source.driveletter
         if p:
             p += ":"
         else:
-            p = self.source.get_unc()
+            p = self.source.unc
         if p[-1] != "/":
             p += "/"
         return (p + self.relative_path).replace("/", "\\")
