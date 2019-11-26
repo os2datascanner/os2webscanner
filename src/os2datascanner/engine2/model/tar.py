@@ -13,9 +13,6 @@ class TarSource(Source):
     def __init__(self, handle):
         self._handle = handle
 
-    def __str__(self):
-        return "TarSource({0})".format(self._handle)
-
     def handles(self, sm):
         tarfile = sm.open(self)
         for f in tarfile.getmembers():

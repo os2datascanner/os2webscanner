@@ -21,9 +21,6 @@ class DataSource(Source):
     def handles(self, sm):
         yield DataHandle(self, "file")
 
-    def __str__(self):
-        return "DataSource(content=..., mime={0})".format(self.mime)
-
     def _generate_state(self, sm):
         yield EMPTY_COOKIE
 

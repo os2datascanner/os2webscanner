@@ -28,9 +28,6 @@ class FilesystemSource(Source):
                     yield FilesystemHandle(self,
                             str(f.relative_to(pathlib_path)))
 
-    def __str__(self):
-        return "FilesystemSource({0})".format(self.path)
-
     def _generate_state(self, sm):
         yield ShareableCookie(self.path)
 

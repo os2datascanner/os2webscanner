@@ -30,10 +30,6 @@ class SMBCSource(Source):
     def driveletter(self):
         return self._driveletter
 
-    def __str__(self):
-        return "SMBCSource({0}, {1}, ****, {2})".format(
-                self._unc, self._user, self._domain)
-
     def _generate_state(self, sm):
         c = smbc.Context()
         try:

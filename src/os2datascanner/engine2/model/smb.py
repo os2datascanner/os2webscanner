@@ -42,9 +42,6 @@ class SMBSource(Source):
             optarg.append('domain=' + self._domain)
         return ",".join(optarg)
 
-    def __str__(self):
-        return "SMBSource({0}, {1})".format(self._unc, self._make_optarg())
-
     def _generate_state(self, sm):
         mntdir = mkdtemp()
         try:

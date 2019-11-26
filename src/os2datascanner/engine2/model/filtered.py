@@ -39,9 +39,6 @@ class FilteredSource(Source):
         else:
             raise ValueError(self._filter_type)
 
-    def __str__(self):
-        return "FilteredSource({0})".format(self.handle)
-
     def handles(self, sm):
         rest, ext = os.path.splitext(self.handle.name)
         yield FilteredHandle(self, rest)

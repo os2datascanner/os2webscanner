@@ -13,9 +13,6 @@ class ZipSource(Source):
     def __init__(self, handle):
         self._handle = handle
 
-    def __str__(self):
-        return "ZipSource({0})".format(self._handle)
-
     def handles(self, sm):
         zipfile = sm.open(self)
         for f in zipfile.namelist():

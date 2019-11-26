@@ -27,9 +27,6 @@ class WebSource(Source):
         assert url.startswith("http:") or url.startswith("https:")
         self._url = url
 
-    def __str__(self):
-        return "WebSource({0})".format(self._url)
-
     def _generate_state(self, sm):
         with Session() as session:
             yield session
