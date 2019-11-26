@@ -179,7 +179,7 @@ class SMBCResource(FileResource):
         try:
             _, context = self._get_cookie()
             return context.open(self._make_url(), O_RDONLY)
-        except smbc.NoEntryError as ex:
+        except (smbc.NoEntryError, smbc.PermissionError) as ex:
             raise ResourceUnavailableError(self.handle, ex)
 
     def get_xattr(self, attr):
@@ -190,7 +190,7 @@ class SMBCResource(FileResource):
             _, context = self._get_cookie()
             return context.getxattr(self._make_url(), attr)
             # Don't attempt to catch the ValueError if attr isn't valid
-        except smbc.NoEntryError as ex:
+        except (smbc.NoEntryError, smbc.PermissionError) as ex:
             raise ResourceUnavailableError(self.handle, ex)
 
     def get_stat(self):
