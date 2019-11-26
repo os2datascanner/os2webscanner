@@ -18,6 +18,12 @@ def get_processor(sm, handle, required, configuration):
     if required == InputType.Text:
         resource = handle.follow(sm)
         mime_type = resource.compute_type()
+        if "skip_mime_types" in configuration:
+            for mt in configuration["skip_mime_types"]:
+                if mt.endswith("*") and mime_type.startswith(mt[:-1]):
+                    return None
+                elif mime_type == mt:
+                    return None
         processor = processors.processors.get(mime_type)
         if processor:
             return lambda handle: processor(handle.follow(sm))
