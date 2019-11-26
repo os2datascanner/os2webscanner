@@ -1,4 +1,5 @@
-from .core import Source, Handle, FileResource, SourceManager
+from .core import (
+        Source, Handle, FileResource, SourceManager, ResourceUnavailableError)
 from .utilities import NamedTemporaryResource
 
 import os.path
@@ -100,6 +101,15 @@ class FilteredResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
 
+    def _poke_stream(self, s):
+        """Peeks at a single byte from the compressed stream, in the process
+        both checking that it's valid and populating header values."""
+        try:
+            s.peek(1)
+            return s
+        except (OSError, EOFError) as ex:
+            raise ResourceUnavailableError(self.handle, *ex.args)
+
     def get_size(self):
         with self.make_stream() as s:
             initial = s.seek(0, 1)
@@ -111,10 +121,6 @@ class FilteredResource(FileResource):
 
     def get_last_modified(self):
         with self.make_stream() as s:
-            # The mtime field won't have a meaningful value until the first
-            # read operation has been performed, so read a single byte from
-            # this new stream
-            s.read(1)
             return datetime.fromtimestamp(s.mtime)
 
     @contextmanager
@@ -131,5 +137,8 @@ class FilteredResource(FileResource):
     @contextmanager
     def make_stream(self):
         with self._get_cookie().make_stream() as s_:
-            with self.handle.source._constructor(s_) as s:
-                yield s
+            try:
+                with self.handle.source._constructor(s_) as s:
+                    yield self._poke_stream(s)
+            except OSError as ex:
+                raise ResourceUnavailableError(self.handle, *ex.args)
