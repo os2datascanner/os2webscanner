@@ -40,24 +40,25 @@ class FilteredSource(Source):
             raise ValueError(self._filter_type)
 
     def __str__(self):
-        return "FilteredSource({0})".format(self.to_handle())
+        return "FilteredSource({0})".format(self.handle)
 
     def handles(self, sm):
-        rest, ext = os.path.splitext(self.to_handle().name)
+        rest, ext = os.path.splitext(self.handle.name)
         yield FilteredHandle(self, rest)
 
     def _generate_state(self, sm):
         # Using a nested SourceManager means that closing this generator will
         # automatically clean up as much as possible
         with SourceManager(sm) as derived:
-            yield self.to_handle().follow(derived)
+            yield self.handle.follow(derived)
 
-    def to_handle(self):
+    @property
+    def handle(self):
         return self._handle
 
     def to_json_object(self):
         return dict(**super().to_json_object(), **{
-            "handle": self.to_handle().to_json_object(),
+            "handle": self.handle.to_json_object(),
             "filter_type": self._filter_type.value
         })
 
@@ -91,7 +92,7 @@ class FilteredHandle(Handle):
     @property
     def presentation(self):
         return "({0}, decompressed)".format(
-                self.source.to_handle().presentation)
+                self.source.handle.presentation)
 
     def follow(self, sm):
         return FilteredResource(self, sm)

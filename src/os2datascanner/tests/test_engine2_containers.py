@@ -81,7 +81,7 @@ class Engine2ContainerTest(unittest.TestCase):
 
             source = Source.from_url("file://" + test_data_path)
             self.assertIsNone(
-                    source.to_handle(),
+                    source.handle,
                     "{0}: unexpected backing handle for file: URL".format(source))
             process(source)
 
@@ -92,5 +92,5 @@ class Engine2ContainerTest(unittest.TestCase):
 
             zs = Source.from_handle(h)
             self.assertIsNotNone(
-                    zs.to_handle(),
+                    zs.handle,
                     "{0}: derived source has no handle".format(zs))

@@ -121,7 +121,8 @@ class Source(_TypPropEq, JSONSerialisable):
         else:
             return None
 
-    def to_handle(self):
+    @property
+    def handle(self):
         """If this Source was created based on a Handle (typically by the
         Source.from_handle method), then returns that Handle; otherwise,
         returns None."""

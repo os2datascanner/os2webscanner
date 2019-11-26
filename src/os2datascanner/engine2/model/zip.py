@@ -30,7 +30,8 @@ class ZipSource(Source):
                 with ZipFile(str(r)) as zp:
                     yield zp
 
-    def to_handle(self):
+    @property
+    def handle(self):
         return self._handle
 
     def to_json_object(self):
@@ -51,7 +52,7 @@ class ZipHandle(Handle):
     @property
     def presentation(self):
         return "{0} (in {1})".format(
-                self.relative_path, self.source.to_handle())
+                self.relative_path, self.source.handle)
 
     def follow(self, sm):
         return ZipResource(self, sm)
