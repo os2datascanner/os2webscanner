@@ -42,9 +42,10 @@ def prometheus_session(name, advertisement_directory, **kwargs):
     advertisement_path = advertisement_directory + ("/{0}.json".format(name))
     os.rename(tmpfile, advertisement_path)
 
-    # ... and yield to execute whatever's in the with block
-    yield
-
-    # Now that we're back and the context has finished, delete the service
-    # advertisement
-    os.unlink(advertisement_path)
+    try:
+        # ... and yield to execute whatever's in the with block
+        yield
+    finally:
+        # Now that we're back and the context has finished, delete the service
+        # advertisement
+        os.unlink(advertisement_path)
