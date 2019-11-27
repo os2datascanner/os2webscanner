@@ -59,6 +59,9 @@ def prometheus_summary(*args):
 
 
 def json_event_processor(listener):
+    """Decorator. Automatically decodes JSON bodies for the wrapped Pika
+    message callback, and automatically produces new messages for every (queue
+    name, serialisable object) pair yielded by that callback."""
     def _wrapper(channel, method, properties, body):
         try:
             body = json.loads(body.decode("utf-8"))
