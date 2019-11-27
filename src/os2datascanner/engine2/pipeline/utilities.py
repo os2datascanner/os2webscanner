@@ -17,6 +17,15 @@ def make_common_argument_parser():
             metavar="HOST",
             help="the AMQP host to connect to",
             default="localhost")
+
+    monitoring = parser.add_argument_group("monitoring")
+    monitoring.add_argument(
+            "--prometheus-dir",
+            metavar="DIR",
+            help="the directory in which to drop a Prometheus description"
+                    " of this pipeline stage",
+            default=None)
+
     return parser
 
 
