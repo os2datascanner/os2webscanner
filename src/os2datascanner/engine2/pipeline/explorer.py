@@ -2,12 +2,13 @@ import pika
 
 from ..model.core import (Source, SourceManager, ResourceUnavailableError,
         DeserialisationError)
-from .utilities import (notify_ready, notify_stopping, json_event_processor,
-        make_common_argument_parser)
+from .utilities import (notify_ready, notify_stopping, prometheus_summary,
+        json_event_processor, make_common_argument_parser)
 
 args = None
 
 
+@prometheus_summary("os2datascanner_pipeline_explorer", "Sources explored")
 @json_event_processor
 def message_received(channel, method, properties, body):
     print("message_received({0}, {1}, {2}, {3})".format(
