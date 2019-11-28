@@ -16,18 +16,11 @@ class TypePropertyEquality:
             return obj.__dict__
 
     def __eq__(self, other):
-        if type(self) == type(other):
-            print("{0}.__eq__({1})?".format(
-                    repr(self.__get_state(self)),
-                    repr(self.__get_state(other))))
-            return self.__get_state(self) == self.__get_state(other)
-        else:
-            print("!{0}.__eq__({1})".format(self, other))
-            return False
+        return (type(self) == type(other) and
+                self.__get_state(self) == self.__get_state(other))
 
     def __hash__(self):
         h = 42 + hash(type(self))
         for k, v in self.__get_state(self).items():
             h += hash(k) + (hash(v) * 3)
         return h
-
