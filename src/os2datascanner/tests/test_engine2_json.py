@@ -3,6 +3,8 @@ import unittest
 from os2datascanner.engine2.model.core import (
         Source, Handle, UnknownSchemeError, DeserialisationError)
 from os2datascanner.engine2.model.data import DataSource, DataHandle
+from os2datascanner.engine2.model.ews import (
+        EWSMailHandle, EWSAccountSource, OFFICE_365_ENDPOINT as CLOUD)
 from os2datascanner.engine2.model.file import (
         FilesystemSource, FilesystemHandle)
 from os2datascanner.engine2.model.filtered import (
@@ -10,6 +12,8 @@ from os2datascanner.engine2.model.filtered import (
 from os2datascanner.engine2.model.http import WebSource, WebHandle
 from os2datascanner.engine2.model.smb import SMBSource, SMBHandle
 from os2datascanner.engine2.model.smbc import SMBCSource, SMBCHandle
+from os2datascanner.engine2.model.special.mail import (
+        MailSource, MailPartHandle)
 from os2datascanner.engine2.model.tar import TarSource, TarHandle
 from os2datascanner.engine2.model.zip import ZipSource, ZipHandle
 
@@ -57,7 +61,20 @@ class JSONTests(unittest.TestCase):
                                     FilesystemSource(
                                             "/home/user"),
                                     "Downloads/data.tar.gz")),
-                    "data0.txt")
+                    "data0.txt"),
+            MailPartHandle(
+                    MailSource(
+                            EWSMailHandle(
+                                    EWSAccountSource(
+                                            domain="cloudy.example",
+                                            server=CLOUD,
+                                            admin_user="cloudministrator",
+                                            admin_password="littlefluffy",
+                                            user="claude"),
+                                    "SW5ib3hJRA==.TWVzc2dJRA==",
+                                    "Re: Castles in the sky")),
+                    "1/pictograph.jpeg",
+                    "image/jpeg")
         ]
 
         for handle in example_handles:

@@ -1,4 +1,5 @@
-from .core import Source, Handle, FileResource, SourceManager
+from .core import (Source, DerivedSource,
+        Handle, FileResource, SourceManager, ResourceUnavailableError)
 from .utilities import NamedTemporaryResource
 
 import os.path
@@ -17,12 +18,12 @@ class FilterType(Enum):
     LZMA = "lzma"
 
 
-class FilteredSource(Source):
+class FilteredSource(DerivedSource):
     eq_properties = ("_handle", "_filter_type")
     type_label = "filtered"
 
     def __init__(self, handle, filter_type):
-        self._handle = handle
+        super().__init__(handle)
         self._filter_type = filter_type
 
         # Both BZ2File and LZMAFile accept either a file name or a file object
@@ -38,25 +39,18 @@ class FilteredSource(Source):
         else:
             raise ValueError(self._filter_type)
 
-    def __str__(self):
-        return "FilteredSource({0})".format(self._handle)
-
     def handles(self, sm):
-        rest, ext = os.path.splitext(self._handle.get_name())
+        rest, ext = os.path.splitext(self.handle.name)
         yield FilteredHandle(self, rest)
 
     def _generate_state(self, sm):
         # Using a nested SourceManager means that closing this generator will
         # automatically clean up as much as possible
         with SourceManager(sm) as derived:
-            yield self._handle.follow(derived)
-
-    def to_handle(self):
-        return self._handle
+            yield self.handle.follow(derived)
 
     def to_json_object(self):
         return dict(**super().to_json_object(), **{
-            "handle": self._handle.to_json_object(),
             "filter_type": self._filter_type.value
         })
 
@@ -90,7 +84,7 @@ class FilteredHandle(Handle):
     @property
     def presentation(self):
         return "({0}, decompressed)".format(
-                self.get_source().to_handle().presentation)
+                self.source.handle.presentation)
 
     def follow(self, sm):
         return FilteredResource(self, sm)
@@ -99,6 +93,15 @@ class FilteredHandle(Handle):
 class FilteredResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
+
+    def _poke_stream(self, s):
+        """Peeks at a single byte from the compressed stream, in the process
+        both checking that it's valid and populating header values."""
+        try:
+            s.peek(1)
+            return s
+        except (OSError, EOFError) as ex:
+            raise ResourceUnavailableError(self.handle, *ex.args)
 
     def get_size(self):
         with self.make_stream() as s:
@@ -119,17 +122,17 @@ class FilteredResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        ntr = NamedTemporaryResource(self.get_handle().get_name())
-        try:
+        with NamedTemporaryResource(self.handle.name) as ntr:
             with ntr.open("wb") as f:
                 with self.make_stream() as s:
                     f.write(s.read())
             yield ntr.get_path()
-        finally:
-            ntr.finished()
 
     @contextmanager
     def make_stream(self):
         with self._get_cookie().make_stream() as s_:
-            with self.get_handle().get_source()._constructor(s_) as s:
-                yield s
+            try:
+                with self.handle.source._constructor(s_) as s:
+                    yield self._poke_stream(s)
+            except OSError as ex:
+                raise ResourceUnavailableError(self.handle, *ex.args)

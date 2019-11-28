@@ -14,10 +14,16 @@ args = None
 source_manager = None
 
 
-def get_processor(sm, handle, required):
+def get_processor(sm, handle, required, configuration):
     if required == InputType.Text:
         resource = handle.follow(sm)
         mime_type = resource.compute_type()
+        if "skip_mime_types" in configuration:
+            for mt in configuration["skip_mime_types"]:
+                if mt.endswith("*") and mime_type.startswith(mt[:-1]):
+                    return None
+                elif mime_type == mt:
+                    return None
         processor = processors.processors.get(mime_type)
         if processor:
             return lambda handle: processor(handle.follow(sm))
@@ -44,7 +50,11 @@ def message_received(channel, method, properties, body):
         head, _, _ = rule.split()
 
         try:
-            processor = get_processor(source_manager, handle, head.operates_on)
+            processor = get_processor(
+                    source_manager,
+                    handle,
+                    head.operates_on,
+                    body["scan_spec"]["configuration"])
             if processor:
                 content = processor(handle)
                 if content:
@@ -52,9 +62,8 @@ def message_received(channel, method, properties, body):
                         "scan_spec": body["scan_spec"],
                         "handle": body["handle"],
                         "progress": body["progress"],
-                        "representation": {
-                            "type": head.operates_on.value,
-                            "content": content
+                        "representations": {
+                            head.operates_on.value: content
                         }
                     })
             else:
@@ -63,13 +72,12 @@ def message_received(channel, method, properties, body):
                 # it can, then try again with that
                 derived_source = Source.from_handle(handle, source_manager)
                 if derived_source:
-                    yield (args.sources, {
-                        # Preserve the scan_tag value to indicate that this
-                        # "new" scan is part of an existing one
-                        "scan_tag": body["scan_spec"]["scan_tag"],
-                        "source": derived_source.to_json_object(),
-                        "progress": body["progress"]
-                    })
+                    # Copy almost all of the existing scan spec, but note the
+                    # progress of rule execution and replace the source
+                    scan_spec = body["scan_spec"].copy()
+                    scan_spec["source"] = derived_source.to_json_object()
+                    scan_spec["progress"] = body["progress"]
+                    yield (args.sources, scan_spec)
         except ResourceUnavailableError as ex:
             pass
 

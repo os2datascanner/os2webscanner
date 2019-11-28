@@ -1,11 +1,11 @@
 from abc import abstractmethod
 
 from ...utilities.json import JSONSerialisable
+from ...utilities.equality import TypePropertyEquality
 from .errors import UnknownSchemeError, DeserialisationError
-from .utilities import _TypPropEq
 
 
-class Source(_TypPropEq, JSONSerialisable):
+class Source(TypePropertyEquality, JSONSerialisable):
     """A Source represents the root of a hierarchy to be explored. It
     constructs Handles, which represent the position of an object in the
     hierarchy.
@@ -48,8 +48,8 @@ class Source(_TypPropEq, JSONSerialisable):
         These Handles can be detected by catching the ResourceUnavailableError
         exception.
 
-        It is not necessarily the case that the result of the get_source call
-        on a Handle yielded by this method will be this Source."""
+        It is not necessarily the case that the value of the source property on
+        a Handle yielded by this method will be this Source."""
 
     __url_handlers = {}
     @staticmethod
@@ -121,7 +121,8 @@ class Source(_TypPropEq, JSONSerialisable):
         else:
             return None
 
-    def to_handle(self):
+    @property
+    def handle(self):
         """If this Source was created based on a Handle (typically by the
         Source.from_handle method), then returns that Handle; otherwise,
         returns None."""
@@ -136,3 +137,20 @@ class Source(_TypPropEq, JSONSerialisable):
         return {
             "type": self.type_label
         }
+
+
+class DerivedSource(Source):
+    """A DerivedSource is a convenience class for a Source backed by a Handle.
+    It provides sensible default implementations of Source.handle and
+    Source.to_json_object."""
+    def __init__(self, handle):
+        self._handle = handle
+
+    @property
+    def handle(self):
+        return self._handle
+
+    def to_json_object(self):
+        return dict(**super().to_json_object(), **{
+            "handle": self.handle.to_json_object()
+        })

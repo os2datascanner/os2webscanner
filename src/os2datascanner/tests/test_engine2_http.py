@@ -1,7 +1,6 @@
 from datetime import datetime
 import unittest
 import contextlib
-from os import stat
 
 from os2datascanner.engine2.model.core import (
         Source, SourceManager, UnknownSchemeError, ResourceUnavailableError)

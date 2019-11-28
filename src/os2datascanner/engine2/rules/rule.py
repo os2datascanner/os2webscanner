@@ -1,11 +1,11 @@
 from abc import abstractmethod
 
 from ..utilities.json import JSONSerialisable
-from ..model.core.utilities import _TypPropEq
+from ..utilities.equality import TypePropertyEquality
 from .types import InputType
 
 
-class Rule(_TypPropEq, JSONSerialisable):
+class Rule(TypePropertyEquality, JSONSerialisable):
     """A Rule represents a test to be applied to a representation of an
     object.
 

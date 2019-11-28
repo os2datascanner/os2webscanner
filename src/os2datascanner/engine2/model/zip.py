@@ -1,4 +1,4 @@
-from .core import Source, Handle, FileResource, SourceManager
+from .core import Source, Handle, FileResource, DerivedSource, SourceManager
 from .utilities import NamedTemporaryResource
 
 from zipfile import ZipFile
@@ -7,14 +7,8 @@ from contextlib import contextmanager
 
 
 @Source.mime_handler("application/zip")
-class ZipSource(Source):
+class ZipSource(DerivedSource):
     type_label = "zip"
-
-    def __init__(self, handle):
-        self._handle = handle
-
-    def __str__(self):
-        return "ZipSource({0})".format(self._handle)
 
     def handles(self, sm):
         zipfile = sm.open(self)
@@ -26,17 +20,9 @@ class ZipSource(Source):
         # Using a nested SourceManager means that closing this generator will
         # automatically clean up as much as possible
         with SourceManager(sm) as derived:
-            with self._handle.follow(derived).make_path() as r:
+            with self.handle.follow(derived).make_path() as r:
                 with ZipFile(str(r)) as zp:
                     yield zp
-
-    def to_handle(self):
-        return self._handle
-
-    def to_json_object(self):
-        return dict(**super().to_json_object(), **{
-            "handle": self._handle.to_json_object()
-        })
 
     @staticmethod
     @Source.json_handler(type_label)
@@ -51,7 +37,7 @@ class ZipHandle(Handle):
     @property
     def presentation(self):
         return "{0} (in {1})".format(
-                self.get_relative_path(), self.get_source().to_handle())
+                self.relative_path, self.source.handle)
 
     def follow(self, sm):
         return ZipResource(self, sm)
@@ -65,7 +51,7 @@ class ZipResource(FileResource):
     def get_info(self):
         if not self._info:
             self._info = self._get_cookie().getinfo(
-                    str(self.get_handle().get_relative_path()))
+                    str(self.handle.relative_path))
         return self._info
 
     def get_size(self):
@@ -76,17 +62,13 @@ class ZipResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        ntr = NamedTemporaryResource(self.get_handle().get_name())
-        try:
+        with NamedTemporaryResource(self.handle.name) as ntr:
             with ntr.open("wb") as f:
                 with self.make_stream() as s:
                     f.write(s.read())
             yield ntr.get_path()
-        finally:
-            ntr.finished()
 
     @contextmanager
     def make_stream(self):
-        with self._get_cookie().open(
-                self.get_handle().get_relative_path()) as s:
+        with self._get_cookie().open(self.handle.relative_path) as s:
             yield s

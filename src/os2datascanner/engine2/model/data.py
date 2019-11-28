@@ -14,17 +14,19 @@ class DataSource(Source):
         self._content = content
         self._mime = mime
 
+    @property
+    def mime(self):
+        return self._mime
+
     def handles(self, sm):
         yield DataHandle(self, "file")
-
-    def __str__(self):
-        return "DataSource(content=..., mime={0})".format(self._mime)
 
     def _generate_state(self, sm):
         yield EMPTY_COOKIE
 
     def to_url(self):
-        return "data:{0};base64,{1}".format(self._mime, b64encode(self._content).decode(encoding='ascii'))
+        return "data:{0};base64,{1}".format(self.mime,
+                b64encode(self._content).decode(encoding='ascii'))
 
     @staticmethod
     @Source.url_handler("data")
@@ -37,7 +39,7 @@ class DataSource(Source):
     def to_json_object(self):
         return dict(**super().to_json_object(), **{
             "content": b64encode(self._content).decode(encoding="ascii"),
-            "mime": self._mime
+            "mime": self.mime
         })
 
     @staticmethod
@@ -55,7 +57,7 @@ class DataHandle(Handle):
         return "(embedded file of type {0})".format(self.guess_type())
 
     def guess_type(self):
-        return self.get_source()._mime
+        return self.source.mime
 
     def follow(self, sm):
         return DataResource(self, sm)
@@ -63,7 +65,7 @@ class DataHandle(Handle):
 
 class DataResource(FileResource):
     def get_size(self):
-        return len(self.get_handle().get_source()._content)
+        return len(self.handle.source._content)
 
     def get_last_modified(self):
         # This is not redundant -- the superclass's default implementation is
@@ -81,5 +83,5 @@ class DataResource(FileResource):
 
     @contextmanager
     def make_stream(self):
-        with BytesIO(self.get_handle().get_source()._content) as s:
+        with BytesIO(self.handle.source._content) as s:
             yield s

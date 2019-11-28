@@ -1,6 +1,4 @@
 import unittest
-import contextlib
-from os import stat
 
 from os2datascanner.engine2.model.core import (ShareableCookie, SourceManager)
 from os2datascanner.engine2.model.http import WebSource, WebHandle
