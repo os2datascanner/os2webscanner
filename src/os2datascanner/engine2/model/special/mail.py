@@ -19,7 +19,7 @@ class MailSource(DerivedSource):
 
     def _generate_state(self, sm):
         with SourceManager(sm) as sm:
-            yield self.to_handle().follow(sm).get_email_message()
+            yield self.handle.follow(sm).get_email_message()
 
     def handles(self, sm):
         def _process_message(path, part):
@@ -48,8 +48,7 @@ class MailPartHandle(Handle):
 
     @property
     def presentation(self):
-        return "{0} (in {1})".format(
-                self.get_name(), self.get_source().to_handle())
+        return "{0} (in {1})".format(self.name, self.source.handle)
 
     def follow(self, sm):
         return MailPartResource(self, sm)
@@ -77,7 +76,7 @@ class MailPartResource(FileResource):
     def _get_fragment(self):
         if not self._fragment:
             where = self._get_cookie()
-            path = self.get_handle().get_relative_path().split("/")[:-1]
+            path = self.handle.relative_path.split("/")[:-1]
             while path:
                 next_idx, path = int(path[0]), path[1:]
                 where = where.get_payload()[next_idx]
@@ -98,7 +97,7 @@ class MailPartResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        with NamedTemporaryResource(self.get_handle().get_name()) as ntr:
+        with NamedTemporaryResource(self.handle.name) as ntr:
             with ntr.open("wb") as res:
                 with self.make_stream() as s:
                     res.write(s.read())

@@ -21,10 +21,12 @@ class SMBSource(Source):
         self._domain = domain
         self._driveletter = driveletter
 
-    def get_unc(self):
+    @property
+    def unc(self):
         return self._unc
 
-    def get_driveletter(self):
+    @property
+    def driveletter(self):
         return self._driveletter
 
     def _make_optarg(self, display=True):
@@ -39,9 +41,6 @@ class SMBSource(Source):
         if self._domain:
             optarg.append('domain=' + self._domain)
         return ",".join(optarg)
-
-    def __str__(self):
-        return "SMBSource({0}, {1})".format(self._unc, self._make_optarg())
 
     def _generate_state(self, sm):
         mntdir = mkdtemp()
@@ -113,14 +112,14 @@ class SMBHandle(Handle):
 
     @property
     def presentation(self):
-        p = self.get_source().get_driveletter()
+        p = self.source.driveletter
         if p:
             p += ":"
         else:
-            p = self.get_source().get_unc()
+            p = self.source.unc
         if p[-1] != "/":
             p += "/"
-        return (p + self.get_relative_path()).replace("/", "\\")
+        return (p + self.relative_path).replace("/", "\\")
 
     def follow(self, sm):
         return FilesystemResource(self, sm)

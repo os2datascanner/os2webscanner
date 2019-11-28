@@ -50,15 +50,13 @@ class EWSAccountSource(Source):
         self._admin_password = admin_password
         self._user = user
 
-    def get_user(self):
+    @property
+    def user(self):
         return self._user
 
-    def get_domain(self):
+    @property
+    def domain(self):
         return self._domain
-
-    def __str__(self):
-        return "EWSSource({0}, {1}, {2}, ****, {3})".format(
-                self._domain, self._server, self._admin_user, self._user)
 
     def _generate_state(self, sm):
         config = None
@@ -140,7 +138,7 @@ class EWSMailHandle(Handle):
     @property
     def presentation(self):
         return "\"{0}\" (in {1}@{2})".format(self._mail_subject,
-                self.get_source().get_user(), self.get_source().get_domain())
+                self.source.user, self.source.domain)
 
     def follow(self, sm):
         return EWSMailResource(self, sm)
@@ -162,8 +160,7 @@ class EWSMailHandle(Handle):
 class EWSMailResource(Resource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
-        self._ids = self.get_handle().get_relative_path().split(
-                ".", maxsplit=1)
+        self._ids = self.handle.relative_path.split(".", maxsplit=1)
         self._message = None
 
     def get_message_object(self):

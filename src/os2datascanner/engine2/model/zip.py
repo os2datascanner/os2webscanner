@@ -10,9 +10,6 @@ from contextlib import contextmanager
 class ZipSource(DerivedSource):
     type_label = "zip"
 
-    def __str__(self):
-        return "ZipSource({0})".format(self.to_handle())
-
     def handles(self, sm):
         zipfile = sm.open(self)
         for f in zipfile.namelist():
@@ -23,7 +20,7 @@ class ZipSource(DerivedSource):
         # Using a nested SourceManager means that closing this generator will
         # automatically clean up as much as possible
         with SourceManager(sm) as derived:
-            with self.to_handle().follow(derived).make_path() as r:
+            with self.handle.follow(derived).make_path() as r:
                 with ZipFile(str(r)) as zp:
                     yield zp
 
@@ -40,7 +37,7 @@ class ZipHandle(Handle):
     @property
     def presentation(self):
         return "{0} (in {1})".format(
-                self.get_relative_path(), self.get_source().to_handle())
+                self.relative_path, self.source.handle)
 
     def follow(self, sm):
         return ZipResource(self, sm)
@@ -54,7 +51,7 @@ class ZipResource(FileResource):
     def get_info(self):
         if not self._info:
             self._info = self._get_cookie().getinfo(
-                    str(self.get_handle().get_relative_path()))
+                    str(self.handle.relative_path))
         return self._info
 
     def get_size(self):
@@ -65,7 +62,7 @@ class ZipResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        with NamedTemporaryResource(self.get_handle().get_name()) as ntr:
+        with NamedTemporaryResource(self.handle.name) as ntr:
             with ntr.open("wb") as f:
                 with self.make_stream() as s:
                     f.write(s.read())
@@ -73,6 +70,5 @@ class ZipResource(FileResource):
 
     @contextmanager
     def make_stream(self):
-        with self._get_cookie().open(
-                self.get_handle().get_relative_path()) as s:
+        with self._get_cookie().open(self.handle.relative_path) as s:
             yield s

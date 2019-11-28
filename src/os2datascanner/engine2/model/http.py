@@ -27,9 +27,6 @@ class WebSource(Source):
         assert url.startswith("http:") or url.startswith("https:")
         self._url = url
 
-    def __str__(self):
-        return "WebSource({0})".format(self._url)
-
     def _generate_state(self, sm):
         with Session() as session:
             yield session
@@ -115,10 +112,10 @@ class WebHandle(Handle):
 
     @property
     def presentation_url(self):
-        p = self.get_source().to_url()
+        p = self.source.to_url()
         if p[-1] != "/":
             p += "/"
-        return p + self.get_relative_path()
+        return p + self.relative_path
 
     def follow(self, sm):
         return WebResource(self, sm)
@@ -131,9 +128,9 @@ class WebResource(FileResource):
         self._header = None
 
     def _make_url(self):
-        handle = self.get_handle()
-        base = handle.get_source().to_url()
-        return base + str(handle.get_relative_path())
+        handle = self.handle
+        base = handle.source.to_url()
+        return base + str(handle.relative_path)
 
     def _require_header_and_status(self):
         if not self._header:
@@ -148,7 +145,7 @@ class WebResource(FileResource):
     def get_header(self):
         self._require_header_and_status()
         if self._status != 200:
-            raise ResourceUnavailableError(self.get_handle(), self._status)
+            raise ResourceUnavailableError(self.handle, self._status)
         return self._header
 
     def get_size(self):
@@ -169,7 +166,7 @@ class WebResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        with NamedTemporaryResource(self.get_handle().get_name()) as ntr:
+        with NamedTemporaryResource(self.handle.name) as ntr:
             with ntr.open("wb") as res:
                 with self.make_stream() as s:
                     res.write(s.read())
@@ -179,8 +176,7 @@ class WebResource(FileResource):
     def make_stream(self):
         response = self._get_cookie().get(self._make_url())
         if response.status_code != 200:
-            raise ResourceUnavailableError(
-                    self.get_handle(), response.status_code)
+            raise ResourceUnavailableError(self.handle, response.status_code)
         else:
             with BytesIO(response.content) as s:
                 yield s

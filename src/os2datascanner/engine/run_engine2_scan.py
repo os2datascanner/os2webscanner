@@ -94,7 +94,7 @@ class StartEngine2Scan(StartScan, multiprocessing.Process):
                         with resource.make_stream() as s:
                             self.scanner.scan(s.read(), url_object)
                         self.logger.info("fetched_item",
-                                path=handle.get_relative_path(),
+                                path=handle.relative_path,
                                 url_object=url_object,
                                 mime_type=url_object.mime_type,
                                 pos=idx + 1)
@@ -103,7 +103,7 @@ class StartEngine2Scan(StartScan, multiprocessing.Process):
                             pass # XXX: actually build referrer URL structure
                         self.logger.info("item_unavailable",
                                     status=ex.args,
-                                    path=handle.get_relative_path(),
+                                    path=handle.relative_path,
                                     pos=idx + 1)
                 self.logger.info("fetched_items")
 
@@ -128,11 +128,11 @@ class StartEngine2Scan(StartScan, multiprocessing.Process):
     def make_presentation_url(self, handle):
         variety = self.configuration['type']
         if variety == 'WebScanner':
-            return urljoin(handle.get_source().to_url() + "/",
-                    handle.get_relative_path())
+            return urljoin(handle.source.to_url() + "/",
+                    handle.relative_path)
         elif variety == 'FileScanner':
-            return urljoin("file:" + quote(handle.get_source().get_unc()) + "/",
-                    quote(handle.get_relative_path()))
+            return urljoin("file:" + quote(handle.source.get_unc()) + "/",
+                    quote(handle.relative_path))
         else:
             raise Exception("Unknown variety {0}".format(variety))
 

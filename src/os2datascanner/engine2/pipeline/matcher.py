@@ -14,18 +14,18 @@ def message_received(channel, method, properties, body):
             channel, method, properties, body))
     try:
         progress = body["progress"]
-        representation = body["representation"]
-
+        representations = body["representations"]
         rule = Rule.from_json_object(progress["rule"])
-        content = representation["content"]
-        content_type = InputType(representation["type"])
 
         new_matches = []
 
         # For now, we only do this once in order to exercise the pipeline. In
         # future, we'll want to have a loop here: while the head of the rule
-        # wants the type of representation we have, keep finding more matches
+        # wants a representation that we have, keep finding more matches
         head, pve, nve = rule.split()
+        target_type = head.operates_on.value
+        content = representations[target_type]
+
         matches = list(head.match(content))
         new_matches.append({
             "rule": head.to_json_object(),

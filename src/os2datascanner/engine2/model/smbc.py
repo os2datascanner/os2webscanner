@@ -22,15 +22,13 @@ class SMBCSource(Source):
         self._domain = domain
         self._driveletter = driveletter
 
-    def get_unc(self):
+    @property
+    def unc(self):
         return self._unc
 
-    def get_driveletter(self):
+    @property
+    def driveletter(self):
         return self._driveletter
-
-    def __str__(self):
-        return "SMBCSource({0}, {1}, ****, {2})".format(
-                self._unc, self._user, self._domain)
 
     def _generate_state(self, sm):
         c = smbc.Context()
@@ -108,14 +106,14 @@ class SMBCHandle(Handle):
 
     @property
     def presentation(self):
-        p = self.get_source().get_driveletter()
+        p = self.source.driveletter
         if p:
             p += ":"
         else:
-            p = self.get_source().get_unc()
+            p = self.source.unc
         if p[-1] != "/":
             p += "/"
-        return (p + self.get_relative_path()).replace("/", "\\")
+        return (p + self.relative_path).replace("/", "\\")
 
     def follow(self, sm):
         return SMBCResource(self, sm)
@@ -173,14 +171,14 @@ class SMBCResource(FileResource):
 
     def _make_url(self):
         url, _ = self._get_cookie()
-        return url + "/" + quote(self.get_handle().get_relative_path())
+        return url + "/" + quote(self.handle.relative_path)
 
     def open_file(self):
         try:
             _, context = self._get_cookie()
             return context.open(self._make_url(), O_RDONLY)
-        except smbc.NoEntryError as ex:
-            raise ResourceUnavailableError(self.get_handle(), ex)
+        except (smbc.NoEntryError, smbc.PermissionError) as ex:
+            raise ResourceUnavailableError(self.handle, ex)
 
     def get_xattr(self, attr):
         """Retrieves a SMB extended attribute for this file. (See the
@@ -190,8 +188,8 @@ class SMBCResource(FileResource):
             _, context = self._get_cookie()
             return context.getxattr(self._make_url(), attr)
             # Don't attempt to catch the ValueError if attr isn't valid
-        except smbc.NoEntryError as ex:
-            raise ResourceUnavailableError(self.get_handle(), ex)
+        except (smbc.NoEntryError, smbc.PermissionError) as ex:
+            raise ResourceUnavailableError(self.handle, ex)
 
     def get_stat(self):
         if not self._stat:
@@ -215,7 +213,7 @@ class SMBCResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        with NamedTemporaryResource(self.get_handle().get_name()) as ntr:
+        with NamedTemporaryResource(self.handle.name) as ntr:
             with ntr.open("wb") as f:
                 with self.make_stream() as rf:
                     buf = rf.read(self.DOWNLOAD_CHUNK_SIZE)

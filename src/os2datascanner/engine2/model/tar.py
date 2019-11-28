@@ -10,9 +10,6 @@ from contextlib import contextmanager
 class TarSource(DerivedSource):
     type_label = "tar"
 
-    def __str__(self):
-        return "TarSource({0})".format(self.to_handle())
-
     def handles(self, sm):
         tarfile = sm.open(self)
         for f in tarfile.getmembers():
@@ -23,7 +20,7 @@ class TarSource(DerivedSource):
         # Using a nested SourceManager means that closing this generator will
         # automatically clean up as much as possible
         with SourceManager(sm) as derived:
-            with self.to_handle().follow(derived).make_path() as r:
+            with self.handle.follow(derived).make_path() as r:
                 with open_tar(str(r), "r") as tp:
                     yield tp
 
@@ -40,7 +37,7 @@ class TarHandle(Handle):
     @property
     def presentation(self):
         return "{0} (in {1})".format(
-                self.get_relative_path(), self.get_source().to_handle())
+                self.relative_path, self.source.handle)
 
     def follow(self, sm):
         return TarResource(self, sm)
@@ -54,7 +51,7 @@ class TarResource(FileResource):
     def get_info(self):
         if not self._info:
             self._info = self._get_cookie().getmember(
-                    self.get_handle().get_relative_path())
+                    self.handle.relative_path)
         return self._info
 
     def get_size(self):
@@ -65,7 +62,7 @@ class TarResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        with NamedTemporaryResource(self.get_handle().get_name()) as ntr:
+        with NamedTemporaryResource(self.handle.name) as ntr:
             with ntr.open("wb") as f:
                 with self.make_stream() as s:
                     f.write(s.read())
@@ -73,6 +70,5 @@ class TarResource(FileResource):
 
     @contextmanager
     def make_stream(self):
-        with self._get_cookie().extractfile(
-                 self.get_handle().get_relative_path()) as s:
+        with self._get_cookie().extractfile(self.handle.relative_path) as s:
             yield s

@@ -1,4 +1,5 @@
-from .core import Handle, Source, FileResource, DerivedSource, SourceManager
+from .core import (Source, DerivedSource,
+        Handle, FileResource, SourceManager, ResourceUnavailableError)
 from .utilities import NamedTemporaryResource
 
 import os.path
@@ -38,18 +39,15 @@ class FilteredSource(DerivedSource):
         else:
             raise ValueError(self._filter_type)
 
-    def __str__(self):
-        return "FilteredSource({0})".format(self.to_handle())
-
     def handles(self, sm):
-        rest, ext = os.path.splitext(self.to_handle().get_name())
+        rest, ext = os.path.splitext(self.handle.name)
         yield FilteredHandle(self, rest)
 
     def _generate_state(self, sm):
         # Using a nested SourceManager means that closing this generator will
         # automatically clean up as much as possible
         with SourceManager(sm) as derived:
-            yield self.to_handle().follow(derived)
+            yield self.handle.follow(derived)
 
     def to_json_object(self):
         return dict(**super().to_json_object(), **{
@@ -86,7 +84,7 @@ class FilteredHandle(Handle):
     @property
     def presentation(self):
         return "({0}, decompressed)".format(
-                self.get_source().to_handle().presentation)
+                self.source.handle.presentation)
 
     def follow(self, sm):
         return FilteredResource(self, sm)
@@ -95,6 +93,15 @@ class FilteredHandle(Handle):
 class FilteredResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
+
+    def _poke_stream(self, s):
+        """Peeks at a single byte from the compressed stream, in the process
+        both checking that it's valid and populating header values."""
+        try:
+            s.peek(1)
+            return s
+        except (OSError, EOFError) as ex:
+            raise ResourceUnavailableError(self.handle, *ex.args)
 
     def get_size(self):
         with self.make_stream() as s:
@@ -115,7 +122,7 @@ class FilteredResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        with NamedTemporaryResource(self.get_handle().get_name()) as ntr:
+        with NamedTemporaryResource(self.handle.name) as ntr:
             with ntr.open("wb") as f:
                 with self.make_stream() as s:
                     f.write(s.read())
@@ -124,5 +131,8 @@ class FilteredResource(FileResource):
     @contextmanager
     def make_stream(self):
         with self._get_cookie().make_stream() as s_:
-            with self.get_handle().get_source()._constructor(s_) as s:
-                yield s
+            try:
+                with self.handle.source._constructor(s_) as s:
+                    yield self._poke_stream(s)
+            except OSError as ex:
+                raise ResourceUnavailableError(self.handle, *ex.args)

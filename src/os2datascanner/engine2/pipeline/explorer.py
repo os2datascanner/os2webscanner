@@ -17,16 +17,26 @@ def message_received(channel, method, properties, body):
     try:
         source = Source.from_json_object(body["source"])
 
+        # The configuration dictionary was added fairly late to scan specs, so
+        # not all clients will send it. Add an empty one if necessary
+        body.setdefault("configuration", {})
+
+        if "progress" in body:
+            # If this scan spec is based on a derived source and so contains
+            # scan progress information, then take it out; the rest of the
+            # pipeline won't look for it here
+            progress = body["progress"]
+            del body["progress"]
+        else:
+            progress = dict(rule=body["rule"], matches=[])
+
         with SourceManager() as sm:
             for handle in source.handles(sm):
                 print(handle)
                 yield (args.conversions, {
                     "scan_spec": body,
                     "handle": handle.to_json_object(),
-                    "progress": body["progress"] if "progress" in body else {
-                        "rule": body["rule"],
-                        "matches": []
-                    }
+                    "progress": progress
                 })
     except ResourceUnavailableError as ex:
         yield (args.problems, {
