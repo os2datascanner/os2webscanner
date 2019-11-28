@@ -1,13 +1,17 @@
+from os import getpid
 import pika
 
 from ...utils.metadata import guess_responsible_party
+from ...utils.prometheus import prometheus_session
 from ..model.core import Handle, SourceManager, ResourceUnavailableError
 from .utilities import (json_event_processor, notify_ready, notify_stopping,
-        make_common_argument_parser)
+        prometheus_summary, make_common_argument_parser)
 
 args = None
 
 
+@prometheus_summary(
+        "os2datascanner_pipeline_tagger", "Metadata extractions")
 @json_event_processor
 def message_received(channel, method, properties, body):
     print("message_received({0}, {1}, {2}, {3})".format(
@@ -78,15 +82,19 @@ def main():
 
     channel.basic_consume(args.handles, message_received)
 
-    try:
-        print("Start")
-        notify_ready()
-        channel.start_consuming()
-    finally:
-        print("Stop")
-        notify_stopping()
-        channel.stop_consuming()
-        connection.close()
+    with prometheus_session(
+            str(getpid()),
+            args.prometheus_dir,
+            stage_type="tagger"):
+        try:
+            print("Start")
+            notify_ready()
+            channel.start_consuming()
+        finally:
+            print("Stop")
+            notify_stopping()
+            channel.stop_consuming()
+            connection.close()
 
 if __name__ == "__main__":
     main()

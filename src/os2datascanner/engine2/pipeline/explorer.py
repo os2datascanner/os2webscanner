@@ -80,21 +80,23 @@ def main():
     global args
     args = parser.parse_args()
 
-    with prometheus_session(str(getpid()), args.prometheus_dir,
+    parameters = pika.ConnectionParameters(host=args.host, heartbeat=6000)
+    connection = pika.BlockingConnection(parameters)
+
+    channel = connection.channel()
+    channel.queue_declare(args.sources, passive=False,
+            durable=True, exclusive=False, auto_delete=False)
+    channel.queue_declare(args.conversions, passive=False,
+            durable=True, exclusive=False, auto_delete=False)
+    channel.queue_declare(args.problems, passive=False,
+            durable=True, exclusive=False, auto_delete=False)
+
+    channel.basic_consume(args.sources, message_received)
+
+    with prometheus_session(
+            str(getpid()),
+            args.prometheus_dir,
             stage_type="explorer"):
-        parameters = pika.ConnectionParameters(host=args.host, heartbeat=6000)
-        connection = pika.BlockingConnection(parameters)
-
-        channel = connection.channel()
-        channel.queue_declare(args.sources, passive=False,
-                durable=True, exclusive=False, auto_delete=False)
-        channel.queue_declare(args.conversions, passive=False,
-                durable=True, exclusive=False, auto_delete=False)
-        channel.queue_declare(args.problems, passive=False,
-                durable=True, exclusive=False, auto_delete=False)
-
-        channel.basic_consume(args.sources, message_received)
-
         try:
             print("Start")
             notify_ready()
@@ -104,6 +106,7 @@ def main():
             notify_stopping()
             channel.stop_consuming()
             connection.close()
+
 
 if __name__ == "__main__":
     main()
