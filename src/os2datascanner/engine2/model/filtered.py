@@ -1,5 +1,5 @@
-from .core import (
-        Source, Handle, FileResource, SourceManager, ResourceUnavailableError)
+from .core import (Source, DerivedSource,
+        Handle, FileResource, SourceManager, ResourceUnavailableError)
 from .utilities import NamedTemporaryResource
 
 import os.path
@@ -18,12 +18,12 @@ class FilterType(Enum):
     LZMA = "lzma"
 
 
-class FilteredSource(Source):
+class FilteredSource(DerivedSource):
     eq_properties = ("_handle", "_filter_type")
     type_label = "filtered"
 
     def __init__(self, handle, filter_type):
-        self._handle = handle
+        super().__init__(handle)
         self._filter_type = filter_type
 
         # Both BZ2File and LZMAFile accept either a file name or a file object
@@ -49,13 +49,8 @@ class FilteredSource(Source):
         with SourceManager(sm) as derived:
             yield self.handle.follow(derived)
 
-    @property
-    def handle(self):
-        return self._handle
-
     def to_json_object(self):
         return dict(**super().to_json_object(), **{
-            "handle": self.handle.to_json_object(),
             "filter_type": self._filter_type.value
         })
 
@@ -119,18 +114,19 @@ class FilteredResource(FileResource):
 
     def get_last_modified(self):
         with self.make_stream() as s:
+            # The mtime field won't have a meaningful value until the first
+            # read operation has been performed, so read a single byte from
+            # this new stream
+            s.read(1)
             return datetime.fromtimestamp(s.mtime)
 
     @contextmanager
     def make_path(self):
-        ntr = NamedTemporaryResource(self.handle.name)
-        try:
+        with NamedTemporaryResource(self.handle.name) as ntr:
             with ntr.open("wb") as f:
                 with self.make_stream() as s:
                     f.write(s.read())
             yield ntr.get_path()
-        finally:
-            ntr.finished()
 
     @contextmanager
     def make_stream(self):

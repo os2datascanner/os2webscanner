@@ -213,8 +213,7 @@ class SMBCResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        ntr = NamedTemporaryResource(self.handle.name)
-        try:
+        with NamedTemporaryResource(self.handle.name) as ntr:
             with ntr.open("wb") as f:
                 with self.make_stream() as rf:
                     buf = rf.read(self.DOWNLOAD_CHUNK_SIZE)
@@ -222,8 +221,6 @@ class SMBCResource(FileResource):
                         f.write(buf)
                         buf = rf.read(self.DOWNLOAD_CHUNK_SIZE)
             yield ntr.get_path()
-        finally:
-            ntr.finished()
 
     @contextmanager
     def make_stream(self):
