@@ -1,11 +1,11 @@
 from abc import abstractmethod
 
 from ...utilities.json import JSONSerialisable
+from ...utilities.equality import TypePropertyEquality
 from .errors import UnknownSchemeError, DeserialisationError
-from .utilities import _TypPropEq
 
 
-class Source(_TypPropEq, JSONSerialisable):
+class Source(TypePropertyEquality, JSONSerialisable):
     """A Source represents the root of a hierarchy to be explored. It
     constructs Handles, which represent the position of an object in the
     hierarchy.
@@ -122,9 +122,8 @@ class Source(_TypPropEq, JSONSerialisable):
             return None
 
     def to_handle(self):
-        """If this Source was created based on a Handle (typically by the
-        Source.from_handle method), then returns that Handle; otherwise,
-        returns None."""
+        """If this type of Source is backed by a Handle, then returns that
+        Handle; otherwise, returns None."""
         return None
 
     _json_handlers = {}
@@ -136,3 +135,19 @@ class Source(_TypPropEq, JSONSerialisable):
         return {
             "type": self.type_label
         }
+
+
+class DerivedSource(Source):
+    """A DerivedSource is a convenience class for a Source backed by a Handle.
+    It provides sensible default implementations of Source.to_handle and
+    Source.to_json_object."""
+    def __init__(self, handle):
+        self._handle = handle
+
+    def to_handle(self):
+        return self._handle
+
+    def to_json_object(self):
+        return dict(**super().to_json_object(), **{
+            "handle": self.to_handle().to_json_object()
+        })

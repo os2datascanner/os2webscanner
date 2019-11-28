@@ -1,4 +1,4 @@
-from .core import Source, Handle, FileResource, SourceManager
+from .core import Handle, Source, FileResource, DerivedSource, SourceManager
 from .utilities import NamedTemporaryResource
 
 import os.path
@@ -17,12 +17,12 @@ class FilterType(Enum):
     LZMA = "lzma"
 
 
-class FilteredSource(Source):
+class FilteredSource(DerivedSource):
     eq_properties = ("_handle", "_filter_type")
     type_label = "filtered"
 
     def __init__(self, handle, filter_type):
-        self._handle = handle
+        super().__init__(handle)
         self._filter_type = filter_type
 
         # Both BZ2File and LZMAFile accept either a file name or a file object
@@ -39,24 +39,20 @@ class FilteredSource(Source):
             raise ValueError(self._filter_type)
 
     def __str__(self):
-        return "FilteredSource({0})".format(self._handle)
+        return "FilteredSource({0})".format(self.to_handle())
 
     def handles(self, sm):
-        rest, ext = os.path.splitext(self._handle.get_name())
+        rest, ext = os.path.splitext(self.to_handle().get_name())
         yield FilteredHandle(self, rest)
 
     def _generate_state(self, sm):
         # Using a nested SourceManager means that closing this generator will
         # automatically clean up as much as possible
         with SourceManager(sm) as derived:
-            yield self._handle.follow(derived)
-
-    def to_handle(self):
-        return self._handle
+            yield self.to_handle().follow(derived)
 
     def to_json_object(self):
         return dict(**super().to_json_object(), **{
-            "handle": self._handle.to_json_object(),
             "filter_type": self._filter_type.value
         })
 
@@ -119,14 +115,11 @@ class FilteredResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        ntr = NamedTemporaryResource(self.get_handle().get_name())
-        try:
+        with NamedTemporaryResource(self.get_handle().get_name()) as ntr:
             with ntr.open("wb") as f:
                 with self.make_stream() as s:
                     f.write(s.read())
             yield ntr.get_path()
-        finally:
-            ntr.finished()
 
     @contextmanager
     def make_stream(self):

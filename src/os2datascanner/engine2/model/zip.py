@@ -1,4 +1,4 @@
-from .core import Source, Handle, FileResource, SourceManager
+from .core import Source, Handle, FileResource, DerivedSource, SourceManager
 from .utilities import NamedTemporaryResource
 
 from zipfile import ZipFile
@@ -7,14 +7,11 @@ from contextlib import contextmanager
 
 
 @Source.mime_handler("application/zip")
-class ZipSource(Source):
+class ZipSource(DerivedSource):
     type_label = "zip"
 
-    def __init__(self, handle):
-        self._handle = handle
-
     def __str__(self):
-        return "ZipSource({0})".format(self._handle)
+        return "ZipSource({0})".format(self.to_handle())
 
     def handles(self, sm):
         zipfile = sm.open(self)
@@ -26,17 +23,9 @@ class ZipSource(Source):
         # Using a nested SourceManager means that closing this generator will
         # automatically clean up as much as possible
         with SourceManager(sm) as derived:
-            with self._handle.follow(derived).make_path() as r:
+            with self.to_handle().follow(derived).make_path() as r:
                 with ZipFile(str(r)) as zp:
                     yield zp
-
-    def to_handle(self):
-        return self._handle
-
-    def to_json_object(self):
-        return dict(**super().to_json_object(), **{
-            "handle": self._handle.to_json_object()
-        })
 
     @staticmethod
     @Source.json_handler(type_label)
@@ -76,14 +65,11 @@ class ZipResource(FileResource):
 
     @contextmanager
     def make_path(self):
-        ntr = NamedTemporaryResource(self.get_handle().get_name())
-        try:
+        with NamedTemporaryResource(self.get_handle().get_name()) as ntr:
             with ntr.open("wb") as f:
                 with self.make_stream() as s:
                     f.write(s.read())
             yield ntr.get_path()
-        finally:
-            ntr.finished()
 
     @contextmanager
     def make_stream(self):
