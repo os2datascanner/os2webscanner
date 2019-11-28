@@ -7,6 +7,7 @@ from .types import InputType
 class RegexRule(SimpleRule):
     operates_on = InputType.Text
     type_label = "regex"
+    eq_properties = ("_expression",)
 
     def __init__(self, expression):
         self._expression = expression

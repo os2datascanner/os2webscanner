@@ -52,8 +52,7 @@ class AndRule(CompoundRule):
     @staticmethod
     @Rule.json_handler(type_label)
     def from_json_object(obj):
-        return AndRule.make(
-                *[Rule.from_json_object(o) for o in obj["components"]])
+        return AndRule(*[Rule.from_json_object(o) for o in obj["components"]])
 
     def __str__(self):
         return "AndRule({0})".format(
@@ -76,8 +75,7 @@ class OrRule(CompoundRule):
     @staticmethod
     @Rule.json_handler(type_label)
     def from_json_object(obj):
-        return OrRule.make(
-                *[Rule.from_json_object(o) for o in obj["components"]])
+        return OrRule(*[Rule.from_json_object(o) for o in obj["components"]])
 
     def __str__(self):
         return "OrRule({0})".format(
@@ -113,7 +111,7 @@ class NotRule(Rule):
     @staticmethod
     @Rule.json_handler(type_label)
     def from_json_object(obj):
-        return NotRule.make(Rule.from_json_object(obj["rule"]))
+        return NotRule(Rule.from_json_object(obj["rule"]))
 
     def __str__(self):
         return "NotRule({0})".format(str(self._rule))

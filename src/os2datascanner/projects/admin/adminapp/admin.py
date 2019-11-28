@@ -126,7 +126,6 @@ class ScannerAdmin(admin.ModelAdmin):
 for _cls in [Group, Organization]:
     admin.site.register(_cls)
 
-
 class ProfileInline(admin.TabularInline):
 
     """Inline class for user profiles."""
