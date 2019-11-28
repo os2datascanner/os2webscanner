@@ -17,7 +17,8 @@ class TypePropertyEquality:
 
     def __eq__(self, other):
         print("{0}.__eq__({1})?".format(
-                self.__get_state(self), self.__get_state(other))
+                repr(self.__get_state(self)),
+                repr(self.__get_state(other))))
         return (type(self) == type(other) and
                 self.__get_state(self) == self.__get_state(other))
 
