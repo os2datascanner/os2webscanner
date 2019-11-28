@@ -61,8 +61,8 @@ class CPRRule(RegexRule):
         return "CPRRule(modulus_11={0}, ignore_irrelevant={1})".format(
                 self.modulus_11, self.ignore_irrelevant)
 
-# Updated list of dates with CPR numbers violating the Modulo-11 check,
-# as of July 2019.
+# Updated list of dates with CPR numbers violating the Modulo-11 check. (Last
+# synchronised with the CPR Office's list on November 19, 2019.)
 # Source: https://cpr.dk/cpr-systemet/personnumre-uden-kontrolciffer-modulus-11-kontrol/
 cpr_exception_dates = {
     date(1960, 1, 1),
@@ -71,13 +71,13 @@ cpr_exception_dates = {
     date(1966, 1, 1),
     date(1969, 1, 1),
     date(1970, 1, 1),
+    date(1974, 1, 1),
     date(1980, 1, 1),
     date(1982, 1, 1),
     date(1984, 1, 1),
     date(1985, 1, 1),
     date(1986, 1, 1),
     date(1987, 1, 1),
-    date(1987, 12, 1),
     date(1988, 1, 1),
     date(1989, 1, 1),
     date(1990, 1, 1),
