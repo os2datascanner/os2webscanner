@@ -55,3 +55,17 @@ def _datetime_to_str(d):
 
 def _str_to_datetime(s):
     return datetime.strptime(s, DATE_FORMAT)
+
+
+def encode_dict(d):
+    """Given a dictionary from InputType values to objects, returns a new
+    dictionary in which each of those objects has been converted to a
+    JSON-friendly representation."""
+    return {t: InputType(t).encode_json_object(v) for t, v in d.items()}
+
+
+def decode_dict(d):
+    """Given a dictionary from InputType values to JSON representations of
+    objects, returns a new dictionary in which each of those representations
+    has been converted back to an original object."""
+    return {t: InputType(t).decode_json_object(v) for t, v in d.items()}
