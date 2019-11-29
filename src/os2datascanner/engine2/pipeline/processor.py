@@ -3,7 +3,6 @@ import pika
 
 from ..rules.rule import Rule
 from ..rules.types import InputType
-from ..rules.last_modified import DATE_FORMAT # XXX FIXME XXX
 from ..model.core import (Source,
         Handle, SourceManager, ResourceUnavailableError)
 from ..demo import processors
@@ -31,11 +30,7 @@ def get_processor(sm, handle, required, configuration):
         resource = handle.follow(sm)
         if hasattr(resource, "get_last_modified"):
             def _get_time(handle):
-                r = handle.follow(sm)
-                lm = r.get_last_modified()
-                if not lm.tzname():
-                    lm = lm.astimezone(tz.gettz())
-                return lm.strftime(DATE_FORMAT)
+                return resource.get_last_modified()
             return _get_time
     return None
 
@@ -48,12 +43,11 @@ def message_received(channel, method, properties, body):
         handle = Handle.from_json_object(body["handle"])
         rule = Rule.from_json_object(body["progress"]["rule"])
         head, _, _ = rule.split()
+        required = head.operates_on
 
         try:
             processor = get_processor(
-                    source_manager,
-                    handle,
-                    head.operates_on,
+                    source_manager, handle, required,
                     body["scan_spec"]["configuration"])
             if processor:
                 content = processor(handle)
@@ -63,7 +57,8 @@ def message_received(channel, method, properties, body):
                         "handle": body["handle"],
                         "progress": body["progress"],
                         "representations": {
-                            head.operates_on.value: content
+                            required.value:
+                                    required.encode_json_object(content)
                         }
                     })
             else:

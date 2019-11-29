@@ -23,8 +23,9 @@ def message_received(channel, method, properties, body):
         # future, we'll want to have a loop here: while the head of the rule
         # wants a representation that we have, keep finding more matches
         head, pve, nve = rule.split()
-        target_type = head.operates_on.value
-        content = representations[target_type]
+        target_type = head.operates_on
+        content = target_type.decode_json_object(
+                representations[target_type.value])
 
         matches = list(head.match(content))
         new_matches.append({
