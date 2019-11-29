@@ -19,23 +19,29 @@ def message_received(channel, method, properties, body):
 
         new_matches = []
 
-        # For now, we only do this once in order to exercise the pipeline. In
-        # future, we'll want to have a loop here: while the head of the rule
-        # wants a representation that we have, keep finding more matches
-        head, pve, nve = rule.split()
-        target_type = head.operates_on
-        content = target_type.decode_json_object(
-                representations[target_type.value])
+        # Keep executing rules for as long as we can with the representations
+        # we have
+        while not isinstance(rule, bool):
+            head, pve, nve = rule.split()
 
-        matches = list(head.match(content))
-        new_matches.append({
-            "rule": head.to_json_object(),
-            "matches": matches if matches else None
-        })
-        if matches:
-            rule = pve
-        else:
-            rule = nve
+            target_type = head.operates_on
+            type_value = target_type.value
+            if not type_value in representations:
+                # We don't have this representation -- bail out
+                break
+
+            content = target_type.decode_json_object(
+                    representations[type_value])
+
+            matches = list(head.match(content))
+            new_matches.append({
+                "rule": head.to_json_object(),
+                "matches": matches if matches else None
+            })
+            if matches:
+                rule = pve
+            else:
+                rule = nve
 
         if isinstance(rule, bool):
             # We've come to a conclusion!
@@ -52,6 +58,7 @@ def message_received(channel, method, properties, body):
                     "handle": body["handle"]
                 })
         else:
+            # We need a new representation to continue
             yield (args.conversions, {
                 "scan_spec": body["scan_spec"],
                 "handle": body["handle"],
