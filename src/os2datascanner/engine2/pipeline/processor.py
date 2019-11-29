@@ -2,7 +2,7 @@ from dateutil import tz
 import pika
 
 from ..rules.rule import Rule
-from ..rules.types import InputType
+from ..rules.types import InputType, encode_dict
 from ..model.core import (Source,
         Handle, SourceManager, ResourceUnavailableError)
 from ..demo import processors
@@ -50,16 +50,15 @@ def message_received(channel, method, properties, body):
                     source_manager, handle, required,
                     body["scan_spec"]["configuration"])
             if processor:
-                content = processor(handle)
-                if content:
+                representation = processor(handle)
+                if representation:
                     yield (args.representations, {
                         "scan_spec": body["scan_spec"],
                         "handle": body["handle"],
                         "progress": body["progress"],
-                        "representations": {
-                            required.value:
-                                    required.encode_json_object(content)
-                        }
+                        "representations": encode_dict({
+                            required.value: representation
+                        })
                     })
             else:
                 # If we have a conversion we don't support, then check if

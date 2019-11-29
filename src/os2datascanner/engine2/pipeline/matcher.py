@@ -1,7 +1,7 @@
 import pika
 
 from ..rules.rule import Rule
-from ..rules.types import InputType
+from ..rules.types import decode_dict
 from .utilities import (notify_ready, notify_stopping, json_event_processor,
         make_common_argument_parser)
 
@@ -14,7 +14,7 @@ def message_received(channel, method, properties, body):
             channel, method, properties, body))
     try:
         progress = body["progress"]
-        representations = body["representations"]
+        representations = decode_dict(body["representations"])
         rule = Rule.from_json_object(progress["rule"])
 
         new_matches = []
@@ -29,11 +29,9 @@ def message_received(channel, method, properties, body):
             if not type_value in representations:
                 # We don't have this representation -- bail out
                 break
+            representation = representations[type_value]
 
-            content = target_type.decode_json_object(
-                    representations[type_value])
-
-            matches = list(head.match(content))
+            matches = list(head.match(representation))
             new_matches.append({
                 "rule": head.to_json_object(),
                 "matches": matches if matches else None
