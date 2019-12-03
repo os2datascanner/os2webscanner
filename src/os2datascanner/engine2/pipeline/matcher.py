@@ -26,7 +26,7 @@ def message_received(channel, method, properties, body):
 
             target_type = head.operates_on
             type_value = target_type.value
-            if not type_value in representations:
+            if type_value not in representations:
                 # We don't have this representation -- bail out
                 break
             representation = representations[type_value]

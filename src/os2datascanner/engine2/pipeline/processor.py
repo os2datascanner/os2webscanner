@@ -1,4 +1,3 @@
-from dateutil import tz
 import pika
 
 from ..rules.rule import Rule
@@ -72,7 +71,7 @@ def message_received(channel, method, properties, body):
                     scan_spec["source"] = derived_source.to_json_object()
                     scan_spec["progress"] = body["progress"]
                     yield (args.sources, scan_spec)
-        except ResourceUnavailableError as ex:
+        except ResourceUnavailableError:
             pass
 
         channel.basic_ack(method.delivery_tag)
