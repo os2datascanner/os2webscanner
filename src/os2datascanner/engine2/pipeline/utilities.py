@@ -51,4 +51,4 @@ def json_event_processor(listener):
                 send_message(routing_key=routing_key,
                              body=json.dumps(message).encode())
 
-        return _wrapper
+    return _wrapper
