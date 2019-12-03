@@ -2,7 +2,9 @@ import json
 import pika
 import argparse
 
-from .utilities import (notify_ready,
+from nested_lookup import nested_delete
+
+from .utilities import (notify_ready, json_event_processor,
         notify_stopping, make_common_argument_parser)
 
 args = None
@@ -20,6 +22,14 @@ def message_received(channel, method, properties, body):
         channel.basic_reject(method.delivery_tag)
         raise
 
+def filter_message(decoded_body):
+    # send filtered body.
+    # username and password should be removed
+    # and dataqueue-type data needs to be added.
+    decoded_body = nested_delete(decoded_body, 'user')
+    decoded_body = nested_delete(decoded_body, 'password')
+
+    return decoded_body
 
 def main():
     parser = make_common_argument_parser()
