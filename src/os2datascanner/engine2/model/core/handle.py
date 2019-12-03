@@ -70,6 +70,18 @@ class Handle(TypePropertyEquality, JSONSerialisable):
         that points at that email in an appropriate webmail system.)"""
         return None
 
+    @abstractmethod
+    def censor(self):
+        """Returns a Handle identical to this one but whose Source does not
+        carry sensitive information like passwords or API keys. The resulting
+        Handle will not necessarily carry enough information to establish a
+        connection to a Resource, and so will not necessarily compare equal to
+        this one.
+
+        As the Handle returned by this method is not useful for anything other
+        than identifying an object, this method should normally only be used
+        when transmitting a Handle to a less trusted context."""
+
     def __str__(self):
         return self.presentation
 

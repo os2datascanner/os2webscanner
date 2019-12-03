@@ -86,6 +86,10 @@ class EWSAccountSource(Source):
             # waits forever if we do
             pass
 
+    def _censor(self):
+        return EWSAccountSource(
+                self._domain, self._server, None, None, self._user)
+
     def handles(self, sm):
         account = sm.open(self)
 
@@ -139,6 +143,10 @@ class EWSMailHandle(Handle):
     def presentation(self):
         return "\"{0}\" (in {1}@{2})".format(self._mail_subject,
                 self.source.user, self.source.domain)
+
+    def censor(self):
+        return EWSMailHandle(
+                self.source._censor(), self.relative_path, self._mail_subject)
 
     def follow(self, sm):
         return EWSMailResource(self, sm)

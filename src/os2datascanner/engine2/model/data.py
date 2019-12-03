@@ -24,6 +24,9 @@ class DataSource(Source):
     def _generate_state(self, sm):
         yield EMPTY_COOKIE
 
+    def _censor(self):
+        return self
+
     def to_url(self):
         return "data:{0};base64,{1}".format(self.mime,
                 b64encode(self._content).decode(encoding='ascii'))
@@ -55,6 +58,9 @@ class DataHandle(Handle):
     @property
     def presentation(self):
         return "(embedded file of type {0})".format(self.guess_type())
+
+    def censor(self):
+        return DataHandle(self.source._censor(), self.relative_path)
 
     def guess_type(self):
         return self.source.mime

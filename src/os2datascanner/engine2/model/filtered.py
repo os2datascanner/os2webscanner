@@ -49,6 +49,9 @@ class FilteredSource(DerivedSource):
         with SourceManager(sm) as derived:
             yield self.handle.follow(derived)
 
+    def _censor(self):
+        return FilteredSource(self.handle.censor(), self._filter_type)
+
     def to_json_object(self):
         return dict(**super().to_json_object(), **{
             "filter_type": self._filter_type.value
@@ -85,6 +88,9 @@ class FilteredHandle(Handle):
     def presentation(self):
         return "({0}, decompressed)".format(
                 self.source.handle.presentation)
+
+    def censor(self):
+        return FilteredHandle(self.source._censor(), self.relative_path)
 
     def follow(self, sm):
         return FilteredResource(self, sm)

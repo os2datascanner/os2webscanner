@@ -56,6 +56,9 @@ class SMBSource(Source):
         finally:
             rmdir(mntdir)
 
+    def _censor(self):
+        return SMBSource(self.unc, None, None, None, self.driveletter)
+
     def _close(self, mntdir):
         args = ["umount", mntdir]
         try:
@@ -120,6 +123,9 @@ class SMBHandle(Handle):
         if p[-1] != "/":
             p += "/"
         return (p + self.relative_path).replace("/", "\\")
+
+    def censor(self):
+        return SMBHandle(self.source._censor(), self.relative_path)
 
     def follow(self, sm):
         return FilesystemResource(self, sm)

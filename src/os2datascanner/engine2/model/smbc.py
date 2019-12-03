@@ -38,6 +38,9 @@ class SMBCSource(Source):
             # Brutal, but apparently necessary to shut the connection down...
             del c
 
+    def _censor(self):
+        return SMBCSource(self.unc, None, None, None, self.driveletter)
+
     def handles(self, sm):
         url, context = sm.open(self)
         def handle_dirent(parents, entity):
@@ -114,6 +117,9 @@ class SMBCHandle(Handle):
         if p[-1] != "/":
             p += "/"
         return (p + self.relative_path).replace("/", "\\")
+
+    def censor(self):
+        return SMBCHandle(self.source._censor(), self.relative_path)
 
     def follow(self, sm):
         return SMBCResource(self, sm)

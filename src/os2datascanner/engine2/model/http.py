@@ -31,6 +31,11 @@ class WebSource(Source):
         with Session() as session:
             yield session
 
+    def _censor(self):
+        # XXX: we should actually decompose the URL and remove authentication
+        # details from netloc
+        return self
+
     def handles(self, sm):
         try:
             session = sm.open(self)
@@ -116,6 +121,9 @@ class WebHandle(Handle):
         if p[-1] != "/":
             p += "/"
         return p + self.relative_path
+
+    def censor(self):
+        return WebHandle(self.source._censor(), self.relative_path)
 
     def follow(self, sm):
         return WebResource(self, sm)

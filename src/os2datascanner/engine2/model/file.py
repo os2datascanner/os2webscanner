@@ -31,6 +31,9 @@ class FilesystemSource(Source):
     def _generate_state(self, sm):
         yield ShareableCookie(self.path)
 
+    def _censor(self):
+        return self
+
     def to_url(self):
         return urlunsplit(('file', '', quote(str(self.path)), None, None))
 
@@ -59,6 +62,9 @@ class FilesystemHandle(Handle):
     @property
     def presentation(self):
         return str(Path(self.source.path).joinpath(self.relative_path))
+
+    def censor(self):
+        return FilesystemHandle(self.source._censor(), self.relative_path)
 
     def follow(self, sm):
         return FilesystemResource(self, sm)

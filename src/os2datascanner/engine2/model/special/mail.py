@@ -21,6 +21,9 @@ class MailSource(DerivedSource):
         with SourceManager(sm) as sm:
             yield self.handle.follow(sm).get_email_message()
 
+    def _censor(self):
+        return MailSource(self.handle.censor())
+
     def handles(self, sm):
         def _process_message(path, part):
             ct = part.get_content_maintype()
@@ -49,6 +52,10 @@ class MailPartHandle(Handle):
     @property
     def presentation(self):
         return "{0} (in {1})".format(self.name, self.source.handle)
+
+    def censor(self):
+        return MailPartHandle(
+                self.source._censor(), self.relative_path, self._mime)
 
     def follow(self, sm):
         return MailPartResource(self, sm)

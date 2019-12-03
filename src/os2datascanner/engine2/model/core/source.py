@@ -37,6 +37,12 @@ class Source(TypePropertyEquality, JSONSerialisable):
         properties.)"""
 
     @abstractmethod
+    def _censor(self):
+        """Returns a version of this Source that does not carry sensitive
+        information like passwords and API keys. This method is only intended
+        for use by the implementation of Handle.censor."""
+
+    @abstractmethod
     def handles(self, sm):
         """Yields Handles corresponding to every identifiable leaf node in this
         Source's hierarchy. These Handles are generated in an undefined order.
