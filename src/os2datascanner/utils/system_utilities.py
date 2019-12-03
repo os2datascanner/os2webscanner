@@ -7,7 +7,7 @@ def json_utf8_decode(body):
         print('Error message: {0}'.format(ue))
         return None
     except json.JSONDecodeError as je:
-        # What should happen if json data is corrupt?
+        # TODO: What should happen if json data is corrupt?
         print('Error message: {0}'.format(je))
         print("* Invalid JSON: {0}".format(body))
         return None
