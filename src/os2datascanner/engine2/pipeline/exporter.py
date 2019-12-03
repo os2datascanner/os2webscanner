@@ -1,11 +1,8 @@
 import json
 import argparse
 
-from nested_lookup import nested_delete
-
 from .utilities import (notify_ready, json_event_processor,
         notify_stopping, make_common_argument_parser)
-from ...utils.system_utilities import json_utf8_decode
 from ...utils.amqp_connection_manager import start_amqp, \
     ack_message, set_callback, start_consuming, close_connection
 
@@ -14,27 +11,15 @@ args = None
 @json_event_processor
 def message_received(channel, method, properties, body):
     ack_message(channel, method)
+    body['origin'] = method.routing_key
+    # For debugging purposes
+    if args.dump:
+        print(json.dumps(body, indent=True))
+        args.dump.write(body + "\n")
+        args.dump.flush()
+        return
 
-    decoded_body = json_utf8_decode(body)
-    if decoded_body:
-        # For debugging purposes
-        if args.dump:
-            print(json.dumps(decoded_body, indent=True))
-            args.dump.write(decoded_body + "\n")
-            args.dump.flush()
-            return
-
-        filtered_body = filter_message(decoded_body)
-        yield (args.results, filtered_body)
-
-def filter_message(decoded_body):
-    # send filtered body.
-    # username and password should be removed
-    # and dataqueue-type data needs to be added.
-    decoded_body = nested_delete(decoded_body, 'user')
-    decoded_body = nested_delete(decoded_body, 'password')
-
-    return decoded_body
+    yield (args.results, body)
 
 def main():
     parser = make_common_argument_parser()
