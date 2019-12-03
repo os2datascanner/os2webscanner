@@ -24,9 +24,6 @@ class TarSource(DerivedSource):
                 with open_tar(str(r), "r") as tp:
                     yield tp
 
-    def _censor(self):
-        return TarSource(self.handle.censor())
-
     @staticmethod
     @Source.json_handler(type_label)
     def from_json_object(obj):

@@ -147,14 +147,17 @@ class Source(TypePropertyEquality, JSONSerialisable):
 
 class DerivedSource(Source):
     """A DerivedSource is a convenience class for a Source backed by a Handle.
-    It provides sensible default implementations of Source.handle and
-    Source.to_json_object."""
+    It provides sensible default implementations of Source.handle,
+    Source._censor, and Source.to_json_object."""
     def __init__(self, handle):
         self._handle = handle
 
     @property
     def handle(self):
         return self._handle
+
+    def _censor(self):
+        return type(self)(self.handle.censor())
 
     def to_json_object(self):
         return dict(**super().to_json_object(), **{

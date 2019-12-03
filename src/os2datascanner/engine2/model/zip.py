@@ -24,9 +24,6 @@ class ZipSource(DerivedSource):
                 with ZipFile(str(r)) as zp:
                     yield zp
 
-    def _censor(self):
-        return ZipSource(self.handle.censor())
-
     @staticmethod
     @Source.json_handler(type_label)
     def from_json_object(obj):

@@ -21,9 +21,6 @@ class MailSource(DerivedSource):
         with SourceManager(sm) as sm:
             yield self.handle.follow(sm).get_email_message()
 
-    def _censor(self):
-        return MailSource(self.handle.censor())
-
     def handles(self, sm):
         def _process_message(path, part):
             ct = part.get_content_maintype()
