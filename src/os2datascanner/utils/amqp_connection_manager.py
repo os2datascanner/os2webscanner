@@ -53,6 +53,18 @@ def send_message(routing_key, body):
         return None
 
 
+def ack_message(channel, method):
+    try:
+        if _amqp_obj['amqp_channel']:
+            _amqp_obj['amqp_channel'].basic_ack(method.delivery_tag)
+    except Exception as e:
+        print('Error occured while acknowleding message: {0}'.format(e))
+        _amqp_obj['amqp_channel'].basic_reject(method.delivery_tag)
+        print('Message rejected on queue {0}'.format(method.routing_key))
+        # How to handle this... if message is rejected the system will
+        # collect it again, reject it again and collect it again (infinit loop)
+
+
 def set_callback(func, queue_name):
     """
     Set callback on queue
