@@ -40,7 +40,7 @@ from ..organization_model import Organization
 from ..group_model import Group
 from ..rules.rule_model import Rule
 from ..userprofile_model import UserProfile
-from ...amqp_communication import amqp_connection_manager
+from os2datascanner.utils import amqp_connection_manager
 
 
 base_dir = os.path.dirname(
