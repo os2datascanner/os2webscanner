@@ -1,6 +1,3 @@
-import re
-from datetime import datetime
-
 from .rule import Rule, SimpleRule
 from .types import InputType
 
@@ -17,7 +14,9 @@ class LastModifiedRule(SimpleRule):
 
     def match(self, content):
         if content > self._after:
-            yield content.strftime(DATE_FORMAT)
+            yield {
+                "match": InputType.LastModified.encode_json_object(content)
+            }
 
     def to_json_object(self):
         return dict(**super().to_json_object(), **{
