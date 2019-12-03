@@ -51,24 +51,6 @@ class DataSource(Source):
         return DataSource(b64decode(obj["content"]), obj["mime"])
 
 
-@Handle.stock_json_handler("data")
-class DataHandle(Handle):
-    type_label = "data"
-
-    @property
-    def presentation(self):
-        return "(embedded file of type {0})".format(self.guess_type())
-
-    def censor(self):
-        return DataHandle(self.source._censor(), self.relative_path)
-
-    def guess_type(self):
-        return self.source.mime
-
-    def follow(self, sm):
-        return DataResource(self, sm)
-
-
 class DataResource(FileResource):
     def get_size(self):
         return len(self.handle.source._content)
@@ -91,3 +73,19 @@ class DataResource(FileResource):
     def make_stream(self):
         with BytesIO(self.handle.source._content) as s:
             yield s
+
+
+@Handle.stock_json_handler("data")
+class DataHandle(Handle):
+    type_label = "data"
+    resource_type = DataResource
+
+    @property
+    def presentation(self):
+        return "(embedded file of type {0})".format(self.guess_type())
+
+    def censor(self):
+        return DataHandle(self.source._censor(), self.relative_path)
+
+    def guess_type(self):
+        return self.source.mime

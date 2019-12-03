@@ -95,40 +95,6 @@ class WebSource(Source):
 SecureWebSource = WebSource
 
 
-@Handle.stock_json_handler("web")
-class WebHandle(Handle):
-    type_label = "web"
-
-    eq_properties = Handle.BASE_PROPERTIES
-
-    def __init__(self, source, path):
-        super().__init__(source, path)
-        self._referrer_urls = set()
-
-    def set_referrer_urls(self, referrer_urls):
-        self._referrer_urls = referrer_urls
-
-    def get_referrer_urls(self):
-        return self._referrer_urls
-
-    @property
-    def presentation(self):
-        return self.presentation_url
-
-    @property
-    def presentation_url(self):
-        p = self.source.to_url()
-        if p[-1] != "/":
-            p += "/"
-        return p + self.relative_path
-
-    def censor(self):
-        return WebHandle(self.source._censor(), self.relative_path)
-
-    def follow(self, sm):
-        return WebResource(self, sm)
-
-
 class WebResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
@@ -188,3 +154,35 @@ class WebResource(FileResource):
         else:
             with BytesIO(response.content) as s:
                 yield s
+
+
+@Handle.stock_json_handler("web")
+class WebHandle(Handle):
+    type_label = "web"
+    resource_type = WebResource
+
+    eq_properties = Handle.BASE_PROPERTIES
+
+    def __init__(self, source, path):
+        super().__init__(source, path)
+        self._referrer_urls = set()
+
+    def set_referrer_urls(self, referrer_urls):
+        self._referrer_urls = referrer_urls
+
+    def get_referrer_urls(self):
+        return self._referrer_urls
+
+    @property
+    def presentation(self):
+        return self.presentation_url
+
+    @property
+    def presentation_url(self):
+        p = self.source.to_url()
+        if p[-1] != "/":
+            p += "/"
+        return p + self.relative_path
+
+    def censor(self):
+        return WebHandle(self.source._censor(), self.relative_path)

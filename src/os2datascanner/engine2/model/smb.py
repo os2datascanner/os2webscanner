@@ -112,6 +112,7 @@ class SMBSource(Source):
 @Handle.stock_json_handler("smb")
 class SMBHandle(Handle):
     type_label = "smb"
+    resource_type = FilesystemResource
 
     @property
     def presentation(self):
@@ -126,9 +127,6 @@ class SMBHandle(Handle):
 
     def censor(self):
         return SMBHandle(self.source._censor(), self.relative_path)
-
-    def follow(self, sm):
-        return FilesystemResource(self, sm)
 
 
 # Third form from https://www.iana.org/assignments/uri-schemes/prov/smb

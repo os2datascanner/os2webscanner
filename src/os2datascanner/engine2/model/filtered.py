@@ -80,22 +80,6 @@ def _lzma(handle):
     return FilteredSource(handle, FilterType.LZMA)
 
 
-@Handle.stock_json_handler("filtered")
-class FilteredHandle(Handle):
-    type_label = "filtered"
-
-    @property
-    def presentation(self):
-        return "({0}, decompressed)".format(
-                self.source.handle.presentation)
-
-    def censor(self):
-        return FilteredHandle(self.source._censor(), self.relative_path)
-
-    def follow(self, sm):
-        return FilteredResource(self, sm)
-
-
 class FilteredResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
@@ -142,3 +126,17 @@ class FilteredResource(FileResource):
                     yield self._poke_stream(s)
             except OSError as ex:
                 raise ResourceUnavailableError(self.handle, *ex.args)
+
+
+@Handle.stock_json_handler("filtered")
+class FilteredHandle(Handle):
+    type_label = "filtered"
+    resource_type = FilteredResource
+
+    @property
+    def presentation(self):
+        return "({0}, decompressed)".format(
+                self.source.handle.presentation)
+
+    def censor(self):
+        return FilteredHandle(self.source._censor(), self.relative_path)

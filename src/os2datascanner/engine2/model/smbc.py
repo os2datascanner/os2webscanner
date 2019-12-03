@@ -103,28 +103,6 @@ class SMBCSource(Source):
                 obj["driveletter"])
 
 
-@Handle.stock_json_handler("smbc")
-class SMBCHandle(Handle):
-    type_label = "smbc"
-
-    @property
-    def presentation(self):
-        p = self.source.driveletter
-        if p:
-            p += ":"
-        else:
-            p = self.source.unc
-        if p[-1] != "/":
-            p += "/"
-        return (p + self.relative_path).replace("/", "\\")
-
-    def censor(self):
-        return SMBCHandle(self.source._censor(), self.relative_path)
-
-    def follow(self, sm):
-        return SMBCResource(self, sm)
-
-
 class _SMBCFile(io.RawIOBase):
     def __init__(self, obj):
         self._file = obj
@@ -234,3 +212,23 @@ class SMBCResource(FileResource):
             yield fp
 
     DOWNLOAD_CHUNK_SIZE = 1024 * 512
+
+
+@Handle.stock_json_handler("smbc")
+class SMBCHandle(Handle):
+    type_label = "smbc"
+    resource_type = SMBCResource
+
+    @property
+    def presentation(self):
+        p = self.source.driveletter
+        if p:
+            p += ":"
+        else:
+            p = self.source.unc
+        if p[-1] != "/":
+            p += "/"
+        return (p + self.relative_path).replace("/", "\\")
+
+    def censor(self):
+        return SMBCHandle(self.source._censor(), self.relative_path)

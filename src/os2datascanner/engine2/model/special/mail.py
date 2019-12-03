@@ -39,39 +39,6 @@ class MailSource(DerivedSource):
         return MailSource(Handle.from_json_object(obj["handle"]))
 
 
-class MailPartHandle(Handle):
-    type_label = "mail-part"
-
-    def __init__(self, source, path, mime):
-        super().__init__(source, path)
-        self._mime = mime
-
-    @property
-    def presentation(self):
-        return "{0} (in {1})".format(self.name, self.source.handle)
-
-    def censor(self):
-        return MailPartHandle(
-                self.source._censor(), self.relative_path, self._mime)
-
-    def follow(self, sm):
-        return MailPartResource(self, sm)
-
-    def guess_type(self):
-        return self._mime
-
-    def to_json_object(self):
-        return dict(**super().to_json_object(), **{
-            "mime": self._mime
-        })
-
-    @staticmethod
-    @Handle.json_handler(type_label)
-    def from_json_object(obj):
-        return MailPartHandle(Source.from_json_object(obj["source"]),
-                obj["path"], obj["mime"])
-
-
 class MailPartResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
@@ -110,3 +77,34 @@ class MailPartResource(FileResource):
     @contextmanager
     def make_stream(self):
         yield BytesIO(self._get_fragment().get_payload(decode=True))
+
+
+class MailPartHandle(Handle):
+    type_label = "mail-part"
+    resource_type = MailPartResource
+
+    def __init__(self, source, path, mime):
+        super().__init__(source, path)
+        self._mime = mime
+
+    @property
+    def presentation(self):
+        return "{0} (in {1})".format(self.name, self.source.handle)
+
+    def censor(self):
+        return MailPartHandle(
+                self.source._censor(), self.relative_path, self._mime)
+
+    def guess_type(self):
+        return self._mime
+
+    def to_json_object(self):
+        return dict(**super().to_json_object(), **{
+            "mime": self._mime
+        })
+
+    @staticmethod
+    @Handle.json_handler(type_label)
+    def from_json_object(obj):
+        return MailPartHandle(Source.from_json_object(obj["source"]),
+                obj["path"], obj["mime"])

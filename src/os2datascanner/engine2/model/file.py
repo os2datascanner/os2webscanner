@@ -55,21 +55,6 @@ class FilesystemSource(Source):
         return FilesystemSource(path=obj["path"])
 
 
-@Handle.stock_json_handler("file")
-class FilesystemHandle(Handle):
-    type_label = "file"
-
-    @property
-    def presentation(self):
-        return str(Path(self.source.path).joinpath(self.relative_path))
-
-    def censor(self):
-        return FilesystemHandle(self.source._censor(), self.relative_path)
-
-    def follow(self, sm):
-        return FilesystemResource(self, sm)
-
-
 class FilesystemResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
@@ -96,3 +81,16 @@ class FilesystemResource(FileResource):
     def make_stream(self):
         with open(self._full_path, "rb") as s:
             yield s
+
+
+@Handle.stock_json_handler("file")
+class FilesystemHandle(Handle):
+    type_label = "file"
+    resource_type = FilesystemResource
+
+    @property
+    def presentation(self):
+        return str(Path(self.source.path).joinpath(self.relative_path))
+
+    def censor(self):
+        return FilesystemHandle(self.source._censor(), self.relative_path)

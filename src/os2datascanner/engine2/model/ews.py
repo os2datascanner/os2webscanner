@@ -128,43 +128,6 @@ class EWSAccountSource(Source):
                 obj["admin_password"], obj["user"])
 
 
-class EWSMailHandle(Handle):
-    type_label = "ews"
-
-    # The mail subject is useful for presentation purposes, but not important
-    # when computing equality
-    eq_properties = Handle.BASE_PROPERTIES
-
-    def __init__(self, source, path, mail_subject):
-        super().__init__(source, path)
-        self._mail_subject = mail_subject
-
-    @property
-    def presentation(self):
-        return "\"{0}\" (in {1}@{2})".format(self._mail_subject,
-                self.source.user, self.source.domain)
-
-    def censor(self):
-        return EWSMailHandle(
-                self.source._censor(), self.relative_path, self._mail_subject)
-
-    def follow(self, sm):
-        return EWSMailResource(self, sm)
-
-    def guess_type(self):
-        return MAIL_MIME
-
-    def to_json_object(self):
-        return dict(**super().to_json_object(), **{
-            "mail_subject": self._mail_subject
-        })
-
-    @staticmethod
-    @Handle.json_handler(type_label)
-    def from_json_object(obj):
-        return EWSMailHandle(Source.from_json_object(obj["source"]),
-                obj["path"], obj["mail_subject"])
-
 class EWSMailResource(Resource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
@@ -186,3 +149,39 @@ class EWSMailResource(Resource):
 
     def compute_type(self):
         return MAIL_MIME
+
+
+class EWSMailHandle(Handle):
+    type_label = "ews"
+    resource_type = EWSMailResource
+
+    # The mail subject is useful for presentation purposes, but not important
+    # when computing equality
+    eq_properties = Handle.BASE_PROPERTIES
+
+    def __init__(self, source, path, mail_subject):
+        super().__init__(source, path)
+        self._mail_subject = mail_subject
+
+    @property
+    def presentation(self):
+        return "\"{0}\" (in {1}@{2})".format(self._mail_subject,
+                self.source.user, self.source.domain)
+
+    def censor(self):
+        return EWSMailHandle(
+                self.source._censor(), self.relative_path, self._mail_subject)
+
+    def guess_type(self):
+        return MAIL_MIME
+
+    def to_json_object(self):
+        return dict(**super().to_json_object(), **{
+            "mail_subject": self._mail_subject
+        })
+
+    @staticmethod
+    @Handle.json_handler(type_label)
+    def from_json_object(obj):
+        return EWSMailHandle(Source.from_json_object(obj["source"]),
+                obj["path"], obj["mail_subject"])
