@@ -6,6 +6,7 @@ if systemd.daemon.booted():
 else:
     def sd_notify(status):
         return False
+from prometheus_client import Summary
 
 
 def make_common_argument_parser():
@@ -16,6 +17,15 @@ def make_common_argument_parser():
             metavar="HOST",
             help="the AMQP host to connect to",
             default="localhost")
+
+    monitoring = parser.add_argument_group("monitoring")
+    monitoring.add_argument(
+            "--prometheus-dir",
+            metavar="DIR",
+            help="the directory in which to drop a Prometheus description"
+                    " of this pipeline stage",
+            default=None)
+
     return parser
 
 
@@ -39,7 +49,19 @@ def notify_watchdog():
     sd_notify("WATCHDOG=1")
 
 
+def prometheus_summary(*args):
+    """Decorator. Records a Prometheus summary observation for every call to
+    the decorated function."""
+    s = Summary(*args)
+    def _prometheus_summary(func):
+        return s.time()(func)
+    return _prometheus_summary
+
+
 def json_event_processor(listener):
+    """Decorator. Automatically decodes JSON bodies for the wrapped Pika
+    message callback, and automatically produces new messages for every (queue
+    name, serialisable object) pair yielded by that callback."""
     def _wrapper(channel, method, properties, body):
         try:
             body = json.loads(body.decode("utf-8"))

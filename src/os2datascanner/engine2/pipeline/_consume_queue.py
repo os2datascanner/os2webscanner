@@ -15,14 +15,15 @@ def main():
     parser.description = "Consume all of the objeccs in a queue."
 
     parser.add_argument(
-            "--queue",
+            "queue",
+            nargs="+",
             choices=("os2ds_scan_specs", "os2ds_conversions",
                     "os2ds_representations", "os2ds_matches",
                     "os2ds_handles", "os2ds_metadata", "os2ds_problems",),
             metavar="NAME",
-            help="the name of the AMQP queue to which an object should be"
-                    + " written",
-            default="os2ds_scan_specs")
+            help="the AMQP queues from which objects should be read and"
+                    " discarded",
+            default=["os2ds_scan_specs"])
 
     args = parser.parse_args()
 
@@ -30,10 +31,11 @@ def main():
     connection = pika.BlockingConnection(parameters)
 
     channel = connection.channel()
-    channel.queue_declare(args.queue, passive=False,
-            durable=True, exclusive=False, auto_delete=False)
 
-    channel.basic_consume(args.queue, message_received)
+    for q in args.queue:
+        channel.queue_declare(q, passive=False,
+                durable=True, exclusive=False, auto_delete=False)
+        channel.basic_consume(q, message_received)
 
     try:
         print("Start")
