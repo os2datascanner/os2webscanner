@@ -1,13 +1,16 @@
+from os import getpid
 import pika
 
+from ...utils.prometheus import prometheus_session
 from ..model.core import (Source, SourceManager, ResourceUnavailableError,
         DeserialisationError)
-from .utilities import (notify_ready, notify_stopping, json_event_processor,
-        make_common_argument_parser)
+from .utilities import (notify_ready, notify_stopping, prometheus_summary,
+        json_event_processor, make_common_argument_parser)
 
 args = None
 
 
+@prometheus_summary("os2datascanner_pipeline_explorer", "Sources explored")
 @json_event_processor
 def message_received(channel, method, properties, body):
     print("message_received({0}, {1}, {2}, {3})".format(
@@ -100,15 +103,20 @@ def main():
 
     channel.basic_consume(args.sources, message_received)
 
-    try:
-        print("Start")
-        notify_ready()
-        channel.start_consuming()
-    finally:
-        print("Stop")
-        notify_stopping()
-        channel.stop_consuming()
-        connection.close()
+    with prometheus_session(
+            str(getpid()),
+            args.prometheus_dir,
+            stage_type="explorer"):
+        try:
+            print("Start")
+            notify_ready()
+            channel.start_consuming()
+        finally:
+            print("Stop")
+            notify_stopping()
+            channel.stop_consuming()
+            connection.close()
+
 
 if __name__ == "__main__":
     main()

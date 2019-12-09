@@ -1,13 +1,16 @@
+from os import getpid
 import json
 import pika
 import argparse
 
-from .utilities import (notify_ready,
-        notify_stopping, make_common_argument_parser)
+from ...utils.prometheus import prometheus_session
+from .utilities import (notify_ready, notify_stopping, prometheus_summary,
+        make_common_argument_parser)
 
 args = None
 
 
+@prometheus_summary("os2datascanner_pipeline_exporter", "Messages exported")
 def message_received(channel, method, properties, body):
     decoded_body = body.decode("utf-8")
     print(json.dumps(json.loads(decoded_body), indent=True))
@@ -82,15 +85,19 @@ def main():
     channel.basic_consume(args.problems, message_received)
     channel.basic_consume(args.metadata, message_received)
 
-    try:
-        print("Start")
-        notify_ready()
-        channel.start_consuming()
-    finally:
-        print("Stop")
-        notify_stopping()
-        channel.stop_consuming()
-        connection.close()
+    with prometheus_session(
+            str(getpid()),
+            args.prometheus_dir,
+            stage_type="exporter"):
+        try:
+            print("Start")
+            notify_ready()
+            channel.start_consuming()
+        finally:
+            print("Stop")
+            notify_stopping()
+            channel.stop_consuming()
+            connection.close()
 
 
 if __name__ == "__main__":

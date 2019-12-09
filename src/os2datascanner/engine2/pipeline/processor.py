@@ -1,12 +1,15 @@
+from os import getpid
 import pika
+from dateutil import tz
 
+from ...utils.prometheus import prometheus_session
 from ..rules.rule import Rule
 from ..rules.types import InputType, encode_dict
 from ..model.core import (Source,
         Handle, SourceManager, ResourceUnavailableError)
 from ..demo import processors
-from .utilities import (notify_ready, notify_stopping, json_event_processor,
-        make_common_argument_parser)
+from .utilities import (notify_ready, notify_stopping, prometheus_summary,
+        json_event_processor, make_common_argument_parser)
 
 args = None
 source_manager = None
@@ -34,6 +37,8 @@ def get_processor(sm, handle, required, configuration):
     return None
 
 
+@prometheus_summary(
+        "os2datascanner_pipeline_processor", "Representations generated")
 @json_event_processor
 def message_received(channel, method, properties, body):
     print("message_received({0}, {1}, {2}, {3})".format(
@@ -126,15 +131,19 @@ def main():
     global source_manager
     source_manager = SourceManager()
 
-    try:
-        print("Start")
-        notify_ready()
-        channel.start_consuming()
-    finally:
-        print("Stop")
-        notify_stopping()
-        channel.stop_consuming()
-        connection.close()
+    with prometheus_session(
+            str(getpid()),
+            args.prometheus_dir,
+            stage_type="processor"):
+        try:
+            print("Start")
+            notify_ready()
+            channel.start_consuming()
+        finally:
+            print("Stop")
+            notify_stopping()
+            channel.stop_consuming()
+            connection.close()
 
 
 if __name__ == "__main__":
