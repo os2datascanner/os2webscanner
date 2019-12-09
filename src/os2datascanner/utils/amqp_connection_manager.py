@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import pika
 
-from django.conf import settings
+from .pika_settings import AMQP_HOST
 
 _amqp_obj = {
     "amqp_channels": None,
@@ -16,7 +16,6 @@ def start_amqp(queue_name):
     """
     _create_connection()
     _create_channel(queue_name)
-
 
 def _create_channel(queue_name):
     """
@@ -35,7 +34,7 @@ def _create_connection():
     Creates a amqp connection
     """
     if not _amqp_obj['connection']:
-        conn_params = pika.ConnectionParameters(settings.AMQP_HOST,
+        conn_params = pika.ConnectionParameters(AMQP_HOST,
                                                 heartbeat=6000)
         _amqp_obj['connection'] = pika.BlockingConnection(conn_params)
 
@@ -51,11 +50,12 @@ def send_message(routing_key, body):
         _amqp_obj['amqp_channel'].basic_publish(exchange='',
                                                 routing_key=routing_key,
                                                 body=body)
+        return _amqp_obj['amqp_channel']
     else:
         return None
 
 
-def ack_message(channel, method):
+def ack_message(method):
     """
     Acknowledge message recieved on the channel.
     :param channel: The channel the queue is using.
@@ -78,11 +78,17 @@ def set_callback(func, queue_name):
     :return: None if no channel available
     """
     if _amqp_obj['amqp_channel']:
-        _amqp_obj['amqp_channel'].basic_consume(func,
-                                                queue=queue_name)
+        return _amqp_obj['amqp_channel'].basic_consume(queue_name, func)
     else:
         return None
 
+def purge_queue(queue_name):
+    """
+    Purge an existing queue
+    :param queue_name: Name of the queue
+    """
+    if _amqp_obj['amqp_channel']:
+        _amqp_obj['amqp_channel'].queue_purge(queue_name)
 
 def start_consuming():
     """
