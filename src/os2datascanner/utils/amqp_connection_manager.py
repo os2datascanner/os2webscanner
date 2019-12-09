@@ -42,8 +42,10 @@ def _create_connection():
 
 def send_message(routing_key, body):
     """
-    Sends a message to the channel
-    :return: None if no channel available
+    Sends a message to the channel using the routing_key which is the queue name.
+    :param routing_key: The name of the queue.
+    :param body: The message to send to the queue.
+    :return: None if no channel available.
     """
     if _amqp_obj['amqp_channel']:
         _amqp_obj['amqp_channel'].basic_publish(exchange='',
@@ -54,6 +56,11 @@ def send_message(routing_key, body):
 
 
 def ack_message(channel, method):
+    """
+    Acknowledge message recieved on the channel.
+    :param channel: The channel the queue is using.
+    :param method: The callback method receiving the message.
+    """
     try:
         if _amqp_obj['amqp_channel']:
             _amqp_obj['amqp_channel'].basic_ack(method.delivery_tag)
@@ -65,8 +72,8 @@ def ack_message(channel, method):
 
 def set_callback(func, queue_name):
     """
-    Set callback on queue
-    :param func: callback function
+    Set callback method on queue
+    :param func: Callback function
     :param queue_name: Name of the queue
     :return: None if no channel available
     """
@@ -78,6 +85,9 @@ def set_callback(func, queue_name):
 
 
 def start_consuming():
+    """
+    If a channel is available a consumer is started.
+    """
     if _amqp_obj['amqp_channel']:
         _amqp_obj['amqp_channel'].start_consuming()
 
