@@ -44,11 +44,6 @@ class GzipSource(FilteredSource):
     def _decompress(cls, stream):
         return GzipFile(fileobj=stream, mode="r")
 
-    @staticmethod
-    @Source.json_handler(type_label)
-    def from_json_object(obj):
-        return GzipSource(Handle.from_json_object(obj["handle"]))
-
 
 @Source.mime_handler("application/x-bzip2")
 class BZ2Source(FilteredSource):
@@ -58,11 +53,6 @@ class BZ2Source(FilteredSource):
     def _decompress(cls, stream):
         return BZ2File(stream, mode="r")
 
-    @staticmethod
-    @Source.json_handler(type_label)
-    def from_json_object(obj):
-        return BZ2Source(Handle.from_json_object(obj["handle"]))
-
 
 @Source.mime_handler("application/x-xz")
 class LZMASource(FilteredSource):
@@ -71,11 +61,6 @@ class LZMASource(FilteredSource):
     @classmethod
     def _decompress(cls, stream):
         return LZMAFile(stream, mode="r")
-
-    @staticmethod
-    @Source.json_handler(type_label)
-    def from_json_object(obj):
-        return LZMASource(Handle.from_json_object(obj["handle"]))
 
 
 class FilteredResource(FileResource):

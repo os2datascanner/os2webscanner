@@ -33,11 +33,6 @@ class MailSource(DerivedSource):
                 yield MailPartHandle(self, full_path, part.get_content_type())
         yield from _process_message([], sm.open(self))
 
-    @staticmethod
-    @Source.json_handler(type_label)
-    def from_json_object(obj):
-        return MailSource(Handle.from_json_object(obj["handle"]))
-
 
 class MailPartResource(FileResource):
     def __init__(self, handle, sm):

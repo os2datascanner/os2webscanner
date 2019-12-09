@@ -24,11 +24,6 @@ class TarSource(DerivedSource):
                 with open_tar(str(r), "r") as tp:
                     yield tp
 
-    @staticmethod
-    @Source.json_handler(type_label)
-    def from_json_object(obj):
-        return TarSource(Handle.from_json_object(obj["handle"]))
-
 
 class TarResource(FileResource):
     def __init__(self, handle, sm):

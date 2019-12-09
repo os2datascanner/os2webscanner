@@ -24,11 +24,6 @@ class ZipSource(DerivedSource):
                 with ZipFile(str(r)) as zp:
                     yield zp
 
-    @staticmethod
-    @Source.json_handler(type_label)
-    def from_json_object(obj):
-        return ZipSource(Handle.from_json_object(obj["handle"]))
-
 
 class ZipResource(FileResource):
     def __init__(self, handle, sm):
