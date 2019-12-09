@@ -16,6 +16,11 @@ class GeneratorSource(Source):
     def _generate_state(self, sm):
         yield None
 
+    def _censor(self):
+        raise NotImplementedError(
+                "GeneratorSource doesn't know enough about the Sources"
+                " it creates to be censorable") # XXX
+
     def handles(self, sm):
         iterables = []
         for k in self._properties.keys():
@@ -46,8 +51,14 @@ class GeneratorSource(Source):
         return Source.from_json_object(handle.get_json())
 
 
+class GeneratorResource(Resource):
+    def compute_type(self):
+        return MAGIC_MIME
+
+
 class GeneratorHandle(Handle):
     type_label = "generator"
+    resource_type = GeneratorResource
 
     def __init__(self, source, path, json):
         super().__init__(source, path)
@@ -63,6 +74,9 @@ class GeneratorHandle(Handle):
     def presentation(self):
         return "(generated)" # XXX
 
+    def censor(self):
+        return GeneratorHandle(self.source._censor(), self.relative_path)
+
     def to_json_object(self):
         return dict(**super().to_json_object(), **{
             "json": self._json
@@ -74,11 +88,3 @@ class GeneratorHandle(Handle):
         return GeneratorHandle(
                 Source.from_json_object(obj["source"]),
                 obj["path"], obj["json"])
-
-    def follow(self, sm):
-        return GeneratorResource(sm, self)
-
-
-class GeneratorResource(Resource):
-    def compute_type(self):
-        return MAGIC_MIME

@@ -1,43 +1,26 @@
-from .core import (Source, DerivedSource,
-        Handle, FileResource, SourceManager, ResourceUnavailableError)
-from .utilities import NamedTemporaryResource
-
 import os.path
+from abc import abstractmethod
 from bz2 import BZ2File
-from enum import Enum
 from gzip import GzipFile
 from lzma import LZMAFile
 from datetime import datetime
 from functools import partial
 from contextlib import contextmanager
 
-
-class FilterType(Enum):
-    GZIP = "gzip"
-    BZ2 = "bz2"
-    LZMA = "lzma"
+from .core import (Source, DerivedSource,
+        Handle, FileResource, SourceManager, ResourceUnavailableError)
+from .utilities import NamedTemporaryResource
 
 
 class FilteredSource(DerivedSource):
-    eq_properties = ("_handle", "_filter_type")
-    type_label = "filtered"
-
-    def __init__(self, handle, filter_type):
+    def __init__(self, handle):
         super().__init__(handle)
-        self._filter_type = filter_type
 
-        # Both BZ2File and LZMAFile accept either a file name or a file object
-        # as their first parameter, but GzipFile requires that we specify the
-        # fileobj positional parameter instead
-        if self._filter_type == FilterType.GZIP:
-            self._constructor = (
-                    lambda stream: GzipFile(fileobj=stream, mode='r'))
-        elif self._filter_type == FilterType.BZ2:
-            self._constructor = partial(BZ2File, mode='r')
-        elif self._filter_type == FilterType.LZMA:
-            self._constructor = partial(LZMAFile, mode='r')
-        else:
-            raise ValueError(self._filter_type)
+    @classmethod
+    @abstractmethod
+    def _decompress(cls, stream):
+        """Returns a Python file-like object that wraps the given compressed
+        stream. Reading from this object will return decompressed content."""
 
     def handles(self, sm):
         rest, ext = os.path.splitext(self.handle.name)
@@ -49,45 +32,35 @@ class FilteredSource(DerivedSource):
         with SourceManager(sm) as derived:
             yield self.handle.follow(derived)
 
-    def to_json_object(self):
-        return dict(**super().to_json_object(), **{
-            "filter_type": self._filter_type.value
-        })
-
-    @staticmethod
-    @Source.json_handler(type_label)
-    def from_json_object(obj):
-        return FilteredSource(
-                handle=Handle.from_json_object(obj["handle"]),
-                filter_type=FilterType(obj["filter_type"]))
+    def _censor(self):
+        return FilteredSource(self.handle.censor(), self._filter_type)
 
 
 @Source.mime_handler("application/gzip")
-def _gzip(handle):
-    return FilteredSource(handle, FilterType.GZIP)
+class GzipSource(FilteredSource):
+    type_label = "filtered-gzip"
+
+    @classmethod
+    def _decompress(cls, stream):
+        return GzipFile(fileobj=stream, mode="r")
 
 
 @Source.mime_handler("application/x-bzip2")
-def _bz2(handle):
-    return FilteredSource(handle, FilterType.BZ2)
+class BZ2Source(FilteredSource):
+    type_label = "filtered-bz2"
+
+    @classmethod
+    def _decompress(cls, stream):
+        return BZ2File(stream, mode="r")
 
 
 @Source.mime_handler("application/x-xz")
-def _lzma(handle):
-    return FilteredSource(handle, FilterType.LZMA)
+class LZMASource(FilteredSource):
+    type_label = "filtered-lzma"
 
-
-@Handle.stock_json_handler("filtered")
-class FilteredHandle(Handle):
-    type_label = "filtered"
-
-    @property
-    def presentation(self):
-        return "({0}, decompressed)".format(
-                self.source.handle.presentation)
-
-    def follow(self, sm):
-        return FilteredResource(self, sm)
+    @classmethod
+    def _decompress(cls, stream):
+        return LZMAFile(stream, mode="r")
 
 
 class FilteredResource(FileResource):
@@ -132,7 +105,21 @@ class FilteredResource(FileResource):
     def make_stream(self):
         with self._get_cookie().make_stream() as s_:
             try:
-                with self.handle.source._constructor(s_) as s:
+                with self.handle.source._decompress(s_) as s:
                     yield self._poke_stream(s)
             except OSError as ex:
                 raise ResourceUnavailableError(self.handle, *ex.args)
+
+
+@Handle.stock_json_handler("filtered")
+class FilteredHandle(Handle):
+    type_label = "filtered"
+    resource_type = FilteredResource
+
+    @property
+    def presentation(self):
+        return "({0}, decompressed)".format(
+                self.source.handle.presentation)
+
+    def censor(self):
+        return FilteredHandle(self.source._censor(), self.relative_path)

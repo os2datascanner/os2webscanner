@@ -38,6 +38,9 @@ class SMBCSource(Source):
             # Brutal, but apparently necessary to shut the connection down...
             del c
 
+    def _censor(self):
+        return SMBCSource(self.unc, None, None, None, self.driveletter)
+
     def handles(self, sm):
         url, context = sm.open(self)
         def handle_dirent(parents, entity):
@@ -98,25 +101,6 @@ class SMBCSource(Source):
         return SMBCSource(
                 obj["unc"], obj["user"], obj["password"], obj["domain"],
                 obj["driveletter"])
-
-
-@Handle.stock_json_handler("smbc")
-class SMBCHandle(Handle):
-    type_label = "smbc"
-
-    @property
-    def presentation(self):
-        p = self.source.driveletter
-        if p:
-            p += ":"
-        else:
-            p = self.source.unc
-        if p[-1] != "/":
-            p += "/"
-        return (p + self.relative_path).replace("/", "\\")
-
-    def follow(self, sm):
-        return SMBCResource(self, sm)
 
 
 class _SMBCFile(io.RawIOBase):
@@ -228,3 +212,23 @@ class SMBCResource(FileResource):
             yield fp
 
     DOWNLOAD_CHUNK_SIZE = 1024 * 512
+
+
+@Handle.stock_json_handler("smbc")
+class SMBCHandle(Handle):
+    type_label = "smbc"
+    resource_type = SMBCResource
+
+    @property
+    def presentation(self):
+        p = self.source.driveletter
+        if p:
+            p += ":"
+        else:
+            p = self.source.unc
+        if p[-1] != "/":
+            p += "/"
+        return (p + self.relative_path).replace("/", "\\")
+
+    def censor(self):
+        return SMBCHandle(self.source._censor(), self.relative_path)

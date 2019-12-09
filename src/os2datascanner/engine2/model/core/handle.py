@@ -26,6 +26,11 @@ class Handle(TypePropertyEquality, JSONSerialisable):
     def type_label(self) -> str:
         """A label that will be used to identify JSON forms of this Handle."""
 
+    @property
+    @abstractmethod
+    def resource_type(self) -> type:
+        """The subclass of Resource produced when this Handle is followed."""
+
     def __init__(self, source, relpath):
         self._source = source
         self._relpath = relpath
@@ -70,13 +75,25 @@ class Handle(TypePropertyEquality, JSONSerialisable):
         that points at that email in an appropriate webmail system.)"""
         return None
 
+    @abstractmethod
+    def censor(self):
+        """Returns a Handle identical to this one but whose Source does not
+        carry sensitive information like passwords or API keys. The resulting
+        Handle will not necessarily carry enough information to establish a
+        connection to a Resource, and so will not necessarily compare equal to
+        this one.
+
+        As the Handle returned by this method is not useful for anything other
+        than identifying an object, this method should normally only be used
+        when transmitting a Handle to a less trusted context."""
+
     def __str__(self):
         return self.presentation
 
-    @abstractmethod
     def follow(self, sm):
         """Follows this Handle using the state in the StateManager @sm,
         returning a concrete Resource."""
+        return self.resource_type(self, sm)
 
     BASE_PROPERTIES = ('_source', '_relpath',)
     """The properties defined by Handle. (If a subclass defines other

@@ -14,7 +14,7 @@ cache:
 
 notice:
   stage: notices
-  image: python:3.5
+  image: python:3.6
   services:
     - postgres:alpine
     - rabbitmq:alpine
@@ -42,7 +42,7 @@ tests:
   services:
     - postgres:alpine
     - rabbitmq:alpine
-  image: python:3.5
+  image: python:3.6
   variables:
     POSTGRES_DB: os2datascanner
     POSTGRES_USER: os2datascanner
