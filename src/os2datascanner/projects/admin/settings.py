@@ -27,6 +27,8 @@ os.makedirs(BUILD_DIR, exist_ok=True)
 
 DEBUG = True
 
+ALLOWED_HOSTS = ['*']
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

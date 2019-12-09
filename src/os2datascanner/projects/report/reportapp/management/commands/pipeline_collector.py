@@ -14,7 +14,6 @@
 #
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
-import json
 from django.core.management.base import BaseCommand
 
 from ...utils.system_utilities import json_utf8_decode
