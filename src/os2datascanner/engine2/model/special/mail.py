@@ -2,7 +2,7 @@ from io import BytesIO
 from contextlib import contextmanager
 
 from ..core import Source, Handle, FileResource, DerivedSource, SourceManager
-from ..utilities import NamedTemporaryResource
+from ..utilities import SingleResult, NamedTemporaryResource
 
 
 MIME_TYPE = "message/rfc822"
@@ -57,7 +57,7 @@ class MailPartResource(FileResource):
             initial = s.seek(0, 1)
             try:
                 s.seek(0, 2)
-                return s.tell()
+                return SingleResult(None, "size", s.tell())
             finally:
                 s.seek(initial, 0)
 
