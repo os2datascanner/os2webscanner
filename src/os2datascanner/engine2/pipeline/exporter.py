@@ -2,6 +2,7 @@ from os import getpid
 import json
 import argparse
 
+from ..model.core import Handle
 from ...utils.prometheus import prometheus_session
 from .utilities import (notify_ready, notify_stopping, prometheus_summary,
                         make_common_argument_parser, json_event_processor)
@@ -16,6 +17,12 @@ args = None
 @json_event_processor
 def message_received(channel, method, properties, body):
     ack_message(method)
+    try:
+        handle = Handle.from_json_object(body["handle"])
+        handle = handle.censor()
+        body = handle.to_json_object()
+    except Exception:
+        raise
     body['origin'] = method.routing_key
     # For debugging purposes
     if args.dump:
