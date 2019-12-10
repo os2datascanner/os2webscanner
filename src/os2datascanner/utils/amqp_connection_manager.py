@@ -17,6 +17,7 @@ def start_amqp(queue_name):
     _create_connection()
     _create_channel(queue_name)
 
+
 def _create_channel(queue_name):
     """
     Creates an amqp queue if a connection is created.
@@ -25,8 +26,8 @@ def _create_channel(queue_name):
     if _amqp_obj['connection']:
         _amqp_obj['amqp_channel'] = _amqp_obj['connection'].channel()
         _amqp_obj['amqp_channel'].queue_declare(queue=queue_name,
-                passive=False, durable=True,
-                exclusive=False, auto_delete=False)
+                                                passive=False, durable=True,
+                                                exclusive=False, auto_delete=False)
 
 
 def _create_connection():
@@ -82,6 +83,7 @@ def set_callback(func, queue_name):
     else:
         return None
 
+
 def purge_queue(queue_name):
     """
     Purge an existing queue
@@ -89,6 +91,7 @@ def purge_queue(queue_name):
     """
     if _amqp_obj['amqp_channel']:
         _amqp_obj['amqp_channel'].queue_purge(queue_name)
+
 
 def start_consuming():
     """
