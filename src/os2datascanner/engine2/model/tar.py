@@ -1,9 +1,10 @@
-from .core import Source, Handle, FileResource, DerivedSource, SourceManager
-from .utilities import NamedTemporaryResource
-
 from tarfile import open as open_tar
 from datetime import datetime
 from contextlib import contextmanager
+
+from ..rules.types import InputType
+from .core import Source, Handle, FileResource, DerivedSource, SourceManager
+from .utilities import MultipleResults, NamedTemporaryResource
 
 
 @Source.mime_handler("application/x-tar")
@@ -28,19 +29,26 @@ class TarSource(DerivedSource):
 class TarResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
-        self._info = None
+        self._mr = None
 
-    def get_info(self):
-        if not self._info:
-            self._info = self._get_cookie().getmember(
-                    self.handle.relative_path)
-        return self._info
+    def unpack_info(self):
+        if not self._mr:
+            self._mr = MultipleResults.make_from_attrs(
+                    self._get_cookie().getmember(self.handle.relative_path),
+                    "chksum", "devmajor", "devminor", "gid", "gname",
+                    "linkname", "linkpath", "mode", "mtime", "name", "offset",
+                    "offset_data", "path", "pax_headers", "size", "sparse",
+                    "tarfile", "type", "uid", "uname")
+            self._mr[InputType.LastModified] = datetime.fromtimestamp(
+                    self._mr["mtime"].value)
+        return self._mr
 
     def get_size(self):
-        return self.get_info().size
+        return self.unpack_info()["size"]
 
     def get_last_modified(self):
-        return datetime.fromtimestamp(self.get_info().mtime)
+        return self.unpack_info().setdefault(InputType.LastModified,
+                super().get_last_modified())
 
     @contextmanager
     def make_path(self):
