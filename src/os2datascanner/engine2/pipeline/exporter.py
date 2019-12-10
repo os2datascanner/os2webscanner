@@ -10,7 +10,7 @@ args = None
 
 @json_event_processor
 def message_received(channel, method, properties, body):
-    ack_message(channel, method)
+    ack_message(method)
     body['origin'] = method.routing_key
     # For debugging purposes
     if args.dump:
