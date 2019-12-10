@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+import os.path
 from datetime import datetime
 import unittest
 
@@ -6,7 +6,8 @@ from os2datascanner.engine2.model.core import Source, SourceManager
 from os2datascanner.engine2.model.file import (
         FilesystemSource, FilesystemHandle)
 from os2datascanner.engine2.model.data import DataSource
-import os.path
+from os2datascanner.engine2.model.utilities import SingleResult
+
 
 here_path = os.path.dirname(__file__)
 test_data_path = os.path.join(here_path, "data", "engine2")
@@ -52,17 +53,28 @@ class Engine2ContainerTest(unittest.TestCase):
 
                         self.assertIsInstance(
                                 last_modified,
+                                SingleResult,
+                                ("{0}: last modification date is not a"
+                                        " SingleResult").format(handle))
+                        self.assertIsInstance(
+                                last_modified.value,
                                 datetime,
-                                ("{0}: last modification date is not a " +
+                                ("{0}: last modification date value is not a"
                                         "datetime.datetime").format(handle))
+
+                        self.assertIsInstance(
+                                reported_size,
+                                SingleResult,
+                                ("{0}: resource length is not a"
+                                        " SingleResult").format(handle))
                         self.assertEqual(
                                 stream_size,
-                                reported_size,
+                                reported_size.value,
                                 "{0}: model stream length invalid".format(
                                         handle))
                         self.assertEqual(
                                 file_size,
-                                reported_size,
+                                reported_size.value,
                                 "{0}: model stream length invalid".format(
                                         handle))
                         self.assertEqual(
@@ -73,7 +85,7 @@ class Engine2ContainerTest(unittest.TestCase):
                         self.assertEqual(
                                 stream_content,
                                 self.correct_content,
-                                "{0}: model stream invalid".format(handle)                        )
+                                "{0}: model stream invalid".format(handle))
                         self.assertEqual(
                                 file_content,
                                 self.correct_content,

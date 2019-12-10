@@ -2,14 +2,21 @@ from abc import ABC, abstractmethod
 import magic
 from datetime import datetime
 
+from ...rules.types import InputType
+from ..utilities import SingleResult
+
 
 class Resource(ABC):
     """A Resource is a concrete embodiment of an object: it's the thing a
     Handle points to. If you have a Resource, then you have some way of getting
-    to the data (and metadata) behind a Handle.
+    to the data (and metadata) behind a Handle. Most kinds of Resource behave,
+    or can behave, like files; these are represented by the FileResource
+    subclass.
 
-    Most kinds of Resource behave, or can behave, like files; these are
-    represented by the FileResource subclass.
+    Resources normally have functions that retrieve individual property values
+    from an object. To minimise wasted computation, these values are wrapped in
+    the SingleResult class, which allows them to include by reference other
+    values that were computed at the same time.
 
     Resources are short-lived -- they should only be used when you actually
     need to get to content. As such, they are not serialisable."""
@@ -38,22 +45,23 @@ class FileResource(Resource):
 
     @abstractmethod
     def get_size(self):
-        """Returns the number of bytes advertised as the download size of this
-        FileResource's content. (Note that this is not necessarily the same as
-        the *actual* size of that content: some Sources support transparent
-        compression and decompression.)"""
+        """Returns the wrapped number of bytes advertised as the download size
+        of this FileResource's content. (Note that this is not necessarily the
+        same as the *actual* size of that content: some Sources support
+        transparent compression and decompression.)"""
 
     @abstractmethod
     def get_last_modified(self):
-        """Returns the last modification date of this FileResource as a Python
-        datetime.datetime; this may be used to decide whether or not a
+        """Returns the last modification date of this FileResource as a wrapped
+        Python datetime.datetime; this may be used to decide whether or not a
         FileResource's content should be re-examined. Multiple calls to this
         method should normally return the same value.
 
         The default implementation of this method returns the time this
         method was first called on this FileResource."""
         if not self._lm_timestamp:
-            self._lm_timestamp = datetime.now()
+            self._lm_timestamp = SingleResult(
+                    None, InputType.LastModified, datetime.now())
         return self._lm_timestamp
 
     @abstractmethod
