@@ -7,6 +7,9 @@ from pathlib import Path
 from datetime import datetime
 from contextlib import contextmanager
 
+from ..rules.types import InputType
+from .utilities import MultipleResults
+
 
 class FilesystemSource(Source):
     type_label = "file"
@@ -55,23 +58,36 @@ class FilesystemSource(Source):
         return FilesystemSource(path=obj["path"])
 
 
+_stat_attrs = (
+        "st_mode", "st_ino", "st_dev", "st_nlink", "st_uid", "st_gid",
+        "st_size", "st_atime", "st_mtime", "st_ctime", "st_blksize",
+        "st_blocks", "st_rdev", "st_flags",)
+
+
 class FilesystemResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
         self._full_path = os.path.join(
                 self._get_cookie(), self.handle.relative_path)
-        self._stat = None
+        self._mr = None
 
-    def get_stat(self):
-        if not self._stat:
-            self._stat = os.stat(self._full_path)
-        return self._stat
+    def unpack_stat(self):
+        if not self._mr:
+            stat = os.stat(self._full_path)
+
+            self._mr = MultipleResults(
+                    {k: getattr(stat, k) for k in _stat_attrs
+                            if hasattr(stat, k)})
+            self._mr[InputType.LastModified] = datetime.fromtimestamp(
+                    stat.st_mtime)
+        return self._mr
 
     def get_size(self):
-        return self.get_stat().st_size
+        return self.unpack_stat()["st_size"]
 
     def get_last_modified(self):
-        return datetime.fromtimestamp(self.get_stat().st_mtime)
+        return self.unpack_stat().setdefault(
+                InputType.LastModified, super().get_last_modified())
 
     @contextmanager
     def make_path(self):
