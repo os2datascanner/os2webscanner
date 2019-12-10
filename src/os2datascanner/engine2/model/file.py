@@ -58,12 +58,6 @@ class FilesystemSource(Source):
         return FilesystemSource(path=obj["path"])
 
 
-_stat_attrs = (
-        "st_mode", "st_ino", "st_dev", "st_nlink", "st_uid", "st_gid",
-        "st_size", "st_atime", "st_mtime", "st_ctime", "st_blksize",
-        "st_blocks", "st_rdev", "st_flags",)
-
-
 class FilesystemResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
@@ -73,13 +67,13 @@ class FilesystemResource(FileResource):
 
     def unpack_stat(self):
         if not self._mr:
-            stat = os.stat(self._full_path)
-
-            self._mr = MultipleResults(
-                    {k: getattr(stat, k) for k in _stat_attrs
-                            if hasattr(stat, k)})
+            self._mr = MultipleResults.make_from_attrs(
+                    os.stat(self._full_path),
+                    "st_mode", "st_ino", "st_dev", "st_nlink", "st_uid",
+                    "st_gid", "st_size", "st_atime", "st_mtime", "st_ctime",
+                    "st_blksize", "st_blocks", "st_rdev", "st_flags")
             self._mr[InputType.LastModified] = datetime.fromtimestamp(
-                    stat.st_mtime)
+                    self._mr["st_mtime"].value)
         return self._mr
 
     def get_size(self):
