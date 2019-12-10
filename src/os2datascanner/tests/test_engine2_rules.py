@@ -1,7 +1,9 @@
+from datetime import datetime, timezone
 import unittest
 
 from os2datascanner.engine2.rules.cpr import CPRRule
 from os2datascanner.engine2.rules.regex import RegexRule
+from os2datascanner.engine2.rules.last_modified import LastModifiedRule
 from os2datascanner.engine2.rules.logical import OrRule, AndRule, NotRule
 
 
@@ -49,14 +51,35 @@ more!""",
                     "six potato",
                     "seven potato"
                 ]
-            )
+            ),
+            (
+                LastModifiedRule(
+                        datetime(
+                                2019, 12, 24, 23, 59, 59,
+                                tzinfo=timezone.utc)),
+                datetime(2019, 12, 31, 23, 59, 59, tzinfo=timezone.utc),
+                [
+                    "2019-12-31T23:59:59+0000"
+                ]
+            ),
+            (
+                LastModifiedRule(
+                        datetime(
+                                2019, 12, 24, 23, 59, 59,
+                                tzinfo=timezone.utc)),
+                datetime(2019, 5, 22, 0, 0, 1, tzinfo=timezone.utc),
+                None
+            ),
         ]
 
-        for rule, input_string, expected in candidates:
+        for rule, in_value, expected in candidates:
             with self.subTest(rule):
-                matches = rule.match(input_string)
-                self.assertEqual(
-                        [match["match"] for match in matches], expected)
+                matches = rule.match(in_value)
+                if expected:
+                    self.assertEqual(
+                            [match["match"] for match in matches], expected)
+                else:
+                    self.assertFalse(list(matches))
 
     compound_candidates = [
         (

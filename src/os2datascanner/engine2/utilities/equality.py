@@ -24,4 +24,3 @@ class TypePropertyEquality:
         for k, v in self.__get_state(self).items():
             h += hash(k) + (hash(v) * 3)
         return h
-

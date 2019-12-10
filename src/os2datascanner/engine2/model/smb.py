@@ -56,6 +56,9 @@ class SMBSource(Source):
         finally:
             rmdir(mntdir)
 
+    def _censor(self):
+        return SMBSource(self.unc, None, None, None, self.driveletter)
+
     def _close(self, mntdir):
         args = ["umount", mntdir]
         try:
@@ -109,6 +112,7 @@ class SMBSource(Source):
 @Handle.stock_json_handler("smb")
 class SMBHandle(Handle):
     type_label = "smb"
+    resource_type = FilesystemResource
 
     @property
     def presentation(self):
@@ -121,8 +125,8 @@ class SMBHandle(Handle):
             p += "/"
         return (p + self.relative_path).replace("/", "\\")
 
-    def follow(self, sm):
-        return FilesystemResource(self, sm)
+    def censor(self):
+        return SMBHandle(self.source._censor(), self.relative_path)
 
 
 # Third form from https://www.iana.org/assignments/uri-schemes/prov/smb

@@ -24,24 +24,6 @@ class ZipSource(DerivedSource):
                 with ZipFile(str(r)) as zp:
                     yield zp
 
-    @staticmethod
-    @Source.json_handler(type_label)
-    def from_json_object(obj):
-        return ZipSource(Handle.from_json_object(obj["handle"]))
-
-
-@Handle.stock_json_handler("zip")
-class ZipHandle(Handle):
-    type_label = "zip"
-
-    @property
-    def presentation(self):
-        return "{0} (in {1})".format(
-                self.relative_path, self.source.handle)
-
-    def follow(self, sm):
-        return ZipResource(self, sm)
-
 
 class ZipResource(FileResource):
     def __init__(self, handle, sm):
@@ -72,3 +54,17 @@ class ZipResource(FileResource):
     def make_stream(self):
         with self._get_cookie().open(self.handle.relative_path) as s:
             yield s
+
+
+@Handle.stock_json_handler("zip")
+class ZipHandle(Handle):
+    type_label = "zip"
+    resource_type = ZipResource
+
+    @property
+    def presentation(self):
+        return "{0} (in {1})".format(
+                self.relative_path, self.source.handle)
+
+    def censor(self):
+        return ZipHandle(self.source._censor(), self.relative_path)

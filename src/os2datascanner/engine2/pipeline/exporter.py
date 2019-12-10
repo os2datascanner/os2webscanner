@@ -1,13 +1,18 @@
+from os import getpid
 import json
 import argparse
 
-from .utilities import (notify_ready, json_event_processor,
-        notify_stopping, make_common_argument_parser)
-from ...utils.amqp_connection_manager import start_amqp, \
-    ack_message, set_callback, start_consuming, close_connection
+from ...utils.prometheus import prometheus_session
+from .utilities import (notify_ready, notify_stopping, prometheus_summary,
+                        make_common_argument_parser, json_event_processor)
+from ...utils.amqp_connection_manager import (start_amqp, ack_message,
+                                              set_callback, start_consuming,
+                                              close_connection)
 
 args = None
 
+
+@prometheus_summary("os2datascanner_pipeline_exporter", "Messages exported")
 @json_event_processor
 def message_received(channel, method, properties, body):
     ack_message(method)
@@ -21,10 +26,11 @@ def message_received(channel, method, properties, body):
 
     yield (args.results, body)
 
+
 def main():
     parser = make_common_argument_parser()
     parser.description = ("Consume problems, metadata and matches, and convert"
-            + " them into forms suitable for the outside world.")
+                          + " them into forms suitable for the outside world.")
 
     inputs = parser.add_argument_group("inputs")
     inputs.add_argument(
@@ -75,14 +81,18 @@ def main():
     set_callback(message_received, args.problems)
     set_callback(message_received, args.metadata)
 
-    try:
-        print("Start")
-        notify_ready()
-        start_consuming()
-    finally:
-        print("Stop")
-        notify_stopping()
-        close_connection()
+    with prometheus_session(
+            str(getpid()),
+            args.prometheus_dir,
+            stage_type="exporter"):
+        try:
+            print("Start")
+            notify_ready()
+            start_consuming()
+        finally:
+            print("Stop")
+            notify_stopping()
+            close_connection()
 
 
 if __name__ == "__main__":

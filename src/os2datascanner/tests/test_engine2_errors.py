@@ -5,7 +5,6 @@ from os2datascanner.engine2.model.core import (
         Source, SourceManager, UnknownSchemeError, ResourceUnavailableError)
 from os2datascanner.engine2.model.file import (
         FilesystemSource, FilesystemHandle)
-from os2datascanner.engine2.model.filtered import FilteredSource, FilterType
 
 
 class Engine2TestErrors(unittest.TestCase):
@@ -39,12 +38,3 @@ class Engine2TestErrors(unittest.TestCase):
                 source = Source.from_url("http://example.invalid./")
                 with contextlib.closing(source.handles(sm)) as handles:
                     next(handles)
-
-    def test_invalid_filter(self):
-        with self.assertRaises(ValueError):
-            FilteredSource(
-                    FilesystemHandle(
-                            FilesystemSource(
-                                    "/home/kiddw"),
-                            "Pictures/1699 Gardiners trip/treasuremap.xpm.pp"),
-                    "pigpen")

@@ -20,6 +20,7 @@
 
 import os
 import datetime
+from contextlib import closing
 import json
 import re
 
@@ -31,7 +32,8 @@ from django.contrib.postgres.fields import JSONField
 from model_utils.managers import InheritanceManager
 from recurrence.fields import RecurrenceField
 
-from os2datascanner.engine2.model.core import Source
+from os2datascanner.engine2.model.core import (
+        Source, SourceManager, ResourceUnavailableError)
 from os2datascanner.engine2.rules.logical import OrRule, AndRule
 from os2datascanner.engine2.rules.last_modified import LastModifiedRule
 
@@ -268,6 +270,15 @@ class Scanner(models.Model):
         else:
             now = datetime.datetime.now().replace(microsecond=0)
 
+            # Check that this source is accessible, and return the resulting
+            # error if it isn't
+            source = self.make_engine2_source()
+            with SourceManager() as sm, closing(source.handles(sm)) as handles:
+                try:
+                    print(next(handles, True))
+                except ResourceUnavailableError as ex:
+                    return ", ".join([str(a) for a in ex.args[1:]])
+
             # Create a new engine2 scan specification and submit it to the
             # pipeline
             rule = OrRule.make(
@@ -281,7 +292,7 @@ class Scanner(models.Model):
 
             message = {
                 'scan_tag': now.isoformat(),
-                'source': self.make_engine2_source().to_json_object(),
+                'source': source.to_json_object(),
                 'rule': rule.to_json_object()
             }
             queue_name = settings.AMQP_PIPELINE_TARGET

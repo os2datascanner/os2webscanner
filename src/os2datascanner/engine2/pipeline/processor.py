@@ -1,14 +1,15 @@
-from dateutil import tz
+from os import getpid
 import pika
+from dateutil import tz
 
+from ...utils.prometheus import prometheus_session
 from ..rules.rule import Rule
-from ..rules.types import InputType
-from ..rules.last_modified import DATE_FORMAT # XXX FIXME XXX
+from ..rules.types import InputType, encode_dict
 from ..model.core import (Source,
         Handle, SourceManager, ResourceUnavailableError)
 from ..demo import processors
-from .utilities import (notify_ready, notify_stopping, json_event_processor,
-        make_common_argument_parser)
+from .utilities import (notify_ready, notify_stopping, prometheus_summary,
+        json_event_processor, make_common_argument_parser)
 
 args = None
 source_manager = None
@@ -31,15 +32,13 @@ def get_processor(sm, handle, required, configuration):
         resource = handle.follow(sm)
         if hasattr(resource, "get_last_modified"):
             def _get_time(handle):
-                r = handle.follow(sm)
-                lm = r.get_last_modified()
-                if not lm.tzname():
-                    lm = lm.astimezone(tz.gettz())
-                return lm.strftime(DATE_FORMAT)
+                return resource.get_last_modified()
             return _get_time
     return None
 
 
+@prometheus_summary(
+        "os2datascanner_pipeline_processor", "Representations generated")
 @json_event_processor
 def message_received(channel, method, properties, body):
     print("message_received({0}, {1}, {2}, {3})".format(
@@ -48,23 +47,22 @@ def message_received(channel, method, properties, body):
         handle = Handle.from_json_object(body["handle"])
         rule = Rule.from_json_object(body["progress"]["rule"])
         head, _, _ = rule.split()
+        required = head.operates_on
 
         try:
             processor = get_processor(
-                    source_manager,
-                    handle,
-                    head.operates_on,
+                    source_manager, handle, required,
                     body["scan_spec"]["configuration"])
             if processor:
-                content = processor(handle)
-                if content:
+                representation = processor(handle)
+                if representation:
                     yield (args.representations, {
                         "scan_spec": body["scan_spec"],
                         "handle": body["handle"],
                         "progress": body["progress"],
-                        "representations": {
-                            head.operates_on.value: content
-                        }
+                        "representations": encode_dict({
+                            required.value: representation
+                        })
                     })
             else:
                 # If we have a conversion we don't support, then check if
@@ -78,7 +76,7 @@ def message_received(channel, method, properties, body):
                     scan_spec["source"] = derived_source.to_json_object()
                     scan_spec["progress"] = body["progress"]
                     yield (args.sources, scan_spec)
-        except ResourceUnavailableError as ex:
+        except ResourceUnavailableError:
             pass
 
         channel.basic_ack(method.delivery_tag)
@@ -133,15 +131,19 @@ def main():
     global source_manager
     source_manager = SourceManager()
 
-    try:
-        print("Start")
-        notify_ready()
-        channel.start_consuming()
-    finally:
-        print("Stop")
-        notify_stopping()
-        channel.stop_consuming()
-        connection.close()
+    with prometheus_session(
+            str(getpid()),
+            args.prometheus_dir,
+            stage_type="processor"):
+        try:
+            print("Start")
+            notify_ready()
+            channel.start_consuming()
+        finally:
+            print("Stop")
+            notify_stopping()
+            channel.stop_consuming()
+            connection.close()
 
 
 if __name__ == "__main__":

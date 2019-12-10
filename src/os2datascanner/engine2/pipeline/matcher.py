@@ -1,40 +1,49 @@
+from os import getpid
 import pika
 
+from ...utils.prometheus import prometheus_session
 from ..rules.rule import Rule
-from ..rules.types import InputType
-from .utilities import (notify_ready, notify_stopping, json_event_processor,
-        make_common_argument_parser)
+from ..rules.types import decode_dict
+from .utilities import (notify_ready, notify_stopping, prometheus_summary,
+        json_event_processor, make_common_argument_parser)
 
 args = None
 
 
+@prometheus_summary(
+        "os2datascanner_pipeline_matcher", "Representations examined")
 @json_event_processor
 def message_received(channel, method, properties, body):
     print("message_received({0}, {1}, {2}, {3})".format(
             channel, method, properties, body))
     try:
         progress = body["progress"]
-        representations = body["representations"]
+        representations = decode_dict(body["representations"])
         rule = Rule.from_json_object(progress["rule"])
 
         new_matches = []
 
-        # For now, we only do this once in order to exercise the pipeline. In
-        # future, we'll want to have a loop here: while the head of the rule
-        # wants a representation that we have, keep finding more matches
-        head, pve, nve = rule.split()
-        target_type = head.operates_on.value
-        content = representations[target_type]
+        # Keep executing rules for as long as we can with the representations
+        # we have
+        while not isinstance(rule, bool):
+            head, pve, nve = rule.split()
 
-        matches = list(head.match(content))
-        new_matches.append({
-            "rule": head.to_json_object(),
-            "matches": matches if matches else None
-        })
-        if matches:
-            rule = pve
-        else:
-            rule = nve
+            target_type = head.operates_on
+            type_value = target_type.value
+            if type_value not in representations:
+                # We don't have this representation -- bail out
+                break
+            representation = representations[type_value]
+
+            matches = list(head.match(representation))
+            new_matches.append({
+                "rule": head.to_json_object(),
+                "matches": matches if matches else None
+            })
+            if matches:
+                rule = pve
+            else:
+                rule = nve
 
         if isinstance(rule, bool):
             # We've come to a conclusion!
@@ -51,6 +60,7 @@ def message_received(channel, method, properties, body):
                     "handle": body["handle"]
                 })
         else:
+            # We need a new representation to continue
             yield (args.conversions, {
                 "scan_spec": body["scan_spec"],
                 "handle": body["handle"],
@@ -117,15 +127,19 @@ def main():
 
     channel.basic_consume(args.representations, message_received)
 
-    try:
-        print("Start")
-        notify_ready()
-        channel.start_consuming()
-    finally:
-        print("Stop")
-        notify_stopping()
-        channel.stop_consuming()
-        connection.close()
+    with prometheus_session(
+            str(getpid()),
+            args.prometheus_dir,
+            stage_type="matcher"):
+        try:
+            print("Start")
+            notify_ready()
+            channel.start_consuming()
+        finally:
+            print("Stop")
+            notify_stopping()
+            channel.stop_consuming()
+            connection.close()
 
 
 if __name__ == "__main__":
