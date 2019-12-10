@@ -72,10 +72,11 @@ class MultipleResults(dict):
             return SingleResult(self, k, v)
 
     @classmethod
-    def make_from_attrs(cls, o, *attrs):
+    def make_from_attrs(cls, o, *attrs, **kwargs):
         """Creates a new MultipleResults whose values correspond to all of the
         (extant) named attributes from a given object."""
-        return cls({k: getattr(o, k) for k in attrs if hasattr(o, k)})
+        return cls({k: getattr(o, k) for k in attrs if hasattr(o, k)},
+                **kwargs)
 
 
 class SingleResult:
