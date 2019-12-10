@@ -1,13 +1,15 @@
-from .smb import make_smb_url, SMBSource
-from .core import Source, Handle, FileResource, ResourceUnavailableError
-from .utilities import NamedTemporaryResource
-
 import io
 from os import stat_result, O_RDONLY
 import smbc
 from urllib.parse import quote, unquote, urlsplit
 from datetime import datetime
 from contextlib import contextmanager
+
+from ..rules.types import InputType
+from .smb import make_smb_url, SMBSource
+from .core import Source, Handle, FileResource, ResourceUnavailableError
+from .file import stat_attributes
+from .utilities import MultipleResults, NamedTemporaryResource
 
 
 class SMBCSource(Source):
@@ -151,7 +153,7 @@ class _SMBCFile(io.RawIOBase):
 class SMBCResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
-        self._stat = None
+        self._mr = None
 
     def _make_url(self):
         url, _ = self._get_cookie()
@@ -175,20 +177,24 @@ class SMBCResource(FileResource):
         except (smbc.NoEntryError, smbc.PermissionError) as ex:
             raise ResourceUnavailableError(self.handle, ex)
 
-    def get_stat(self):
-        if not self._stat:
+    def unpack_stat(self):
+        if not self._mr:
             f = self.open_file()
             try:
-                self._stat = stat_result(f.fstat())
+                self._mr = MultipleResults.make_from_attrs(
+                        stat_result(f.fstat()), *stat_attributes)
+                self._mr[InputType.LastModified] = datetime.fromtimestamp(
+                        self._mr["st_mtime"].value)
             finally:
                 f.close()
-        return self._stat
+        return self._mr
 
     def get_size(self):
-        return self.get_stat().st_size
+        return self.unpack_stat()["st_size"]
 
     def get_last_modified(self):
-        return datetime.fromtimestamp(self.get_stat().st_mtime)
+        return self.unpack_stat().setdefault(InputType.LastModified,
+                super().get_last_modified())
 
     def get_owner_sid(self):
         """Returns the Windows security identifier of the owner of this file,
