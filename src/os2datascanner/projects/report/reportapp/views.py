@@ -1,14 +1,26 @@
 import os
 import json
-from django.views.generic import TemplateView
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
+from django.views.generic import View, TemplateView
 
 
-class LoginPageView(TemplateView):
+class LoginRequiredMixin(View):
+    """Include to require login."""
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        """Check for login and dispatch the view."""
+        return super().dispatch(*args, **kwargs)
+
+
+class LoginPageView(View):
     template_name = 'login.html'
 
 
-class MainPageView(TemplateView):
+class MainPageView(TemplateView, LoginRequiredMixin):
     template_name = 'index.html'
+
 
 class RulePageView(TemplateView):
     template_name = 'rule.html'
@@ -26,6 +38,7 @@ class RulePageView(TemplateView):
         print(type(context['hits'][0]))
 
         return context
+
 
 class ApprovalPageView(TemplateView):
     template_name = 'approval.html'

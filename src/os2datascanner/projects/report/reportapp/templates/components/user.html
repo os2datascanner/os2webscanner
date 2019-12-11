@@ -1,6 +1,6 @@
 {% load staticfiles %}
 
 <div class="user">
-  <a href="/login" class="user__name">Lars Henriksen</a>
+  <a href="/accounts/logout" class="user__name">{{ request.user }}</a>
   <span class="user__avatar" style="background-image: url('{% static "dist/images/avatar.jpg" %}')"></span>
 </div>

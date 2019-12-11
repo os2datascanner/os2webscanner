@@ -1,20 +1,20 @@
 {% include "partials/header.html" with body_class="login" %}
 
 <section class="login-form">
-  <form action="login" class="form">
-
+  <form method="post" action="{% url 'login' %}" class="form">
+      {% csrf_token %}
     <legend class="form__legend">Login:</legend>
 
     <fieldset>
 
       <div class="form__group">
         <label for="username">Username:</label>
-        <input type="text" id="username" placeholder="handle@example.com" autofocus>
+        <input type="text" name="{{ form.username.name }}" id="id_{{ form.username.name }}" placeholder="handle@example.com" autofocus>
       </div>
 
       <div class="form__group">
         <label for="password">Password:</label>
-        <input type="text" id="password" placeholder="[a-z][0-9]">
+        <input type="password" name="{{ form.password.name }}"  id="id_{{ form.password.name }}" placeholder="[a-z][0-9]">
       </div>
 
       <div class="form__group">
@@ -23,8 +23,10 @@
       </div>
 
       <div class="form__group">
-        <button type="button" class="button">Login</button>
-        <div class="form__error">Fejl i brugernavn eller password</div>
+        <button type="submit" class="button">Login</button>
+          {% if form.password.errors %}
+            <div class="form__error">Fejl i brugernavn eller password</div>
+          {% endif %}
       </div>
 
     </fieldset>
