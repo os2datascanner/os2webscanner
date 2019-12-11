@@ -12,16 +12,28 @@ args = None
 
 @prometheus_summary("os2datascanner_pipeline_exporter", "Messages exported")
 def message_received(channel, method, properties, body):
-    decoded_body = body.decode("utf-8")
-    print(json.dumps(json.loads(decoded_body), indent=True))
-    if args.dump:
-        args.dump.write(decoded_body + "\n")
-        args.dump.flush()
+    ack_message(method)
     try:
-        channel.basic_ack(method.delivery_tag)
+        # Remove sensitive data
+        handle = Handle.from_json_object(body["handle"])
+        handle = handle.censor()
+        body["handle"] = handle.to_json_object()
+
     except Exception:
-        channel.basic_reject(method.delivery_tag)
         raise
+
+    # Adding routing_key (queue_name) to body
+    body['origin'] = method.routing_key
+
+    # For debugging purposes
+    if args.dump:
+        print(json.dumps(body, indent=True))
+        args.dump.write(body + "\n")
+        args.dump.flush()
+        return
+
+    # Send filtered result to result queue
+    yield (args.results, body)
 
 
 def main():
