@@ -4,7 +4,7 @@ from dateutil import tz
 
 from ...utils.prometheus import prometheus_session
 from ..rules.rule import Rule
-from ..rules.types import InputType, encode_dict
+from ..rules.types import convert, InputType, encode_dict, conversion_exists
 from ..model.core import (Source,
         Handle, SourceManager, ResourceUnavailableError)
 from ..demo import processors
@@ -25,9 +25,8 @@ def get_processor(sm, handle, required, configuration):
                     return None
                 elif mime_type == mt:
                     return None
-        processor = processors.processors.get(mime_type)
-        if processor:
-            return lambda handle: processor(handle.follow(sm))
+        if conversion_exists(InputType.Text, mime_type):
+            return lambda handle: convert(handle.follow(sm), InputType.Text)
     elif required == InputType.LastModified:
         resource = handle.follow(sm)
         if hasattr(resource, "get_last_modified"):
