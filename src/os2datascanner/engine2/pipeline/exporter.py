@@ -17,12 +17,9 @@ args = None
 @json_event_processor
 def message_received(channel, method, properties, body):
     ack_message(method)
-    try:
-        handle = Handle.from_json_object(body["handle"])
-        handle = handle.censor()
-        body = handle.to_json_object()
-    except Exception:
-        raise
+    handle = Handle.from_json_object(body["handle"])
+    handle = handle.censor()
+    body = handle.to_json_object()
     body['origin'] = method.routing_key
     # For debugging purposes
     if args.dump:
