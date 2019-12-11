@@ -7,6 +7,7 @@ from ..rules.rule import Rule
 from ..rules.types import InputType, encode_dict
 from ..model.core import (Source,
         Handle, SourceManager, ResourceUnavailableError)
+from ..model.utilities import SingleResult
 from ..demo import processors
 from .utilities import (notify_ready, notify_stopping, prometheus_summary,
         json_event_processor, make_common_argument_parser)
@@ -15,7 +16,7 @@ args = None
 source_manager = None
 
 
-def get_processor(sm, handle, required, configuration):
+def get_processor(sm, handle, required, configuration) -> SingleResult:
     if required == InputType.Text:
         resource = handle.follow(sm)
         mime_type = resource.compute_type()
@@ -27,7 +28,8 @@ def get_processor(sm, handle, required, configuration):
                     return None
         processor = processors.processors.get(mime_type)
         if processor:
-            return lambda handle: processor(handle.follow(sm))
+            return lambda handle: SingleResult(
+                    None, InputType.Text, processor(handle.follow(sm)))
     elif required == InputType.LastModified:
         resource = handle.follow(sm)
         if hasattr(resource, "get_last_modified"):
@@ -56,13 +58,21 @@ def message_received(channel, method, properties, body):
             if processor:
                 representation = processor(handle)
                 if representation:
+                    if representation.parent:
+                        # If the conversion also produced other values at the
+                        # same time, then include all of those as well; they
+                        # might also be useful for the rule engine
+                        dv = {k.value: v.value
+                                for k, v in representation.parent.items()
+                                if isinstance(k, InputType)}
+                    else:
+                        dv = {required.value: representation.value}
+
                     yield (args.representations, {
                         "scan_spec": body["scan_spec"],
                         "handle": body["handle"],
                         "progress": body["progress"],
-                        "representations": encode_dict({
-                            required.value: representation
-                        })
+                        "representations": encode_dict(dv)
                     })
             else:
                 # If we have a conversion we don't support, then check if
