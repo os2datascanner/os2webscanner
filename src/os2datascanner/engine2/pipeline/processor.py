@@ -3,11 +3,11 @@ import pika
 from dateutil import tz
 
 from ...utils.prometheus import prometheus_session
+import ..rules._transitional_conversions
 from ..rules.rule import Rule
 from ..rules.types import convert, InputType, encode_dict, conversion_exists
 from ..model.core import (Source,
         Handle, SourceManager, ResourceUnavailableError)
-from ..demo import processors
 from .utilities import (notify_ready, notify_stopping, prometheus_summary,
         json_event_processor, make_common_argument_parser)
 

@@ -1,7 +1,7 @@
 import sys
 from subprocess import run, PIPE, DEVNULL
 
-from ..rules.types import InputType, conversion
+from .types import InputType, conversion
 
 
 @conversion(InputType.Text, "text/plain")
@@ -62,16 +62,3 @@ def libreoffice_csv_processor(r, **kwargs):
                  universal_newlines=True,
                  stdout=PIPE,
                  stderr=DEVNULL, **kwargs).stdout.strip()
-
-
-processors = {
-    "text/plain": plain_text_processor,
-    "image/png": image_processor,
-    "image/jpeg": image_processor,
-    "application/pdf": pdf_processor,
-    "text/html": html_processor,
-    "application/vnd.oasis.opendocument.text": libreoffice_txt_processor,
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": libreoffice_txt_processor,
-    "application/vnd.oasis.opendocument.spreadsheet": libreoffice_csv_processor,
-    "application/vnd.ms-excel": libreoffice_csv_processor
-}
