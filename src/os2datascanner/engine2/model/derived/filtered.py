@@ -7,9 +7,10 @@ from datetime import datetime
 from functools import partial
 from contextlib import contextmanager
 
-from .core import (Source, DerivedSource,
+from ..core import (Source,
         Handle, FileResource, SourceManager, ResourceUnavailableError)
-from .utilities import NamedTemporaryResource
+from ..utilities import NamedTemporaryResource
+from .derived import DerivedSource
 
 
 class FilteredSource(DerivedSource):

@@ -1,9 +1,10 @@
-from .core import Source, Handle, FileResource, DerivedSource, SourceManager
-from .utilities import NamedTemporaryResource
-
 from zipfile import ZipFile
 from datetime import datetime
 from contextlib import contextmanager
+
+from ..core import Source, Handle, FileResource, SourceManager
+from ..utilities import NamedTemporaryResource
+from .derived import DerivedSource
 
 
 @Source.mime_handler("application/zip")

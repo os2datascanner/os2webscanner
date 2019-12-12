@@ -3,8 +3,9 @@ import pdfrw
 from tempfile import TemporaryDirectory
 from subprocess import run
 
-from .core import Handle, Source, Resource, DerivedSource, SourceManager
-from .file import FilesystemResource
+from ..core import Handle, Source, Resource, SourceManager
+from ..file import FilesystemResource
+from .derived import DerivedSource
 
 
 PAGE_TYPE = "application/x.os2datascanner.pdf-page"
