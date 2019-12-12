@@ -4,6 +4,8 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.views.generic import View, TemplateView
 
+from ..models.documentreport_model import DocumentReport
+
 
 class LoginRequiredMixin(View):
     """Include to require login."""
@@ -20,6 +22,29 @@ class LoginPageView(View):
 
 class MainPageView(TemplateView, LoginRequiredMixin):
     template_name = 'index.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        user = self.request.user
+        aliases = user.aliases.select_subclasses()
+        # user.aliases.select_subclasses().get().sid
+        for alias in aliases:
+            if alias.sid:
+                print(alias.sid)
+                # I wonder how this performs. It might be an idea to move the sid property to the RDB-schema.
+                # Then we would just have to do DocumentReport.objects.filter(sid=alias.sid)...
+                metadata_results = DocumentReport.objects.filter(
+                    data__contains={'origin': 'os2ds_metadata'}).filter(
+                    data__metadata__contains={'filesystem-owner-sid': alias.sid})
+                for data in metadata_results:
+                    matches_results = DocumentReport.objects.filter(
+                        data__contains={'origin': 'os2ds_matches'}).filter(
+                        data__handle__source__path=data.path)
+                    context['matches'] = matches_results
+            elif alias.address:
+                print(alias.address)
+
 
 
 class RulePageView(TemplateView):
