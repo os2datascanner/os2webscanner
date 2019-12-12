@@ -23,10 +23,10 @@ from ...utils.amqp_connection_manager import start_amqp, \
 
 def consume_results(ch, method, properties, body):
     print('Message recieved {} :'.format(body))
-    ack_message(ch, method)
-    decoded_body = json_utf8_decode(body)
+    ack_message(method)
+    # decoded_body = json_utf8_decode(body)
 
-    path = body["path"]
+    path = body['handle']["path"]
     origin = body["origin"] # "metadata", "match" or "problem"
     # ["metadata": body1, "match": body2, ]
 
