@@ -51,8 +51,8 @@ class Command(BaseCommand):
         parser.add_argument(
             "--results",
             type=str,
-            help="the name of the AMQP queue to which filtered result objects"
-                 + " should be red",
+            help="the name of the AMQP queue from which filtered result objects"
+                 + " should be read",
             default="os2ds_results")
 
     def handle(self, results, *args, **options):

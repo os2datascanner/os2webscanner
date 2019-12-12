@@ -8,6 +8,9 @@ else:
         return False
 from prometheus_client import Summary
 
+from ...utils.system_utilities import json_utf8_decode
+from ...utils.amqp_connection_manager import send_message
+
 
 def make_common_argument_parser():
     parser = argparse.ArgumentParser(
@@ -63,14 +66,11 @@ def json_event_processor(listener):
     message callback, and automatically produces new messages for every (queue
     name, serialisable object) pair yielded by that callback."""
     def _wrapper(channel, method, properties, body):
-        try:
-            body = json.loads(body.decode("utf-8"))
-        except json.JSONDecodeError:
-            print("* Invalid JSON: {0}".format(body))
-            return
-        for routing_key, message in listener(
-                channel, method, properties, body):
-            channel.basic_publish(exchange='',
-                    routing_key=routing_key,
-                    body=json.dumps(message).encode())
+        decoded_body = json_utf8_decode(body)
+        if decoded_body:
+            for routing_key, message in listener(
+                    channel, method, properties, decoded_body):
+                send_message(routing_key=routing_key,
+                             body=json.dumps(message).encode())
+
     return _wrapper
