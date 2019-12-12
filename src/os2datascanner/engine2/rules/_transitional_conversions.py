@@ -22,15 +22,6 @@ def image_processor(r, **kwargs):
                 stderr=DEVNULL, **kwargs).stdout.strip()
 
 
-@conversion(InputType.Text, "application/pdf")
-def pdf_processor(r, **kwargs):
-    with r.make_path() as f:
-        return run(["pdftotext", f, "-"],
-                universal_newlines=True,
-                stdout=PIPE,
-                stderr=DEVNULL, **kwargs).stdout.strip()
-
-
 @conversion(InputType.Text, "text/html")
 def html_processor(r, **kwargs):
     with r.make_path() as f:
