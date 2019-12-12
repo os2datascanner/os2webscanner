@@ -10,11 +10,12 @@
 }
 
 .user__avatar {
-  background-color: var(--color-main);
-  background-size: cover;
-  border-radius: 50%;
   display: inline-block;
   height: 2rem;
   vertical-align: top;
   width: 2rem;
+}
+
+.os2o {
+  fill: var(--color-main);
 }
