@@ -62,4 +62,5 @@ class LibreOfficeObjectHandle(Handle):
         return "{0} (in {1})".format(self.relative_path, self.source.handle)
 
     def censor(self):
-        return FilesystemHandle(self.source._censor(), self.relative_path)
+        return LibreOfficeObjectHandle(
+                self.source._censor(), self.relative_path)
