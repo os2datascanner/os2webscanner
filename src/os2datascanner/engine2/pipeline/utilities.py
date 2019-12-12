@@ -74,3 +74,21 @@ def json_event_processor(listener):
                              body=json.dumps(message).encode())
 
     return _wrapper
+
+
+def json_event_processor_raw(listener):
+    """Decorator. Automatically decodes JSON bodies for the wrapped Pika
+    message callback, and automatically produces new messages for every (queue
+    name, serialisable object) pair yielded by that callback."""
+    def _wrapper(channel, method, properties, body):
+        try:
+            body = json.loads(body.decode("utf-8"))
+        except json.JSONDecodeError:
+            print("* Invalid JSON: {0}".format(body))
+            return
+        for routing_key, message in listener(
+                channel, method, properties, body):
+            channel.basic_publish(exchange='',
+                    routing_key=routing_key,
+                    body=json.dumps(message).encode())
+    return _wrapper

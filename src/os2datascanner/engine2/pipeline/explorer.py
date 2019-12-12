@@ -5,13 +5,13 @@ from ...utils.prometheus import prometheus_session
 from ..model.core import (Source, SourceManager, ResourceUnavailableError,
         DeserialisationError)
 from .utilities import (notify_ready, notify_stopping, prometheus_summary,
-        json_event_processor, make_common_argument_parser)
+        json_event_processor_raw, make_common_argument_parser)
 
 args = None
 
 
 @prometheus_summary("os2datascanner_pipeline_explorer", "Sources explored")
-@json_event_processor
+@json_event_processor_raw
 def message_received(channel, method, properties, body):
     print("message_received({0}, {1}, {2}, {3})".format(
             channel, method, properties, body))
