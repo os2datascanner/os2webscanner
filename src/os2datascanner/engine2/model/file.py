@@ -29,6 +29,11 @@ class FilesystemSource(Source):
                             str(f.relative_to(pathlib_path)))
 
     def _generate_state(self, sm):
+        """Yields a path to the directory against which relative paths should
+        be resolved.
+
+        Other classes can also produce FilesystemResources if they have a
+        compatible implementation of this function."""
         yield ShareableCookie(self.path)
 
     def _censor(self):
