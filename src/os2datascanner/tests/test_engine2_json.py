@@ -13,6 +13,8 @@ from os2datascanner.engine2.model.smbc import SMBCSource, SMBCHandle
 
 from os2datascanner.engine2.model.derived.filtered import (
         GzipSource, FilteredHandle)
+from os2datascanner.engine2.model.derived.libreoffice import (
+        LibreOfficeSource, LibreOfficeObjectHandle)
 from os2datascanner.engine2.model.derived.mail import (
         MailSource, MailPartHandle)
 from os2datascanner.engine2.model.derived.pdf import (
@@ -84,11 +86,17 @@ class JSONTests(unittest.TestCase):
                                                     FilesystemSource(
                                                             "/home/kiddw"
                                                             "/Documents"),
-                                                            "1699 Gardiners "
-                                                            "trip/treasure_"
-                                                            "map.pdf")),
+                                                    "1699 Gardiners trip/"
+                                                    "treasure_map.pdf")),
                             "10")),
-                    "X-marks-the-spot_000-0.png")
+                    "X-marks-the-spot_000-0.png"),
+            LibreOfficeObjectHandle(
+                    LibreOfficeSource(
+                            FilesystemHandle(
+                                    FilesystemSource(
+                                            "/media/user/USB STICK"),
+                                    "What I Did On My Holidays.doc")),
+                    "What I Did On My Holidays.html")
         ]
 
         for handle in example_handles:
