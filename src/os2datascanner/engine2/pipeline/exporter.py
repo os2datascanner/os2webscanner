@@ -1,33 +1,42 @@
 from os import getpid
 import json
-import pika
 import argparse
 
+from ..model.core import Handle
 from ...utils.prometheus import prometheus_session
 from .utilities import (notify_ready, notify_stopping, prometheus_summary,
-        make_common_argument_parser)
+                        make_common_argument_parser, json_event_processor)
+from ...utils.amqp_connection_manager import (start_amqp, ack_message,
+                                              set_callback, start_consuming,
+                                              close_connection)
 
 args = None
 
 
 @prometheus_summary("os2datascanner_pipeline_exporter", "Messages exported")
+@json_event_processor
 def message_received(channel, method, properties, body):
-    decoded_body = body.decode("utf-8")
-    print(json.dumps(json.loads(decoded_body), indent=True))
+    ack_message(method)
+
+    handle = Handle.from_json_object(body["handle"])
+    handle = handle.censor()
+    body['handle'] = handle.to_json_object()
+    body['origin'] = method.routing_key
+
+    # For debugging purposes
     if args.dump:
-        args.dump.write(decoded_body + "\n")
+        print(json.dumps(body, indent=True))
+        args.dump.write(body + "\n")
         args.dump.flush()
-    try:
-        channel.basic_ack(method.delivery_tag)
-    except Exception:
-        channel.basic_reject(method.delivery_tag)
-        raise
+        return
+
+    yield (args.results, body)
 
 
 def main():
     parser = make_common_argument_parser()
     parser.description = ("Consume problems, metadata and matches, and convert"
-            + " them into forms suitable for the outside world.")
+                          + " them into forms suitable for the outside world.")
 
     inputs = parser.add_argument_group("inputs")
     inputs.add_argument(
@@ -68,22 +77,15 @@ def main():
     global args
     args = parser.parse_args()
 
-    parameters = pika.ConnectionParameters(host=args.host, heartbeat=6000)
-    connection = pika.BlockingConnection(parameters)
+    # AMQP host is located in settings.
+    start_amqp(args.matches)
+    start_amqp(args.problems)
+    start_amqp(args.metadata)
+    start_amqp(args.results)
 
-    channel = connection.channel()
-    channel.queue_declare(args.matches, passive=False,
-            durable=True, exclusive=False, auto_delete=False)
-    channel.queue_declare(args.problems, passive=False,
-            durable=True, exclusive=False, auto_delete=False)
-    channel.queue_declare(args.metadata, passive=False,
-            durable=True, exclusive=False, auto_delete=False)
-    channel.queue_declare(args.results, passive=False,
-            durable=True, exclusive=False, auto_delete=False)
-
-    channel.basic_consume(args.matches, message_received)
-    channel.basic_consume(args.problems, message_received)
-    channel.basic_consume(args.metadata, message_received)
+    set_callback(message_received, args.matches)
+    set_callback(message_received, args.problems)
+    set_callback(message_received, args.metadata)
 
     with prometheus_session(
             str(getpid()),
@@ -92,12 +94,11 @@ def main():
         try:
             print("Start")
             notify_ready()
-            channel.start_consuming()
+            start_consuming()
         finally:
             print("Stop")
             notify_stopping()
-            channel.stop_consuming()
-            connection.close()
+            close_connection()
 
 
 if __name__ == "__main__":

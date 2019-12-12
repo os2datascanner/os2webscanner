@@ -69,3 +69,37 @@ def decode_dict(d):
     objects, returns a new dictionary in which each of those representations
     has been converted back to an original object."""
     return {t: InputType(t).decode_json_object(v) for t, v in d.items()}
+
+
+__converters = {}
+
+
+def conversion(input_type, *mime_types):
+    """Decorator: registers the decorated function as the converter of each of
+    the specified MIME types to the specified InputType."""
+    def _conversion(f):
+        for m in mime_types:
+            k = (input_type, m)
+            if k in __converters:
+                raise ValueError(
+                        "BUG: can't register two handlers" +
+                        " for the same (InputType, MIME type) pair!", k)
+            __converters[k] = f
+        return f
+    return _conversion
+
+
+def conversion_exists(input_type, mime_type):
+    """Indicates whether or not a conversion function is registered for the
+    given pair of input type and MIME type."""
+    return (input_type, mime_type) in __converters
+
+
+def convert(resource, input_type, mime_override=None):
+    """Tries to convert a Resource to the specified InputType by using the
+    database of registered conversion functions."""
+    mime_type = resource.compute_type() if not mime_override else mime_override
+    try:
+        return __converters[(input_type, mime_type)](resource)
+    except KeyError:
+        return None

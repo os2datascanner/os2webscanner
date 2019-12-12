@@ -25,7 +25,7 @@ LOGS_DIR = os.path.join(VAR_DIR, 'logs')
 
 os.makedirs(BUILD_DIR, exist_ok=True)
 
-DEBUG = True
+DEBUG = False
 
 TEMPLATES = [
     {
