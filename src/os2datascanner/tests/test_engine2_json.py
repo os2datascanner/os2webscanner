@@ -9,6 +9,8 @@ from os2datascanner.engine2.model.file import (
         FilesystemSource, FilesystemHandle)
 from os2datascanner.engine2.model.filtered import GzipSource, FilteredHandle
 from os2datascanner.engine2.model.http import WebSource, WebHandle
+from os2datascanner.engine2.model.pdf import (
+        PDFSource, PDFPageHandle, PDFPageSource, PDFObjectHandle)
 from os2datascanner.engine2.model.smb import SMBSource, SMBHandle
 from os2datascanner.engine2.model.smbc import SMBCSource, SMBCHandle
 from os2datascanner.engine2.model.special.mail import (
@@ -72,7 +74,20 @@ class JSONTests(unittest.TestCase):
                                     "SW5ib3hJRA==.TWVzc2dJRA==",
                                     "Re: Castles in the sky")),
                     "1/pictograph.jpeg",
-                    "image/jpeg")
+                    "image/jpeg"),
+            PDFObjectHandle(
+                    PDFPageSource(
+                            PDFPageHandle(
+                                    PDFSource(
+                                            FilesystemHandle(
+                                                    FilesystemSource(
+                                                            "/home/kiddw"
+                                                            "/Documents"),
+                                                            "1699 Gardiners "
+                                                            "trip/treasure_"
+                                                            "map.pdf")),
+                            "10")),
+                    "X-marks-the-spot_000-0.png")
         ]
 
         for handle in example_handles:
