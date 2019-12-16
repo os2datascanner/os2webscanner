@@ -3,14 +3,14 @@ import pika
 from dateutil import tz
 
 from ...utils.prometheus import prometheus_session
-from ..rules import _transitional_conversions
+import ..rules._transitional_conversions
 from ..rules.rule import Rule
 from ..rules.types import convert, InputType, encode_dict, conversion_exists
 from ..model.core import (Source,
         Handle, SourceManager, ResourceUnavailableError)
 from ..model.utilities import SingleResult
 from .utilities import (notify_ready, notify_stopping, prometheus_summary,
-        json_event_processor_raw, make_common_argument_parser)
+        json_event_processor, make_common_argument_parser)
 
 args = None
 source_manager = None
@@ -41,7 +41,7 @@ def get_processor(sm, handle, required, configuration) -> SingleResult:
 
 @prometheus_summary(
         "os2datascanner_pipeline_processor", "Representations generated")
-@json_event_processor_raw
+@json_event_processor
 def message_received(channel, method, properties, body):
     print("message_received({0}, {1}, {2}, {3})".format(
             channel, method, properties, body))
