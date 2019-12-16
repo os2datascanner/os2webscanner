@@ -31,7 +31,7 @@ class WebSource(Source):
         with Session() as session:
             yield session
 
-    def _censor(self):
+    def censor(self):
         # XXX: we should actually decompose the URL and remove authentication
         # details from netloc
         return self
@@ -185,4 +185,4 @@ class WebHandle(Handle):
         return p + self.relative_path
 
     def censor(self):
-        return WebHandle(self.source._censor(), self.relative_path)
+        return WebHandle(self.source.censor(), self.relative_path)

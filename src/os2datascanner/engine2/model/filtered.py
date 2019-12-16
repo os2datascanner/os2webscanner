@@ -32,7 +32,7 @@ class FilteredSource(DerivedSource):
         with SourceManager(sm) as derived:
             yield self.handle.follow(derived)
 
-    def _censor(self):
+    def censor(self):
         return FilteredSource(self.handle.censor(), self._filter_type)
 
 
@@ -122,4 +122,4 @@ class FilteredHandle(Handle):
                 self.source.handle.presentation)
 
     def censor(self):
-        return FilteredHandle(self.source._censor(), self.relative_path)
+        return FilteredHandle(self.source.censor(), self.relative_path)

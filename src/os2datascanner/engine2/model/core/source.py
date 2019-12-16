@@ -37,10 +37,11 @@ class Source(TypePropertyEquality, JSONSerialisable):
         properties.)"""
 
     @abstractmethod
-    def _censor(self):
+    def censor(self):
         """Returns a version of this Source that does not carry sensitive
-        information like passwords and API keys. This method is only intended
-        for use by the implementation of Handle.censor."""
+        information like passwords and API keys. The resulting Source will not
+        necessarily carry enough information to generate a meaningful state
+        object, and so will not necessarily compare equal to this one."""
 
     @abstractmethod
     def handles(self, sm):

@@ -67,4 +67,4 @@ class TarHandle(Handle):
                 self.relative_path, self.source.handle)
 
     def censor(self):
-        return TarHandle(self.source._censor(), self.relative_path)
+        return TarHandle(self.source.censor(), self.relative_path)

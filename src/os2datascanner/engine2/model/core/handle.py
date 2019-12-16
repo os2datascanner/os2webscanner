@@ -78,10 +78,8 @@ class Handle(TypePropertyEquality, JSONSerialisable):
     @abstractmethod
     def censor(self):
         """Returns a Handle identical to this one but whose Source does not
-        carry sensitive information like passwords or API keys. The resulting
-        Handle will not necessarily carry enough information to establish a
-        connection to a Resource, and so will not necessarily compare equal to
-        this one.
+        carry sensitive information like passwords or API keys. See the
+        documentation of Source.censor for more information.
 
         As the Handle returned by this method is not useful for anything other
         than identifying an object, this method should normally only be used
