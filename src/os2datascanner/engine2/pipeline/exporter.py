@@ -33,7 +33,7 @@ def message_received(channel, method, properties, body):
     # For debugging purposes
     if args.dump:
         print(json.dumps(body, indent=True))
-        args.dump.write(body + "\n")
+        args.dump.write(json.dumps(body) + "\n")
         args.dump.flush()
         return
 
