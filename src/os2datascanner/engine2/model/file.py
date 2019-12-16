@@ -99,3 +99,12 @@ class FilesystemHandle(Handle):
 
     def censor(self):
         return FilesystemHandle(self.source._censor(), self.relative_path)
+
+    @classmethod
+    def make_handle(cls, path):
+        """Given a local filesystem path, returns a FilesystemHandle pointing
+        at it."""
+        head, tail = os.path.split(path)
+        if not tail:
+            raise ValueError("FilesystemHandles must have a non-empty Path")
+        return FilesystemHandle(FilesystemSource(head), tail)
