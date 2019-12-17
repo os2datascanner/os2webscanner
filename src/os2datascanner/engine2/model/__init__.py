@@ -25,9 +25,7 @@ appear on the filesystem when you ask the model for its path.
 from . import ews # noqa
 from . import smb # noqa
 from . import smbc # noqa
-from . import tar # noqa
-from . import zip # noqa
 from . import data # noqa
 from . import http # noqa
+from . import derived # noqa
 from . import special # noqa
-from . import filtered # noqa

@@ -1,6 +1,6 @@
 from .core import (Source, Handle,
         Resource, FileResource, SourceManager, ResourceUnavailableError)
-from .special.mail import MIME_TYPE as MAIL_MIME
+from .derived.mail import MIME_TYPE as MAIL_MIME
 
 import email
 from datetime import datetime

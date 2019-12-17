@@ -2,9 +2,10 @@ from zipfile import ZipFile
 from datetime import datetime
 from contextlib import contextmanager
 
-from ..rules.types import InputType
-from .core import Source, Handle, FileResource, DerivedSource, SourceManager
-from .utilities import MultipleResults, NamedTemporaryResource
+from ...rules.types import InputType
+from ..core import Source, Handle, FileResource, SourceManager
+from ..utilities import MultipleResults, NamedTemporaryResource
+from .derived import DerivedSource
 
 
 @Source.mime_handler("application/zip")

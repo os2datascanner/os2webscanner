@@ -4,7 +4,7 @@ from os2datascanner.engine2.model.ews import (
         EWSMailHandle, EWSAccountSource, OFFICE_365_ENDPOINT as CLOUD)
 from os2datascanner.engine2.model.smb import SMBSource, SMBHandle
 from os2datascanner.engine2.model.smbc import SMBCSource, SMBCHandle
-from os2datascanner.engine2.model.zip import ZipSource, ZipHandle
+from os2datascanner.engine2.model.derived.zip import ZipSource, ZipHandle
 
 
 class CensorTests(unittest.TestCase):

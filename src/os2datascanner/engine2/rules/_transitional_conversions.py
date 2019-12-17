@@ -22,15 +22,6 @@ def image_processor(r, **kwargs):
                 stderr=DEVNULL, **kwargs).stdout.strip()
 
 
-@conversion(InputType.Text, "application/pdf")
-def pdf_processor(r, **kwargs):
-    with r.make_path() as f:
-        return run(["pdftotext", f, "-"],
-                universal_newlines=True,
-                stdout=PIPE,
-                stderr=DEVNULL, **kwargs).stdout.strip()
-
-
 @conversion(InputType.Text, "text/html")
 def html_processor(r, **kwargs):
     with r.make_path() as f:
@@ -38,27 +29,3 @@ def html_processor(r, **kwargs):
                 universal_newlines=True,
                 stdout=PIPE,
                 stderr=DEVNULL, **kwargs).stdout.strip()
-
-
-@conversion(InputType.Text,
-        "application/vnd.oasis.opendocument.text",
-        "application/vnd.openxmlformats-officedocument"
-                ".wordprocessingml.document")
-def libreoffice_txt_processor(r, **kwargs):
-    with r.make_path() as f:
-        return run(["unoconv", "--stdout", "-v", "-v", "-v", "--format", "txt", f],
-                universal_newlines=True,
-                stdout=PIPE,
-                stderr=sys.stderr, **kwargs).stdout.strip()
-
-
-@conversion(InputType.Text,
-        "application/vnd.oasis.opendocument.spreadsheet",
-        "application/vnd.ms-excel")
-def libreoffice_csv_processor(r, **kwargs):
-    with r.make_path() as f:
-        return run(["unoconv", "--stdout", "-v", "-v", "-v", "--format", "csv",
-                    "--export", "FilterOptions=59,34,0,1", f],
-                 universal_newlines=True,
-                 stdout=PIPE,
-                 stderr=DEVNULL, **kwargs).stdout.strip()

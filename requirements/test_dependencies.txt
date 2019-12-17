@@ -5,6 +5,7 @@ tesseract-ocr
 tesseract-ocr-dan
 pdftohtml
 unzip
+libreoffice
 imagemagick
 mailutils
 libssl-dev
@@ -14,4 +15,5 @@ prometheus
 prometheus-postgres-exporter
 libsmbclient-dev
 moreutils
+html2text
 libsystemd-dev

@@ -7,15 +7,20 @@ from os2datascanner.engine2.model.ews import (
         EWSMailHandle, EWSAccountSource, OFFICE_365_ENDPOINT as CLOUD)
 from os2datascanner.engine2.model.file import (
         FilesystemSource, FilesystemHandle)
-from os2datascanner.engine2.model.filtered import GzipSource, FilteredHandle
 from os2datascanner.engine2.model.http import WebSource, WebHandle
 from os2datascanner.engine2.model.smb import SMBSource, SMBHandle
 from os2datascanner.engine2.model.smbc import SMBCSource, SMBCHandle
-from os2datascanner.engine2.model.special.mail import (
-        MailSource, MailPartHandle)
-from os2datascanner.engine2.model.tar import TarSource, TarHandle
-from os2datascanner.engine2.model.zip import ZipSource, ZipHandle
 
+from os2datascanner.engine2.model.derived.filtered import (
+        GzipSource, FilteredHandle)
+from os2datascanner.engine2.model.derived.libreoffice import (
+        LibreOfficeSource, LibreOfficeObjectHandle)
+from os2datascanner.engine2.model.derived.mail import (
+        MailSource, MailPartHandle)
+from os2datascanner.engine2.model.derived.pdf import (
+        PDFSource, PDFPageHandle, PDFPageSource, PDFObjectHandle)
+from os2datascanner.engine2.model.derived.tar import TarSource, TarHandle
+from os2datascanner.engine2.model.derived.zip import ZipSource, ZipHandle
 
 class JSONTests(unittest.TestCase):
     def test_json_round_trip(self):
@@ -72,7 +77,26 @@ class JSONTests(unittest.TestCase):
                                     "SW5ib3hJRA==.TWVzc2dJRA==",
                                     "Re: Castles in the sky")),
                     "1/pictograph.jpeg",
-                    "image/jpeg")
+                    "image/jpeg"),
+            PDFObjectHandle(
+                    PDFPageSource(
+                            PDFPageHandle(
+                                    PDFSource(
+                                            FilesystemHandle(
+                                                    FilesystemSource(
+                                                            "/home/kiddw"
+                                                            "/Documents"),
+                                                    "1699 Gardiners trip/"
+                                                    "treasure_map.pdf")),
+                            "10")),
+                    "X-marks-the-spot_000-0.png"),
+            LibreOfficeObjectHandle(
+                    LibreOfficeSource(
+                            FilesystemHandle(
+                                    FilesystemSource(
+                                            "/media/user/USB STICK"),
+                                    "What I Did On My Holidays.doc")),
+                    "What I Did On My Holidays.html")
         ]
 
         for handle in example_handles:

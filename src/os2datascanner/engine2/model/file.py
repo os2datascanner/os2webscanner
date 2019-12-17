@@ -32,6 +32,11 @@ class FilesystemSource(Source):
                             str(f.relative_to(pathlib_path)))
 
     def _generate_state(self, sm):
+        """Yields a path to the directory against which relative paths should
+        be resolved.
+
+        Other classes can also produce FilesystemResources if they have a
+        compatible implementation of this function."""
         yield ShareableCookie(self.path)
 
     def censor(self):
@@ -106,3 +111,12 @@ class FilesystemHandle(Handle):
 
     def censor(self):
         return FilesystemHandle(self.source.censor(), self.relative_path)
+
+    @classmethod
+    def make_handle(cls, path):
+        """Given a local filesystem path, returns a FilesystemHandle pointing
+        at it."""
+        head, tail = os.path.split(path)
+        if not tail:
+            raise ValueError("FilesystemHandles must have a non-empty Path")
+        return FilesystemHandle(FilesystemSource(head), tail)

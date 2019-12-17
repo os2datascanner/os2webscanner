@@ -1,8 +1,9 @@
 from io import BytesIO
 from contextlib import contextmanager
 
-from ..core import Source, Handle, FileResource, DerivedSource, SourceManager
+from ..core import Source, Handle, FileResource, SourceManager
 from ..utilities import SingleResult, NamedTemporaryResource
+from .derived import DerivedSource
 
 
 MIME_TYPE = "message/rfc822"
