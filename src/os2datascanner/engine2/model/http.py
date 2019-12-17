@@ -1,6 +1,3 @@
-from .core import Source, Handle, FileResource, ResourceUnavailableError
-from .utilities import NamedTemporaryResource
-
 from io import BytesIO
 from time import sleep
 from lxml.html import document_fromstring
@@ -9,6 +6,10 @@ from dateutil.parser import parse as parse_date
 from requests.sessions import Session
 from requests.exceptions import ConnectionError
 from contextlib import contextmanager
+
+from ..rules.types import InputType
+from .core import Source, Handle, FileResource, ResourceUnavailableError
+from .utilities import MultipleResults, NamedTemporaryResource
 
 
 MAX_REQUESTS_PER_SECOND = 10
@@ -99,44 +100,47 @@ class WebResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
         self._status = None
-        self._header = None
+        self._mr = None
 
     def _make_url(self):
         handle = self.handle
         base = handle.source.to_url()
         return base + str(handle.relative_path)
 
-    def _require_header_and_status(self):
-        if not self._header:
-            response = self._get_cookie().head(self._make_url())
-            self._status = response.status_code
-            self._header = response.headers.copy()
-
     def get_status(self):
-        self._require_header_and_status()
+        self.unpack_header()
         return self._status
 
-    def get_header(self):
-        self._require_header_and_status()
-        if self._status != 200:
-            raise ResourceUnavailableError(self.handle, self._status)
-        return self._header
+    def unpack_header(self, check=False):
+        if not self._status:
+            response = self._get_cookie().head(self._make_url())
+            self._status = response.status_code
+            header = response.headers
+
+            self._mr = MultipleResults(
+                    {k.lower(): v for k, v in header.items()})
+            try:
+                self._mr[InputType.LastModified] = parse_date(
+                        self._mr["last-modified"].value)
+            except (KeyError, ValueError):
+                pass
+        if check:
+            if self._status != 200:
+                raise ResourceUnavailableError(self.handle, self._status)
+        return self._mr
 
     def get_size(self):
-        return int(self.get_header()["Content-Length"])
+        return self.unpack_header(check=True).get("content-length", 0).map(int)
 
     def get_last_modified(self):
-        try:
-            return parse_date(self.get_header()["Last-Modified"])
-        except (KeyError, ValueError):
-            return super().get_last_modified()
+        return self.unpack_header(check=True).setdefault(
+                InputType.LastModified, super().get_last_modified())
 
-    # override
     def compute_type(self):
         # At least for now, strip off any extra parameters the media type might
         # specify
-        return self.get_header().get("Content-Type",
-                "application/octet-stream").split(";", maxsplit=1)[0]
+        return self.unpack_header(check=True).get("content-type",
+                "application/octet-stream").value.split(";", maxsplit=1)[0]
 
     @contextmanager
     def make_path(self):

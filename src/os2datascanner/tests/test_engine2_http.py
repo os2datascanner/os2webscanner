@@ -5,6 +5,8 @@ import contextlib
 from os2datascanner.engine2.model.core import (
         Source, SourceManager, UnknownSchemeError, ResourceUnavailableError)
 from os2datascanner.engine2.model.http import WebSource, WebHandle
+from os2datascanner.engine2.model.utilities import SingleResult
+from os2datascanner.engine2.rules.types import InputType
 
 
 magenta = WebSource("https://www.magenta.dk")
@@ -32,9 +34,14 @@ class Engine2HTTPTest(unittest.TestCase):
             r = first_thing.follow(sm)
             self.assertIsInstance(
                     r.get_last_modified(),
+                    SingleResult,
+                    ("{0}: last modification date is not a"
+                            " SingleResult").format(first_thing))
+            self.assertIsInstance(
+                    r.get_last_modified().value,
                     datetime,
-                    ("{0}: last modification date is not a " +
-                            "datetime.datetime").format(first_thing))
+                    ("{0}: last modification date value is not a"
+                            " datetime.datetime").format(first_thing))
             with r.make_stream() as fp:
                 stream_raw = fp.read()
             with r.make_path() as p:
@@ -86,14 +93,14 @@ class Engine2HTTPTest(unittest.TestCase):
 
             # It is not documented anywhere that WebResource.get_header()
             # returns a live dictionary, so don't depend on this behaviour
-            del r.get_header()['Content-Type']
-            del r.get_header()['Last-Modified']
+            del r.unpack_header()['content-type']
+            del r.unpack_header()[InputType.LastModified]
 
             self.assertEqual(
                     r.compute_type(),
                     "application/octet-stream",
                     "{0}: unexpected backup MIME type".format(first_thing))
             self.assertGreaterEqual(
-                    r.get_last_modified(),
+                    r.get_last_modified().value,
                     now,
                     "{0}: Last-Modified not fresh".format(first_thing))

@@ -1,9 +1,10 @@
-from .core import Source, Handle, FileResource, DerivedSource, SourceManager
-from .utilities import NamedTemporaryResource
-
 from zipfile import ZipFile
 from datetime import datetime
 from contextlib import contextmanager
+
+from ..rules.types import InputType
+from .core import Source, Handle, FileResource, DerivedSource, SourceManager
+from .utilities import MultipleResults, NamedTemporaryResource
 
 
 @Source.mime_handler("application/zip")
@@ -28,19 +29,27 @@ class ZipSource(DerivedSource):
 class ZipResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
-        self._info = None
+        self._mr = None
 
-    def get_info(self):
-        if not self._info:
-            self._info = self._get_cookie().getinfo(
-                    str(self.handle.relative_path))
-        return self._info
+    def unpack_info(self):
+        if not self._mr:
+            self._mr = MultipleResults.make_from_attrs(
+                    self._get_cookie().getinfo(str(self.handle.relative_path)),
+                    "CRC", "comment", "compress_size", "compress_type",
+                    "create_system", "create_version", "date_time",
+                    "external_attr", "extra", "extract_version", "file_size",
+                    "filename", "flag_bits", "header_offset", "internal_attr",
+                    "orig_filename", "reserved", "volume")
+            self._mr[InputType.LastModified] = datetime(
+                    *self._mr["date_time"].value)
+        return self._mr
 
     def get_size(self):
-        return self.get_info().file_size
+        return self.unpack_info()["file_size"]
 
     def get_last_modified(self):
-        return datetime(*self.get_info().date_time)
+        return self.unpack_info().get(InputType.LastModified,
+                super().get_last_modified())
 
     @contextmanager
     def make_path(self):
