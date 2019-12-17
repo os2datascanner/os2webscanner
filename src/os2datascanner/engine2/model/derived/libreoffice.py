@@ -63,4 +63,4 @@ class LibreOfficeObjectHandle(Handle):
 
     def censor(self):
         return LibreOfficeObjectHandle(
-                self.source._censor(), self.relative_path)
+                self.source.censor(), self.relative_path)
