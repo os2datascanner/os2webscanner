@@ -1,3 +1,4 @@
+import json
 import hashlib
 
 def hash_handle(handle):
@@ -7,4 +8,4 @@ def hash_handle(handle):
     :param handle: handle as json object
     :return: SHA-512 hex value
     """
-    return hashlib.sha512(str(handle).encode()).hexdigest()
+    return hashlib.sha512(json.dumps(handle).encode()).hexdigest()

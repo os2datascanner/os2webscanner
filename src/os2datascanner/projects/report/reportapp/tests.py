@@ -3,7 +3,7 @@ import json
 from django.test import TestCase
 
 from .utils import hash_handle
-from .management.commands.pipeline_collector import manipulate_result
+from .management.commands.pipeline_collector import _restructure_and_save_result
 
 class PipelineCollectorTest(TestCase):
 
@@ -23,7 +23,7 @@ class PipelineCollectorTest(TestCase):
                   '"fwn": "6009036913111988543-1616249304-1001", "wnr": 1013}, ' \
                   '"scn": "2019-11-28T14:56:58"}'
 
-        # handle2 is the json string as handle1, just without whitespaces.
+        # handle2 is the same json string as handle1, just without whitespaces.
         handle2 = '{"handle":{"abc":"Mdr-tl-frvgt-rb","qpd":"xxtg","wnm":' \
                   '{"kkk":"shared_folder","qqpd":"xxtg","jjj":null,"cmn":null,' \
                   '"ppli":null,"dsr":null}},"rgn":"sdsm","mtd":{"pdfr":"hn",' \
@@ -32,13 +32,9 @@ class PipelineCollectorTest(TestCase):
 
         # Compare created hex value with expected hex value
         self.assertEqual(hash_handle(handle=json.loads(handle1)),
-                         '8361e72900aabd95f8dd99a1d068e4b06091078662e3c5ee4c0385'
-                         '3725cf21c8a21dc4e397fd78a579cc6430e68d7d3e11568e684747'
-                         '491003a9a9697a505b72')
+                         'fc0921ba4120f434d0591797bda1d570493de41dc993089f9c35063'
+                         '18292c0b93a2192761c3a075a0f6f70fcd1c7089118892f8a1d6e0f'
+                         '29fcba54198b471399')
         # Compare hex value from handle1 with hex value from handle2
         self.assertEqual(hash_handle(handle=json.loads(handle1)),
                          hash_handle(handle=json.loads(handle2)))
-
-    def test_manipulate_result(self):
-        data = manipulate_result(True, { 'hejsa': 'mere hejsa' })
-        print(data)
