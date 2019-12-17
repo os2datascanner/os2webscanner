@@ -20,28 +20,55 @@ from os2datascanner.utils.system_utilities import json_utf8_decode
 from os2datascanner.utils.amqp_connection_manager import start_amqp, \
     set_callback, start_consuming, ack_message
 
+from ...utils import hash_handle
 from ...models.documentreport_model import DocumentReport
 
 
 def consume_results(channel, method, properties, body):
     print('Message recieved {} :'.format(body))
     ack_message(method)
+
+    manipulate_result(body)
+
+    # if tag not in report.data:
+    #     report.data[tag] = {}
+    #     report.data[tag][origin] = body
+    #     report.save()
+    # else:
+    #     report.data = body
+    #     report.save()
+
+def manipulate_result(body):
+    # {'scan_tag', '2019-11-28T14:56:58',
+    # 'matches': null,
+    # 'metadata': null,
+    # 'problem': []}
     body = json_utf8_decode(body)
 
-    path = body['handle']['path']
-    origin = body['origin'] # "metadata", "match" or "problem"
-    # ["metadata": body1, "match": body2, ]
+    handle = body['handle']
 
-    report, created = DocumentReport.objects.get_or_create(path=path)
-    tag = body['scan_tag']
-    if created: #tag not in report.data:
-        report.data[tag] = {}
-        report.data[tag][origin] += body
-        report.save()
-    else:
-        report.data = body
-        report.save()
+    report, created = DocumentReport.objects.get_or_create(
+        path=hash_handle(handle))
 
+    if created:
+        report.data = {}
+        report.data['scan_tag'] = ''
+        report.data['matches'] = None
+        report.data['metadata'] = None
+        report.data['problems'] = []
+
+    # TODO: Make search for scan_tag more generic.
+    origin = body['origin']
+    if origin == 'os2ds_metadata':
+        report.data['scan_tag'] = body['scan_tag']
+        report.data['metadata'] = body
+    elif origin == 'os2ds_matches':
+        report.data['scan_tag'] = body['scan_spec']['scan_tag']
+        report.data['matches'] = body
+    elif origin == 'os2ds_problems':
+        report.data['problems'].append(body)
+
+    report.save()
 
 class Command(BaseCommand):
     """Command for starting a pipeline collector process."""
