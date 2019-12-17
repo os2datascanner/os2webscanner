@@ -1,7 +1,7 @@
 {% load staticfiles %}
 
 <div class="user">
-  <span class="user__name">Lars Henriksen</span>
+  <span class="user__name">{{ request.user }}</span>
   <a href="/login" class="user__avatar">
     {% include "components/logo-o.html" %}
   </a>

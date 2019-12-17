@@ -25,6 +25,7 @@ LOGS_DIR = os.path.join(VAR_DIR, 'logs')
 
 os.makedirs(BUILD_DIR, exist_ok=True)
 
+# Local settings file shall be used for debugging.
 DEBUG = False
 
 TEMPLATES = [

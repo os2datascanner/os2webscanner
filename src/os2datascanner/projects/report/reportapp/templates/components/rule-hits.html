@@ -12,37 +12,11 @@
     </thead>
     
   <tbody>
-    {% include "components/rule-hits--office365.html" %}
-    {% include "components/rule-hits--exchange.html" %}
-    {% include "components/rule-hits--webpage.html" %}
+{#    {% include "components/rule-hits--office365.html" %}#}
+{#    {% include "components/rule-hits--exchange.html" %}#}
+{#    {% include "components/rule-hits--webpage.html" %}#}
     {% include "components/rule-hits--smbc.html" %}
-    
-    <!--
-    {% for hit in hits %}
-      {% for match in hit.matches %}
-        {% for single in match.matches %}
 
-        <tr>
-          <td>
-            <span class="icon-filetype icon-filetype--{{ hit.scan_spec.source.type }}"></span>
-          </td>
-          <td>
-            <span class="click-to-copy" role="button">
-              {{ single.match }}
-            </span>
-          </td>
-          <td>
-            {{ single.match }}
-          </td>
-          <td>
-            {{ single.context }}
-          </td>
-        </tr>
-
-        {% endfor %}
-      {% endfor %}
-    {% endfor %}
-    -->
   </tbody>
 
 </table>
