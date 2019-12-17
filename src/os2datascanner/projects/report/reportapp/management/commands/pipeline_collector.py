@@ -9,11 +9,11 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# OS2Webscanner was developed by Magenta in collaboration with OS2 the
-# Danish community of open source municipalities (http://www.os2web.dk/).
+# OS2datascanner was developed by Magenta in collaboration with OS2 the
+# Danish community of open source municipalities (https://os2.eu/).
 #
 # The code is currently governed by OS2 the Danish community of open
-# source municipalities ( http://www.os2web.dk/ )
+# source municipalities ( https://os2.eu/ )
 from django.core.management.base import BaseCommand
 
 from os2datascanner.utils.system_utilities import json_utf8_decode
@@ -28,24 +28,20 @@ def consume_results(channel, method, properties, body):
     print('Message recieved {} :'.format(body))
     ack_message(method)
 
-    manipulate_result(body)
+    _restructure_and_save_result(body)
 
-    # if tag not in report.data:
-    #     report.data[tag] = {}
-    #     report.data[tag][origin] = body
-    #     report.save()
-    # else:
-    #     report.data = body
-    #     report.save()
 
-def manipulate_result(body):
-    # {'scan_tag', '2019-11-28T14:56:58',
-    # 'matches': null,
-    # 'metadata': null,
-    # 'problem': []}
-    body = json_utf8_decode(body)
+def _restructure_and_save_result(result):
+    """Method for structuring and storing result body.
 
-    handle = body['handle']
+    The agreed structure is as follows:
+    {'scan_tag', '2019-11-28T14:56:58', 'matches': null, 'metadata': null,
+    'problem': []}
+    """
+
+    result = json_utf8_decode(result)
+
+    handle = result['handle']
 
     report, created = DocumentReport.objects.get_or_create(
         path=hash_handle(handle))
@@ -58,17 +54,18 @@ def manipulate_result(body):
         report.data['problems'] = []
 
     # TODO: Make search for scan_tag more generic.
-    origin = body['origin']
+    origin = result['origin']
     if origin == 'os2ds_metadata':
-        report.data['scan_tag'] = body['scan_tag']
-        report.data['metadata'] = body
+        report.data['scan_tag'] = result['scan_tag']
+        report.data['metadata'] = result
     elif origin == 'os2ds_matches':
-        report.data['scan_tag'] = body['scan_spec']['scan_tag']
-        report.data['matches'] = body
+        report.data['scan_tag'] = result['scan_spec']['scan_tag']
+        report.data['matches'] = result
     elif origin == 'os2ds_problems':
-        report.data['problems'].append(body)
+        report.data['problems'].append(result)
 
     report.save()
+
 
 class Command(BaseCommand):
     """Command for starting a pipeline collector process."""
