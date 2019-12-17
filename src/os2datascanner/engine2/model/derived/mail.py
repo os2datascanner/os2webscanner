@@ -2,7 +2,7 @@ from io import BytesIO
 from contextlib import contextmanager
 
 from ..core import Source, Handle, FileResource, SourceManager
-from ..utilities import NamedTemporaryResource
+from ..utilities import SingleResult, NamedTemporaryResource
 from .derived import DerivedSource
 
 
@@ -58,7 +58,7 @@ class MailPartResource(FileResource):
             initial = s.seek(0, 1)
             try:
                 s.seek(0, 2)
-                return s.tell()
+                return SingleResult(None, "size", s.tell())
             finally:
                 s.seek(initial, 0)
 
@@ -89,7 +89,7 @@ class MailPartHandle(Handle):
 
     def censor(self):
         return MailPartHandle(
-                self.source._censor(), self.relative_path, self._mime)
+                self.source.censor(), self.relative_path, self._mime)
 
     def guess_type(self):
         return self._mime

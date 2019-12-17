@@ -69,8 +69,8 @@ def json_event_processor(listener):
         decoded_body = json_utf8_decode(body)
         if decoded_body:
             for routing_key, message in listener(
-                    channel, method, properties, decoded_body):
-                send_message(routing_key=routing_key,
-                             body=json.dumps(message).encode())
-
+                    channel, method, properties, body):
+                channel.basic_publish(exchange='',
+                        routing_key=routing_key,
+                        body=json.dumps(message).encode())
     return _wrapper

@@ -1,5 +1,6 @@
 from ..core import Source, Handle
 
+
 class DerivedSource(Source):
     """A DerivedSource is a convenience class for a Source backed by a Handle.
     It provides sensible default implementations of Source.handle,
@@ -13,7 +14,7 @@ class DerivedSource(Source):
     def handle(self):
         return self._handle
 
-    def _censor(self):
+    def censor(self):
         return type(self)(self.handle.censor())
 
     def to_json_object(self):

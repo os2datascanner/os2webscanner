@@ -7,9 +7,10 @@ from datetime import datetime
 from functools import partial
 from contextlib import contextmanager
 
+from ...rules.types import InputType
 from ..core import (Source,
         Handle, FileResource, SourceManager, ResourceUnavailableError)
-from ..utilities import NamedTemporaryResource
+from ..utilities import MultipleResults, NamedTemporaryResource
 from .derived import DerivedSource
 
 
@@ -33,7 +34,7 @@ class FilteredSource(DerivedSource):
         with SourceManager(sm) as derived:
             yield self.handle.follow(derived)
 
-    def _censor(self):
+    def censor(self):
         return FilteredSource(self.handle.censor(), self._filter_type)
 
 
@@ -67,6 +68,7 @@ class LZMASource(FilteredSource):
 class FilteredResource(FileResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
+        self._mr = None
 
     def _poke_stream(self, s):
         """Peeks at a single byte from the compressed stream, in the process
@@ -77,22 +79,24 @@ class FilteredResource(FileResource):
         except (OSError, EOFError) as ex:
             raise ResourceUnavailableError(self.handle, *ex.args)
 
-    def get_size(self):
-        with self.make_stream() as s:
-            initial = s.seek(0, 1)
-            try:
+    def unpack_stream(self):
+        if not self._mr:
+            with self.make_stream() as s:
+                # Compute the size by seeking to the end of a fresh stream, in
+                # the process also populating the last modification date field
                 s.seek(0, 2)
-                return s.tell()
-            finally:
-                s.seek(initial, 0)
+                self._mr = MultipleResults.make_from_attrs(s,
+                        "mtime", "filename", size=s.tell())
+                self._mr[InputType.LastModified] = datetime.fromtimestamp(
+                        s.mtime)
+        return self._mr
+
+    def get_size(self):
+        return self.unpack_stream()["size"]
 
     def get_last_modified(self):
-        with self.make_stream() as s:
-            # The mtime field won't have a meaningful value until the first
-            # read operation has been performed, so read a single byte from
-            # this new stream
-            s.read(1)
-            return datetime.fromtimestamp(s.mtime)
+        return self.unpack_stream().setdefault(InputType.LastModified,
+                super().get_last_modified())
 
     @contextmanager
     def make_path(self):
@@ -107,7 +111,9 @@ class FilteredResource(FileResource):
         with self._get_cookie().make_stream() as s_:
             try:
                 with self.handle.source._decompress(s_) as s:
-                    yield self._poke_stream(s)
+                    # Poke the stream to make sure that it's valid
+                    s.peek(1)
+                    yield s
             except OSError as ex:
                 raise ResourceUnavailableError(self.handle, *ex.args)
 
@@ -123,4 +129,4 @@ class FilteredHandle(Handle):
                 self.source.handle.presentation)
 
     def censor(self):
-        return FilteredHandle(self.source._censor(), self.relative_path)
+        return FilteredHandle(self.source.censor(), self.relative_path)

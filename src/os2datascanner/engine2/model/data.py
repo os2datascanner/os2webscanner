@@ -1,10 +1,11 @@
-from .core import Source, Handle, FileResource, EMPTY_COOKIE
-
 from io import BytesIO
 from os import fsync
 from base64 import b64decode, b64encode
 from tempfile import NamedTemporaryFile
 from contextlib import contextmanager
+
+from .core import Source, Handle, FileResource, EMPTY_COOKIE
+from .utilities import SingleResult
 
 
 class DataSource(Source):
@@ -24,7 +25,7 @@ class DataSource(Source):
     def _generate_state(self, sm):
         yield EMPTY_COOKIE
 
-    def _censor(self):
+    def censor(self):
         return self
 
     def to_url(self):
@@ -53,7 +54,7 @@ class DataSource(Source):
 
 class DataResource(FileResource):
     def get_size(self):
-        return len(self.handle.source._content)
+        return SingleResult(None, "size", len(self.handle.source._content))
 
     def get_last_modified(self):
         # This is not redundant -- the superclass's default implementation is
@@ -85,7 +86,7 @@ class DataHandle(Handle):
         return "(embedded file of type {0})".format(self.guess_type())
 
     def censor(self):
-        return DataHandle(self.source._censor(), self.relative_path)
+        return DataHandle(self.source.censor(), self.relative_path)
 
     def guess_type(self):
         return self.source.mime
