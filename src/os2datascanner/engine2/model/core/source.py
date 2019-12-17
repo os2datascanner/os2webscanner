@@ -37,10 +37,11 @@ class Source(TypePropertyEquality, JSONSerialisable):
         properties.)"""
 
     @abstractmethod
-    def _censor(self):
+    def censor(self):
         """Returns a version of this Source that does not carry sensitive
-        information like passwords and API keys. This method is only intended
-        for use by the implementation of Handle.censor."""
+        information like passwords and API keys. The resulting Source will not
+        necessarily carry enough information to generate a meaningful state
+        object, and so will not necessarily compare equal to this one."""
 
     @abstractmethod
     def handles(self, sm):
@@ -148,7 +149,7 @@ class Source(TypePropertyEquality, JSONSerialisable):
 class DerivedSource(Source):
     """A DerivedSource is a convenience class for a Source backed by a Handle.
     It provides sensible default implementations of Source.handle,
-    Source._censor, and Source.to_json_object, and automatically registers the
+    Source.censor, and Source.to_json_object, and automatically registers the
     constructor of every subclass as a JSON object decoder for Sources."""
 
     def __init__(self, handle):
@@ -158,7 +159,7 @@ class DerivedSource(Source):
     def handle(self):
         return self._handle
 
-    def _censor(self):
+    def censor(self):
         return type(self)(self.handle.censor())
 
     def to_json_object(self):

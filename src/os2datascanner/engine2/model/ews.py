@@ -86,7 +86,7 @@ class EWSAccountSource(Source):
             # waits forever if we do
             pass
 
-    def _censor(self):
+    def censor(self):
         return EWSAccountSource(
                 self._domain, self._server, None, None, self._user)
 
@@ -170,7 +170,7 @@ class EWSMailHandle(Handle):
 
     def censor(self):
         return EWSMailHandle(
-                self.source._censor(), self.relative_path, self._mail_subject)
+                self.source.censor(), self.relative_path, self._mail_subject)
 
     def guess_type(self):
         return MAIL_MIME

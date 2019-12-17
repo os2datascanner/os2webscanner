@@ -25,7 +25,7 @@ class DataSource(Source):
     def _generate_state(self, sm):
         yield EMPTY_COOKIE
 
-    def _censor(self):
+    def censor(self):
         return self
 
     def to_url(self):
@@ -86,7 +86,7 @@ class DataHandle(Handle):
         return "(embedded file of type {0})".format(self.guess_type())
 
     def censor(self):
-        return DataHandle(self.source._censor(), self.relative_path)
+        return DataHandle(self.source.censor(), self.relative_path)
 
     def guess_type(self):
         return self.source.mime

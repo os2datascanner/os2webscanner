@@ -40,7 +40,7 @@ class SMBCSource(Source):
             # Brutal, but apparently necessary to shut the connection down...
             del c
 
-    def _censor(self):
+    def censor(self):
         return SMBCSource(self.unc, None, None, None, self.driveletter)
 
     def handles(self, sm):
@@ -237,4 +237,4 @@ class SMBCHandle(Handle):
         return (p + self.relative_path).replace("/", "\\")
 
     def censor(self):
-        return SMBCHandle(self.source._censor(), self.relative_path)
+        return SMBCHandle(self.source.censor(), self.relative_path)

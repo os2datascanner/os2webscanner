@@ -16,7 +16,7 @@ class GeneratorSource(Source):
     def _generate_state(self, sm):
         yield None
 
-    def _censor(self):
+    def censor(self):
         raise NotImplementedError(
                 "GeneratorSource doesn't know enough about the Sources"
                 " it creates to be censorable") # XXX
@@ -75,7 +75,7 @@ class GeneratorHandle(Handle):
         return "(generated)" # XXX
 
     def censor(self):
-        return GeneratorHandle(self.source._censor(), self.relative_path)
+        return GeneratorHandle(self.source.censor(), self.relative_path)
 
     def to_json_object(self):
         return dict(**super().to_json_object(), **{

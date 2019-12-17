@@ -76,4 +76,4 @@ class ZipHandle(Handle):
                 self.relative_path, self.source.handle)
 
     def censor(self):
-        return ZipHandle(self.source._censor(), self.relative_path)
+        return ZipHandle(self.source.censor(), self.relative_path)

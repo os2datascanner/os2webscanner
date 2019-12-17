@@ -88,7 +88,7 @@ class MailPartHandle(Handle):
 
     def censor(self):
         return MailPartHandle(
-                self.source._censor(), self.relative_path, self._mime)
+                self.source.censor(), self.relative_path, self._mime)
 
     def guess_type(self):
         return self._mime

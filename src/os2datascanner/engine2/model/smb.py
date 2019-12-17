@@ -56,7 +56,7 @@ class SMBSource(Source):
         finally:
             rmdir(mntdir)
 
-    def _censor(self):
+    def censor(self):
         return SMBSource(self.unc, None, None, None, self.driveletter)
 
     def _close(self, mntdir):
@@ -126,7 +126,7 @@ class SMBHandle(Handle):
         return (p + self.relative_path).replace("/", "\\")
 
     def censor(self):
-        return SMBHandle(self.source._censor(), self.relative_path)
+        return SMBHandle(self.source.censor(), self.relative_path)
 
 
 # Third form from https://www.iana.org/assignments/uri-schemes/prov/smb

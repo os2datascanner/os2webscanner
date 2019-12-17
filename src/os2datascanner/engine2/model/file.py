@@ -34,7 +34,7 @@ class FilesystemSource(Source):
     def _generate_state(self, sm):
         yield ShareableCookie(self.path)
 
-    def _censor(self):
+    def censor(self):
         return self
 
     def to_url(self):
@@ -105,4 +105,4 @@ class FilesystemHandle(Handle):
         return str(Path(self.source.path).joinpath(self.relative_path))
 
     def censor(self):
-        return FilesystemHandle(self.source._censor(), self.relative_path)
+        return FilesystemHandle(self.source.censor(), self.relative_path)

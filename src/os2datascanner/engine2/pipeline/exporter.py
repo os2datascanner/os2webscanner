@@ -3,7 +3,7 @@ import json
 import pika
 import argparse
 
-from ..model.core import Handle
+from ..model.core import Handle, Source
 from ...utils.prometheus import prometheus_session
 from .utilities import (notify_ready, notify_stopping, prometheus_summary,
                         make_common_argument_parser, json_event_processor)
@@ -21,10 +21,17 @@ def message_received(channel, method, properties, body):
     body['handle'] = handle.to_json_object()
     body['origin'] = method.routing_key
 
+    # Also censor the scan specification's source, if this type of message
+    # carries one
+    if "scan_spec" in body:
+        source = Source.from_json_object(body["scan_spec"]["source"])
+        source = source.censor()
+        body["scan_spec"]["source"] = source.to_json_object()
+
     # For debugging purposes
     if args.dump:
         print(json.dumps(body, indent=True))
-        args.dump.write(body + "\n")
+        args.dump.write(json.dumps(body) + "\n")
         args.dump.flush()
         return
 
