@@ -40,7 +40,7 @@ class PDFPageHandle(Handle):
         return "page {0} of {1}".format(self.relative_path, self.source.handle)
 
     def censor(self):
-        return PDFPageHandle(self.source._censor(), self.relative_path)
+        return PDFPageHandle(self.source.censor(), self.relative_path)
 
     def guess_type(self):
         return PAGE_TYPE
@@ -81,4 +81,4 @@ class PDFObjectHandle(Handle):
         return "{0} (on {1})".format(self.relative_path, self.source.handle)
 
     def censor(self):
-        return PDFObjectHandle(self.source._censor(), self.relative_path)
+        return PDFObjectHandle(self.source.censor(), self.relative_path)
