@@ -1,5 +1,4 @@
-import os
-import json
+from django.db.models import Count
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.views.generic import View, TemplateView
@@ -22,45 +21,40 @@ class LoginPageView(View):
 
 class MainPageView(TemplateView, LoginRequiredMixin):
     template_name = 'index.html'
+    filedata_results = None
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
         user = self.request.user
         aliases = user.aliases.select_subclasses()
-        # user.aliases.select_subclasses().get().sid
         for alias in aliases:
             if alias.sid:
-                print(alias.sid)
-                # I wonder how this performs. It might be an idea to move the sid property to the RDB-schema.
-                # Then we would just have to do DocumentReport.objects.filter(sid=alias.sid)...
-                metadata_results = DocumentReport.objects.filter(
-                    data__contains={'origin': 'os2ds_metadata'}).filter(
-                    data__metadata__contains={'filesystem-owner-sid': alias.sid})
-                for data in metadata_results:
-                    matches_results = DocumentReport.objects.filter(
-                        data__contains={'origin': 'os2ds_matches'}).filter(
-                        data__handle__source__path=data.path)
-                    context['matches'] = matches_results
+                self.filedata_results = DocumentReport.objects.filter(
+                    data__metadata__metadata__contains=
+                    {'filesystem-owner-sid': str(alias.sid)})
             elif alias.address:
+                # TODO: Find related email results.
                 print(alias.address)
 
+        # Results are grouped by the rule they where found with, together with the count.
+        context['dashboard_results'] = self.filedata_results.values(
+            'data__matches__scan_spec__rule').annotate(
+            type_count=Count('data__matches__scan_spec__rule'))
+
+        return context
 
 
-class RulePageView(TemplateView):
+
+class RulePageView(MainPageView):
     template_name = 'rule.html'
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        path = os.path.dirname(os.path.abspath(__file__))
-        with open(path + '/results-and-metadata.jsonl','r') as fp:
-            lines = fp.readlines()
-            json_list = []
-            for line in lines:
-                json_list.append(json.loads(line))
-            context['hits'] = json_list
+        type = self.request.GET.get('type')
 
-        print(type(context['hits'][0]))
+        context = super().get_context_data(**kwargs)
+        context['matches_by_type'] = self.filedata_results.filter(
+            data__matches__scan_spec__rule__type=type)
+        context['type'] = type
 
         return context
 

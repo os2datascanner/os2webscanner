@@ -6,7 +6,7 @@ from .views.views import (MainPageView, RulePageView, ApprovalPageView,
 
 urlpatterns = [
     url(r'^$',      MainPageView.as_view(),     name="index"),
-    url('rule',     RulePageView.as_view(),     name="rule"),
+    url('rule/$',     RulePageView.as_view(),     name="rule"),
     url('approval', ApprovalPageView.as_view(), name="about"),
     url('stats',    StatsPageView.as_view(),    name="about"),
     url('settings', SettingsPageView.as_view(), name="settings"),
