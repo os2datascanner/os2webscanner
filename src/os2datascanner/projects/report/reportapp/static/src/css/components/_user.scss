@@ -1,7 +1,11 @@
+.user {
+  align-items: center;
+  display: flex;
+  justify-content: flex-end;
+}
+
 .user a {
   color: inherit;
-  display: inline-block;
-  padding: 0.5rem 1rem;
   text-decoration: none;
 }
 
@@ -10,11 +14,21 @@
 }
 
 .user__avatar {
-  background-color: var(--color-main);
-  background-size: cover;
-  border-radius: 50%;
   display: inline-block;
   height: 2rem;
+  margin-left: 1rem;
   vertical-align: top;
   width: 2rem;
+
+  svg {
+    display: inline-block;
+    height: 100%;
+    width: 100%;
+  }
+}
+
+.user {
+  .os2o {
+    fill: var(--color-main);
+  }
 }
