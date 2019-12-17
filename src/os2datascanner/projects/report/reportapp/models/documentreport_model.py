@@ -11,4 +11,4 @@ class DocumentReport(models.Model):
         return self.path
 
     class Meta:
-        verbose_name_plural = "Document report"
+        verbose_name_plural = "Document reports"
