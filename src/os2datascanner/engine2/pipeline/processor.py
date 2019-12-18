@@ -13,6 +13,7 @@ from .utilities import (notify_ready, notify_stopping, prometheus_summary,
         json_event_processor, make_common_argument_parser)
 
 args = None
+count = 0
 source_manager = None
 
 
@@ -43,8 +44,7 @@ def get_processor(sm, handle, required, configuration) -> SingleResult:
         "os2datascanner_pipeline_processor", "Representations generated")
 @json_event_processor
 def message_received(channel, method, properties, body):
-    print("message_received({0}, {1}, {2}, {3})".format(
-            channel, method, properties, body))
+    global count
     try:
         handle = Handle.from_json_object(body["handle"])
         rule = Rule.from_json_object(body["progress"]["rule"])
@@ -90,6 +90,10 @@ def message_received(channel, method, properties, body):
             pass
 
         channel.basic_ack(method.delivery_tag)
+
+        count += 1
+        if args.cleanup_interval and (count % args.cleanup_interval) == 0):
+            source_manager.clear()
     except Exception:
         channel.basic_reject(method.delivery_tag)
         raise
@@ -107,6 +111,13 @@ def main():
             help="the name of the AMQP queue from which conversions"
                     + " should be read",
             default="os2ds_conversions")
+    inputs.add_argument(
+            "--cleanup-interval",
+            type=int,
+            metavar="COUNT",
+            help="clear up all temporary files after every %(metavar)s"
+                    "conversions",
+            default=50)
 
     outputs = parser.add_argument_group("outputs")
     outputs.add_argument(
