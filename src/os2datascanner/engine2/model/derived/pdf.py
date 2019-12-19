@@ -16,9 +16,8 @@ class PDFSource(DerivedSource):
     type_label = "pdf"
 
     def _generate_state(self, sm):
-        with SourceManager(sm) as derived:
-            with self.handle.follow(derived).make_stream() as s:
-                yield pdfrw.PdfReader(s)
+        with self.handle.follow(sm).make_stream() as s:
+            yield pdfrw.PdfReader(s)
 
     def handles(self, sm):
         for i in range(1, len(sm.open(self).pages) + 1):
@@ -55,16 +54,15 @@ class PDFPageSource(DerivedSource):
         # same format as FilesystemSource: a filesystem directory in which to
         # interpret relative paths
         page = self.handle.relative_path
-        with SourceManager(sm) as derived:
-            with self.handle.source.handle.follow(derived).make_path() as p:
-                with TemporaryDirectory() as tmpdir:
-                    run(["pdftohtml",
-                            "-f", page, "-l", page,
-                            p,
-                            # Trick pdftohtml into writing to our temporary
-                            # directory (groan...)
-                            "{0}/out".format(tmpdir)])
-                    yield tmpdir
+        with self.handle.source.handle.follow(sm).make_path() as p:
+            with TemporaryDirectory() as tmpdir:
+                run(["pdftohtml",
+                        "-f", page, "-l", page,
+                        p,
+                        # Trick pdftohtml into writing to our temporary
+                        # directory (groan...)
+                        "{0}/out".format(tmpdir)])
+                yield tmpdir
 
     def handles(self, sm):
         for p in listdir(sm.open(self)):

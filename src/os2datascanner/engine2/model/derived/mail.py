@@ -19,8 +19,7 @@ class MailSource(DerivedSource):
     type_label = "mail"
 
     def _generate_state(self, sm):
-        with SourceManager(sm) as sm:
-            yield self.handle.follow(sm).get_email_message()
+        yield self.handle.follow(sm).get_email_message()
 
     def handles(self, sm):
         def _process_message(path, part):
