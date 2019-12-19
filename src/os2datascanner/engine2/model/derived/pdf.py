@@ -60,6 +60,7 @@ class PDFPageSource(DerivedSource):
         path = sm.open(self.handle.source)
         with TemporaryDirectory() as tmpdir:
             run(["pdftohtml",
+                    "-q", "-nodrm", "-noframes",
                     "-f", page, "-l", page,
                     path,
                     # Trick pdftohtml into writing to our temporary directory
