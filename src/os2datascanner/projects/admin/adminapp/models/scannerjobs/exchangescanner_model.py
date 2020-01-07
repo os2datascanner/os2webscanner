@@ -20,6 +20,8 @@ from django.conf import settings
 
 from .scanner_model import Scanner
 
+from os2datascanner.engine2.model.special.generator import GeneratorSource
+
 
 class ExchangeScanner(Scanner):
 
@@ -51,4 +53,13 @@ class ExchangeScanner(Scanner):
         return '/exchangescanners/'
 
     def make_engine2_source(self):
-        raise NotImplementedError("ExchangeScanner.make_engine2_source")
+        user_list = [u.decode("utf-8").strip()
+                for u in self.userlist if u.strip()]
+        base = {
+            "type": "ews",
+            "domain": self.url.lstrip("@"),
+            "server": self.service_endpoint,
+            "admin_user": self.authentication.username,
+            "admin_password": self.authentication.get_password()
+        }
+        return GeneratorSource(base, {"user": user_list})
