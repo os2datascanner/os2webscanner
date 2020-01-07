@@ -1,4 +1,5 @@
 from django import forms
+from django.conf import settings
 
 from .scanner_views import *
 from ..aescipher import decrypt
@@ -86,7 +87,7 @@ class ExchangeScannerAskRun(ScannerAskRun):
         """Check that user is allowed to run this scanner."""
         context = super().get_context_data(**kwargs)
 
-        if not self.object.is_ready_to_scan:
+        if not self.object.is_ready_to_scan and not settings.USE_ENGINE2:
             ok = False
             error_message = Scanner.EXCHANGE_EXPORT_IS_RUNNING
         else:
