@@ -12,6 +12,7 @@ from os2datascanner.engine.utils import run_django_setup
 run_django_setup()
 
 from os2datascanner.engine.exchangescan import settings
+from os2datascanner.engine.exchangescan.exchange_assistant import ExchangeServerAssistant
 from os2datascanner.engine.exchangescan.export_exchange_content import ExchangeServerExport, read_users
 
 
@@ -45,19 +46,21 @@ def start_exchange_export(exchange_scanner):
         shutil.rmtree(export_dir)
     os.mkdir(export_dir)
 
+    is_office365 = (
+            exchange_scanner.service_endpoint ==
+                    ExchangeServerAssistant.service_endpoint)
     exchange_scanner.is_exporting = True
     exchange_scanner.is_ready_to_scan = False
     exchange_scanner.save()
     scanners = {}
-
     for i in range(0, settings.NUMBER_OF_EMAIL_THREADS):
         scanners[i] = ExchangeServerExport(credentials,
                                            user_queue,
                                            done_queue,
                                            export_dir + '/',
                                            mail_ending,
-                                           start_date=
-                                           last_export_date)
+                                           start_date=last_export_date,
+                                           is_office365=is_office_365)
         scanners[i].start()
         print('Started exchange export {}'.format(i))
         time.sleep(1)
