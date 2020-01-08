@@ -34,17 +34,6 @@ class InputType(Enum):
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%S%z"
 
 
-def adapt_datetime(d=None):
-    """Converts a datetime.datetime (by default, the current time) to a form
-    suitable for unambiguous representation in ISO 8601 extended format, with
-    a simple timezone offset and no microseconds."""
-    if not d:
-        d = datetime.now()
-    if not d.tzinfo:
-        d = d.replace(tzinfo=timezone(tz.gettz().utcoffset(d)))
-    return d.replace(microsecond=0)
-
-
 def _datetime_to_str(d):
     if not d.tzinfo:
         raise TypeError(
