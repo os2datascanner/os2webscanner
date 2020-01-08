@@ -1,13 +1,14 @@
-import sys
-from json import dumps, loads
-import pika
-import base64
-import unittest
-import subprocess
+from    os import getenv
+import  sys
+from    json import dumps, loads
+import  pika
+import  base64
+import  unittest
+import  subprocess
 
-from os2datascanner.engine2.model.core import Source
-from os2datascanner.engine2.rules.regex import RegexRule
-from os2datascanner.engine2.rules.logical import OrRule
+from    os2datascanner.engine2.model.core import Source
+from    os2datascanner.engine2.rules.regex import RegexRule
+from    os2datascanner.engine2.rules.logical import OrRule
 
 
 data = """Hwæt! wē Gār-Dena in gēar-dagum
@@ -58,23 +59,32 @@ class StopHandling(Exception):
 
 class Engine2PipelineTests(unittest.TestCase):
     def setUp(self):
+        amqp_host = getenv("AMQP_HOST", "localhost")
+
         python("-m", "os2datascanner.engine2.pipeline._consume_queue",
+                "--host", amqp_host,
                 "os2ds_scan_specs", "os2ds_conversions",
                 "os2ds_representations", "os2ds_matches", "os2ds_handles",
                 "os2ds_metadata", "os2ds_problems", "os2ds_results").wait()
         self.explorer = python(
-                "-m", "os2datascanner.engine2.pipeline.explorer")
+                "-m", "os2datascanner.engine2.pipeline.explorer",
+                "--host", amqp_host)
         self.processor = python(
-                "-m", "os2datascanner.engine2.pipeline.processor")
+                "-m", "os2datascanner.engine2.pipeline.processor",
+                "--host", amqp_host)
         self.matcher = python(
-                "-m", "os2datascanner.engine2.pipeline.matcher")
+                "-m", "os2datascanner.engine2.pipeline.matcher",
+                "--host", amqp_host)
         self.tagger = python(
-                "-m", "os2datascanner.engine2.pipeline.tagger")
+                "-m", "os2datascanner.engine2.pipeline.tagger",
+                "--host", amqp_host)
         self.exporter = python(
-                "-m", "os2datascanner.engine2.pipeline.exporter")
+                "-m", "os2datascanner.engine2.pipeline.exporter",
+                "--host", amqp_host)
 
         parameters = pika.ConnectionParameters(
-                host="localhost", heartbeat=6000)
+                host=amqp_host,
+                heartbeat=6000)
         self.connection = pika.BlockingConnection(parameters)
         self.channel = self.connection.channel()
 
