@@ -48,19 +48,19 @@ def main():
             "--matches",
             metavar="NAME",
             help="the name of the AMQP queue from which matches should be"
-                    + " read",
+                    " read",
             default="os2ds_matches")
     inputs.add_argument(
             "--problems",
             metavar="NAME",
             help="the name of the AMQP queue from which problems should be"
-                    + " read",
+                    " read",
             default="os2ds_problems")
     inputs.add_argument(
             "--metadata",
             metavar="NAME",
             help="the name of the AMQP queue from which matches should be"
-                    + " read",
+                    " read",
             default="os2ds_metadata")
 
     outputs = parser.add_argument_group("outputs")
@@ -68,15 +68,14 @@ def main():
             "--results",
             metavar="NAME",
             help="the name of the AMQP queue to which filtered result objects"
-                    + " should be written",
+                    " should be written",
             default="os2ds_results")
     outputs.add_argument(
-            "--debug-dump",
-            dest="dump",
+            "--dump",
             metavar="PATH",
-            help="the name of a JSON Lines file to which all incoming messages"
-                    + "should be dumped (existing content will be deleted!)",
-            type=argparse.FileType(mode="wt"),
+            help="the name of a JSON Lines file to which filtered result"
+                    "objects should also be appended",
+            type=argparse.FileType(mode="at"),
             default=None)
 
     global args
