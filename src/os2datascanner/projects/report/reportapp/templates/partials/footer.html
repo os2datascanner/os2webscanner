@@ -1,9 +1,9 @@
   </main>
 
+  {% if request.user.is_authenticated %}
   <footer class="footer">
     <span>OS2datascanner</span>
   </footer>
-  {% if request.user.is_authenticated %}
   {% else %}
   {% endif %}
 
