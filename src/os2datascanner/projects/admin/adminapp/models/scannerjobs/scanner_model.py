@@ -20,6 +20,7 @@
 
 import os
 import datetime
+from dateutil import tz
 from contextlib import closing
 import json
 import re
@@ -268,7 +269,8 @@ class Scanner(models.Model):
                 'last_started': last_scan_started_at
             }
         else:
-            now = datetime.datetime.now().replace(microsecond=0)
+            local_tz = tz.gettz()
+            now = datetime.datetime.now(local_tz).replace(microsecond=0)
 
             # Check that this source is accessible, and return the resulting
             # error if it isn't
@@ -285,10 +287,15 @@ class Scanner(models.Model):
                     *[r.make_engine2_rule()
                             for r in self.rules.all().select_subclasses()])
             if self.do_last_modified_check:
-                rule = AndRule(
-                        LastModifiedRule(
-                                self.e2_last_run_at or datetime.datetime.min),
-                        rule)
+                # Make sure that the timestamp we give to LastModifiedRule is
+                # timezone-aware; engine2's serialisation code requires this
+                # for all datetime.datetimes, so LastModifiedRule will raise a
+                # ValueError if we try to give it a naive one
+                last = self.e2_last_run_at
+                if last:
+                    if not last.tzinfo or last.tzinfo.utcoffset(last) is None:
+                        last = last.replace(tzinfo=local_tz)
+                    rule = AndRule(LastModifiedRule(last), rule)
 
             message = {
                 'scan_tag': now.isoformat(),
