@@ -1,4 +1,5 @@
 import pika
+import traceback
 
 from .utilities import make_common_argument_parser
 
@@ -27,7 +28,12 @@ def main():
     channel = connection.channel()
 
     for q in args.queue:
-        channel.queue_purge(q)
+        try:
+            channel.queue_declare(q, passive=True)
+            channel.queue_purge(q)
+        except Exception:
+            traceback.print_exc()
+            print("continuing anyway!")
 
     connection.close()
 
