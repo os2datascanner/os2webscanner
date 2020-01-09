@@ -86,17 +86,7 @@ class ExchangeScannerAskRun(ScannerAskRun):
     def get_context_data(self, **kwargs):
         """Check that user is allowed to run this scanner."""
         context = super().get_context_data(**kwargs)
-
-        if not self.object.is_ready_to_scan and not True:
-            ok = False
-            error_message = Scanner.EXCHANGE_EXPORT_IS_RUNNING
-        else:
-            ok = True
-
-        context['ok'] = ok
-        if not ok:
-            context['error_message'] = error_message
-
+        context['ok'] = True
         return context
 
 

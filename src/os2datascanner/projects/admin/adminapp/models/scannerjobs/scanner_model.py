@@ -235,72 +235,39 @@ class Scanner(models.Model):
         Return None if there is already a scanner running,
         or if there was a problem running the scanner.
         """
-        if not True:
-            if self.is_running:
-                return Scanner.ALREADY_RUNNING
 
-            # Create a new Scan
-            scan = self.create_scan()
-            if isinstance(scan, str):
-                return scan
-            # Add user as recipient on scan
-            if user:
-                try:
-                    profile = user.profile
-                except UserProfile.DoesNotExist:
-                    profile = None
+        now = datetime.datetime.now().replace(microsecond=0)
 
-                if profile is not None:
-                    scan.recipients.add(user.profile)
+        # Check that this source is accessible, and return the resulting error
+        # if it isn't
+        source = self.make_engine2_source()
+        with SourceManager() as sm, closing(source.handles(sm)) as handles:
+            try:
+                print(next(handles, True))
+            except ResourceUnavailableError as ex:
+                return ", ".join([str(a) for a in ex.args[1:]])
 
-            completed_scans = \
-                self.webscans.all().filter(start_time__isnull=False,
-                        end_time__isnull=False).order_by('pk')
-            last_scan_started_at = \
-                completed_scans.last().start_time.isoformat() \
-                if completed_scans else None
+        # Create a new engine2 scan specification and submit it to the pipeline
+        rule = OrRule.make(
+                *[r.make_engine2_rule()
+                        for r in self.rules.all().select_subclasses()])
+        if self.do_last_modified_check:
+            rule = AndRule(
+                    LastModifiedRule(
+                            self.e2_last_run_at or datetime.datetime.min),
+                    rule)
 
-            queue_name = "datascanner"
-            message = {
-                'type': type,
-                'id': scan.pk,
-                'logfile': scan.scan_log_file,
-                'last_started': last_scan_started_at
-            }
-        else:
-            now = datetime.datetime.now().replace(microsecond=0)
+        message = {
+            'scan_tag': now.isoformat(),
+            'source': source.to_json_object(),
+            'rule': rule.to_json_object()
+        }
+        queue_name = settings.AMQP_PIPELINE_TARGET
 
-            # Check that this source is accessible, and return the resulting
-            # error if it isn't
-            source = self.make_engine2_source()
-            with SourceManager() as sm, closing(source.handles(sm)) as handles:
-                try:
-                    print(next(handles, True))
-                except ResourceUnavailableError as ex:
-                    return ", ".join([str(a) for a in ex.args[1:]])
+        self.e2_last_run_at = now
+        self.save()
 
-            # Create a new engine2 scan specification and submit it to the
-            # pipeline
-            rule = OrRule.make(
-                    *[r.make_engine2_rule()
-                            for r in self.rules.all().select_subclasses()])
-            if self.do_last_modified_check:
-                rule = AndRule(
-                        LastModifiedRule(
-                                self.e2_last_run_at or datetime.datetime.min),
-                        rule)
-
-            message = {
-                'scan_tag': now.isoformat(),
-                'source': source.to_json_object(),
-                'rule': rule.to_json_object()
-            }
-            queue_name = settings.AMQP_PIPELINE_TARGET
-
-            self.e2_last_run_at = now
-            self.save()
-
-            scan = now.isoformat()
+        scan = now.isoformat()
 
         print(queue_name, json.dumps(message))
         amqp_connection_manager.start_amqp(queue_name)
