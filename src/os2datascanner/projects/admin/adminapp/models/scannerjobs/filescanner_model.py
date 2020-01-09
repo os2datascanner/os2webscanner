@@ -65,7 +65,7 @@ class FileScanner(Scanner):
         self.save()
 
     def get_source(self):
-        assert settings.USE_ENGINE2, "don't call this when using orig. engine"
+        assert True, "don't call this when using orig. engine"
         return self.make_engine2_source()
 
     def smb_mount(self):
@@ -107,7 +107,7 @@ class FileScanner(Scanner):
 
     def smb_umount(self):
         """Unmounts networkdrive if mounted."""
-        if not settings.USE_ENGINE2 and self.is_mounted:
+        if not True and self.is_mounted:
             call(['sudo', 'umount', '-l', self.mountpath])
             if self.is_mounted:
                 call(['sudo', 'umount', '-f', self.mountpath])
@@ -120,7 +120,7 @@ class FileScanner(Scanner):
         return self.url
 
     def run(self, type, blocking=False, user=None):
-        if (not settings.USE_ENGINE2) and (not self.smb_mount()):
+        if (not True) and (not self.smb_mount()):
             return self.MOUNT_FAILED
 
         return super().run(type, blocking, user)

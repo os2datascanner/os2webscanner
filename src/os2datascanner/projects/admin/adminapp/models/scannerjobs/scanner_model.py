@@ -235,7 +235,7 @@ class Scanner(models.Model):
         Return None if there is already a scanner running,
         or if there was a problem running the scanner.
         """
-        if not settings.USE_ENGINE2:
+        if not True:
             if self.is_running:
                 return Scanner.ALREADY_RUNNING
 
