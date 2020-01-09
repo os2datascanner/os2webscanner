@@ -58,12 +58,17 @@ From the installation folder, run the ``setup/admin_module.setup.sh`` script as
 root to set up the database for the administration interface. Then run
 ``setup/report_module.setup.sh`` to do the same for the report interface.
 
+If the local PostgreSQL server doesn't already have a user called
+``os2datascanner``, then these scripts will create one and will prompt for its
+password. Both the administration and the report interface assume by default
+that this password is ``os2datascanner``.
+
 Preparing Prometheus (optional)
 -------------------------------
 
-OS2datascanner's pipeline uses Prometheus to provide live status monitoring. To
-configure a local Prometheus server to collect data from the pipeline
-components, run the ``setup/prometheus_setup.sh`` script as root.
+OS2datascanner's pipeline stages use Prometheus to provide live status
+monitoring. To configure a local Prometheus server to collect data from the
+pipeline components, run the ``setup/prometheus_setup.sh`` script as root.
 
 Starting the system
 ===================
@@ -90,6 +95,11 @@ administration interface on port 8000, and ``bin/manage-report runserver
 
 Starting the pipeline
 ---------------------
+
+The pipeline's stages can either be run in a foreground terminal, which is
+useful for debugging and development, or through ``systemd``. (Mixed approaches
+are also possible: for example, ``systemd`` can be used to manage most of the
+stages while one or two are run in a terminal with special debugging options.)
 
 In a terminal
 ^^^^^^^^^^^^^
@@ -164,7 +174,16 @@ and a password for the new accounts.
 (Once a superuser account has been created, it can be used in the Django
 administration interface to create accounts with more granular permissions.)
 
-Logging in to the system
-------------------------
+Logging in to the administration interface
+------------------------------------------
 
 The administration interface can be found at ``http://localhost:8000``.
+
+Creating an organisation
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+This interface has been designed to support several customers at once, so many
+types of object must have an *organisation* associated with them. There is no
+default organisation, so create one by logging in to the Django administration
+site at ``http://localhost:8000/admin/`` with the new superuser account and
+then selecting the *Add* option under *OS2datascanner → Organizations*.
