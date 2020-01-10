@@ -1,12 +1,11 @@
 from os import getpid
 import json
-import pika
 import argparse
 
 from ..model.core import Handle, Source
 from ...utils.prometheus import prometheus_session
-from .utilities import (notify_ready, notify_stopping, prometheus_summary,
-                        make_common_argument_parser, json_event_processor)
+from .utilities import (notify_ready, pika_session, notify_stopping,
+        prometheus_summary, json_event_processor, make_common_argument_parser)
 
 args = None
 
@@ -81,36 +80,24 @@ def main():
     global args
     args = parser.parse_args()
 
-    parameters = pika.ConnectionParameters(host=args.host, heartbeat=6000)
-    connection = pika.BlockingConnection(parameters)
+    with pika_session(args.matches, args.problems, args.metadata, args.results,
+            host=args.host, heartbeat=6000) as channel:
+        channel.basic_consume(args.matches, message_received)
+        channel.basic_consume(args.problems, message_received)
+        channel.basic_consume(args.metadata, message_received)
 
-    channel = connection.channel()
-    channel.queue_declare(args.matches, passive=False,
-            durable=True, exclusive=False, auto_delete=False)
-    channel.queue_declare(args.problems, passive=False,
-            durable=True, exclusive=False, auto_delete=False)
-    channel.queue_declare(args.metadata, passive=False,
-            durable=True, exclusive=False, auto_delete=False)
-    channel.queue_declare(args.results, passive=False,
-            durable=True, exclusive=False, auto_delete=False)
-
-    channel.basic_consume(args.matches, message_received)
-    channel.basic_consume(args.problems, message_received)
-    channel.basic_consume(args.metadata, message_received)
-
-    with prometheus_session(
-            str(getpid()),
-            args.prometheus_dir,
-            stage_type="exporter"):
-        try:
-            print("Start")
-            notify_ready()
-            channel.start_consuming()
-        finally:
-            print("Stop")
-            notify_stopping()
-            channel.stop_consuming()
-            connection.close()
+        with prometheus_session(
+                str(getpid()),
+                args.prometheus_dir,
+                stage_type="exporter"):
+            try:
+                print("Start")
+                notify_ready()
+                channel.start_consuming()
+            finally:
+                print("Stop")
+                notify_stopping()
+                channel.stop_consuming()
 
 
 if __name__ == "__main__":

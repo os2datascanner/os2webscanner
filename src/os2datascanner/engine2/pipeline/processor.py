@@ -1,5 +1,4 @@
 from os import getpid
-import pika
 from dateutil import tz
 
 from ...utils.prometheus import prometheus_session
@@ -9,8 +8,8 @@ from ..rules.types import convert, InputType, encode_dict, conversion_exists
 from ..model.core import (Source,
         Handle, SourceManager, ResourceUnavailableError)
 from ..model.utilities import SingleResult
-from .utilities import (notify_ready, notify_stopping, prometheus_summary,
-        json_event_processor, make_common_argument_parser)
+from .utilities import (notify_ready, pika_session, notify_stopping,
+        prometheus_summary, json_event_processor, make_common_argument_parser)
 
 args = None
 count = 0
@@ -136,35 +135,25 @@ def main():
     global args
     args = parser.parse_args()
 
-    parameters = pika.ConnectionParameters(host=args.host, heartbeat=6000)
-    connection = pika.BlockingConnection(parameters)
+    with pika_session(args.sources, args.conversions, args.representations,
+            host=args.host, heartbeat=6000) as channel:
+        channel.basic_consume(args.conversions, message_received)
 
-    channel = connection.channel()
-    channel.queue_declare(args.conversions, passive=False,
-            durable=True, exclusive=False, auto_delete=False)
-    channel.queue_declare(args.representations, passive=False,
-            durable=True, exclusive=False, auto_delete=False)
-    channel.queue_declare(args.sources, passive=False,
-            durable=True, exclusive=False, auto_delete=False)
+        global source_manager
+        source_manager = SourceManager()
 
-    channel.basic_consume(args.conversions, message_received)
-
-    global source_manager
-    source_manager = SourceManager()
-
-    with prometheus_session(
-            str(getpid()),
-            args.prometheus_dir,
-            stage_type="processor"):
-        try:
-            print("Start")
-            notify_ready()
-            channel.start_consuming()
-        finally:
-            print("Stop")
-            notify_stopping()
-            channel.stop_consuming()
-            connection.close()
+        with prometheus_session(
+                str(getpid()),
+                args.prometheus_dir,
+                stage_type="processor"):
+            try:
+                print("Start")
+                notify_ready()
+                channel.start_consuming()
+            finally:
+                print("Stop")
+                notify_stopping()
+                channel.stop_consuming()
 
 
 if __name__ == "__main__":

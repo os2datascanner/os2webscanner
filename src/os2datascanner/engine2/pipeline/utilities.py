@@ -1,5 +1,7 @@
 import json
+import pika
 import argparse
+from contextlib import contextmanager
 import systemd.daemon
 if systemd.daemon.booted():
     from systemd.daemon import notify as sd_notify
@@ -74,3 +76,19 @@ def json_event_processor(listener):
                         routing_key=routing_key,
                         body=json.dumps(message).encode())
     return _wrapper
+
+
+@contextmanager
+def pika_session(*queues, **kwargs):
+    parameters = pika.ConnectionParameters(**kwargs)
+    connection = pika.BlockingConnection(parameters)
+    channel = connection.channel()
+
+    for q in queues:
+        channel.queue_declare(q, passive=False,
+                durable=True, exclusive=False, auto_delete=False)
+
+    try:
+        yield channel
+    finally:
+        connection.close()
