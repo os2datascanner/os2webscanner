@@ -18,6 +18,7 @@
 These will pass when you run "manage.py test os2webscanner".
 """
 
+import unittest
 import pycodestyle
 from django.test import TestCase
 
@@ -66,6 +67,7 @@ class ScannerTest(TestCase):
             domain.save()
             self.assertFalse(validate_domain(domain))
 
+    @unittest.skip("engine2 doesn't support scans with no rules")
     def test_run_scan(self):
         """Test running a scan."""
         scanner = WebScanner(url="http://www.magenta.dk/",
