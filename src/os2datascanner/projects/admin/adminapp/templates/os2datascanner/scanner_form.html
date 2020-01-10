@@ -93,7 +93,7 @@ iframe-modal
     <p id="is_edit_view" class="bg-info">{% trans "Domæner og regler kan ikke ændres efter scannerjobbet er oprettet." %}</p>
 {% endif %}
 
-<form class="form-horizontal" role="form" method="post">
+<form class="form-horizontal" role="form" method="post" enctype="multipart/form-data">
   {% csrf_token %}
   <div id="{{ form.name.auto_id }}_container"
        class="col-sm-12{% if form.name.errors %} has-error{% endif %}">
@@ -261,7 +261,7 @@ iframe-modal
                         selected="selected"
                     {% endif %}>
                         {{ tag }}
-                    </option> {# silly type conversion #}
+                    </option> {# silly type conversion
                 {% endfor %}
             </select>
             {% if form.group.help_text %}
