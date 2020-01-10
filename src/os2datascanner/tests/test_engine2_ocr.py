@@ -1,10 +1,10 @@
-import os.path
-import unittest
+import  os.path
+import  unittest
 
-from os2datascanner.engine2.model.core import SourceManager
-from os2datascanner.engine2.model.file import FilesystemSource
-from os2datascanner.engine2.rules._transitional_conversions import (
-        image_processor)
+from    os2datascanner.engine2.model.core import SourceManager
+from    os2datascanner.engine2.model.file import FilesystemSource
+from    os2datascanner.engine2.rules.types import convert, InputType
+import  os2datascanner.engine2.rules._transitional_conversions  # noqa
 
 
 here_path = os.path.dirname(__file__)
@@ -18,6 +18,6 @@ class TestEngine2OCR(unittest.TestCase):
         with SourceManager() as sm:
             for h in fs.handles(sm):
                 self.assertEqual(
-                        image_processor(h.follow(sm)),
+                        convert(h.follow(sm), InputType.Text),
                         expected_result,
                         "{0} failed".format(h))
