@@ -39,12 +39,13 @@ class ScannerTest(TestCase):
         # pk = 2 to pass the validation test
         self.magenta = Organization(name="Magenta", pk=1)
         self.magenta.save()
-        self.google = Organization(name="Google", pk=2)
-        self.google.save()
+        self.example = Organization(name="IANA (example.com)", pk=2)
+        self.example.save()
 
     def test_validate_domain(self):
         """Test validating domains."""
-        # Make sure Google does not validate in any of the possible methods
+        # Make sure example.com does not validate in any of the possible
+        # methods
         all_methods = [WebScanner.WEBSCANFILE, WebScanner.METAFIELD]
         # Make sure Magenta's website validates using all possible methods
         # Magenta's website is under re-construction.
@@ -58,9 +59,9 @@ class ScannerTest(TestCase):
             self.assertTrue(validate_domain(domain))"""
 
         for validation_method in all_methods:
-            domain = WebScanner(url="http://www.google.com/",
+            domain = WebScanner(url="http://www.example.com/",
                             validation_method=validation_method,
-                            organization=self.google,
+                            organization=self.example,
                             pk=2)
             domain.save()
             self.assertFalse(validate_domain(domain))
