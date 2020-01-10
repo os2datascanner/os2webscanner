@@ -9,10 +9,7 @@ from .utilities import (notify_ready, pika_session, notify_stopping,
 args = None
 
 
-@prometheus_summary(
-        "os2datascanner_pipeline_tagger", "Metadata extractions")
-@json_event_processor
-def message_received(body, channel):
+def message_received_raw(body, channel):
     handle = Handle.from_json_object(body["handle"])
 
     with SourceManager() as sm:
@@ -25,6 +22,14 @@ def message_received(body, channel):
         except ResourceUnavailableError as ex:
             print(ex)
             pass
+
+
+@prometheus_summary(
+        "os2datascanner_pipeline_tagger", "Metadata extractions")
+@json_event_processor
+def message_received(body, channel):
+    return message_received_raw(body, channel)
+
 
 def main():
     parser = make_common_argument_parser()

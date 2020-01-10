@@ -10,9 +10,7 @@ from .utilities import (notify_ready, pika_session, notify_stopping,
 args = None
 
 
-@prometheus_summary("os2datascanner_pipeline_exporter", "Messages exported")
-@json_event_processor
-def message_received(body, channel):
+def message_received_raw(body, channel):
     handle = Handle.from_json_object(body["handle"])
     handle = handle.censor()
     body['handle'] = handle.to_json_object()
@@ -33,6 +31,12 @@ def message_received(body, channel):
         return
 
     yield (args.results, body)
+
+
+@prometheus_summary("os2datascanner_pipeline_exporter", "Messages exported")
+@json_event_processor
+def message_received(body, channel):
+    return message_received_raw(body, channel)
 
 
 def main():

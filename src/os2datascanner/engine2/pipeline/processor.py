@@ -39,10 +39,7 @@ def get_processor(sm, handle, required, configuration) -> SingleResult:
     return None
 
 
-@prometheus_summary(
-        "os2datascanner_pipeline_processor", "Representations generated")
-@json_event_processor
-def message_received(body, channel):
+def message_received_raw(body, channel):
     global count
 
     handle = Handle.from_json_object(body["handle"])
@@ -91,6 +88,13 @@ def message_received(body, channel):
     count += 1
     if args.cleanup_interval and (count % args.cleanup_interval) == 0:
         source_manager.clear()
+
+
+@prometheus_summary(
+        "os2datascanner_pipeline_processor", "Representations generated")
+@json_event_processor
+def message_received(body, channel):
+    return message_received_raw(body, channel)
 
 
 def main():

@@ -9,9 +9,7 @@ from .utilities import (notify_ready, pika_session, notify_stopping,
 args = None
 
 
-@prometheus_summary("os2datascanner_pipeline_explorer", "Sources explored")
-@json_event_processor
-def message_received(body, channel):
+def message_received_raw(body, channel):
     try:
         source = Source.from_json_object(body["source"])
 
@@ -54,6 +52,12 @@ def message_received(body, channel):
             "problem": "malformed",
             "extra": [str(arg) for arg in ex.args]
         })
+
+
+@prometheus_summary("os2datascanner_pipeline_explorer", "Sources explored")
+@json_event_processor
+def message_received(body, channel):
+    return message_received_raw(body, channel)
 
 
 def main():

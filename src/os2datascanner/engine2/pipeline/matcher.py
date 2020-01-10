@@ -9,10 +9,7 @@ from .utilities import (notify_ready, pika_session, notify_stopping,
 args = None
 
 
-@prometheus_summary(
-        "os2datascanner_pipeline_matcher", "Representations examined")
-@json_event_processor
-def message_received(body, channel):
+def message_received_raw(body, channel):
     progress = body["progress"]
     representations = decode_dict(body["representations"])
     rule = Rule.from_json_object(progress["rule"])
@@ -65,6 +62,13 @@ def message_received(body, channel):
                 "matches": progress["matches"] + new_matches
             }
         })
+
+
+@prometheus_summary(
+        "os2datascanner_pipeline_matcher", "Representations examined")
+@json_event_processor
+def message_received(body, channel):
+    return message_received_raw(body, channel)
 
 
 def main():
