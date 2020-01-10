@@ -12,67 +12,59 @@ args = None
 @prometheus_summary(
         "os2datascanner_pipeline_matcher", "Representations examined")
 @json_event_processor
-def message_received(channel, method, properties, body):
-    print("message_received({0}, {1}, {2}, {3})".format(
-            channel, method, properties, body))
-    try:
-        progress = body["progress"]
-        representations = decode_dict(body["representations"])
-        rule = Rule.from_json_object(progress["rule"])
+def message_received(body, channel):
+    progress = body["progress"]
+    representations = decode_dict(body["representations"])
+    rule = Rule.from_json_object(progress["rule"])
 
-        new_matches = []
+    new_matches = []
 
-        # Keep executing rules for as long as we can with the representations
-        # we have
-        while not isinstance(rule, bool):
-            head, pve, nve = rule.split()
+    # Keep executing rules for as long as we can with the representations we
+    # have
+    while not isinstance(rule, bool):
+        head, pve, nve = rule.split()
 
-            target_type = head.operates_on
-            type_value = target_type.value
-            if type_value not in representations:
-                # We don't have this representation -- bail out
-                break
-            representation = representations[type_value]
+        target_type = head.operates_on
+        type_value = target_type.value
+        if type_value not in representations:
+            # We don't have this representation -- bail out
+            break
+        representation = representations[type_value]
 
-            matches = list(head.match(representation))
-            new_matches.append({
-                "rule": head.to_json_object(),
-                "matches": matches if matches else None
-            })
-            if matches:
-                rule = pve
-            else:
-                rule = nve
-
-        if isinstance(rule, bool):
-            # We've come to a conclusion!
-            yield (args.matches, {
-                "scan_spec": body["scan_spec"],
-                "handle": body["handle"],
-                "matched": rule,
-                "matches": progress["matches"] + new_matches
-            })
-            # Only trigger metadata scanning if the match succeeded
-            if rule:
-                yield (args.handles, {
-                    "scan_tag": body["scan_spec"]["scan_tag"],
-                    "handle": body["handle"]
-                })
+        matches = list(head.match(representation))
+        new_matches.append({
+            "rule": head.to_json_object(),
+            "matches": matches if matches else None
+        })
+        if matches:
+            rule = pve
         else:
-            # We need a new representation to continue
-            yield (args.conversions, {
-                "scan_spec": body["scan_spec"],
-                "handle": body["handle"],
-                "progress": {
-                    "rule": rule.to_json_object(),
-                    "matches": progress["matches"] + new_matches
-                }
-            })
+            rule = nve
 
-        channel.basic_ack(method.delivery_tag)
-    except Exception:
-        channel.basic_reject(method.delivery_tag)
-        raise
+    if isinstance(rule, bool):
+        # We've come to a conclusion!
+        yield (args.matches, {
+            "scan_spec": body["scan_spec"],
+            "handle": body["handle"],
+            "matched": rule,
+            "matches": progress["matches"] + new_matches
+        })
+        # Only trigger metadata scanning if the match succeeded
+        if rule:
+            yield (args.handles, {
+                "scan_tag": body["scan_spec"]["scan_tag"],
+                "handle": body["handle"]
+            })
+    else:
+        # We need a new representation to continue
+        yield (args.conversions, {
+            "scan_spec": body["scan_spec"],
+            "handle": body["handle"],
+            "progress": {
+                "rule": rule.to_json_object(),
+                "matches": progress["matches"] + new_matches
+            }
+        })
 
 
 def main():

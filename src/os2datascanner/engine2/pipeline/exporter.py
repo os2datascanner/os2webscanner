@@ -12,13 +12,11 @@ args = None
 
 @prometheus_summary("os2datascanner_pipeline_exporter", "Messages exported")
 @json_event_processor
-def message_received(channel, method, properties, body):
-    channel.basic_ack(method.delivery_tag)
-
+def message_received(body, channel):
     handle = Handle.from_json_object(body["handle"])
     handle = handle.censor()
     body['handle'] = handle.to_json_object()
-    body['origin'] = method.routing_key
+    body['origin'] = channel
 
     # Also censor the scan specification's source, if this type of message
     # carries one

@@ -11,11 +11,7 @@ args = None
 
 @prometheus_summary("os2datascanner_pipeline_explorer", "Sources explored")
 @json_event_processor
-def message_received(channel, method, properties, body):
-    print("message_received({0}, {1}, {2}, {3})".format(
-            channel, method, properties, body))
-    channel.basic_ack(method.delivery_tag)
-
+def message_received(body, channel):
     try:
         source = Source.from_json_object(body["source"])
 

@@ -68,10 +68,11 @@ def json_event_processor(listener):
     message callback, and automatically produces new messages for every (queue
     name, serialisable object) pair yielded by that callback."""
     def _wrapper(channel, method, properties, body):
+        channel.basic_ack(method.delivery_tag)
         decoded_body = json_utf8_decode(body)
         if decoded_body:
             for routing_key, message in listener(
-                    channel, method, properties, decoded_body):
+                    decoded_body, channel=method.routing_key):
                 channel.basic_publish(exchange='',
                         routing_key=routing_key,
                         body=json.dumps(message).encode())

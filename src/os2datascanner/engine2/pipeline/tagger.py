@@ -12,27 +12,19 @@ args = None
 @prometheus_summary(
         "os2datascanner_pipeline_tagger", "Metadata extractions")
 @json_event_processor
-def message_received(channel, method, properties, body):
-    print("message_received({0}, {1}, {2}, {3})".format(
-            channel, method, properties, body))
-    try:
-        handle = Handle.from_json_object(body["handle"])
+def message_received(body, channel):
+    handle = Handle.from_json_object(body["handle"])
 
-        with SourceManager() as sm:
-            try:
-                yield (args.metadata, {
-                    "scan_tag": body["scan_tag"],
-                    "handle": body["handle"],
-                    "metadata": guess_responsible_party(handle, sm)
-                })
-            except ResourceUnavailableError as ex:
-                print(ex)
-                pass
-
-        channel.basic_ack(method.delivery_tag)
-    except Exception:
-        channel.basic_reject(method.delivery_tag)
-        raise
+    with SourceManager() as sm:
+        try:
+            yield (args.metadata, {
+                "scan_tag": body["scan_tag"],
+                "handle": body["handle"],
+                "metadata": guess_responsible_party(handle, sm)
+            })
+        except ResourceUnavailableError as ex:
+            print(ex)
+            pass
 
 def main():
     parser = make_common_argument_parser()
