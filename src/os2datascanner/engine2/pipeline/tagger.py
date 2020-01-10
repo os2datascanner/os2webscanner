@@ -20,7 +20,6 @@ def message_received_raw(body, channel):
                 "metadata": guess_responsible_party(handle, sm)
             })
         except ResourceUnavailableError as ex:
-            print(ex)
             pass
 
 
