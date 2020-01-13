@@ -1,11 +1,11 @@
 import  base64
 import  unittest
 
-from    os2datascanner.engine2.pipeline import (
-        explorer, processor, matcher, tagger, exporter)
-from    os2datascanner.engine2.model.core import Source
+from    os2datascanner.engine2.model.core import Source, SourceManager
 from    os2datascanner.engine2.rules.regex import RegexRule
 from    os2datascanner.engine2.rules.logical import OrRule
+from    os2datascanner.engine2.pipeline import (
+        explorer, processor, matcher, tagger, exporter)
 
 data = """Hwæt! wē Gār-Dena in gēar-dagum
 þēod-cyninga þrym gefrūnon,
@@ -49,22 +49,21 @@ class StopHandling(Exception):
 
 def handle_message(body, channel):
     if channel == "os2ds_scan_specs":
-        return explorer.message_received_raw(body, channel,
+        yield from explorer.message_received_raw(body, channel,
                 "os2ds_conversions", "os2ds_problems")
     elif channel == "os2ds_conversions":
-        return processor.message_received_raw(body, channel,
-                "os2ds_representations", "os2ds_scan_specs")
+        with SourceManager() as sm:
+            yield from processor.message_received_raw(body, channel, sm,
+                    "os2ds_representations", "os2ds_scan_specs")
     elif channel == "os2ds_representations":
-        return matcher.message_received_raw(body, channel,
+        yield from matcher.message_received_raw(body, channel,
                 "os2ds_matches", "os2ds_handles", "os2ds_conversions")
     elif channel == "os2ds_handles":
-        return tagger.message_received_raw(body, channel,
+        yield from tagger.message_received_raw(body, channel,
                 "os2ds_metadata")
     elif channel in ("os2ds_matches", "os2ds_metadata", "os2ds_problems",):
-        return exporter.message_received_raw(body, channel,
+        yield from exporter.message_received_raw(body, channel,
                 False, "os2ds_results")
-    else:
-        return None
 
 
 class Engine2PipelineTests(unittest.TestCase):
@@ -75,9 +74,8 @@ class Engine2PipelineTests(unittest.TestCase):
     def run_pipeline(self):
         while self.messages:
             (body, channel), self.messages = self.messages[0], self.messages[1:]
-            generator = handle_message(body, channel)
-            if generator:
-                for channel, body in generator:
+            if channel != "os2ds_results":
+                for channel, body in handle_message(body, channel):
                     self.messages.append((body, channel,))
             else:
                 self.unhandled.append((body, channel,))

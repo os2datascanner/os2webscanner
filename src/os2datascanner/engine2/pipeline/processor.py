@@ -11,9 +11,6 @@ from ..model.utilities import SingleResult
 from .utilities import (notify_ready, pika_session, notify_stopping,
         prometheus_summary, json_event_processor, make_common_argument_parser)
 
-count = 0
-source_manager = None
-
 
 def get_processor(sm, handle, required, configuration) -> SingleResult:
     if required == InputType.Text:
@@ -38,7 +35,8 @@ def get_processor(sm, handle, required, configuration) -> SingleResult:
     return None
 
 
-def message_received_raw(body, channel, representations_q, sources_q):
+def message_received_raw(
+        body, channel, source_manager, representations_q, sources_q):
     handle = Handle.from_json_object(body["handle"])
     rule = Rule.from_json_object(body["progress"]["rule"])
     head, _, _ = rule.split()
@@ -122,39 +120,36 @@ def main():
     with pika_session(args.sources, args.conversions, args.representations,
             host=args.host, heartbeat=6000) as channel:
         count = 0
+        with SourceManager() as source_manager:
 
-        @prometheus_summary("os2datascanner_pipeline_processor",
-                "Representations generated")
-        @json_event_processor
-        def message_received(body, channel):
-            nonlocal count
+            @prometheus_summary("os2datascanner_pipeline_processor",
+                    "Representations generated")
+            @json_event_processor
+            def message_received(body, channel):
+                nonlocal count
+                if count and args.cleanup_interval and (
+                        count % args.cleanup_interval) == 0:
+                    source_manager.clear()
 
-            if count and args.cleanup_interval and (
-                    count % args.cleanup_interval) == 0:
-                source_manager.clear()
+                try:
+                    return message_received_raw(body, channel,
+                            source_manager, args.representations, args.sources)
+                finally:
+                    count += 1
+            channel.basic_consume(args.conversions, message_received)
 
-            try:
-                return message_received_raw(
-                        body, channel, args.representations, args.sources)
-            finally:
-                count += 1
-        channel.basic_consume(args.conversions, message_received)
-
-        global source_manager
-        source_manager = SourceManager()
-
-        with prometheus_session(
-                str(getpid()),
-                args.prometheus_dir,
-                stage_type="processor"):
-            try:
-                print("Start")
-                notify_ready()
-                channel.start_consuming()
-            finally:
-                print("Stop")
-                notify_stopping()
-                channel.stop_consuming()
+            with prometheus_session(
+                    str(getpid()),
+                    args.prometheus_dir,
+                    stage_type="processor"):
+                try:
+                    print("Start")
+                    notify_ready()
+                    channel.start_consuming()
+                finally:
+                    print("Stop")
+                    notify_stopping()
+                    channel.stop_consuming()
 
 
 if __name__ == "__main__":
