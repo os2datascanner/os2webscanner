@@ -1,7 +1,8 @@
-import sys
-from subprocess import run, PIPE, DEVNULL
+from    bs4 import BeautifulSoup
+import  sys
+from    subprocess import run, PIPE, DEVNULL
 
-from .types import InputType, conversion
+from    .types import InputType, conversion
 
 
 @conversion(InputType.Text, "text/plain")
@@ -24,8 +25,5 @@ def image_processor(r, **kwargs):
 
 @conversion(InputType.Text, "text/html")
 def html_processor(r, **kwargs):
-    with r.make_path() as f:
-        return run(["html2text", f],
-                universal_newlines=True,
-                stdout=PIPE,
-                stderr=DEVNULL, **kwargs).stdout.strip()
+    with r.make_stream() as fp:
+        return BeautifulSoup(fp, "lxml").get_text()
