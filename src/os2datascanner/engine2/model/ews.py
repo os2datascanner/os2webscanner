@@ -3,6 +3,7 @@ from .core import (Source, Handle,
 from .derived.mail import MIME_TYPE as MAIL_MIME
 
 import email
+import email.policy
 from datetime import datetime
 from exchangelib import Account, Credentials, IMPERSONATION, Configuration
 from exchangelib.protocol import BaseProtocol
@@ -145,7 +146,7 @@ class EWSMailResource(Resource):
         msg = self.get_message_object().mime_content
         if isinstance(msg, bytes):
             msg = msg.decode("utf-8") # XXX: is this always correct?
-        return email.message_from_string(msg)
+        return email.message_from_string(msg, policy=email.policy.default)
 
     def compute_type(self):
         return MAIL_MIME
