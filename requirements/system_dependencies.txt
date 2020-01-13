@@ -29,3 +29,4 @@ moreutils
 linux-image-generic
 rsync
 libsystemd-dev
+npm
