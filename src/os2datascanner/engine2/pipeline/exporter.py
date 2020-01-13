@@ -10,7 +10,7 @@ from .utilities import (notify_ready, pika_session, notify_stopping,
 args = None
 
 
-def message_received_raw(body, channel):
+def message_received_raw(body, channel, dump, results_q):
     handle = Handle.from_json_object(body["handle"])
     handle = handle.censor()
     body['handle'] = handle.to_json_object()
@@ -24,19 +24,19 @@ def message_received_raw(body, channel):
         body["scan_spec"]["source"] = source.to_json_object()
 
     # For debugging purposes
-    if args.dump:
+    if dump:
         print(json.dumps(body, indent=True))
-        args.dump.write(json.dumps(body) + "\n")
-        args.dump.flush()
+        dump.write(json.dumps(body) + "\n")
+        dump.flush()
         return
 
-    yield (args.results, body)
+    yield (results_q, body)
 
 
 @prometheus_summary("os2datascanner_pipeline_exporter", "Messages exported")
 @json_event_processor
 def message_received(body, channel):
-    return message_received_raw(body, channel)
+    return message_received_raw(body, channel, args.dump, args.results)
 
 
 def main():

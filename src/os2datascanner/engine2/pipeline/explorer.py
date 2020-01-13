@@ -9,7 +9,7 @@ from .utilities import (notify_ready, pika_session, notify_stopping,
 args = None
 
 
-def message_received_raw(body, channel):
+def message_received_raw(body, channel, conversions_q, problems_q):
     try:
         source = Source.from_json_object(body["source"])
 
@@ -29,25 +29,25 @@ def message_received_raw(body, channel):
         with SourceManager() as sm:
             for handle in source.handles(sm):
                 print(handle.censor())
-                yield (args.conversions, {
+                yield (conversions_q, {
                     "scan_spec": body,
                     "handle": handle.to_json_object(),
                     "progress": progress
                 })
     except ResourceUnavailableError as ex:
-        yield (args.problems, {
+        yield (problems_q, {
             "where": body["source"],
             "problem": "unavailable",
             "extra": [str(arg) for arg in ex.args]
         })
     except DeserialisationError as ex:
-        yield (args.problems, {
+        yield (problems_q, {
             "where": body["source"],
             "problem": "malformed",
             "extra": [str(arg) for arg in ex.args]
         })
     except KeyError as ex:
-        yield (args.problems, {
+        yield (problems_q, {
             "where": body,
             "problem": "malformed",
             "extra": [str(arg) for arg in ex.args]
@@ -57,7 +57,7 @@ def message_received_raw(body, channel):
 @prometheus_summary("os2datascanner_pipeline_explorer", "Sources explored")
 @json_event_processor
 def message_received(body, channel):
-    return message_received_raw(body, channel)
+    return message_received_raw(body, channel, args.conversions, args.problems)
 
 
 def main():

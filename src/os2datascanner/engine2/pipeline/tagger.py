@@ -9,12 +9,12 @@ from .utilities import (notify_ready, pika_session, notify_stopping,
 args = None
 
 
-def message_received_raw(body, channel):
+def message_received_raw(body, channel, metadata_q):
     handle = Handle.from_json_object(body["handle"])
 
     with SourceManager() as sm:
         try:
-            yield (args.metadata, {
+            yield (metadata_q, {
                 "scan_tag": body["scan_tag"],
                 "handle": body["handle"],
                 "metadata": guess_responsible_party(handle, sm)
@@ -27,7 +27,7 @@ def message_received_raw(body, channel):
         "os2datascanner_pipeline_tagger", "Metadata extractions")
 @json_event_processor
 def message_received(body, channel):
-    return message_received_raw(body, channel)
+    return message_received_raw(body, channel, args.metadata)
 
 
 def main():

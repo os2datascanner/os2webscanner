@@ -39,9 +39,7 @@ def get_processor(sm, handle, required, configuration) -> SingleResult:
     return None
 
 
-def message_received_raw(body, channel):
-    global count
-
+def message_received_raw(body, channel, representations_q, sources_q):
     handle = Handle.from_json_object(body["handle"])
     rule = Rule.from_json_object(body["progress"]["rule"])
     head, _, _ = rule.split()
@@ -64,7 +62,7 @@ def message_received_raw(body, channel):
                 else:
                     dv = {required.value: representation.value}
 
-                yield (args.representations, {
+                yield (representations_q, {
                     "scan_spec": body["scan_spec"],
                     "handle": body["handle"],
                     "progress": body["progress"],
@@ -81,20 +79,26 @@ def message_received_raw(body, channel):
                 scan_spec = body["scan_spec"].copy()
                 scan_spec["source"] = derived_source.to_json_object()
                 scan_spec["progress"] = body["progress"]
-                yield (args.sources, scan_spec)
+                yield (sources_q, scan_spec)
     except ResourceUnavailableError:
         pass
-
-    count += 1
-    if args.cleanup_interval and (count % args.cleanup_interval) == 0:
-        source_manager.clear()
 
 
 @prometheus_summary(
         "os2datascanner_pipeline_processor", "Representations generated")
 @json_event_processor
 def message_received(body, channel):
-    return message_received_raw(body, channel)
+    global count
+
+    if count and args.cleanup_interval and (
+            count % args.cleanup_interval) == 0:
+        source_manager.clear()
+
+    try:
+        return message_received_raw(
+                body, channel, args.representations, args.sources)
+    finally:
+        count += 1
 
 
 def main():

@@ -9,7 +9,7 @@ from .utilities import (notify_ready, pika_session, notify_stopping,
 args = None
 
 
-def message_received_raw(body, channel):
+def message_received_raw(body, channel, matches_q, handles_q, conversions_q):
     progress = body["progress"]
     representations = decode_dict(body["representations"])
     rule = Rule.from_json_object(progress["rule"])
@@ -40,7 +40,7 @@ def message_received_raw(body, channel):
 
     if isinstance(rule, bool):
         # We've come to a conclusion!
-        yield (args.matches, {
+        yield (matches_q, {
             "scan_spec": body["scan_spec"],
             "handle": body["handle"],
             "matched": rule,
@@ -48,13 +48,13 @@ def message_received_raw(body, channel):
         })
         # Only trigger metadata scanning if the match succeeded
         if rule:
-            yield (args.handles, {
+            yield (handles_q, {
                 "scan_tag": body["scan_spec"]["scan_tag"],
                 "handle": body["handle"]
             })
     else:
         # We need a new representation to continue
-        yield (args.conversions, {
+        yield (conversions_q, {
             "scan_spec": body["scan_spec"],
             "handle": body["handle"],
             "progress": {
@@ -68,7 +68,8 @@ def message_received_raw(body, channel):
         "os2datascanner_pipeline_matcher", "Representations examined")
 @json_event_processor
 def message_received(body, channel):
-    return message_received_raw(body, channel)
+    return message_received_raw(body, channel,
+            args.matches, args.handles, args.conversions)
 
 
 def main():
