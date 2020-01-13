@@ -3,7 +3,7 @@ import magic
 from datetime import datetime
 
 from ...rules.types import InputType
-from ..utilities import SingleResult
+from ..utilities import SingleResult, MultipleResults
 
 
 class Resource(ABC):
@@ -89,3 +89,47 @@ class FileResource(TimestampedResource):
         bytes of the file."""
         with self.make_stream() as s:
             return magic.from_buffer(s.read(512), True)
+
+
+MAIL_MIME = "message/rfc822"
+"""A special MIME type for explorable emails. Resources (and their associated
+Handles) that represent an email message, and that have a get_email_message
+function that returns the content of that message as a Python email.message.
+EmailMessage, should report this type in order to be automatically
+explorable."""
+
+
+class MailResource(TimestampedResource):
+    """A MailResource is a TimestampedResource that can be viewed as an email:
+    a message body accompanied by a number of headers."""
+
+    def __init__(self, handle, sm):
+        super().__init__(handle, sm)
+        self._mr = None
+        self._lm_timestamp = None
+
+    def unpack_headers(self):
+        if not self._mr:
+            self._mr = MultipleResults()
+            m = self.get_email_message()
+            for k in m.keys():
+                v = m.get_all(k)
+                if v and len(v) == 1:
+                    v = v[0]
+                self._mr[k.lower()] = v
+            date = self._mr.get("date")
+            if date and date.value.datetime:
+                self._mr[InputType.LastModified] = date.value.datetime
+        return self._mr
+
+    @abstractmethod
+    def get_email_message(self):
+        """Returns a structured representation of this email as a Python
+        email.message.EmailMessage."""
+
+    def get_last_modified(self):
+        return self.unpack_headers().get(InputType.LastModified,
+                super().get_last_modified())
+
+    def compute_type(self):
+        return MAIL_MIME

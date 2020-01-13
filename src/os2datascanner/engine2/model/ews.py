@@ -1,6 +1,6 @@
-from .core import (Source, Handle,
-        Resource, FileResource, SourceManager, ResourceUnavailableError)
-from .derived.mail import MIME_TYPE as MAIL_MIME
+from .core import (
+        Source, Handle, MailResource, SourceManager, ResourceUnavailableError)
+from .core.resource import MAIL_MIME
 
 import email
 import email.policy
@@ -129,7 +129,7 @@ class EWSAccountSource(Source):
                 obj["admin_password"], obj["user"])
 
 
-class EWSMailResource(Resource):
+class EWSMailResource(MailResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
         self._ids = self.handle.relative_path.split(".", maxsplit=1)
