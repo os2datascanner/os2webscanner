@@ -1,9 +1,0 @@
-"""Modules relating to the Scrapy-based webscanner."""
-from . import items  # noqa
-from . import linkextractor  # noqa
-from . import middlewares  # noqa
-from . import processors  # noqa
-from . import rules  # noqa
-from . import scanner_types  # noqa
-from . import settings  # noqa
-from . import spiders  # noqa
