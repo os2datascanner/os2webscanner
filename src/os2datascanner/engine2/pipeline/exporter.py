@@ -7,8 +7,6 @@ from ...utils.prometheus import prometheus_session
 from .utilities import (notify_ready, pika_session, notify_stopping,
         prometheus_summary, json_event_processor, make_common_argument_parser)
 
-args = None
-
 
 def message_received_raw(body, channel, dump, results_q):
     handle = Handle.from_json_object(body["handle"])
@@ -31,12 +29,6 @@ def message_received_raw(body, channel, dump, results_q):
         return
 
     yield (results_q, body)
-
-
-@prometheus_summary("os2datascanner_pipeline_exporter", "Messages exported")
-@json_event_processor
-def message_received(body, channel):
-    return message_received_raw(body, channel, args.dump, args.results)
 
 
 def main():
@@ -79,11 +71,16 @@ def main():
             type=argparse.FileType(mode="at"),
             default=None)
 
-    global args
     args = parser.parse_args()
 
     with pika_session(args.matches, args.problems, args.metadata, args.results,
             host=args.host, heartbeat=6000) as channel:
+
+        @prometheus_summary(
+                "os2datascanner_pipeline_exporter", "Messages exported")
+        @json_event_processor
+        def message_received(body, channel):
+            return message_received_raw(body, channel, args.dump, args.results)
         channel.basic_consume(args.matches, message_received)
         channel.basic_consume(args.problems, message_received)
         channel.basic_consume(args.metadata, message_received)

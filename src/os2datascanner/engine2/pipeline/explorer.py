@@ -6,8 +6,6 @@ from ..model.core import (Source, SourceManager, ResourceUnavailableError,
 from .utilities import (notify_ready, pika_session, notify_stopping,
         prometheus_summary, json_event_processor, make_common_argument_parser)
 
-args = None
-
 
 def message_received_raw(body, channel, conversions_q, problems_q):
     try:
@@ -54,12 +52,6 @@ def message_received_raw(body, channel, conversions_q, problems_q):
         })
 
 
-@prometheus_summary("os2datascanner_pipeline_explorer", "Sources explored")
-@json_event_processor
-def message_received(body, channel):
-    return message_received_raw(body, channel, args.conversions, args.problems)
-
-
 def main():
     parser = make_common_argument_parser()
     parser.description = "Consume sources and generate conversions."
@@ -86,11 +78,17 @@ def main():
                     + " written",
             default="os2ds_problems")
 
-    global args
     args = parser.parse_args()
 
     with pika_session(args.sources, args.conversions, args.problems,
             host=args.host, heartbeat=6000) as channel:
+
+        @prometheus_summary(
+                "os2datascanner_pipeline_explorer", "Sources explored")
+        @json_event_processor
+        def message_received(body, channel):
+            return message_received_raw(
+                    body, channel, args.conversions, args.problems)
         channel.basic_consume(args.sources, message_received)
 
         with prometheus_session(

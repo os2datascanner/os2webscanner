@@ -6,8 +6,6 @@ from ..model.core import Handle, SourceManager, ResourceUnavailableError
 from .utilities import (notify_ready, pika_session, notify_stopping,
         prometheus_summary, json_event_processor, make_common_argument_parser)
 
-args = None
-
 
 def message_received_raw(body, channel, metadata_q):
     handle = Handle.from_json_object(body["handle"])
@@ -21,13 +19,6 @@ def message_received_raw(body, channel, metadata_q):
             })
         except ResourceUnavailableError as ex:
             pass
-
-
-@prometheus_summary(
-        "os2datascanner_pipeline_tagger", "Metadata extractions")
-@json_event_processor
-def message_received(body, channel):
-    return message_received_raw(body, channel, args.metadata)
 
 
 def main():
@@ -50,11 +41,16 @@ def main():
                     + " written",
             default="os2ds_metadata")
 
-    global args
     args = parser.parse_args()
 
     with pika_session(args.handles, args.metadata,
             host=args.host, heartbeat=6000) as channel:
+
+        @prometheus_summary(
+                "os2datascanner_pipeline_tagger", "Metadata extractions")
+        @json_event_processor
+        def message_received(body, channel):
+            return message_received_raw(body, channel, args.metadata)
         channel.basic_consume(args.handles, message_received)
 
         with prometheus_session(

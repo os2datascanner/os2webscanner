@@ -6,8 +6,6 @@ from ..rules.types import decode_dict
 from .utilities import (notify_ready, pika_session, notify_stopping,
         prometheus_summary, json_event_processor, make_common_argument_parser)
 
-args = None
-
 
 def message_received_raw(body, channel, matches_q, handles_q, conversions_q):
     progress = body["progress"]
@@ -64,14 +62,6 @@ def message_received_raw(body, channel, matches_q, handles_q, conversions_q):
         })
 
 
-@prometheus_summary(
-        "os2datascanner_pipeline_matcher", "Representations examined")
-@json_event_processor
-def message_received(body, channel):
-    return message_received_raw(body, channel,
-            args.matches, args.handles, args.conversions)
-
-
 def main():
     parser = make_common_argument_parser()
     parser.description = ("Consume representations and generate matches"
@@ -105,11 +95,17 @@ def main():
                     + " extraction) should be written",
             default="os2ds_handles")
 
-    global args
     args = parser.parse_args()
 
     with pika_session(args.handles, args.matches, args.conversions,
             args.representations, host=args.host, heartbeat=6000) as channel:
+
+        @prometheus_summary(
+                "os2datascanner_pipeline_matcher", "Representations examined")
+        @json_event_processor
+        def message_received(body, channel):
+            return message_received_raw(body, channel,
+                    args.matches, args.handles, args.conversions)
         channel.basic_consume(args.representations, message_received)
 
         with prometheus_session(

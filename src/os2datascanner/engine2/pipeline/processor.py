@@ -11,7 +11,6 @@ from ..model.utilities import SingleResult
 from .utilities import (notify_ready, pika_session, notify_stopping,
         prometheus_summary, json_event_processor, make_common_argument_parser)
 
-args = None
 count = 0
 source_manager = None
 
@@ -84,23 +83,6 @@ def message_received_raw(body, channel, representations_q, sources_q):
         pass
 
 
-@prometheus_summary(
-        "os2datascanner_pipeline_processor", "Representations generated")
-@json_event_processor
-def message_received(body, channel):
-    global count
-
-    if count and args.cleanup_interval and (
-            count % args.cleanup_interval) == 0:
-        source_manager.clear()
-
-    try:
-        return message_received_raw(
-                body, channel, args.representations, args.sources)
-    finally:
-        count += 1
-
-
 def main():
     parser = make_common_argument_parser()
     parser.description = ("Consume conversions and generate " +
@@ -135,11 +117,27 @@ def main():
                     + " should be written",
             default="os2ds_scan_specs")
 
-    global args
     args = parser.parse_args()
 
     with pika_session(args.sources, args.conversions, args.representations,
             host=args.host, heartbeat=6000) as channel:
+        count = 0
+
+        @prometheus_summary("os2datascanner_pipeline_processor",
+                "Representations generated")
+        @json_event_processor
+        def message_received(body, channel):
+            nonlocal count
+
+            if count and args.cleanup_interval and (
+                    count % args.cleanup_interval) == 0:
+                source_manager.clear()
+
+            try:
+                return message_received_raw(
+                        body, channel, args.representations, args.sources)
+            finally:
+                count += 1
         channel.basic_consume(args.conversions, message_received)
 
         global source_manager
