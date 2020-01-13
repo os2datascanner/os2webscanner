@@ -36,9 +36,29 @@ class Resource(ABC):
         return self._sm.open(self.handle.source)
 
 
-class FileResource(Resource):
-    """A FileResource is a Resource that can, when necessary, be viewed as a
-    file."""
+class TimestampedResource(Resource):
+    def __init__(self, handle, sm):
+        super().__init__(handle, sm)
+        self._lm_timestamp = None
+
+    @abstractmethod
+    def get_last_modified(self):
+        """Returns the last modification date of this TimestampedResource as a
+        wrapped Python datetime.datetime; this may be used to decide whether or
+        not a FileResource's content should be re-examined. Multiple calls to
+        this method should normally return the same value.
+
+        The default implementation of this method returns the time this
+        method was first called on this TimestampedResource."""
+        if not self._lm_timestamp:
+            self._lm_timestamp = SingleResult(
+                    None, InputType.LastModified, datetime.now())
+        return self._lm_timestamp
+
+
+class FileResource(TimestampedResource):
+    """A FileResource is a TimestampedResource that can be viewed as a file: a
+    sequence of bytes with a size."""
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
         self._lm_timestamp = None
@@ -49,20 +69,6 @@ class FileResource(Resource):
         of this FileResource's content. (Note that this is not necessarily the
         same as the *actual* size of that content: some Sources support
         transparent compression and decompression.)"""
-
-    @abstractmethod
-    def get_last_modified(self):
-        """Returns the last modification date of this FileResource as a wrapped
-        Python datetime.datetime; this may be used to decide whether or not a
-        FileResource's content should be re-examined. Multiple calls to this
-        method should normally return the same value.
-
-        The default implementation of this method returns the time this
-        method was first called on this FileResource."""
-        if not self._lm_timestamp:
-            self._lm_timestamp = SingleResult(
-                    None, InputType.LastModified, datetime.now())
-        return self._lm_timestamp
 
     @abstractmethod
     def make_path(self):
