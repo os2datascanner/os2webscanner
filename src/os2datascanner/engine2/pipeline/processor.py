@@ -1,8 +1,7 @@
 from os import getpid
-from dateutil import tz
 
 from ...utils.prometheus import prometheus_session
-from ..rules import _transitional_conversions
+from ..rules import _transitional_conversions  # noqa
 from ..rules.rule import Rule
 from ..rules.types import convert, InputType, encode_dict, conversion_exists
 from ..model.core import (Source,
