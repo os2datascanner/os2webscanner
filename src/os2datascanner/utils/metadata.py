@@ -7,8 +7,7 @@ import olefile
 from zipfile import ZipFile, BadZipFile
 from defusedxml.ElementTree import parse
 
-from os2datascanner.engine2.model.core import FileResource, SourceManager
-from os2datascanner.engine2.model.file import FilesystemHandle
+from os2datascanner.engine2.model.core import FileResource
 
 def _codepage_to_codec(cp):
     """Retrieves the Python text codec corresponding to the given Windows
@@ -101,7 +100,7 @@ def type_is_ooxml(mime):
 def type_is_opendocument(mime):
     return mime.startswith("application/vnd.oasis.opendocument.")
 
-def guess_responsible_party2(handle, sm):
+def guess_responsible_party(handle, sm):
     """Returns a dictionary of labelled speculations about the person
     responsible for the (Resource at the) given Handle.
 
@@ -141,13 +140,13 @@ def guess_responsible_party2(handle, sm):
         is_derived = bool(handle.source.handle)
         if isinstance(resource, FileResource):
             media_type = handle.guess_type()
-            print(media_type)
             if not is_derived:
                 # Extract filesystem metadata
+                # (XXX: being this explicit about function names seems
+                # inelegant)
                 if hasattr(resource, "get_owner_sid"):
                     guesses["filesystem-owner-sid"] = (
                             resource.get_owner_sid())
-                # stat will always work unless the path is invalid
                 if hasattr(resource, "unpack_stat"):
                     guesses["filesystem-owner-uid"] = (
                             resource.unpack_stat()["st_uid"].value)
@@ -207,9 +206,5 @@ def guess_responsible_party2(handle, sm):
 
     guesses = _extract_guesses(handle, sm)
     if handle.source.handle:
-        guesses.update(guess_responsible_party2(handle.source.handle, sm))
+        guesses.update(guess_responsible_party(handle.source.handle, sm))
     return guesses
-
-def guess_responsible_party(path):
-    with SourceManager() as sm:
-        return guess_responsible_party2(FilesystemHandle.make_handle(path), sm)
