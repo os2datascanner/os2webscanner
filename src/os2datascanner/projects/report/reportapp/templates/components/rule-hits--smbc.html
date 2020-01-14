@@ -15,7 +15,8 @@
                 </div>
 
                 <div class="hit-link">
-                  <a href="#" class="hit-link__folder">Copy location</a>
+                  <input name="COPY" type="text" class="phantom" value="{{ match_by_type.data.matches.handle.path }}" />
+                  <button name="Kopy" class="hit-link__folder">Copy location</button>
                 </div>
               </td>
 
@@ -29,3 +30,19 @@
         {% endfor %}
     {% endfor %}
 {% endfor %}
+
+<script type="text/javascript">
+
+  function copy() {
+    var copyText = document.querySelector("input[type='text'].phantom")
+      copyText.classList.remove("phantom");
+      copyText.select()
+      document.execCommand("copy")
+      copyText.classList.add("phantom");
+  }
+
+  document.querySelectorAll(".hit-link__folder").forEach(function(c) {
+    c.addEventListener("click", copy)
+  })
+
+</script>
