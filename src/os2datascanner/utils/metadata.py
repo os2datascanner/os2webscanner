@@ -59,10 +59,10 @@ def _codepage_to_codec(cp):
     except LookupError:
         return None
 
-def _get_ole_metadata(path):
+def _get_ole_metadata(fp):
     try:
-        with open(path, "rb") as f:
-            raw = olefile.OleFileIO(f).get_metadata()
+        raw = olefile.OleFileIO(fp).get_metadata()
+
         tidied = {}
         # The value we get here is a signed 16-bit quantity, even though
         # the file format specifies values up to 65001
@@ -82,24 +82,23 @@ def _get_ole_metadata(path):
     except FileNotFoundError:
         return None
 
-def _process_zip_resource(path, member, func):
+def _process_zip_resource(fp, member, func):
     try:
-        with ZipFile(path, "r") as z:
+        with ZipFile(fp, "r") as z:
             with z.open(member, "r") as f:
                 return func(f)
     except (KeyError, BadZipFile, FileNotFoundError):
         return None
 
-def _get_pdf_document_info(path):
+def _get_pdf_document_info(fp):
     try:
-        with open(path, "rb") as f:
-            pdf = PdfFileReader(f)
-            if pdf.getIsEncrypted():
-                # Some PDFs are "encrypted" with an empty password: give that a
-                # shot...
-                if not pdf.decrypt(""):
-                    return None
-            return pdf.getDocumentInfo()
+        pdf = PdfFileReader(fp)
+        if pdf.getIsEncrypted():
+            # Some PDFs are "encrypted" with an empty password: give that a
+            # shot...
+            if not pdf.decrypt(""):
+                return None
+        return pdf.getDocumentInfo()
     except FileNotFoundError:
         return None
 
@@ -167,7 +166,9 @@ def guess_responsible_party(path):
     mime = guess_mime_type(path)
     if mime:
         if type_is_opendocument(mime):
-            f = _process_zip_resource(path, "meta.xml", parse)
+            f = None
+            with open(path, "rb") as fp:
+                f = _process_zip_resource(fp, "meta.xml", parse)
             if f:
                 content = f.find("{urn:oasis:names:tc:opendocument:xmlns:office:1.0}meta")
                 if content:
@@ -178,7 +179,9 @@ def guess_responsible_party(path):
                     if c is not None and c.text:
                         speculations["od-creator"] = c.text.strip()
         elif type_is_ooxml(mime):
-            f = _process_zip_resource(path, "docProps/core.xml", parse)
+            f = None
+            with open(path, "rb") as fp:
+                f = _process_zip_resource(fp, "docProps/core.xml", parse)
             if f:
                 lm = f.find("{http://schemas.openxmlformats.org/package/2006/metadata/core-properties}lastModifiedBy")
                 if lm is not None and lm.text:
@@ -187,14 +190,18 @@ def guess_responsible_party(path):
                 if c is not None and c.text:
                     speculations["ooxml-creator"] = c.text.strip()
         elif type_is_ole(mime):
-            m = _get_ole_metadata(path)
+            m = None
+            with open(path, "rb") as fp:
+                m = _get_ole_metadata(fp)
             if m:
                 if "last_saved_by" in m:
                     speculations["ole-modifier"] = m["last_saved_by"]
                 if "author" in m:
                     speculations["ole-creator"] = m["author"]
         elif type_is_pdf(mime):
-            doc_info = _get_pdf_document_info(path)
+            doc_info = None
+            with open(path, "rb") as fp:
+                doc_info = _get_pdf_document_info(fp)
             if _check_dictionary_field(doc_info, "/Author"):
                 speculations["pdf-author"] = doc_info["/Author"]
 
