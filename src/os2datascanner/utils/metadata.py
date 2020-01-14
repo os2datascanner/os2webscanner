@@ -5,36 +5,10 @@ from codecs import lookup as lookup_codec
 from PyPDF2 import PdfFileReader
 import olefile
 from zipfile import ZipFile, BadZipFile
-import mimetypes
 from defusedxml.ElementTree import parse
-import subprocess
 
-guess_mime_type = lambda t: mimetypes.guess_type(t, strict=False)[0]
-
-def _get_cifs_security_descriptor(path):
-    """Attempts to parse the output of the getcifsacl command, returning a
-    dictionary (unless the REVISION and CONTROL fields of the output are both
-    "0x0", or the program returns an error status, in which case None is
-    returned)."""
-    r = subprocess.run(["getcifsacl", path],
-            stdout=subprocess.PIPE, universal_newlines=True)
-    if r.returncode == 0:
-        rv = {}
-        for line in r.stdout.splitlines():
-            k, v = [f.strip() for f in line.split(":", maxsplit=1)]
-            if k in rv:
-                if not isinstance(rv[k], list):
-                    rv[k] = [rv[k]]
-                rv[k].append(v)
-            else:
-                rv[k] = v
-        if not (_check_dictionary_field(rv, "REVISION", "0x0") and
-                _check_dictionary_field(rv, "CONTROL", "0x0")):
-            return rv
-        else:
-            return None
-    else:
-        return None
+from os2datascanner.engine2.model.core import FileResource, SourceManager
+from os2datascanner.engine2.model.file import FilesystemHandle
 
 def _codepage_to_codec(cp):
     """Retrieves the Python text codec corresponding to the given Windows
@@ -127,9 +101,9 @@ def type_is_ooxml(mime):
 def type_is_opendocument(mime):
     return mime.startswith("application/vnd.oasis.opendocument.")
 
-def guess_responsible_party(path):
+def guess_responsible_party2(handle, sm):
     """Returns a dictionary of labelled speculations about the person
-    responsible for the path @path.
+    responsible for the (Resource at the) given Handle.
 
     These labels are highly likely to indicate the person responsible for the
     path, but are ambiguous and must be compared against other organisational
@@ -160,60 +134,82 @@ def guess_responsible_party(path):
 
     * "filesystem-owner-sid", the SID of the owner of a CIFS filesystem object
     * "filesystem-owner-uid", the UID of the owner of a Unix filesystem object"""
-    speculations = {}
 
-    # File metadata-based speculations
-    mime = guess_mime_type(path)
-    if mime:
-        if type_is_opendocument(mime):
-            f = None
-            with open(path, "rb") as fp:
-                f = _process_zip_resource(fp, "meta.xml", parse)
-            if f:
-                content = f.find("{urn:oasis:names:tc:opendocument:xmlns:office:1.0}meta")
-                if content:
-                    lm = content.find("{http://purl.org/dc/elements/1.1/}creator")
+    def _extract_guesses(handle, sm):
+        guesses = {}
+        resource = handle.follow(sm)
+        is_derived = bool(handle.source.handle)
+        if isinstance(resource, FileResource):
+            media_type = handle.guess_type()
+            print(media_type)
+            if not is_derived:
+                # Extract filesystem metadata
+                if hasattr(resource, "get_owner_sid"):
+                    guesses["filesystem-owner-sid"] = (
+                            resource.get_owner_sid())
+                # stat will always work unless the path is invalid
+                if hasattr(resource, "unpack_stat"):
+                    guesses["filesystem-owner-uid"] = (
+                            resource.unpack_stat()["st_uid"].value)
+
+            # Extract content metadata
+            if type_is_opendocument(media_type):
+                # Extract OpenDocument metadata
+                f = None
+                with resource.make_stream() as fp:
+                    f = _process_zip_resource(fp, "meta.xml", parse)
+                if f:
+                    content = f.find(
+                            "{urn:oasis:names:tc:opendocument:"
+                            "xmlns:office:1.0}meta")
+                    if content:
+                        lm = content.find(
+                                "{http://purl.org/dc/elements/1.1/}creator")
+                        if lm is not None and lm.text:
+                            guesses["od-modifier"] = lm.text.strip()
+                        c = content.find(
+                                "{urn:oasis:names:tc:opendocument:"
+                                "xmlns:meta:1.0}initial-creator")
+                        if c is not None and c.text:
+                            guesses["od-creator"] = c.text.strip()
+            elif type_is_ooxml(media_type):
+                # Extract Office Open XML metadata
+                f = None
+                with resource.make_stream() as fp:
+                    f = _process_zip_resource(fp, "docProps/core.xml", parse)
+                if f:
+                    lm = f.find(
+                            "{http://schemas.openxmlformats.org/package/"
+                            "2006/metadata/core-properties}lastModifiedBy")
                     if lm is not None and lm.text:
-                        speculations["od-modifier"] = lm.text.strip()
-                    c = content.find("{urn:oasis:names:tc:opendocument:xmlns:meta:1.0}initial-creator")
+                        guesses["ooxml-modifier"] = lm.text.strip()
+                    c = f.find("{http://purl.org/dc/elements/1.1/}creator")
                     if c is not None and c.text:
-                        speculations["od-creator"] = c.text.strip()
-        elif type_is_ooxml(mime):
-            f = None
-            with open(path, "rb") as fp:
-                f = _process_zip_resource(fp, "docProps/core.xml", parse)
-            if f:
-                lm = f.find("{http://schemas.openxmlformats.org/package/2006/metadata/core-properties}lastModifiedBy")
-                if lm is not None and lm.text:
-                    speculations["ooxml-modifier"] = lm.text.strip()
-                c = f.find("{http://purl.org/dc/elements/1.1/}creator")
-                if c is not None and c.text:
-                    speculations["ooxml-creator"] = c.text.strip()
-        elif type_is_ole(mime):
-            m = None
-            with open(path, "rb") as fp:
-                m = _get_ole_metadata(fp)
-            if m:
-                if "last_saved_by" in m:
-                    speculations["ole-modifier"] = m["last_saved_by"]
-                if "author" in m:
-                    speculations["ole-creator"] = m["author"]
-        elif type_is_pdf(mime):
-            doc_info = None
-            with open(path, "rb") as fp:
-                doc_info = _get_pdf_document_info(fp)
-            if _check_dictionary_field(doc_info, "/Author"):
-                speculations["pdf-author"] = doc_info["/Author"]
+                        guesses["ooxml-creator"] = c.text.strip()
+            elif type_is_ole(media_type):
+                # Extract old Microsoft office document metadata
+                m = None
+                with resource.make_stream() as fp:
+                    m = _get_ole_metadata(fp)
+                if m:
+                    if "last_saved_by" in m:
+                        guesses["ole-modifier"] = m["last_saved_by"]
+                    if "author" in m:
+                        guesses["ole-creator"] = m["author"]
+            elif type_is_pdf(media_type):
+                # Extract PDF metadata
+                doc_info = None
+                with resource.make_stream() as fp:
+                    doc_info = _get_pdf_document_info(fp)
+                if _check_dictionary_field(doc_info, "/Author"):
+                    guesses["pdf-author"] = doc_info["/Author"]
+        return guesses
 
-    # Filesystem-based speculations
-    cifs_acl = _get_cifs_security_descriptor(path)
-    if _check_dictionary_field(cifs_acl, "OWNER"):
-        speculations["filesystem-owner-sid"] = cifs_acl["OWNER"]
-    # stat will always work unless the path is invalid
-    try:
-        stat = os.stat(path)
-        speculations["filesystem-owner-uid"] = stat.st_uid
-    except FileNotFoundError:
-        pass
+    guesses = _extract_guesses(handle, sm)
+    if handle.source.handle:
+        guesses.update(guess_responsible_party2(handle.source.handle, sm))
+    return guesses
 
-    return speculations
+def guess_responsible_party(path):
+    with SourceManager() as sm:
+        return guess_responsible_party2(FilesystemHandle.make_handle(path), sm)
