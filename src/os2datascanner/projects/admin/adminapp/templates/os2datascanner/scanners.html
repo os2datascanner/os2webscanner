@@ -153,14 +153,6 @@ class="active"
 
                 </td>
                 <td class="scanner-actions">
-                  <span class="scanner-status">
-                    {% if not scanner.is_running %}
-                      Klar
-                    {% else %}
-                      Aktiv
-                    {% endif %}
-                  </span>
-
                   <button type="button"
                     class="btn btn-default btn-xs btn-scanner-settings"
                     onclick="os2web.iframeDialog(
@@ -176,8 +168,8 @@ class="active"
                     &quot;#edit-scanner-modal&quot;,
                     &quot;/{{ view.type }}scanners/{{scanner.pk}}&quot;,
                     &quot;Redigér scannerjob '{{scanner.name}}'&quot;
-                    )"
-                  >
+                    )">
+
                     <span class="glyphicon glyphicon-cog">
                     </span> <span>Redigér</span>
 
