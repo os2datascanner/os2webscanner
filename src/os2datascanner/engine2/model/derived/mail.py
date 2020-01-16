@@ -2,19 +2,12 @@ from io import BytesIO
 from contextlib import contextmanager
 
 from ..core import Source, Handle, FileResource, SourceManager
+from ..core.resource import MAIL_MIME
 from ..utilities import SingleResult, NamedTemporaryResource
 from .derived import DerivedSource
 
 
-MIME_TYPE = "message/rfc822"
-"""A special MIME type for explorable emails. Resources (and their associated
-Handles) that represent an email message, and that have a to_email_message
-function that returns the content of that message as a Python
-email.message.Message, should report this type in order to be automatically
-explorable."""
-
-
-@Source.mime_handler(MIME_TYPE)
+@Source.mime_handler(MAIL_MIME)
 class MailSource(DerivedSource):
     type_label = "mail"
 
