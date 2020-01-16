@@ -29,10 +29,7 @@ class FilteredSource(DerivedSource):
         yield FilteredHandle(self, rest)
 
     def _generate_state(self, sm):
-        # Using a nested SourceManager means that closing this generator will
-        # automatically clean up as much as possible
-        with SourceManager(sm) as derived:
-            yield self.handle.follow(derived)
+        yield self.handle.follow(sm)
 
     def censor(self):
         return FilteredSource(self.handle.censor(), self._filter_type)

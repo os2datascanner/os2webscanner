@@ -19,12 +19,9 @@ class ZipSource(DerivedSource):
                 yield ZipHandle(self, f)
 
     def _generate_state(self, sm):
-        # Using a nested SourceManager means that closing this generator will
-        # automatically clean up as much as possible
-        with SourceManager(sm) as derived:
-            with self.handle.follow(derived).make_path() as r:
-                with ZipFile(str(r)) as zp:
-                    yield zp
+        with self.handle.follow(sm).make_path() as r:
+            with ZipFile(str(r)) as zp:
+                yield zp
 
 
 class ZipResource(FileResource):

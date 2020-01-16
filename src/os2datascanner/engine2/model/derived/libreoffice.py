@@ -32,20 +32,17 @@ class LibreOfficeSource(DerivedSource):
     type_label = "lo"
 
     def _generate_state(self, sm):
-        with SourceManager(sm) as derived:
-            resource = self.handle.follow(derived)
-            mime_type = resource.compute_type()
-            with self.handle.follow(derived).make_path() as p:
-                with TemporaryDirectory() as outputdir:
-                    result = libreoffice(
-                            "--convert-to", "html",
-                            "--outdir", outputdir, p)
-                    if result.returncode == 0:
-                        yield outputdir
-                    else:
-                        raise ResourceUnavailableError(self.handle,
-                                "LibreOffice exited abnormally",
-                                result.returncode)
+        with self.handle.follow(sm).make_path() as p:
+            with TemporaryDirectory() as outputdir:
+                result = libreoffice(
+                        "--convert-to", "html",
+                        "--outdir", outputdir, p)
+                if result.returncode == 0:
+                    yield outputdir
+                else:
+                    raise ResourceUnavailableError(self.handle,
+                            "LibreOffice exited abnormally",
+                            result.returncode)
 
     def handles(self, sm):
         for name in listdir(sm.open(self)):
