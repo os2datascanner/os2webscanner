@@ -92,7 +92,7 @@ def message_received(channel, method, properties, body):
         channel.basic_ack(method.delivery_tag)
 
         count += 1
-        if args.cleanup_interval and (count % args.cleanup_interval) == 0):
+        if args.cleanup_interval and (count % args.cleanup_interval) == 0:
             source_manager.clear()
     except Exception:
         channel.basic_reject(method.delivery_tag)
