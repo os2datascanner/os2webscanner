@@ -62,7 +62,7 @@ class EWSAccountSource(Source):
         config = None
         service_account = Credentials(
                 username=self._admin_user, password=self._admin_password)
-        if self._server == OFFICE_365_ENDPOINT:
+        if self._server is not None:
             config = Configuration(
                     service_endpoint=self._server,
                     credentials=service_account)

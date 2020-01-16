@@ -20,21 +20,17 @@ from django.conf import settings
 
 from .scanner_model import Scanner
 
+from os2datascanner.engine2.model.special.generator import GeneratorSource
+
 
 class ExchangeScanner(Scanner):
-
-    """File scanner for scanning network drives and folders"""
-
-    is_exporting = models.BooleanField(default=False)
-
-    # If nothing has been exported yet this property is false.
-    is_ready_to_scan = models.BooleanField(default=False)
+    """Scanner for Exchange Web Services accounts"""
 
     userlist = models.FileField(upload_to='mailscan/users/')
 
-    dir_to_scan = models.CharField(max_length=2048,
-                                   verbose_name='Exchange export sti',
-                                   null=True)
+    service_endpoint = models.URLField(max_length=256,
+                                       verbose_name='Service endpoint',
+                                       null=True)
 
     def get_userlist_file_path(self):
         return os.path.join(settings.MEDIA_ROOT, self.userlist.name)
@@ -47,4 +43,13 @@ class ExchangeScanner(Scanner):
         return '/exchangescanners/'
 
     def make_engine2_source(self):
-        raise NotImplementedError("ExchangeScanner.make_engine2_source")
+        user_list = [u.decode("utf-8").strip()
+                for u in self.userlist if u.strip()]
+        base = {
+            "type": "ews",
+            "domain": self.url.lstrip("@"),
+            "server": self.service_endpoint,
+            "admin_user": self.authentication.username,
+            "admin_password": self.authentication.get_password()
+        }
+        return GeneratorSource(base, {"user": user_list})

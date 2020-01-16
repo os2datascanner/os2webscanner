@@ -2,7 +2,10 @@
 
 <div class="user">
   <span class="user__name">{{ request.user }}</span>
-  <a href="/login" class="user__avatar">
-    {% include "components/logo-o.html" %}
-  </a>
+  <div class="tooltip">
+    <a href="/accounts/logout" class="user__avatar">
+      {% include "components/logo-o.html" %}
+    </a>
+    <span class="tooltiptext">Logout</span>
+  </div>
 </div>
