@@ -14,12 +14,16 @@
 #
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( https://os2.eu/ )
+import structlog
+
 from django.db.models import Count
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.views.generic import View, TemplateView
 
 from ..models.documentreport_model import DocumentReport
+
+logger = structlog.get_logger()
 
 
 class LoginRequiredMixin(View):
@@ -42,6 +46,13 @@ class MainPageView(TemplateView, LoginRequiredMixin):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
+        # First attempt to make some usefull logging.
+        # The report module task is to log every action the user makes
+        # for the security of the user.
+        # If the system can document the users actions the user can defend
+        # them self against any allegations of wrong doing.
+        logger.info('{} is watching {}.'.format(user, self.template_name))
+
         aliases = user.aliases.select_subclasses()
         results = DocumentReport.objects.none()
         for alias in aliases:
