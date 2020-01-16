@@ -115,8 +115,8 @@ def main():
             "--cleanup-interval",
             type=int,
             metavar="COUNT",
-            help="clear up all temporary files after every %(metavar)s"
-                    "conversions",
+            help="clean up all open resources and connections after every"
+                    " %(metavar)s conversions",
             default=50)
 
     outputs = parser.add_argument_group("outputs")
