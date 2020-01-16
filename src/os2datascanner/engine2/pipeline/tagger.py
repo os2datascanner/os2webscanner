@@ -21,28 +21,15 @@ def message_received(channel, method, properties, body):
 
         with SourceManager() as sm:
             try:
-                resource = handle.follow(sm)
-                
-                with resource.make_path() as p:
-                    print(p)
-
-                    metadata = guess_responsible_party(str(p))
-                    # FIXME: this should go away once guess_responsible_party
-                    # stops needing to care about engine1 compatibility
-                    if ("filesystem-owner-sid" not in metadata
-                            and hasattr(resource, "get_owner_sid")):
-                        metadata["filesystem-owner-sid"] = \
-                            resource.get_owner_sid()
-
-                    yield (args.metadata, {
-                        "scan_tag": body["scan_tag"],
-                        "handle": body["handle"],
-                        "metadata": metadata
-                    })
+                yield (args.metadata, {
+                    "scan_tag": body["scan_tag"],
+                    "handle": body["handle"],
+                    "metadata": guess_responsible_party(handle, sm)
+                })
             except ResourceUnavailableError as ex:
                 print(ex)
                 pass
-        
+
         channel.basic_ack(method.delivery_tag)
     except Exception:
         channel.basic_reject(method.delivery_tag)
