@@ -1,5 +1,17 @@
 <table class="datatable">
 
+    <tbody>
+    {% for match_by_type in matches_by_type %}
+        {% if match_by_type.data.matches.handle.type == 'smbc' %}
+            {% include "components/rule-hits--smbc.html" %}
+        {% elif match_by_type.data.matches.handle.source.handle.type == 'ews' %}
+            {% include "components/rule-hits--office365.html" %}
+        {% endif %}
+        {#    {% include "components/rule-hits--exchange.html" %}#}
+        {#    {% include "components/rule-hits--webpage.html" %}#}
+    {% endfor %}
+    </tbody>
+
     <thead>
       <tr>
         <th class="datatable__column--filetype-icon">
@@ -10,13 +22,5 @@
         <th class="datatable__column--context">Context:</th>
       </tr>
     </thead>
-    
-  <tbody>
-{#    {% include "components/rule-hits--office365.html" %}#}
-{#    {% include "components/rule-hits--exchange.html" %}#}
-{#    {% include "components/rule-hits--webpage.html" %}#}
-    {% include "components/rule-hits--smbc.html" %}
-
-  </tbody>
 
 </table>
