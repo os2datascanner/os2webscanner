@@ -33,8 +33,13 @@ def validate_sid(value):
 
 
 class ADSIDAlias(Alias):
+
     sid = models.CharField(max_length=192, verbose_name="SID",
                            validators=[validate_sid])
+
+    @property
+    def key(self):
+        return 'filesystem-owner-sid'
 
     def __str__(self):
         return self.sid

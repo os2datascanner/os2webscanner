@@ -13,7 +13,7 @@
 #
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( http://www.os2web.dk/ )
-
+from abc import abstractmethod
 from django.db import models
 from django.contrib.auth.models import User
 from model_utils.managers import InheritanceManager
@@ -24,3 +24,7 @@ class Alias(models.Model):
     user = models.ForeignKey(User, null=False, verbose_name="Bruger",
                              related_name="aliases", on_delete=models.CASCADE)
 
+    @property
+    @abstractmethod
+    def key(self):
+        pass
