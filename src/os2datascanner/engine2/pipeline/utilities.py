@@ -11,7 +11,6 @@ else:
 from prometheus_client import Summary
 
 from ...utils.system_utilities import json_utf8_decode
-from ...utils.amqp_connection_manager import send_message
 
 
 def make_common_argument_parser():
@@ -58,6 +57,7 @@ def prometheus_summary(*args):
     """Decorator. Records a Prometheus summary observation for every call to
     the decorated function."""
     s = Summary(*args)
+
     def _prometheus_summary(func):
         return s.time()(func)
     return _prometheus_summary
@@ -67,6 +67,7 @@ def json_event_processor(listener):
     """Decorator. Automatically decodes JSON bodies for the wrapped Pika
     message callback, and automatically produces new messages for every (queue
     name, serialisable object) pair yielded by that callback."""
+
     def _wrapper(channel, method, properties, body):
         channel.basic_ack(method.delivery_tag)
         decoded_body = json_utf8_decode(body)

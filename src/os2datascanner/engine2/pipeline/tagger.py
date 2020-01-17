@@ -66,5 +66,6 @@ def main():
                 notify_stopping()
                 channel.stop_consuming()
 
+
 if __name__ == "__main__":
     main()

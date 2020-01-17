@@ -1,15 +1,15 @@
-from    os import getenv
-from    json import dumps, loads
-import  pika
-import  unittest
+from os import getenv
+from json import dumps, loads
+import pika
+import unittest
 
-from    os2datascanner.engine2.pipeline.utilities import json_event_processor
-from    os2datascanner.engine2.model.core import Source
-from    os2datascanner.engine2.rules.regex import RegexRule
-from    os2datascanner.engine2.rules.logical import OrRule
 
-from    .test_engine2_pipeline import (
-        handle_message, data, data_url, rule, expected_matches)
+from os2datascanner.engine2.pipeline.utilities import json_event_processor
+from os2datascanner.engine2.model.core import Source
+
+
+from .test_engine2_pipeline import (
+        handle_message, data_url, rule, expected_matches)
 
 
 class StopHandling(Exception):
@@ -51,6 +51,7 @@ class Engine2PipelineTests(unittest.TestCase):
                 body=dumps(obj).encode())
 
         messages = {}
+
         def result_received(a, b, c, d):
             body = loads(d.decode("utf-8"))
             messages[body["origin"]] = body

@@ -1,11 +1,12 @@
-import  base64
-import  unittest
+import base64
+import unittest
 
-from    os2datascanner.engine2.model.core import Source, SourceManager
-from    os2datascanner.engine2.rules.regex import RegexRule
-from    os2datascanner.engine2.rules.logical import OrRule
-from    os2datascanner.engine2.pipeline import (
+from os2datascanner.engine2.model.core import Source, SourceManager
+from os2datascanner.engine2.rules.regex import RegexRule
+from os2datascanner.engine2.rules.logical import OrRule
+from os2datascanner.engine2.pipeline import (
         explorer, processor, matcher, tagger, exporter)
+
 
 data = """Hwæt! wē Gār-Dena in gēar-dagum
 þēod-cyninga þrym gefrūnon,
