@@ -58,8 +58,6 @@ iframe-modal
         $("#select_scan_rules_container").css('opacity', '.35')
       {% endif %}
 
-        $('#{{form.sitemap.auto_id}}').bootstrapFileInput();
-
         // Toggle the Sitemap URL field when Download Sitemap is checked
         $("#id_{{ form.download_sitemap.name }}").click(function () {
             $("#{{ form.sitemap_url.auto_id }}_container").toggle();
@@ -95,7 +93,7 @@ iframe-modal
     <p id="is_edit_view" class="bg-info">{% trans "Domæner og regler kan ikke ændres efter scannerjobbet er oprettet." %}</p>
 {% endif %}
 
-<form class="form-horizontal" role="form" method="post">
+<form class="form-horizontal" role="form" method="post" enctype="multipart/form-data">
   {% csrf_token %}
   <div id="{{ form.name.auto_id }}_container"
        class="col-sm-12{% if form.name.errors %} has-error{% endif %}">
@@ -263,7 +261,7 @@ iframe-modal
                         selected="selected"
                     {% endif %}>
                         {{ tag }}
-                    </option> {# silly type conversion #}
+                    </option> # silly type conversion
                 {% endfor %}
             </select>
             {% if form.group.help_text %}
@@ -285,6 +283,9 @@ iframe-modal
                 <label class="control-label col-sm-3" for="id_{{ form.userlist.name }}">Liste af mail brugere</label>
                 <div class="col-sm-9">
                     <input type="file" class="form-control" name="{{ form.userlist.name }}" id="id_{{ form.userlist.name }}" {% if form.userlist.value %}value="{{ form.userlist.value }}"{% endif %}>
+                    <p>
+                        <small>Eksisterende fil: {{ form.userlist.value }}</small>
+                    </p>
                     {% if form.userlist.help_text %}
                         <p>
                             <small>{{ form.userlist.help_text }}</small>
@@ -600,10 +601,4 @@ iframe-modal
   </div>
 </form>
 
-<script type="text/javascript">
-  addEvent(window, "load", function(e) {
-    SelectFilter.init("id_recipients",
-      "modtagere", 0, "{% static 'admin/' %}");
-  });
-</script>
 {% endblock %}

@@ -52,9 +52,6 @@ class RegexPattern(models.Model):
         ordering = ('pk', )
 
 
-# Copied-and-pasted from os2datascanner.engine.scanners.rules.regexrule; if
-# we try to import that package directly, we recursively initialise Django and
-# crash (groan...)
 def compund_rules(rule):
     """
     This method compounds all the regex patterns in the rule set into one regex rule that is OR'ed

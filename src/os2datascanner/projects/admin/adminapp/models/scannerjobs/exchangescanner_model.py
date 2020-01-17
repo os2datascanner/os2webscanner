@@ -24,19 +24,9 @@ from os2datascanner.engine2.model.special.generator import GeneratorSource
 
 
 class ExchangeScanner(Scanner):
-
-    """File scanner for scanning network drives and folders"""
-
-    is_exporting = models.BooleanField(default=False)
-
-    # If nothing has been exported yet this property is false.
-    is_ready_to_scan = models.BooleanField(default=False)
+    """Scanner for Exchange Web Services accounts"""
 
     userlist = models.FileField(upload_to='mailscan/users/')
-
-    dir_to_scan = models.CharField(max_length=2048,
-                                   verbose_name='Exchange export sti',
-                                   null=True)
 
     service_endpoint = models.URLField(max_length=256,
                                        verbose_name='Service endpoint',
