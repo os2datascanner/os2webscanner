@@ -31,9 +31,6 @@ class FilteredSource(DerivedSource):
     def _generate_state(self, sm):
         yield self.handle.follow(sm)
 
-    def censor(self):
-        return FilteredSource(self.handle.censor(), self._filter_type)
-
 
 @Source.mime_handler("application/gzip")
 class GzipSource(FilteredSource):
