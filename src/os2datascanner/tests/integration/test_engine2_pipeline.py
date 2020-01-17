@@ -104,3 +104,23 @@ class Engine2PipelineTests(unittest.TestCase):
                 results["os2ds_matches"]["matches"],
                 expected_matches,
                 "RegexRule match did not produce expected result")
+
+    def test_unsupported_sources(self):
+        obj = {
+            "scan_tag": "integration_test",
+            "source": {
+                "type": "forbidden-knowledge",
+                "of": ["good", "evil"]
+            },
+            "rule": rule.to_json_object()
+        }
+
+        self.messages.append((obj, "os2ds_scan_specs",))
+        self.run_pipeline()
+
+        self.assertEqual(
+                len(self.unhandled),
+                1)
+        self.assertEqual(
+                self.unhandled[0][0]["problem"],
+                "unsupported")
