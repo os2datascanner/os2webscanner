@@ -93,6 +93,8 @@ def main():
                 "os2datascanner_pipeline_explorer", "Sources explored")
         @json_event_processor
         def message_received(body, channel):
+            if args.debug:
+                print(channel, body)
             return message_received_raw(
                     body, channel, args.conversions, args.problems)
         channel.basic_consume(args.sources, message_received)

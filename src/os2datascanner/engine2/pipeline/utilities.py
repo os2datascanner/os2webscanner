@@ -21,6 +21,10 @@ def make_common_argument_parser():
             metavar="HOST",
             help="the AMQP host to connect to",
             default="localhost")
+    parser.add_argument(
+            "--debug",
+            action="store_true",
+            help="print all incoming messages to the console")
 
     monitoring = parser.add_argument_group("monitoring")
     monitoring.add_argument(

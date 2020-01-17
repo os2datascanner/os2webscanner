@@ -50,6 +50,8 @@ def main():
                 "os2datascanner_pipeline_tagger", "Metadata extractions")
         @json_event_processor
         def message_received(body, channel):
+            if args.debug:
+                print(channel, body)
             return message_received_raw(body, channel, args.metadata)
         channel.basic_consume(args.handles, message_received)
 
