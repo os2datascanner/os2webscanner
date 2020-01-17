@@ -1,8 +1,8 @@
 from os import getpid
 
 from ...utils.prometheus import prometheus_session
-from ..model.core import (Source, SourceManager, ResourceUnavailableError,
-        DeserialisationError)
+from ..model.core import (Source, SourceManager, UnknownSchemeError,
+        DeserialisationError, ResourceUnavailableError)
 from .utilities import (notify_ready, pika_session, notify_stopping,
         prometheus_summary, json_event_processor, make_common_argument_parser)
 
@@ -36,6 +36,12 @@ def message_received_raw(body, channel, conversions_q, problems_q):
         yield (problems_q, {
             "where": body["source"],
             "problem": "unavailable",
+            "extra": [str(arg) for arg in ex.args]
+        })
+    except UnknownSchemeError as ex:
+        yield (problems_q, {
+            "where": body["source"],
+            "problem": "unsupported",
             "extra": [str(arg) for arg in ex.args]
         })
     except DeserialisationError as ex:
