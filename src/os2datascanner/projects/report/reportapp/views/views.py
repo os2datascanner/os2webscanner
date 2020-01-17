@@ -14,12 +14,16 @@
 #
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( https://os2.eu/ )
+import structlog
+
 from django.db.models import Count
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.views.generic import View, TemplateView
 
 from ..models.documentreport_model import DocumentReport
+
+logger = structlog.get_logger()
 
 
 class LoginRequiredMixin(View):
@@ -37,25 +41,34 @@ class LoginPageView(View):
 
 class MainPageView(TemplateView, LoginRequiredMixin):
     template_name = 'index.html'
-    filedata_results = None
+    data_results = None
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
+        # First attempt to make some usefull logging.
+        # The report module task is to log every action the user makes
+        # for the security of the user.
+        # If the system can document the users actions the user can defend
+        # them self against any allegations of wrong doing.
+        logger.info('{} is watching {}.'.format(user, self.template_name))
+
         aliases = user.aliases.select_subclasses()
+        results = DocumentReport.objects.none()
         for alias in aliases:
-            if alias.sid:
-                self.filedata_results = DocumentReport.objects.filter(
-                    data__metadata__metadata__contains={
-                        'filesystem-owner-sid': str(alias.sid)
-                    })
-            elif alias.address:
-                # TODO: Find related email results.
-                print(alias.address)
+            # TODO: Filter only where matched are True (waiting on test data)
+            result = DocumentReport.objects.filter(
+                data__metadata__metadata__contains={
+                    str(alias.key): str(alias)
+                })
+            # Merges django querysets together
+            results = results | result
+
+        self.data_results = results
 
         # Results are grouped by the rule they where found with,
         # together with the count.
-        context['dashboard_results'] = self.filedata_results.values(
+        context['dashboard_results'] = self.data_results.values(
             'data__matches__scan_spec__rule').annotate(
             type_count=Count('data__matches__scan_spec__rule'))
 
@@ -69,7 +82,7 @@ class RulePageView(MainPageView):
         type = self.request.GET.get('type')
 
         context = super().get_context_data(**kwargs)
-        context['matches_by_type'] = self.filedata_results.filter(
+        context['matches_by_type'] = self.data_results.filter(
             data__matches__scan_spec__rule__type=type)
         context['type'] = type
 

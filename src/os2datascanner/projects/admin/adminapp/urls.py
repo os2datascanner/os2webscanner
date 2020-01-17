@@ -180,7 +180,7 @@ urlpatterns = [
         DialogSuccess.as_view()),
 
     url(r'^jsi18n/$', JavaScriptCatalog.as_view(
-        packages=('os2webscanner', 'recurrence'),
+        packages=('os2datascanner.projects.admin.adminapp', 'recurrence'),
     )),
     # System functions
     url(r'^system/status/?$', SystemStatusView.as_view()),

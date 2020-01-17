@@ -19,12 +19,9 @@ class TarSource(DerivedSource):
                 yield TarHandle(self, f.name)
 
     def _generate_state(self, sm):
-        # Using a nested SourceManager means that closing this generator will
-        # automatically clean up as much as possible
-        with SourceManager(sm) as derived:
-            with self.handle.follow(derived).make_path() as r:
-                with open_tar(str(r), "r") as tp:
-                    yield tp
+        with self.handle.follow(sm).make_path() as r:
+            with open_tar(str(r), "r") as tp:
+                yield tp
 
 
 class TarResource(FileResource):

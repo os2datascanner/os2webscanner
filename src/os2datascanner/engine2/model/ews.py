@@ -1,8 +1,9 @@
-from .core import (Source, Handle,
-        Resource, FileResource, SourceManager, ResourceUnavailableError)
-from .derived.mail import MIME_TYPE as MAIL_MIME
+from .core import (
+        Source, Handle, MailResource, SourceManager, ResourceUnavailableError)
+from .core.resource import MAIL_MIME
 
 import email
+import email.policy
 from datetime import datetime
 from exchangelib import Account, Credentials, IMPERSONATION, Configuration
 from exchangelib.protocol import BaseProtocol
@@ -128,7 +129,7 @@ class EWSAccountSource(Source):
                 obj["admin_password"], obj["user"])
 
 
-class EWSMailResource(Resource):
+class EWSMailResource(MailResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
         self._ids = self.handle.relative_path.split(".", maxsplit=1)
@@ -145,7 +146,7 @@ class EWSMailResource(Resource):
         msg = self.get_message_object().mime_content
         if isinstance(msg, bytes):
             msg = msg.decode("utf-8") # XXX: is this always correct?
-        return email.message_from_string(msg)
+        return email.message_from_string(msg, policy=email.policy.default)
 
     def compute_type(self):
         return MAIL_MIME
