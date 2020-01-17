@@ -2,20 +2,40 @@ from os import getpid
 import json
 import argparse
 
-from ..model.core import Handle, Source
 from ...utils.prometheus import prometheus_session
+from ..model.core import (Handle,
+        Source, UnknownSchemeError, DeserialisationError)
 from .utilities import (notify_ready, pika_session, notify_stopping,
         prometheus_summary, json_event_processor, make_common_argument_parser)
 
 
 def message_received_raw(body, channel, dump, results_q):
-    handle = Handle.from_json_object(body["handle"])
-    handle = handle.censor()
-    body['handle'] = handle.to_json_object()
-    body['origin'] = channel
+    body["origin"] = channel
 
-    # Also censor the scan specification's source, if this type of message
-    # carries one
+    if "handle" in body:
+        handle = Handle.from_json_object(body["handle"])
+        handle = handle.censor()
+        body["handle"] = handle.to_json_object()
+    elif "where" in body:
+        # Problem messages are a bit tricky to censor: we get a "where"
+        # value that refers to the source of the problem, and we first need to
+        # work out what it is
+        where = body["where"]
+        if "type" in where:
+            # This is probably a Handle or a Source. Handles require more
+            # structure, so try them first and then use Source as a fallback
+            model_object = None
+            try:
+                model_object = Handle.from_json_object(where)
+            except (DeserialisationError, UnknownSchemeError):
+                try:
+                    model_object = Source.from_json_object(where)
+                except (DeserialisationError, UnknownSchemeError):
+                    pass
+            if model_object:
+                where = model_object.censor().to_json_object()
+        body["where"] = where
+
     if "scan_spec" in body:
         source = Source.from_json_object(body["scan_spec"]["source"])
         source = source.censor()
@@ -52,7 +72,7 @@ def main():
     inputs.add_argument(
             "--metadata",
             metavar="NAME",
-            help="the name of the AMQP queue from which matches should be"
+            help="the name of the AMQP queue from which metadata should be"
                     " read",
             default="os2ds_metadata")
 
