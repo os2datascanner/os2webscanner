@@ -35,10 +35,10 @@
 
   function copy() {
     var copyText = document.querySelector("input[type='text'].phantom")
-      copyText.classList.remove("phantom");
+      copyText.classList.remove("phantom")
       copyText.select()
       document.execCommand("copy")
-      copyText.classList.add("phantom");
+      copyText.classList.add("phantom")
   }
 
   document.querySelectorAll(".hit-link__folder").forEach(function(c) {
