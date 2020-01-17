@@ -543,6 +543,19 @@ iframe-modal
     </div>
     <div class="tab-pane" id="interval">
       <div class="col-sm-12 form-group">
+        <div id="id_schedule_container">
+          <div>
+            <div><label for="id_schedule">Planlagt afvikling:</label></div>
+            <div class="recurrence-widget">
+              <div class="control"></div>
+
+              </div><div class="panels"></div></div><textarea name="schedule" cols="40" rows="10" class="recurrence-widget" id="id_schedule" style="display: none;"></textarea>
+          <script type="text/javascript">recurrence.language_code ='da';new recurrence.widget.Widget('id_schedule', {});</script>
+          </div>
+          <div id="id_schedule_errors">
+            
+          </div>
+        </div>
       </div>
       <div id="{{ form.schedule.auto_id }}_container">
         <div>{{ form.schedule.help_text }}</div>
