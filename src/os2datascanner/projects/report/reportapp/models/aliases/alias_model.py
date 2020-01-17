@@ -27,4 +27,5 @@ class Alias(models.Model):
     @property
     @abstractmethod
     def key(self):
-        pass
+
+        """Returns the metadata property name associated with this alias."""
