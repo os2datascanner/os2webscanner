@@ -59,6 +59,10 @@ class EWSAccountSource(Source):
     def domain(self):
         return self._domain
 
+    @property
+    def address(self):
+        return "{0}@{1}".format(self.user, self.domain)
+
     def _generate_state(self, sm):
         config = None
         service_account = Credentials(
@@ -68,10 +72,9 @@ class EWSAccountSource(Source):
                     service_endpoint=self._server,
                     credentials=service_account)
 
-        address = "{0}@{1}".format(self._user, self._domain)
         try:
             account = Account(
-                    primary_smtp_address=address,
+                    primary_smtp_address=self.address,
                     credentials=service_account,
                     config=config,
                     autodiscover=not bool(config),
@@ -166,8 +169,8 @@ class EWSMailHandle(Handle):
 
     @property
     def presentation(self):
-        return "\"{0}\" (in {1}@{2})".format(self._mail_subject,
-                self.source.user, self.source.domain)
+        return "\"{0}\" (in account {1})".format(
+                self._mail_subject, self.source.address)
 
     def censor(self):
         return EWSMailHandle(
