@@ -1,20 +1,14 @@
 from os import getpid
-import pika
-from dateutil import tz
 
 from ...utils.prometheus import prometheus_session
-from ..rules import _transitional_conversions
+from ..rules import _transitional_conversions  # noqa
 from ..rules.rule import Rule
 from ..rules.types import convert, InputType, encode_dict, conversion_exists
 from ..model.core import (Source,
         Handle, SourceManager, ResourceUnavailableError)
 from ..model.utilities import SingleResult
-from .utilities import (notify_ready, notify_stopping, prometheus_summary,
-        json_event_processor, make_common_argument_parser)
-
-args = None
-count = 0
-source_manager = None
+from .utilities import (notify_ready, pika_session, notify_stopping,
+        prometheus_summary, json_event_processor, make_common_argument_parser)
 
 
 def get_processor(sm, handle, required, configuration) -> SingleResult:
@@ -40,63 +34,50 @@ def get_processor(sm, handle, required, configuration) -> SingleResult:
     return None
 
 
-@prometheus_summary(
-        "os2datascanner_pipeline_processor", "Representations generated")
-@json_event_processor
-def message_received(channel, method, properties, body):
-    global count
+def message_received_raw(
+        body, channel, source_manager, representations_q, sources_q):
+    handle = Handle.from_json_object(body["handle"])
+    rule = Rule.from_json_object(body["progress"]["rule"])
+    head, _, _ = rule.split()
+    required = head.operates_on
+
     try:
-        handle = Handle.from_json_object(body["handle"])
-        rule = Rule.from_json_object(body["progress"]["rule"])
-        head, _, _ = rule.split()
-        required = head.operates_on
+        processor = get_processor(
+                source_manager, handle, required,
+                body["scan_spec"]["configuration"])
+        if processor:
+            representation = processor(handle)
+            if representation:
+                if representation.parent:
+                    # If the conversion also produced other values at the same
+                    # time, then include all of those as well; they might also
+                    # be useful for the rule engine
+                    dv = {k.value: v.value
+                            for k, v in representation.parent.items()
+                            if isinstance(k, InputType)}
+                else:
+                    dv = {required.value: representation.value}
 
-        try:
-            processor = get_processor(
-                    source_manager, handle, required,
-                    body["scan_spec"]["configuration"])
-            if processor:
-                representation = processor(handle)
-                if representation:
-                    if representation.parent:
-                        # If the conversion also produced other values at the
-                        # same time, then include all of those as well; they
-                        # might also be useful for the rule engine
-                        dv = {k.value: v.value
-                                for k, v in representation.parent.items()
-                                if isinstance(k, InputType)}
-                    else:
-                        dv = {required.value: representation.value}
-
-                    yield (args.representations, {
-                        "scan_spec": body["scan_spec"],
-                        "handle": body["handle"],
-                        "progress": body["progress"],
-                        "representations": encode_dict(dv)
-                    })
-            else:
-                # If we have a conversion we don't support, then check if
-                # the current handle can be reinterpreted as a Source; if
-                # it can, then try again with that
-                derived_source = Source.from_handle(handle, source_manager)
-                if derived_source:
-                    # Copy almost all of the existing scan spec, but note the
-                    # progress of rule execution and replace the source
-                    scan_spec = body["scan_spec"].copy()
-                    scan_spec["source"] = derived_source.to_json_object()
-                    scan_spec["progress"] = body["progress"]
-                    yield (args.sources, scan_spec)
-        except ResourceUnavailableError:
-            pass
-
-        channel.basic_ack(method.delivery_tag)
-
-        count += 1
-        if args.cleanup_interval and (count % args.cleanup_interval) == 0:
-            source_manager.clear()
-    except Exception:
-        channel.basic_reject(method.delivery_tag)
-        raise
+                yield (representations_q, {
+                    "scan_spec": body["scan_spec"],
+                    "handle": body["handle"],
+                    "progress": body["progress"],
+                    "representations": encode_dict(dv)
+                })
+        else:
+            # If we have a conversion we don't support, then check if the
+            # current handle can be reinterpreted as a Source; if it can, then
+            # try again with that
+            derived_source = Source.from_handle(handle, source_manager)
+            if derived_source:
+                # Copy almost all of the existing scan spec, but note the
+                # progress of rule execution and replace the source
+                scan_spec = body["scan_spec"].copy()
+                scan_spec["source"] = derived_source.to_json_object()
+                scan_spec["progress"] = body["progress"]
+                yield (sources_q, scan_spec)
+    except ResourceUnavailableError:
+        pass
 
 
 def main():
@@ -133,38 +114,41 @@ def main():
                     + " should be written",
             default="os2ds_scan_specs")
 
-    global args
     args = parser.parse_args()
 
-    parameters = pika.ConnectionParameters(host=args.host, heartbeat=6000)
-    connection = pika.BlockingConnection(parameters)
+    with pika_session(args.sources, args.conversions, args.representations,
+            host=args.host, heartbeat=6000) as channel:
+        count = 0
+        with SourceManager() as source_manager:
 
-    channel = connection.channel()
-    channel.queue_declare(args.conversions, passive=False,
-            durable=True, exclusive=False, auto_delete=False)
-    channel.queue_declare(args.representations, passive=False,
-            durable=True, exclusive=False, auto_delete=False)
-    channel.queue_declare(args.sources, passive=False,
-            durable=True, exclusive=False, auto_delete=False)
+            @prometheus_summary("os2datascanner_pipeline_processor",
+                    "Representations generated")
+            @json_event_processor
+            def message_received(body, channel):
+                nonlocal count
+                if count and args.cleanup_interval and (
+                        count % args.cleanup_interval) == 0:
+                    source_manager.clear()
 
-    channel.basic_consume(args.conversions, message_received)
+                try:
+                    return message_received_raw(body, channel,
+                            source_manager, args.representations, args.sources)
+                finally:
+                    count += 1
+            channel.basic_consume(args.conversions, message_received)
 
-    global source_manager
-    source_manager = SourceManager()
-
-    with prometheus_session(
-            str(getpid()),
-            args.prometheus_dir,
-            stage_type="processor"):
-        try:
-            print("Start")
-            notify_ready()
-            channel.start_consuming()
-        finally:
-            print("Stop")
-            notify_stopping()
-            channel.stop_consuming()
-            connection.close()
+            with prometheus_session(
+                    str(getpid()),
+                    args.prometheus_dir,
+                    stage_type="processor"):
+                try:
+                    print("Start")
+                    notify_ready()
+                    channel.start_consuming()
+                finally:
+                    print("Stop")
+                    notify_stopping()
+                    channel.stop_consuming()
 
 
 if __name__ == "__main__":
