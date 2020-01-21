@@ -63,7 +63,6 @@ def _restructure_and_save_result(result):
         report.data['metadata'] = None
         report.data['problems'] = []
 
-    import pdb; pdb.set_trace()
     # TODO: Make search for scan_tag more generic.
     if origin == 'os2ds_metadata':
         report.data['scan_tag'] = result.get('scan_tag')
