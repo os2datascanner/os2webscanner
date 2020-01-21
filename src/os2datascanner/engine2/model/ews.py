@@ -1,13 +1,14 @@
-from .core import (
-        Source, Handle, MailResource, SourceManager, ResourceUnavailableError)
-from .core.resource import MAIL_MIME
-
 import email
 import email.policy
 from datetime import datetime
 from exchangelib import Account, Credentials, IMPERSONATION, Configuration
 from exchangelib.protocol import BaseProtocol
-from exchangelib.errors import ErrorNonExistentMailbox
+from exchangelib.errors import ErrorServerBusy, ErrorNonExistentMailbox
+
+from ..utilities.backoff import run_with_backoff
+from .core import (
+        Source, Handle, MailResource, SourceManager, ResourceUnavailableError)
+from .core.resource import MAIL_MIME
 
 
 BaseProtocol.SESSION_POOLSIZE = 1
@@ -139,7 +140,11 @@ class EWSMailResource(MailResource):
         if not self._message:
             folder_id, mail_id = self._ids
             account = self._get_cookie()
-            self._message = account.root.get_folder(folder_id).get(id=mail_id)
+
+            def _retrieve_message():
+                return account.root.get_folder(folder_id).get(id=mail_id)
+            self._message, _ = run_with_backoff(
+                    _retrieve_message, ErrorServerBusy)
         return self._message
 
     def get_email_message(self):
