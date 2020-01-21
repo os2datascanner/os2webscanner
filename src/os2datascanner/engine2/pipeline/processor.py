@@ -126,6 +126,10 @@ def main():
             @json_event_processor
             def message_received(body, channel):
                 nonlocal count
+
+                if args.debug:
+                    print(channel, body)
+
                 if count and args.cleanup_interval and (
                         count % args.cleanup_interval) == 0:
                     source_manager.clear()
