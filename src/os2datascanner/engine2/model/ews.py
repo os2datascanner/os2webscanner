@@ -1,13 +1,14 @@
-from .core import (
-        Source, Handle, MailResource, SourceManager, ResourceUnavailableError)
-from .core.resource import MAIL_MIME
-
 import email
 import email.policy
+import chardet
 from datetime import datetime
 from exchangelib import Account, Credentials, IMPERSONATION, Configuration
 from exchangelib.protocol import BaseProtocol
 from exchangelib.errors import ErrorNonExistentMailbox
+
+from .core import (
+        Source, Handle, MailResource, SourceManager, ResourceUnavailableError)
+from .core.resource import MAIL_MIME
 
 
 BaseProtocol.SESSION_POOLSIZE = 1
@@ -148,7 +149,10 @@ class EWSMailResource(MailResource):
     def get_email_message(self):
         msg = self.get_message_object().mime_content
         if isinstance(msg, bytes):
-            msg = msg.decode("utf-8") # XXX: is this always correct?
+            # exchangelib seems not to (be able to?) give us any clues about
+            # message encoding, so try using chardet to work out what this is
+            detected = chardet.detect(msg)
+            msg = msg.decode(detected["encoding"])
         return email.message_from_string(msg, policy=email.policy.default)
 
     def compute_type(self):
