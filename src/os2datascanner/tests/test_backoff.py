@@ -56,10 +56,22 @@ class TestBackoff(unittest.TestCase):
                     max_tries=3)
 
     def test_impatient_failure2(self):
+        call_counter = 0
         with self.assertRaises(ImpatientClientFauxPas):
+
+            def _try_counting():
+                nonlocal call_counter
+                try:
+                    return self.fail_if_too_busy()
+                finally:
+                    call_counter += 1
             run_with_backoff(
-                    self.fail_if_too_busy, ImpatientClientFauxPas,
+                    _try_counting, ImpatientClientFauxPas,
                     base=0.0125)
+        self.assertEqual(
+                call_counter,
+                10,
+                "called the function too few times(?)")
 
     def test_memory(self):
         first_start = time()
