@@ -111,7 +111,7 @@ class EWSAccountSource(Source):
                     if headers:
                         yield EWSMailHandle(self,
                                 "{0}.{1}".format(folder.id, mail.id),
-                                headers["subject"])
+                                headers["subject"], folder.name)
 
         yield from relevant_mails(relevant_folders())
 
@@ -159,33 +159,37 @@ class EWSMailHandle(Handle):
     type_label = "ews"
     resource_type = EWSMailResource
 
-    # The mail subject is useful for presentation purposes, but not important
-    # when computing equality
+    # The mail subject and folder name are useful for presentation purposes,
+    # but not important when computing equality
     eq_properties = Handle.BASE_PROPERTIES
 
-    def __init__(self, source, path, mail_subject):
+    def __init__(self, source, path, mail_subject, folder_name=None):
         super().__init__(source, path)
         self._mail_subject = mail_subject
+        self._folder_name = folder_name
 
     @property
     def presentation(self):
-        return "\"{0}\" (in account {1})".format(
-                self._mail_subject, self.source.address)
+        return "\"{0}\" (in folder {1} of account {2})".format(
+                self._mail_subject,
+                self._folder_name or "(unknown folder)", self.source.address)
 
     def censor(self):
         return EWSMailHandle(
-                self.source.censor(), self.relative_path, self._mail_subject)
+                self.source.censor(), self.relative_path,
+                self._mail_subject, self._folder_name)
 
     def guess_type(self):
         return MAIL_MIME
 
     def to_json_object(self):
         return dict(**super().to_json_object(), **{
-            "mail_subject": self._mail_subject
+            "mail_subject": self._mail_subject,
+            "folder_name": self._folder_name
         })
 
     @staticmethod
     @Handle.json_handler(type_label)
     def from_json_object(obj):
         return EWSMailHandle(Source.from_json_object(obj["source"]),
-                obj["path"], obj["mail_subject"])
+                obj["path"], obj["mail_subject"], obj.get("folder_name"))
