@@ -26,7 +26,10 @@ def message_received_raw(body, channel, conversions_q, problems_q):
 
         with SourceManager() as sm:
             for handle in source.handles(sm):
-                print(handle.censor())
+                try:
+                    print(handle.censor())
+                except NotImplementedError:
+                    pass
                 yield (conversions_q, {
                     "scan_spec": body,
                     "handle": handle.to_json_object(),
