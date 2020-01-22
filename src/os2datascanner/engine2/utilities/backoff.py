@@ -1,9 +1,10 @@
+from sys import stderr
 from time import sleep
 
 
 def run_with_backoff(
         op, *exception_set,
-        count=0, max_tries=10, ceiling=6, base=1):
+        count=0, max_tries=10, ceiling=6, base=1, warn_after=6):
     """Performs an operation until it succeeds (or until the maximum number of
     attempts is hit), with exponential backoff after each failure. On success,
     returns a (result, parameters) pair; expanding the parameters dictionary
@@ -27,7 +28,20 @@ def run_with_backoff(
                 count += 1
                 if count == max_tries:
                     # ... but we've exhausted our maximum attempts
+                    if warn_after and count >= warn_after:
+                        print("warning: while executing {0}"
+                                " with backoff: failed {1} times,"
+                                " giving up".format(
+                                        str(op), count),
+                                file=stderr)
                     raise
+                elif warn_after and count >= warn_after:
+                    max_delay = base * (2 ** (min(count, ceiling) - 1))
+                    print("warning: while executing {0}"
+                            " with backoff: failed {1} times,"
+                            " delaying for {2} seconds".format(
+                                    str(op), count, max_delay),
+                            file=stderr)
             else:
                 # This is not a backoff exception -- raise it immediately
                 raise
