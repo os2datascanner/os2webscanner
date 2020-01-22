@@ -4,7 +4,7 @@ from time import sleep
 
 def run_with_backoff(
         op, *exception_set,
-        count=0, max_tries=10, ceiling=6, base=1, warn_after=6):
+        count=0, max_tries=10, ceiling=7, base=1, warn_after=6):
     """Performs an operation until it succeeds (or until the maximum number of
     attempts is hit), with exponential backoff after each failure. On success,
     returns a (result, parameters) pair; expanding the parameters dictionary
