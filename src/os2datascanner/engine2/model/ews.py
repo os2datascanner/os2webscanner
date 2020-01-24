@@ -2,7 +2,8 @@ import email
 import email.policy
 import chardet
 from datetime import datetime
-from exchangelib import Account, Credentials, IMPERSONATION, Configuration
+from exchangelib import (Account,
+        Credentials, IMPERSONATION, Configuration, FaultTolerance)
 from exchangelib.protocol import BaseProtocol
 from exchangelib.errors import ErrorServerBusy, ErrorNonExistentMailbox
 
@@ -70,20 +71,19 @@ class EWSAccountSource(Source):
         return "{0}@{1}".format(self.user, self.domain)
 
     def _generate_state(self, sm):
-        config = None
         service_account = Credentials(
                 username=self._admin_user, password=self._admin_password)
-        if self._server is not None:
-            config = Configuration(
-                    service_endpoint=self._server,
-                    credentials=service_account)
+        config = Configuration(retry_policy=FaultTolerance(max_wait=1800))
+        if self._server:
+            config.service_endpoint = self._server
+            config.credentials = service_account
 
         try:
             account = Account(
                     primary_smtp_address=self.address,
                     credentials=service_account,
                     config=config,
-                    autodiscover=not bool(config),
+                    autodiscover=not bool(self._server),
                     access_type=IMPERSONATION)
         except ErrorNonExistentMailbox as e:
             raise ResourceUnavailableError(self, e.args)
