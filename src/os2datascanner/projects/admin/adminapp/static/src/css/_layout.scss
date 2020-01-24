@@ -1,0 +1,41 @@
+html {
+  background-color: var(--color-body-bg);
+}
+
+body {
+  padding: 0;
+}
+
+.page {
+  padding: var(--size-ds-unit);
+}
+
+.wrapper {
+  margin: 0 auto 0 calc(var(--size-logo-width));
+  max-width: 90%;
+  min-height: calc(100vh - 9rem - var(--size-ds-unit) * 2);
+  /* 
+    Banner = 4rem
+    Footer = 5rem
+    -------------
+      Total: 9rem
+    -------------
+    -------------
+  */
+  padding: 2rem 0;
+}
+
+.wrapper > *:first-child {
+  margin-top: 0;
+}
+
+.login {
+  background-color: var(--color-main);
+
+  .wrapper {
+    margin: 0;
+    max-width: initial;
+    min-height: initial;
+    padding: 0;
+  }
+}

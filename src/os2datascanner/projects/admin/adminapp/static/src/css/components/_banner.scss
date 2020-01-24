@@ -1,0 +1,32 @@
+.banner {
+  background-color: var(--color-header-bg);
+  box-shadow: var(--box-shadow);
+  display: grid;
+  grid-template-columns: var(--size-logo-width) auto auto;
+  line-height: 1;
+  position: sticky;
+  top: var(--size-ds-unit);
+  transition: background-color 0.2s ease-in-out;
+  z-index: 99;
+
+  &:hover {
+    background-color: #fff;
+  }
+}
+
+.banner .logo {
+  background-color: rgba(0, 0, 0, 0.05);
+  height: var(--size-logo-height);
+  padding: 1rem;
+  width: var(--size-logo-width);
+}
+
+.banner .navigation {
+  padding: 1rem;
+}
+
+.banner .user {
+  margin-right: 1rem;
+  padding: 1rem 1rem 1rem 0;
+  text-align: right;
+}

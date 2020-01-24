@@ -19,6 +19,9 @@
   {% block extra_head_html %}{% endblock %}
 </head>
 <body>
+
+  {% include "components/banner.html" with active_tab="home" %}
+
   {% block topnav %}
   <div class="navbar navbar-inverse" role="navigation">
     <div class="container">
