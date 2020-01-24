@@ -26,10 +26,7 @@
 }
 
 .navigation a.active::after,
+.navigation a:focus::after, 
 .navigation a:hover::after {
   transform: scale(1);
-}
-
-.navigation a.router-link-exact-active {
-  color: var(--color-main);
 }

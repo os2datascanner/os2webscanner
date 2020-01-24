@@ -33,10 +33,11 @@
   }
 
   .tooltip {
-    position: relative;
     display: inline-block;
+    opacity: 1; // Can be removed once we get rid of Bootstrap
+    position: relative; // Can be removed once we get rid of Bootstrap
   }
-  
+
   .tooltip .tooltiptext {
     visibility: hidden;
     width: 3.5rem;
