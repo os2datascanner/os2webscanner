@@ -14,8 +14,10 @@
   <link href="{% static "css/bootstrap.min.css" %}" rel="stylesheet" />
   {% else %}
   <link href="{% static "css/bootstrap.css" %}" rel="stylesheet" />
+  <link href="{% static "dist/bundle.css" %}" rel="stylesheet" />
   {% endif %}
   <link href="{% static "css/webscanner.css" %}" rel="stylesheet" />
+  <link href="{% static "dist/bundle.css" %}" rel="stylesheet" />
   {% block extra_head_html %}{% endblock %}
 </head>
 <body>
@@ -127,6 +129,7 @@
   <script src="{% static "js/bootstrap.js" %}"></script>
   {% endif %}
   <script src="{% static "js/main.js" %}"></script>
+  <script src="{% static "dist/bundle.js" %}"></script>
   {% block jquery_script %}{% endblock %}
 </body>
 </html>
