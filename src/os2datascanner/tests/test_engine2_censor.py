@@ -5,6 +5,8 @@ from os2datascanner.engine2.model.ews import (
 from os2datascanner.engine2.model.smb import SMBSource, SMBHandle
 from os2datascanner.engine2.model.smbc import SMBCSource, SMBCHandle
 from os2datascanner.engine2.model.derived.zip import ZipSource, ZipHandle
+from os2datascanner.engine2.model.derived.filtered import (
+        GzipSource, FilteredHandle)
 
 
 class CensorTests(unittest.TestCase):
@@ -30,17 +32,27 @@ class CensorTests(unittest.TestCase):
                 self.assertIsNone(handle.source._user)
 
     def test_nested_censoring(self):
-        handle = ZipHandle(
-                ZipSource(
-                        SMBCHandle(
-                                SMBCSource(
-                                        "//SERVER/Resource",
-                                        "username", driveletter="W"),
-                                "Confidential Documents.zip")),
-                "doc/Personal Information.docx")
+        example_handles = [
+            ZipHandle(
+                    ZipSource(
+                            SMBCHandle(
+                                    SMBCSource(
+                                            "//SERVER/Resource",
+                                            "username", driveletter="W"),
+                                    "Confidential Documents.zip")),
+                    "doc/Personal Information.docx"),
+            FilteredHandle(
+                    GzipSource(
+                            SMBHandle(
+                                    SMBSource(
+                                            "//SERVER/usr", "username"),
+                                    "share/doc/coreutils"
+                                    "/changelog.Debian.gz")),
+                    "changelog.Debian"),
+        ]
 
-        self.assertIsNotNone(handle.source.handle.source._user)
-
-        handle = handle.censor()
-
-        self.assertIsNone(handle.source.handle.source._user)
+        for handle in example_handles:
+            with self.subTest(handle):
+                self.assertIsNotNone(handle.source.handle.source._user)
+                handle = handle.censor()
+                self.assertIsNone(handle.source.handle.source._user)

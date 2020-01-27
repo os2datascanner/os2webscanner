@@ -100,6 +100,9 @@ class SourceManager:
         return self
 
     def __exit__(self, exc_type, exc_value, backtrace):
+        self.clear()
+
+    def clear(self):
         """Closes all of the cookies returned by Sources that were opened in
         this SourceManager."""
         try:
@@ -107,7 +110,7 @@ class SourceManager:
                 generator, _ = self._opened[k]
                 if not generator and not self._ro:
                     raise TypeError(
-                            "BUG: __exit__ on a normal SourceManager"
+                            "BUG: clear() on a normal SourceManager"
                             + " encountered a None generator!")
                 else:
                     generator.close()

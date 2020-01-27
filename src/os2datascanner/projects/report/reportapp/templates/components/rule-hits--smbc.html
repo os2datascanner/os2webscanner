@@ -1,33 +1,45 @@
-{% for match_by_type in matches_by_type %}
-    {% for rule in match_by_type.data.matches.matches %}
-        {% for match in rule.matches %}
-            <tr tabindex="0">
-              <td class="datatable__column--filetype-icon">
-                <span class="icon-filetype icon-filetype--smbc">
-                  {% include "components/svg-icons/icon-office365.html" %}
-                </span>
-              </td>
-              <td class="datatable__column--item">
-                <span class="scan__item-title"></span>
+{% for rule in match_by_type.data.matches.matches %}
+    {% for match in rule.matches %}
+        <tr tabindex="0">
+          <td class="datatable__column--filetype-icon">
+            <span class="icon-filetype icon-filetype--smbc">
+              {% include "components/svg-icons/icon-office365.html" %}
+            </span>
+          </td>
+          <td class="datatable__column--item">
+            <span class="scan__item-title">{{ match_by_type.data.matches.handle.path }}</span>
 
-                <div class="scan__item-meta">
-                  <span class="">{{ match_by_type.data.matches.handle.path }}</span>
-                </div>
+            <div class="scan__item-meta">
+              <span class="">{{ match_by_type.data.matches.handle.path }}</span>
+            </div>
 
                 <div class="hit-link">
-                  <!-- <a href="#" class="hit-link__file">Open file</a> -->
-                  <a href="#" class="hit-link__folder">Open folder</a>
-                  <a href="#" class="hit-link__folder">Copy location</a>
+                  <input type="text" class="phantom" value="{{ match_by_type.data.matches.handle.path }}" />
+                  <button class="hit-link__folder">Copy location</button>
                 </div>
               </td>
 
-              <td class="datatable__column--match">{{ match.match }}</td>
-
-              <td class="datatable__column--context">
-                  {{ match.context }}
-{#                    1234xx-xxxx, <mark>2345xx-xxxx</mark>, 1212xx-xxxx, 2123xx-xxxx#}
-              </td>
-            </tr>
-        {% endfor %}
+          <td class="datatable__column--match">{{ match.match }}</td>
+{#                                1234xx-xxxx, <mark>2345xx-xxxx</mark>, 1212xx-xxxx, 2123xx-xxxx#}
+          <td class="datatable__column--context">
+              {{ match.context }}
+          </td>
+        </tr>
     {% endfor %}
 {% endfor %}
+
+<script type="text/javascript">
+
+  function copy() {
+    var copyText = document.querySelector("input[type='text'].phantom")
+      copyText.classList.remove("phantom")
+      copyText.select()
+      document.execCommand("copy")
+      copyText.classList.add("phantom")
+  }
+
+  document.querySelectorAll(".hit-link__folder").forEach(function(c) {
+    c.addEventListener("click", copy)
+  })
+
+</script>

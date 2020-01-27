@@ -44,6 +44,7 @@ function copy_to_prod_dir()
         --exclude "python-env/" \
         --exclude '*.pyc' \
         --exclude "src/os2datascanner/projects/admin/local_settings.py" \
+        --exclude "src/os2datascanner/projects/report/local_settings.py" \
         "$repo_dir"/ "$prod_dir"
     echo 'Done Copying.'
 }
