@@ -404,7 +404,6 @@ iframe-modal
   <ul class="nav nav-tabs" id="scanner-settings-tabs">
     <li class="active"><a href="#rules" data-toggle="tab">Regler</a></li>
     <li><a href="#interval" data-toggle="tab">Interval</a></li>
-    <li><a href="#recipients" data-toggle="tab">Modtagere</a></li>
   </ul>
   <div class="tab-content">
     <div class="tab-pane active" id="rules">
@@ -544,16 +543,10 @@ iframe-modal
     <div class="tab-pane" id="interval">
       <div class="col-sm-12 form-group">
         <div id="id_schedule_container">
-          <div>
-            <div><label for="id_schedule">Planlagt afvikling:</label></div>
-            <div class="recurrence-widget">
-              <div class="control"></div>
-            </div>
-            <div class="panels"></div>
-          </div>
+          <div><label for="id_schedule">Planlagt afvikling:</label></div>
           <textarea name="schedule" cols="40" rows="10" class="recurrence-widget" id="id_schedule" style="display: none;"></textarea>
           <script type="text/javascript">recurrence.language_code ='da';new recurrence.widget.Widget('id_schedule', {});</script>
-        </div>
+        </script>
           <div id="id_schedule_errors"></div>
       </div>
     </div>
@@ -573,43 +566,12 @@ iframe-modal
       </p>
       {% endif %}
     </div>
-    <div class="tab-pane" id="recipients">
-      <div id="{{ form.recipients.auto_id }}_container"
-           class="col-sm-12{% if form.recipients.errors %} has-error{% endif %}">
-        <div class="form-group">
-          <label class="control-label" for="id_{{ form.recipients.name }}">
-              {{ form.recipients.label }}
-          </label>
-          <select name="{{ form.recipients.name }}" id="id_{{ form.recipients.name }}"
-                  class="form-control" multiple="multiple">
-            {% for value, tag in form.recipients.field.choices %}
-                <option value="{{ value }}"
-                        {% for val in form.recipients.value %}
-                            {% if val == value %}
-                                selected="selected"
-                            {% endif %}
-                        {% endfor %}>
-                    {{ tag }}
-                </option>
-            {% endfor %}
-          </select>
-          {% if form.recipients.errors %}
-            {{ form.recipients.errors }}
-          {% endif %}
-          {% if form.recipients.help_text %}
-              <p>
-                <small>{{ form.recipients.help_text }}</small>
-              </p>
-          {% endif %}
-        </div>
-      </div>
-    </div>
   </div>
   <div class="col-sm-12">
     <div class="form-group">
       <button type="submit" class="btn btn-primary" name="save">
-                Gem ændringer
-            </button>
+          Gem ændringer
+      </button>
     </div>
   </div>
 </form>
