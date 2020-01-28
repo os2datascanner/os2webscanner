@@ -9,13 +9,14 @@ iframe-modal
 {% block extra_head_html %}
 <link href="{% static 'recurrence/css/recurrence.css' %}" rel="stylesheet" />
 <script type="text/javascript" src="/jsi18n/"></script>
-<script type="text/javascript" src="{% static 'recurrence/js/recurrence.js' %}"></script>
-<script type="text/javascript" src="{% static 'recurrence/js/recurrence-widget.js' %}"></script>
 <!-- BEGIN Admin scripts and CSS to render filter_horizontal -->
 <script type="text/javascript" src="/admin/jsi18n/"></script>
 <script type="text/javascript" src="{% static 'admin/js/core.js' %}"></script>
 <script type="text/javascript" src="{% static 'admin/js/vendor/jquery/jquery.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'admin/js/jquery.init.js' %}"></script>
+<script type="text/javascript" src="{% static 'recurrence/js/recurrence.js' %}"></script>
+<script type="text/javascript" src="{% static 'recurrence/js/recurrence-widget.js' %}"></script>
+<script type="text/javascript" src="{% static 'recurrence/js/recurrence-widget.init.js' %}"></script>
 <script type="text/javascript" src="{% static 'admin/js/SelectFilter2.js' %}"></script>
 <script type="text/javascript" src="{% static 'admin/js/SelectBox.js' %}"></script>
 <link rel="stylesheet" type="text/css" href="{% static 'admin/css/widgets.css' %}" />
@@ -542,14 +543,6 @@ iframe-modal
     </div>
     <div class="tab-pane" id="interval">
       <div class="col-sm-12 form-group">
-        <div id="id_schedule_container">
-          <div><label for="id_schedule">Planlagt afvikling:</label></div>
-          <textarea name="schedule" cols="40" rows="10" class="recurrence-widget" id="id_schedule" style="display: none;"></textarea>
-          <script type="text/javascript">recurrence.language_code ='da';new recurrence.widget.Widget('id_schedule', {});</script>
-        </script>
-          <div id="id_schedule_errors"></div>
-      </div>
-    </div>
       <div id="{{ form.schedule.auto_id }}_container">
         <div>{{ form.schedule.help_text }}</div>
         <div>
@@ -565,6 +558,7 @@ iframe-modal
         Scanneren vil starte på følgende tidspunkt på de valgte dage:<br /> {{ object.get_start_time }}
       </p>
       {% endif %}
+      </div>
     </div>
   </div>
   <div class="col-sm-12">
