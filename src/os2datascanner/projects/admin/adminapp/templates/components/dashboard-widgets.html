@@ -1,0 +1,16 @@
+<div class="dashboard-widgets">
+  {% if settings.ENABLE_WEBSCAN %}
+  <a href="/webscanners/" class="dashboard-widget">
+  {% elif settings.ENABLE_FILESCAN %}
+  <a href="/filescanners/" class="dashboard-widget">
+  {% elif settings.ENABLE_EXCHANGESCAN %}
+  <a href="/exchangescanners/" class="dashboard-widget">
+  {% endif %}Scannerjob</a>
+  
+  <a href="/rules/" class="dashboard-widget">Regler</a>
+  <a href="/reports/" class="dashboard-widget">Rapporter</a>
+  
+  {% if user.is_superuser or user.is_staff %}
+  <a href="/admin/" class="dashboard-widget">Admin</a>
+  {% endif %}
+</div>

@@ -22,12 +22,9 @@
 <body class="{{ body_class|default:'page' }}">
 
   {% include "components/banner.html" with active_tab="home" %}
+  {% block body %}
+  {% endblock %}
 
-  <div class="container">
-    <h1 id="page-title">{% block heading %}{% endblock %}</h1>
-  </div>
-    {% block body %}
-    {% endblock %}
   <div>
     <!-- Modal dialog -->
     {% block modal %}

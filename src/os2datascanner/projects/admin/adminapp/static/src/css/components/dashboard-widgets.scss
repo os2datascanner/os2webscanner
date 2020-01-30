@@ -1,0 +1,25 @@
+.dashboard-widgets {
+  display: grid;
+  gap: var(--size-ds-unit);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr) ) ;
+}
+
+.dashboard-widget {
+  background-color: var(--color-main);
+  color: #fff;
+  display: inline-block;
+  font-weight: bold;
+  line-height: 1;
+  opacity: 0.9;
+  padding: 2rem;
+  padding-top: 4rem;
+  text-decoration: none;
+  transition: var(--transition-default);
+
+  &:focus,
+  &:hover {
+    color: #fff;
+    text-decoration: none;
+    opacity: 1;
+  }
+}
