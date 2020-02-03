@@ -1,10 +1,93 @@
 {% extends 'os2datascanner/base.html' %}
-  {% block body %}
 
-  <div class="wrapper">
-    <h1>Designguide</h1>
+{%  block title %}
+Designguide
+{% endblock %}
 
+{% block body %}
+
+<div class="wrapper">
+  <h1>Designguide</h1>
+
+  <article>
+    <h2>Icons:</h2>
+    <p>
+<pre>
+&lt;svg class="icon"&gt;
+  &lt;use xlink:href="/static/src/svg/symbol-defs.svg#icon-pencil"&gt;&lt;/use&gt;
+&lt;/svg&gt;
+</pre>
+    </p>
+
+    <svg class="icon">
+      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-pencil"></use>
+    </svg>
+    <svg class="icon">
+      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-hour-glass"></use>
+    </svg>
+    <svg class="icon">
+      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-spinner1"></use>
+    </svg>
+    <svg class="icon">
+      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-spinner2"></use>
+    </svg>
+    <svg class="icon">
+      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-search"></use>
+    </svg>
+    <svg class="icon">
+      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-cog"></use>
+    </svg>
+    <svg class="icon">
+      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-plus"></use>
+    </svg>
+    <svg class="icon">
+      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-minus"></use>
+    </svg>
+    <svg class="icon">
+      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-cross"></use>
+    </svg>
+    <svg class="icon">
+      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-checkmark"></use>
+    </svg>
+    <svg class="icon">
+      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-checkmark2"></use>
+    </svg>
+    <svg class="icon">
+      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-play"></use>
+    </svg>
+    <svg class="icon">
+      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-pause"></use>
+    </svg>
+    <svg class="icon">
+      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-stop"></use>
+    </svg>
+    <svg class="icon">
+      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-loop"></use>
+    </svg>
+    <svg class="icon">
+      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-circle-up"></use>
+    </svg>
+    <svg class="icon">
+      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-circle-down"></use>
+    </svg>
+    <svg class="icon">
+      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-circle-left"></use>
+    </svg>
+    <svg class="icon">
+      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-circle-right"></use>
+    </svg>
+    <svg class="icon">
+      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-embed"></use>
+    </svg>
+
+  </article>
+
+  <article>
     <h2>Datatable:</h2>
+    <p>
+<pre>&lt;table class="datatable"&gt;...&lt;/table&gt;</pre>
+    </p>
+
     <table class="datatable">
       <thead>
         <tr>
@@ -17,7 +100,7 @@
       </thead>
 
       <tbody>
-        <tr>
+        <tr tabindex="0">
           <td>Firstname Lastname</td>
           <td>Lead Something-fancy</td>
           <td>Badass org.</td>
@@ -26,8 +109,37 @@
         </tr>
       </tbody>
     </table>
-  </div>
+  </article>
 
-  {% endblock %}
+  <article>
+    <h2>Datatable (wide):</h2>
+    <p>
+<pre>&lt;table class="datatable"&gt;...&lt;/table&gt;</pre>
+    </p>
+    <table class="datatable datatable--wide">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Title</th>
+          <th>Org.</th>
+          <th>Summary</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr tabindex="0">
+          <td>Firstname Lastname</td>
+          <td>Lead Something-fancy</td>
+          <td>Badass org.</td>
+          <td>Lorem ipsum dolor sit amet consectetur, adipisicing elit.</td>
+          <td>Verified!</td>
+        </tr>
+      </tbody>
+    </table>
+  </article>
+</div>
+
+{% endblock %}
 
 {% block index_active %}active{% endblock %}
