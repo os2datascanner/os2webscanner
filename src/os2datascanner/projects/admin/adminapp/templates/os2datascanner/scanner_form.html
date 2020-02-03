@@ -9,13 +9,14 @@ iframe-modal
 {% block extra_head_html %}
 <link href="{% static 'recurrence/css/recurrence.css' %}" rel="stylesheet" />
 <script type="text/javascript" src="/jsi18n/"></script>
-<script type="text/javascript" src="{% static 'recurrence/js/recurrence.js' %}"></script>
-<script type="text/javascript" src="{% static 'recurrence/js/recurrence-widget.js' %}"></script>
 <!-- BEGIN Admin scripts and CSS to render filter_horizontal -->
 <script type="text/javascript" src="/admin/jsi18n/"></script>
 <script type="text/javascript" src="{% static 'admin/js/core.js' %}"></script>
 <script type="text/javascript" src="{% static 'admin/js/vendor/jquery/jquery.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'admin/js/jquery.init.js' %}"></script>
+<script type="text/javascript" src="{% static 'recurrence/js/recurrence.js' %}"></script>
+<script type="text/javascript" src="{% static 'recurrence/js/recurrence-widget.js' %}"></script>
+<script type="text/javascript" src="{% static 'recurrence/js/recurrence-widget.init.js' %}"></script>
 <script type="text/javascript" src="{% static 'admin/js/SelectFilter2.js' %}"></script>
 <script type="text/javascript" src="{% static 'admin/js/SelectBox.js' %}"></script>
 <link rel="stylesheet" type="text/css" href="{% static 'admin/css/widgets.css' %}" />
@@ -404,7 +405,6 @@ iframe-modal
   <ul class="nav nav-tabs" id="scanner-settings-tabs">
     <li class="active"><a href="#rules" data-toggle="tab">Regler</a></li>
     <li><a href="#interval" data-toggle="tab">Interval</a></li>
-    <li><a href="#recipients" data-toggle="tab">Modtagere</a></li>
   </ul>
   <div class="tab-content">
     <div class="tab-pane active" id="rules">
@@ -543,7 +543,6 @@ iframe-modal
     </div>
     <div class="tab-pane" id="interval">
       <div class="col-sm-12 form-group">
-      </div>
       <div id="{{ form.schedule.auto_id }}_container">
         <div>{{ form.schedule.help_text }}</div>
         <div>
@@ -559,44 +558,14 @@ iframe-modal
         Scanneren vil starte på følgende tidspunkt på de valgte dage:<br /> {{ object.get_start_time }}
       </p>
       {% endif %}
-    </div>
-    <div class="tab-pane" id="recipients">
-      <div id="{{ form.recipients.auto_id }}_container"
-           class="col-sm-12{% if form.recipients.errors %} has-error{% endif %}">
-        <div class="form-group">
-          <label class="control-label" for="id_{{ form.recipients.name }}">
-              {{ form.recipients.label }}
-          </label>
-          <select name="{{ form.recipients.name }}" id="id_{{ form.recipients.name }}"
-                  class="form-control" multiple="multiple">
-            {% for value, tag in form.recipients.field.choices %}
-                <option value="{{ value }}"
-                        {% for val in form.recipients.value %}
-                            {% if val == value %}
-                                selected="selected"
-                            {% endif %}
-                        {% endfor %}>
-                    {{ tag }}
-                </option>
-            {% endfor %}
-          </select>
-          {% if form.recipients.errors %}
-            {{ form.recipients.errors }}
-          {% endif %}
-          {% if form.recipients.help_text %}
-              <p>
-                <small>{{ form.recipients.help_text }}</small>
-              </p>
-          {% endif %}
-        </div>
       </div>
     </div>
   </div>
   <div class="col-sm-12">
     <div class="form-group">
       <button type="submit" class="btn btn-primary" name="save">
-                Gem ændringer
-            </button>
+          Gem ændringer
+      </button>
     </div>
   </div>
 </form>
