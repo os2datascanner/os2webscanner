@@ -10,6 +10,10 @@
   table-layout: fixed;
   width: calc(100% - 2rem);
 
+  &--wide {
+    max-width: none;
+  }
+
   &__column {
     &--label {
       width: auto;

@@ -14,4 +14,12 @@
     font-weight: bold;
     padding: 1em;
   }
+
+  &--small {
+    padding: 0.5em;
+  }
+}
+
+.button svg {
+  vertical-align: bottom;
 }

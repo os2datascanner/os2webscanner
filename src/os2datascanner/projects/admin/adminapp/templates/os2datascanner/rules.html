@@ -8,13 +8,17 @@ Regler
 <div class="wrapper">
   <h2 style="display: inline-block;">Regulær udtryk-regler</h2>
   <button 
-    class="button button--add button--cta button--round" 
+    class="button button--add button--cta button--small button--round" 
     title="Tilføj ny"
     type="button" 
     onclick="os2web.iframeDialog(
       '#create-rule-modal',
       '/rules/regex/add/',
-      'Tilføj ny regulær udtryk-regel')">+</button>
+      'Tilføj ny regulær udtryk-regel')">
+    <svg class="icon">
+      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-plus"></use>
+    </svg>
+  </button>
 
   <table class="datatable">
     <thead>
@@ -54,7 +58,10 @@ Regler
         </td>
         <td>{{ rule.get_sensitivity_display }}</td>
         <td>
-          <button type="button" class="btn btn-default btn-xs btn-rule-settings" onclick="os2web.iframeDialog(
+          <button 
+            type="button" 
+            class="btn btn-default btn-xs btn-rule-settings" 
+            onclick="os2web.iframeDialog(
               &quot;#edit-rule-modal&quot;,
               &quot;/rules/regex/{{rule.pk}}&quot;,
               &quot;Redigér regulær udtryk-regel '{{rule.name}}'&quot;
@@ -72,13 +79,17 @@ Regler
 
   <h2 style="display: inline-block;">CPR-regler</h2>
   <button 
-    class="button button--add button--cta button--round" 
+    class="button button--add button--cta button--small button--round" 
     title="Tilføj ny"
     type="button" 
     onclick="os2web.iframeDialog(
       '#create-rule-modal',
       '/rules/cpr/add/',
-      'Tilføj ny CPR-regel')">+</button>
+      'Tilføj ny CPR-regel')">
+    <svg class="icon">
+      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-plus"></use>
+    </svg>
+  </button>
 
   <table class="datatable">
     <thead>
