@@ -1,0 +1,17 @@
+.button {
+  background-color: #fff;
+  border: none;
+  line-height: 1;
+  text-decoration: none;
+
+  &--round {
+    border-radius: 50%;
+  }
+
+  &--cta {
+    background-color: var(--color-main);
+    color: #fff;
+    font-weight: bold;
+    padding: 1em;
+  }
+}
