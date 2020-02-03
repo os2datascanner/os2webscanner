@@ -6,13 +6,15 @@ Regler
 
 {% block body %}
 <div class="wrapper">
-  <h2>Regulær udtryk-regler</h2>
-  <button type="button" class="btn btn-default" onclick="os2web.iframeDialog(
-          '#create-rule-modal',
-          '/rules/regex/add/',
-          'Tilføj ny regulær udtryk-regel')">
-    Tilføj ny
-  </button>
+  <h2 style="display: inline-block;">Regulær udtryk-regler</h2>
+  <button 
+    class="button button--add button--cta button--round" 
+    title="Tilføj ny"
+    type="button" 
+    onclick="os2web.iframeDialog(
+      '#create-rule-modal',
+      '/rules/regex/add/',
+      'Tilføj ny regulær udtryk-regel')">+</button>
 
   <table class="datatable">
     <thead>
@@ -68,13 +70,15 @@ Regler
     </tbody>
   </table>
 
-  <h2>CPR-regler</h2>
-  <button type="button" class="btn btn-default" onclick="os2web.iframeDialog(
-          '#create-rule-modal',
-          '/rules/cpr/add/',
-          'Tilføj ny CPR-regel')">
-    Tilføj ny
-  </button>
+  <h2 style="display: inline-block;">CPR-regler</h2>
+  <button 
+    class="button button--add button--cta button--round" 
+    title="Tilføj ny"
+    type="button" 
+    onclick="os2web.iframeDialog(
+      '#create-rule-modal',
+      '/rules/cpr/add/',
+      'Tilføj ny CPR-regel')">+</button>
 
   <table class="datatable">
     <thead>
@@ -90,6 +94,7 @@ Regler
         <th>Handling</th>
       </tr>
     </thead>
+
     <tbody>
       {% for rule in cprrule_list %}
       <tr tabindex="0">
@@ -110,12 +115,14 @@ Regler
         </td>
         <td>{{ rule.get_sensitivity_display }}</td>
         <td>
-          <button type="button" class="btn btn-default btn-xs btn-rule-settings" onclick="os2web.iframeDialog(
-                &quot;#edit-rule-modal&quot;,
-                &quot;/rules/cpr/{{rule.pk}}&quot;,
-                &quot;Redigér CPR-regel '{{rule.name}}'&quot;
-                )">Redigér
-          </button>
+          <button 
+            type="button" 
+            class="btn btn-default btn-xs btn-rule-settings" 
+            onclick="os2web.iframeDialog(
+              &quot;#edit-rule-modal&quot;,
+              &quot;/rules/cpr/{{rule.pk}}&quot;,
+              &quot;Redigér CPR-regel '{{rule.name}}'&quot;
+              )">Redigér</button>
           <a href="/rules/cpr/{{rule.pk}}/delete/" class="btn btn-default btn-xs">Slet</a>
         </td>
       </tr>
