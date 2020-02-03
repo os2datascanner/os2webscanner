@@ -40,3 +40,8 @@
 .button svg {
   vertical-align: bottom;
 }
+
+.button svg + span, 
+.button span + svg {
+    margin-left: 0.5em;
+}
