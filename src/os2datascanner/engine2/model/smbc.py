@@ -34,11 +34,10 @@ class SMBCSource(Source):
 
     def _generate_state(self, sm):
         c = smbc.Context()
-        try:
-            yield (self._to_url(), c)
-        finally:
-            # Brutal, but apparently necessary to shut the connection down...
-            del c
+        # Session cleanup for pysmbc is handled by the Python garbage
+        # collector (groan...), so it's *critical* that no objects have a live
+        # reference to this smbc.Context when this function completes
+        yield (self._to_url(), c)
 
     def censor(self):
         return SMBCSource(self.unc, None, None, None, self.driveletter)
@@ -136,9 +135,19 @@ class _SMBCFile(io.RawIOBase):
         raise TypeError("_SMBCFile is read-only")
 
     def close(self):
-        r = self._file.close()
-        if r and r < 0:
-            raise IOError("Failed to close {0}".format(self), r)
+        if self._file:
+            try:
+                # XXX: for now, we can't propagate this error back up, because
+                # we *need* this reference to be removed in all circumstances.
+                # See SMBCSource._generate_state for the gruesome details
+
+                # r = self._file.close()
+                # if r and r < 0:
+                #     raise IOError("Failed to close {0}".format(self), r)
+
+                self._file.close()
+            finally:
+                self._file = None
 
     def readable(self):
         return True
