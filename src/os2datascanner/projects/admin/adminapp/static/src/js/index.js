@@ -1,3 +1,3 @@
 import '../css/master.scss';
 
-console.log('Datasscanner sees all');
+console.log('Datascanner sees all');

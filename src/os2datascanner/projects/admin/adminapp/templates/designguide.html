@@ -9,87 +9,107 @@ Designguide
 <div class="wrapper">
   <h1>Designguide</h1>
 
-  <article>
+  <ol class="toc">
+    <li>
+      <a href="#icons">Icons</a>
+    </li>
+    <li>
+      <a href="#buttons">Buttons</a>
+    </li>
+    <li>
+      <a href="#datatable">Datatable</a>
+    </li>
+    <li>
+      <a href="#datatable--wide">Datatable (wide)</a>
+    </li>
+    <li>
+      <a href="#modal">Modal</a>
+    </li>
+    <li>
+      <a href="#tabs">Tabs</a>
+    </li>
+  </ol>
+
+  <article id="icons">
     <h2>Icons:</h2>
-    <p>
-<pre>
+
+    <pre>
 &lt;svg class="icon"&gt;
-  &lt;use xlink:href="/static/src/svg/symbol-defs.svg#icon-pencil"&gt;&lt;/use&gt;
+  &lt;use xlink:href="&#123;&#123; settings.ICON_SPRITE_URL &#125;&#125;#icon-pencil"&gt;&lt;/use&gt;
 &lt;/svg&gt;
 </pre>
-    </p>
 
-    <svg class="icon">
-      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-pencil"></use>
-    </svg>
-    <svg class="icon">
-      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-hour-glass"></use>
-    </svg>
-    <svg class="icon">
-      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-spinner"></use>
-    </svg>
-    <svg class="icon">
-      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-reload"></use>
-    </svg>
-    <svg class="icon">
-      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-search"></use>
-    </svg>
-    <svg class="icon">
-      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-cog"></use>
-    </svg>
-    <svg class="icon">
-      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-plus"></use>
-    </svg>
-    <svg class="icon">
-      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-minus"></use>
-    </svg>
-    <svg class="icon">
-      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-info"></use>
-    </svg>
-    <svg class="icon">
-      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-cross"></use>
-    </svg>
-    <svg class="icon">
-      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-checkmark"></use>
-    </svg>
-    <svg class="icon">
-      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-checkmark2"></use>
-    </svg>
-    <svg class="icon">
-      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-play"></use>
-    </svg>
-    <svg class="icon">
-      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-pause"></use>
-    </svg>
-    <svg class="icon">
-      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-stop"></use>
-    </svg>
-    <svg class="icon">
-      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-loop"></use>
-    </svg>
-    <svg class="icon">
-      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-circle-up"></use>
-    </svg>
-    <svg class="icon">
-      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-circle-down"></use>
-    </svg>
-    <svg class="icon">
-      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-circle-left"></use>
-    </svg>
-    <svg class="icon">
-      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-circle-right"></use>
-    </svg>
-    <svg class="icon">
-      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-embed"></use>
-    </svg>
-
+    <div>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-pencil"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-hour-glass"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-spinner"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-reload"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-search"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-cog"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-plus"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-minus"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-info"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-cross"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-checkmark1"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-checkmark2"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-play"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-pause"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-stop"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-loop"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-circle-up"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-circle-down"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-circle-left"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-circle-right"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-embed"></use>
+      </svg>
+    </div>
   </article>
 
-  <article>
+  <article id="buttons">
     <h2>Buttons:</h2>
 
-    <p>
-<pre>
+    <pre>
 &lt;button class="button" type="button"&gt;button&lt;/button&gt;
 &lt;button class="button button--cta" type="button"&gt;button--cta&lt;/button&gt;
 &lt;button class="button button--rounded" type="button"&gt;button--rounded&lt;/button&gt;
@@ -97,32 +117,29 @@ Designguide
 
 &lt;button class="button button--cta" type="button"&gt;
   &lt;svg class="icon"&gt;
-    &lt;use xlink:href="/static/src/svg/symbol-defs.svg#icon-pencil"&gt;&lt;/use&gt;
+    &lt;use xlink:href="&#123;&#123; settings.ICON_SPRITE_URL &#125;&#125;#icon-pencil"&gt;&lt;/use&gt;
   &lt;/svg&gt;
-  &lt;span&gt;button w. icon&lt;/span&gt;
+  &lt;button&gt;button w. icon&lt;/span&gt;
 &lt;/button&gt;
 </pre>
-    </p>
 
-    <p>
+    <div>
       <button class="button" type="button">button</button>
       <button class="button button--cta" type="button">button--cta</button>
       <button class="button button--cta button--rounded" type="button">button--rounded</button>
       <button class="button button--cta button--rounded button--small" type="button">button--small</button>
-
       <button class="button button--cta" type="button">
         <svg class="icon">
-          <use xlink:href="/static/src/svg/symbol-defs.svg#icon-pencil"></use>
+          <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-pencil"></use>
         </svg>
         <span>button w. icon</span></button>
-    </p>
+    </div>
   </article>
 
-  <article>
+  <article id="datatable">
     <h2>Datatable:</h2>
-    <p>
-<pre>&lt;table class="datatable"&gt;...&lt;/table&gt;</pre>
-    </p>
+
+    <pre>&lt;table class="datatable"&gt;...&lt;/table&gt;</pre>
 
     <table class="datatable">
       <thead>
@@ -147,11 +164,11 @@ Designguide
     </table>
   </article>
 
-  <article>
-    <h2>Datatable (wide):</h2>
-    <p>
-<pre>&lt;table class="datatable datatable--wide&gt;...&lt;/table&gt;</pre>
-    </p>
+  <article id="datatable--wide">
+    <h3>Datatable (wide):</h3>
+
+    <pre>&lt;table class="datatable datatable--wide&gt;...&lt;/table&gt;</pre>
+
     <table class="datatable datatable--wide">
       <thead>
         <tr>
@@ -174,6 +191,46 @@ Designguide
       </tbody>
     </table>
   </article>
+
+  <article id="modal">
+    <h2>Modal:</h2>
+
+    <div id="modal-component">
+      <button id="show-modal" class="button button--cta button--rounded">Show Modal</button>
+
+      <div id="myModal" class="ds-modal" role="dialog">
+        <div class="ds-modal__backdrop"></div>
+        <div class="ds-modal__wrapper">
+          <div class="ds-modal__content">
+            <button type="button" class="button button--modal-close">
+              <svg class="icon">
+                <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-cross"></use>
+              </svg>
+            </button>
+
+            <div class="ds-modal__content-header">
+              <h3>Lorem ipsum dolor sit amet consectetur adipisicing elit</h3>
+            </div>
+
+            <div class="ds-modal__content-body">
+              <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Natus possimus ea cumque. Assumenda illum tempora repellendus quasi in beatae, eaque omnis harum quo natus? Soluta iste natus aperiam alias officia?</p>
+            </div>
+
+            <div class="ds-modal__content-footer">
+              <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </article>
+
+  <article id="tabs">
+    <h2>Tabs:</h2>
+  </article>
+
 </div>
 
 {% endblock %}

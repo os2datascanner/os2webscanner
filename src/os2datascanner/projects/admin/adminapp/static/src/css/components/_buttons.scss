@@ -2,6 +2,7 @@
   background-color: #fff;
   background-color: rgba(0, 0, 0, 0.1);
   border: none;
+  font-size: 1rem;
   line-height: 1;
   padding: 0.5em;
   text-decoration: none;
@@ -34,6 +35,11 @@
 
   &--small {
     padding: 0.5em;
+  }
+
+  &--modal-close {
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 50%;
   }
 }
 
