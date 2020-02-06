@@ -1,85 +1,80 @@
-.ds-modal {
-  // display: none;
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  visibility: hidden;
-  transition-delay: 0.2s;
-  z-index: calc(var(--z-index-modal) - 1);
+.modal{
+  background-color: #fff;
+  display: none;
+  max-width: 60rem;
+  width: calc(100% - 2rem);
+  z-index: var(--z-index-modal);
 
   &__backdrop {
-    background-color: rgba(0, 0, 0, 0.8);
-    display: block;
-    opacity: 0;
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    transition: opacity 0.2s ease-in-out;
-
-    .ds-modal--open & {
-      opacity: 1;
-    }
-  }
-
-  &__wrapper {
     align-items: center;
+    background-color: rgba(0, 0, 0, 0.8);
     display: flex;
     justify-content: center;
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;  
-  }
-
-  &__content {
-    background-color: #fff;
-    max-width: 60rem;
-    opacity: 0;
-    transition: opacity 0.2s ease-in-out;
-    width: calc(100% - 2rem);
-    z-index: var(--z-index-modal);
-
-    .ds-modal--open & {
-      opacity: 1;
-      transition-delay: 0.4s;
-    }
-  }
-
-  &__content-header {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
-    padding: 1rem;
-
-    h3 {
-      margin: 0;
-    }
-  }
-  
-  &__content-body {
-    padding: 1rem;
-  }
-  
-  &__content-footer {
-    border-top: 1px solid rgba(0, 0, 0, 0.2);
-    padding: 1rem;
-
-    p {
-      margin: 0;
-    }
+    position: fixed;
+    top: 0; right: 0; bottom: 0; left: 0;
+    z-index: calc(var(--z-index-modal) - 1);
   }
 }
 
-.button--modal-close {
+.close-modal {
+  display: inline-block;
+  line-height: 1;
+  padding: 0.5rem;
   position: absolute;
   top: -1rem;
   right: -1rem;
-  z-index: 1;
 
   svg {
     fill: #fff;
+    height: 1rem;
+    vertical-align: middle;
+    width: 1rem;
+  }
+}
+
+.modal-spinner {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translateY(-50%) translateX(-50%);
+  padding: 12px 16px;
+  border-radius: 5px;
+  background-color: #111;
+  height: 20px;
+
+  & > div {
+    border-radius: 100px;
+    background-color: #fff;
+    height: 20px;
+    width: 2px;
+    margin: 0 1px;
+    display: inline-block;
+  
+    animation: sk-stretchdelay 1.2s infinite ease-in-out;
+  }
+
+  .rect2 {
+    animation-delay: -1.1s;
+  }
+
+  .rect3 {
+    animation-delay: -1.0s;
+  }
+
+  .rect4 {
+    animation-delay: -0.9s;
+  }
+}
+
+@keyframes sk-stretchdelay {
+  0%,
+  40%,
+  100% {
+    transform: scaleY(0.5);
+  }
+
+  20% {
+    transform: scaleY(1.0);
   }
 }

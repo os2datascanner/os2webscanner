@@ -11,8 +11,7 @@ module.exports = {
   // entry: './static/src/js/index.js',
   entry: {
     app: [
-      './static/src/js/index.js',
-      './static/src/js/modal.js'
+      './static/src/js/index.js'
     ]
   },
 
