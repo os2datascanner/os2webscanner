@@ -36,28 +36,23 @@ def message_received_raw(
         else:
             representation = convert(resource, required)
 
-        if representation:
-            if representation.parent:
-                # If the conversion also produced other values at the same
-                # time, then include all of those as well; they might also be
-                # useful for the rule engine
-                dv = {k.value: v.value
-                        for k, v in representation.parent.items()
-                        if isinstance(k, OutputType)}
-            else:
-                dv = {required.value: representation.value}
-
-            yield (representations_q, {
-                "scan_spec": body["scan_spec"],
-                "handle": body["handle"],
-                "progress": body["progress"],
-                "representations": encode_dict(dv)
-            })
+        if representation and representation.parent:
+            # If the conversion also produced other values at the same
+            # time, then include all of those as well; they might also be
+            # useful for the rule engine
+            dv = {k.value: v.value
+                    for k, v in representation.parent.items()
+                    if isinstance(k, OutputType)}
         else:
-            # If we get here, then we *did* have a conversion but it produced
-            # nothing. Is this a case that needs handling? (In particular,
-            # should we create, or cause to be created, a match message?)
-            pass
+            dv = {required.value: representation.value
+                    if representation else None}
+
+        yield (representations_q, {
+            "scan_spec": body["scan_spec"],
+            "handle": body["handle"],
+            "progress": body["progress"],
+            "representations": encode_dict(dv)
+        })
     except KeyError:
         # If we have a conversion we don't support, then check if the current
         # handle can be reinterpreted as a Source; if it can, then try again
