@@ -9,6 +9,7 @@ class OutputType(Enum):
     simple string identifiers that can be used in serialisation formats."""
     Text = "text" # str
     LastModified = "last-modified" # datetime.datetime
+    ImageDimensions = "image-dimensions" # (int, int)
 
     def encode_json_object(self, v):
         """Converts an object (of the appropriate type for this OutputType) to
@@ -17,6 +18,8 @@ class OutputType(Enum):
             return str(v)
         elif self == OutputType.LastModified:
             return _datetime_to_str(v)
+        elif self == OutputType.ImageDimensions:
+            return [int(v[0]), int(v[1])]
         else:
             raise TypeError(self.value)
 
@@ -27,6 +30,8 @@ class OutputType(Enum):
             return v
         elif self == OutputType.LastModified:
             return _str_to_datetime(v)
+        elif self == OutputType.ImageDimensions:
+            return (int(v[0]), int(v[1]))
         else:
             raise TypeError(self.value)
 
