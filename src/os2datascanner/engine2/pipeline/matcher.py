@@ -2,7 +2,7 @@ from os import getpid
 
 from ...utils.prometheus import prometheus_session
 from ..rules.rule import Rule
-from ..rules.types import decode_dict
+from ..conversions.types import decode_dict
 from .utilities import (notify_ready, pika_session, notify_stopping,
         prometheus_summary, json_event_processor, make_common_argument_parser)
 

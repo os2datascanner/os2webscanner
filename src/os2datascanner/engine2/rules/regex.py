@@ -1,11 +1,11 @@
 import re
 
+from ..conversions.types import OutputType
 from .rule import Rule, SimpleRule
-from .types import InputType
 
 
 class RegexRule(SimpleRule):
-    operates_on = InputType.Text
+    operates_on = OutputType.Text
     type_label = "regex"
     eq_properties = ("_expression",)
 

@@ -2,10 +2,10 @@ from os import getpid
 
 from ...utils.prometheus import prometheus_session
 from ..rules.rule import Rule
-from ..rules.types import InputType, encode_dict
 from ..model.core import (Source,
         Handle, SourceManager, ResourceUnavailableError)
 from ..conversions import convert
+from ..conversions.types import OutputType, encode_dict
 from ..conversions.utilities.results import SingleResult
 from .utilities import (notify_ready, pika_session, notify_stopping,
         prometheus_summary, json_event_processor, make_common_argument_parser)
@@ -23,7 +23,7 @@ def message_received_raw(
         resource = handle.follow(source_manager)
 
         representation = None
-        if (required == InputType.Text
+        if (required == OutputType.Text
                 and "skip_mime_types" in configuration):
             mime_type = resource.compute_type()
             for mt in configuration["skip_mime_types"]:
@@ -32,7 +32,7 @@ def message_received_raw(
                 elif mime_type == mt:
                     break
             else:
-                representation = convert(resource, InputType.text)
+                representation = convert(resource, OutputType.text)
         else:
             representation = convert(resource, required)
 
@@ -43,7 +43,7 @@ def message_received_raw(
                 # useful for the rule engine
                 dv = {k.value: v.value
                         for k, v in representation.parent.items()
-                        if isinstance(k, InputType)}
+                        if isinstance(k, OutputType)}
             else:
                 dv = {required.value: representation.value}
 

@@ -1,7 +1,7 @@
 from tempfile import NamedTemporaryFile
 from subprocess import run, PIPE, DEVNULL
 
-from ...rules.types import InputType
+from ..types import OutputType
 from ..registry import conversion
 
 
@@ -12,7 +12,7 @@ def tesseract(path, **kwargs):
             stderr=DEVNULL, **kwargs).stdout.strip()
 
 
-@conversion(InputType.Text, "image/png", "image/jpeg")
+@conversion(OutputType.Text, "image/png", "image/jpeg")
 def image_processor(r, **kwargs):
     with r.make_path() as p:
         return tesseract(p)
@@ -21,7 +21,7 @@ def image_processor(r, **kwargs):
 # Some ostensibly-supported image formats are handled badly by tesseract, so
 # turn them into PNGs with ImageMagick's convert(1) command to make them more
 # palatable
-@conversion(InputType.Text, "image/gif", "image/x-ms-bmp")
+@conversion(OutputType.Text, "image/gif", "image/x-ms-bmp")
 def intermediate_image_processor(r, **kwargs):
     with r.make_path() as p:
         with NamedTemporaryFile("rb", suffix=".png") as ntf:

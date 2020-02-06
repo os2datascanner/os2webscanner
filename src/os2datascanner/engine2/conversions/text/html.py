@@ -1,10 +1,10 @@
 from bs4 import BeautifulSoup
 
-from ...rules.types import InputType
+from ..types import OutputType
 from ..registry import conversion
 
 
-@conversion(InputType.Text, "text/html")
+@conversion(OutputType.Text, "text/html")
 def html_processor(r, **kwargs):
     with r.make_stream() as fp:
         return BeautifulSoup(fp, "lxml").get_text()

@@ -7,7 +7,7 @@ from requests.sessions import Session
 from requests.exceptions import ConnectionError
 from contextlib import contextmanager
 
-from ..rules.types import InputType
+from ..conversions.types import OutputType
 from ..conversions.utilities.results import MultipleResults
 from .core import Source, Handle, FileResource, ResourceUnavailableError
 from .utilities import NamedTemporaryResource
@@ -121,7 +121,7 @@ class WebResource(FileResource):
             self._mr = MultipleResults(
                     {k.lower(): v for k, v in header.items()})
             try:
-                self._mr[InputType.LastModified] = parse_date(
+                self._mr[OutputType.LastModified] = parse_date(
                         self._mr["last-modified"].value)
             except (KeyError, ValueError):
                 pass
@@ -135,7 +135,7 @@ class WebResource(FileResource):
 
     def get_last_modified(self):
         return self.unpack_header(check=True).setdefault(
-                InputType.LastModified, super().get_last_modified())
+                OutputType.LastModified, super().get_last_modified())
 
     def compute_type(self):
         # At least for now, strip off any extra parameters the media type might

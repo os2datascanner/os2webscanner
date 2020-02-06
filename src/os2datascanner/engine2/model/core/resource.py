@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 import magic
 from datetime import datetime
 
-from ...rules.types import InputType
+from ...conversions.types import OutputType
 from ...conversions.utilities.results import SingleResult, MultipleResults
 
 
@@ -52,7 +52,7 @@ class TimestampedResource(Resource):
         method was first called on this TimestampedResource."""
         if not self._lm_timestamp:
             self._lm_timestamp = SingleResult(
-                    None, InputType.LastModified, datetime.now())
+                    None, OutputType.LastModified, datetime.now())
         return self._lm_timestamp
 
 
@@ -119,7 +119,7 @@ class MailResource(TimestampedResource):
                 self._mr[k.lower()] = v
             date = self._mr.get("date")
             if date and date.value.datetime:
-                self._mr[InputType.LastModified] = date.value.datetime
+                self._mr[OutputType.LastModified] = date.value.datetime
         return self._mr
 
     @abstractmethod
@@ -128,7 +128,7 @@ class MailResource(TimestampedResource):
         email.message.EmailMessage."""
 
     def get_last_modified(self):
-        return self.unpack_headers().get(InputType.LastModified,
+        return self.unpack_headers().get(OutputType.LastModified,
                 super().get_last_modified())
 
     def compute_type(self):

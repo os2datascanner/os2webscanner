@@ -3,29 +3,29 @@ from datetime import datetime, timezone
 from dateutil import tz
 
 
-class InputType(Enum):
-    """Rules declare what type they expect to operate on by specifying a member
-    of the InputType enumeration. The values associated with these members are
+class OutputType(Enum):
+    """Conversion functions return a typed result, and the type is a member of
+    the OutputType enumeration. The values associated with these members are
     simple string identifiers that can be used in serialisation formats."""
     Text = "text" # str
     LastModified = "last-modified" # datetime.datetime
 
     def encode_json_object(self, v):
-        """Converts an object (of the appropriate type for this InputType) to
+        """Converts an object (of the appropriate type for this OutputType) to
         a JSON-friendly representation."""
-        if self == InputType.Text:
+        if self == OutputType.Text:
             return str(v)
-        elif self == InputType.LastModified:
+        elif self == OutputType.LastModified:
             return _datetime_to_str(v)
         else:
             raise TypeError(self.value)
 
     def decode_json_object(self, v):
-        """Constructs an object (of the appropriate type for this InputType)
+        """Constructs an object (of the appropriate type for this OutputType)
         from a JSON representation."""
-        if self == InputType.Text:
+        if self == OutputType.Text:
             return v
-        elif self == InputType.LastModified:
+        elif self == OutputType.LastModified:
             return _str_to_datetime(v)
         else:
             raise TypeError(self.value)
@@ -47,14 +47,14 @@ def _str_to_datetime(s):
 
 
 def encode_dict(d):
-    """Given a dictionary from InputType values to objects, returns a new
+    """Given a dictionary from OutputType values to objects, returns a new
     dictionary in which each of those objects has been converted to a
     JSON-friendly representation."""
-    return {t: InputType(t).encode_json_object(v) for t, v in d.items()}
+    return {t: OutputType(t).encode_json_object(v) for t, v in d.items()}
 
 
 def decode_dict(d):
-    """Given a dictionary from InputType values to JSON representations of
+    """Given a dictionary from OutputType values to JSON representations of
     objects, returns a new dictionary in which each of those representations
     has been converted back to an original object."""
-    return {t: InputType(t).decode_json_object(v) for t, v in d.items()}
+    return {t: OutputType(t).decode_json_object(v) for t, v in d.items()}

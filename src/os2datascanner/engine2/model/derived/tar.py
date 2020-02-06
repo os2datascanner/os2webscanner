@@ -2,7 +2,7 @@ from tarfile import open as open_tar
 from datetime import datetime
 from contextlib import contextmanager
 
-from ...rules.types import InputType
+from ...conversions.types import OutputType
 from ...conversions.utilities.results import MultipleResults
 from ..core import Source, Handle, FileResource, SourceManager
 from ..utilities import NamedTemporaryResource
@@ -38,7 +38,7 @@ class TarResource(FileResource):
                     "linkname", "linkpath", "mode", "mtime", "name", "offset",
                     "offset_data", "path", "pax_headers", "size", "sparse",
                     "tarfile", "type", "uid", "uname")
-            self._mr[InputType.LastModified] = datetime.fromtimestamp(
+            self._mr[OutputType.LastModified] = datetime.fromtimestamp(
                     self._mr["mtime"].value)
         return self._mr
 
@@ -46,7 +46,7 @@ class TarResource(FileResource):
         return self.unpack_info()["size"]
 
     def get_last_modified(self):
-        return self.unpack_info().setdefault(InputType.LastModified,
+        return self.unpack_info().setdefault(OutputType.LastModified,
                 super().get_last_modified())
 
     @contextmanager

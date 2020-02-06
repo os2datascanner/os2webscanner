@@ -7,8 +7,8 @@ from pathlib import Path
 from datetime import datetime
 from contextlib import contextmanager
 
+from ..conversions.types import OutputType
 from ..conversions.utilities.results import MultipleResults
-from ..rules.types import InputType
 
 
 class FilesystemSource(Source):
@@ -79,7 +79,7 @@ class FilesystemResource(FileResource):
         if not self._mr:
             self._mr = MultipleResults.make_from_attrs(
                     os.stat(self._full_path), *stat_attributes)
-            self._mr[InputType.LastModified] = datetime.fromtimestamp(
+            self._mr[OutputType.LastModified] = datetime.fromtimestamp(
                     self._mr["st_mtime"].value)
         return self._mr
 
@@ -88,7 +88,7 @@ class FilesystemResource(FileResource):
 
     def get_last_modified(self):
         return self.unpack_stat().setdefault(
-                InputType.LastModified, super().get_last_modified())
+                OutputType.LastModified, super().get_last_modified())
 
     @contextmanager
     def make_path(self):
