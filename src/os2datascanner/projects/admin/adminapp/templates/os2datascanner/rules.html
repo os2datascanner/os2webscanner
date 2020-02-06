@@ -1,9 +1,14 @@
 {% extends 'os2datascanner/base.html' %}
 {% load staticfiles %}
 
-  {% block styling %}
-  <link rel="stylesheet" href="{% static "dist/bundle.css" %}">
-  {% endblock %}
+{% block styling %}
+<link rel="stylesheet" href="{% static "dist/bundle.css" %}">
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static "3rdparty/jquery.modal.js" %} "></script>
+<script src="{% static "dist/bundle.js" %}"></script>
+{% endblock %}
 
 {%  block title %}
 Regler
@@ -12,18 +17,16 @@ Regler
 {% block body %}
 <div class="wrapper">
   <h2 style="display: inline-block;">Regulær udtryk-regler</h2>
-  <button 
-    class="button button--add button--cta button--small button--round" 
-    title="Tilføj ny"
-    type="button" 
-    onclick="os2web.iframeDialog(
-      '#create-rule-modal',
-      '/rules/regex/add/',
-      'Tilføj ny regulær udtryk-regel')">
+  <a 
+    class="button button--add button--cta button--small button--round"
+    data-modal="modal:open"
+    data-src="/rules/regex/add/"
+    href="#create-rule-modal"
+    title="Tilføj ny">
     <svg class="icon">
       <use xlink:href="/static/src/svg/symbol-defs.svg#icon-plus"></use>
     </svg>
-  </button>
+  </a>
 
   <table class="datatable">
     <thead>
@@ -148,28 +151,13 @@ Regler
 </div>
 {% endblock %}
 
-{% block heading %}
-Regler
-{% endblock %}
-
 {% block modal %}
-<div class="modal iframe" id="create-rule-modal" tabindex="-1" role="dialog" aria-labelledby="create-rule-modal-title" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-          &times;
-        </button>
-        <h4 class="modal-title" id="create-rule-modal-title">Opret ny ad hoc-regel</h4>
-      </div>
-      <div class="modal-body">
-        <iframe src="about:blank" frameborder="0"></iframe>
-      </div>
-    </div>
-  </div>
+<div class="modal" id="create-rule-modal" tabindex="-1" role="dialog" aria-labelledby="create-rule-modal-title" aria-hidden="true">
+  <h4 class="modal__heading" id="create-rule-modal-title">Opret ny ad hoc-regel</h4>
+  <iframe src="about:blank" frameborder="0"></iframe>
 </div>
 
-<div class="modal iframe" id="edit-rule-modal" tabindex="-1" role="dialog" aria-labelledby="edit-rule-modal-title" aria-hidden="true">
+<div class="modal iframe" id="edit-rule-modal" tabindex="-1" role="dialog" aria-labelledby="edit-rule-modal-title" aria-hidden="true" hidden>
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">

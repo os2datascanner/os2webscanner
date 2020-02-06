@@ -1,6 +1,8 @@
 .modal{
   background-color: #fff;
   display: none;
+  height: 40rem;
+  max-height: calc(100vh - 2rem);
   max-width: 60rem;
   width: calc(100% - 2rem);
   z-index: var(--z-index-modal);
@@ -13,6 +15,18 @@
     position: fixed;
     top: 0; right: 0; bottom: 0; left: 0;
     z-index: calc(var(--z-index-modal) - 1);
+  }
+
+  &__heading {
+    background-color: rgba(0, 0, 0, 0.1);
+    line-height: 1;
+    padding: 1rem;
+    margin: 0;
+  }
+
+  & > iframe {
+    height: calc(100% - 3rem);
+    width: 100%;
   }
 }
 
