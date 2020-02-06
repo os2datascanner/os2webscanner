@@ -83,6 +83,13 @@ a {
   }
 }
 
+pre {
+  background-color: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  margin: 1em 0;
+  padding: 1rem;
+}
+
 .screen-reader-only {
   border: 0;
   clip: rect(1px, 1px, 1px, 1px);
