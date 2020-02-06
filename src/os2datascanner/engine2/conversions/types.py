@@ -14,7 +14,9 @@ class OutputType(Enum):
     def encode_json_object(self, v):
         """Converts an object (of the appropriate type for this OutputType) to
         a JSON-friendly representation."""
-        if self == OutputType.Text:
+        if v == None:
+            return None
+        elif self == OutputType.Text:
             return str(v)
         elif self == OutputType.LastModified:
             return _datetime_to_str(v)
@@ -26,7 +28,9 @@ class OutputType(Enum):
     def decode_json_object(self, v):
         """Constructs an object (of the appropriate type for this OutputType)
         from a JSON representation."""
-        if self == OutputType.Text:
+        if v == None:
+            return None
+        elif self == OutputType.Text:
             return v
         elif self == OutputType.LastModified:
             return _str_to_datetime(v)
