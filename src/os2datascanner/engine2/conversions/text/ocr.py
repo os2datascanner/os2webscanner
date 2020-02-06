@@ -1,19 +1,8 @@
-from    bs4 import BeautifulSoup
-import  sys
-from    tempfile import NamedTemporaryFile
-from    subprocess import run, PIPE, DEVNULL
+from tempfile import NamedTemporaryFile
+from subprocess import run, PIPE, DEVNULL
 
-from    ..conversions.registry import conversion
-from    .types import InputType
-
-
-@conversion(InputType.Text, "text/plain")
-def plain_text_processor(r, **kwargs):
-    with r.make_stream() as t:
-        try:
-            return t.read().decode()
-        except UnicodeDecodeError:
-            return None
+from ...rules.types import InputType
+from ..registry import conversion
 
 
 def tesseract(path, **kwargs):
@@ -39,9 +28,3 @@ def intermediate_image_processor(r, **kwargs):
             run(["convert", p, "png:{0}".format(ntf.name)],
                     check=True, **kwargs)
             return tesseract(ntf.name)
-
-
-@conversion(InputType.Text, "text/html")
-def html_processor(r, **kwargs):
-    with r.make_stream() as fp:
-        return BeautifulSoup(fp, "lxml").get_text()
