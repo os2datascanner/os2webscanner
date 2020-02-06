@@ -1,4 +1,9 @@
 {% extends 'os2datascanner/base.html' %}
+{% load staticfiles %}
+
+{% block styling %}
+<link rel="stylesheet" href="{% static "dist/bundle.css" %}">
+{% endblock %}
 
 {%  block title %}
 Designguide
@@ -33,11 +38,10 @@ Designguide
   <article id="icons">
     <h2>Icons:</h2>
 
-    <pre>
-&lt;svg class="icon"&gt;
+<pre><code>&lt;svg class="icon"&gt;
   &lt;use xlink:href="&#123;&#123; settings.ICON_SPRITE_URL &#125;&#125;#icon-pencil"&gt;&lt;/use&gt;
 &lt;/svg&gt;
-</pre>
+</code></pre>
 
     <div>
       <svg class="icon">
@@ -109,8 +113,7 @@ Designguide
   <article id="buttons">
     <h2>Buttons:</h2>
 
-    <pre>
-&lt;button class="button" type="button"&gt;button&lt;/button&gt;
+<pre><code>&lt;button class="button" type="button"&gt;button&lt;/button&gt;
 &lt;button class="button button--cta" type="button"&gt;button--cta&lt;/button&gt;
 &lt;button class="button button--rounded" type="button"&gt;button--rounded&lt;/button&gt;
 &lt;button class="button button--small" type="button"&gt;button--small&lt;/button&gt;
@@ -121,7 +124,7 @@ Designguide
   &lt;/svg&gt;
   &lt;button&gt;button w. icon&lt;/span&gt;
 &lt;/button&gt;
-</pre>
+</code></pre>
 
     <div>
       <button class="button" type="button">button</button>
@@ -139,7 +142,7 @@ Designguide
   <article id="datatable">
     <h2>Datatable:</h2>
 
-    <pre>&lt;table class="datatable"&gt;...&lt;/table&gt;</pre>
+<pre><code>&lt;table class="datatable"&gt;...&lt;/table&gt;</code></pre>
 
     <table class="datatable">
       <thead>
@@ -167,7 +170,7 @@ Designguide
   <article id="datatable--wide">
     <h3>Datatable (wide):</h3>
 
-    <pre>&lt;table class="datatable datatable--wide&gt;...&lt;/table&gt;</pre>
+<pre><code>&lt;table class="datatable datatable--wide&gt;...&lt;/table&gt;</code></pre>
 
     <table class="datatable datatable--wide">
       <thead>

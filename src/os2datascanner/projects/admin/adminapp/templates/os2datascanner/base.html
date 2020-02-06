@@ -8,20 +8,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="" />
   <meta name="author" content="" />
+
   <title>{% block title %}{% endblock %} | OS2datascanner</title>
-  <!-- Bootstrap core CSS -->
-  {% if not settings.DEBUG %}
-    {% if request.get_full_path != "/designguide" %}
+
+  {% block styling %}
+    <!-- Bootstrap core CSS -->
+    {% if not settings.DEBUG %}
     <link href="{% static "css/bootstrap.min.css" %}" rel="stylesheet" />
-    {% endif %}
-  {% else %}
-    {% if request.get_full_path != "/designguide" %}
+    {% else %}
     <link href="{% static "css/bootstrap.css" %}" rel="stylesheet" />
     {% endif %}
-  {% endif %}
-  <link href="{% static "css/webscanner.css" %}" rel="stylesheet" />
-  {% block extra_head_html %}{% endblock %}
-  <link href="{% static "dist/bundle.css" %}" rel="stylesheet" />
+    <link href="{% static "css/webscanner.css" %}" rel="stylesheet" />
+  {% endblock %}
 
   <link rel="icon" type="image/png" sizes="32x32" href="{% static "src/favicons/favicon-32x32.png" %}">
   <link rel="icon" type="image/png" sizes="16x16" href="{% static "src/favicons/favicon-16x16.png" %}">
@@ -32,6 +30,8 @@
   <link rel="mask-icon" href="{% static "src/favicons/safari-pinned-tab.svg" %}" color="#4DBA87">
   <meta name="msapplication-TileImage" content="{% static "src/favicons/msapplication-icon-144x144.png" %}">
   <meta name="msapplication-TileColor" content="#000000">
+
+  {% block extra_head_html %}{% endblock %}
 
 </head>
 <body class="{{ body_class|default:'page' }}">
