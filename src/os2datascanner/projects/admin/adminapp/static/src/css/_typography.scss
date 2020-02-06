@@ -87,7 +87,21 @@ pre {
   background-color: rgba(0, 0, 0, 0.05);
   border: 1px solid rgba(0, 0, 0, 0.05);
   margin: 1em 0;
+  max-width: 100%;
+  overflow-x: auto;
   padding: 1rem;
+}
+
+code {
+  background-color: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  padding: 0.125rem 0.25em;
+}
+
+pre code {
+  background-color: initial;
+  border: none;
+  padding: 0;
 }
 
 .screen-reader-only {
