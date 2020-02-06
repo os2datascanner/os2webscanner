@@ -78,17 +78,10 @@ def conversion(input_type, *mime_types):
     return _conversion
 
 
-def conversion_exists(input_type, mime_type):
-    """Indicates whether or not a conversion function is registered for the
-    given pair of input type and MIME type."""
-    return (input_type, mime_type) in __converters
-
-
 def convert(resource, input_type, mime_override=None):
     """Tries to convert a Resource to the specified InputType by using the
-    database of registered conversion functions."""
+    database of registered conversion functions.
+
+    Raises a KeyError if no conversion exists."""
     mime_type = resource.compute_type() if not mime_override else mime_override
-    try:
-        return __converters[(input_type, mime_type)](resource)
-    except KeyError:
-        return None
+    return __converters[(input_type, mime_type)](resource)
