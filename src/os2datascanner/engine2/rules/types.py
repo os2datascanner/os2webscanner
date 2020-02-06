@@ -67,13 +67,19 @@ def conversion(input_type, *mime_types):
     """Decorator: registers the decorated function as the converter of each of
     the specified MIME types to the specified InputType."""
     def _conversion(f):
-        for m in mime_types:
-            k = (input_type, m)
+        def _register_converter(input_type, mime_type):
+            k = (input_type, mime_type)
             if k in __converters:
                 raise ValueError(
                         "BUG: can't register two handlers" +
                         " for the same (InputType, MIME type) pair!", k)
-            __converters[k] = f
+            else:
+                __converters[k] = f
+        if mime_types:
+            for m in mime_types:
+                _register_converter(input_type, m)
+        else:
+            _register_converter(input_type, None)
         return f
     return _conversion
 
@@ -84,4 +90,12 @@ def convert(resource, input_type, mime_override=None):
 
     Raises a KeyError if no conversion exists."""
     mime_type = resource.compute_type() if not mime_override else mime_override
-    return __converters[(input_type, mime_type)](resource)
+    try:
+        converter = __converters[(input_type, mime_type)]
+    except KeyError as e:
+        try:
+            converter = __converters[(input_type, None)]
+        except KeyError:
+            # Raise the original, more specific, exception
+            raise e
+    return converter(resource)
