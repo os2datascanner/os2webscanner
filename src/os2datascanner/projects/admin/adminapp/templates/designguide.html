@@ -5,6 +5,11 @@
 <link rel="stylesheet" href="{% static "dist/bundle.css" %}">
 {% endblock %}
 
+{% block scripts %}
+<script src="{% static "3rdparty/jquery.modal.js" %} "></script>
+<script src="{% static "dist/bundle.js" %}"></script>
+{% endblock %}
+
 {%  block title %}
 Designguide
 {% endblock %}
@@ -198,9 +203,18 @@ Designguide
   <article id="modal">
     <h2>Modal:</h2>
 
+    <p>Match the <code>href</code> on the link with the <code>id</code> of the modal, and add a <code>data-modal="modal:open"</code> attribute to the link.</p>
+
+<pre><code>&lt;a <strong>href="#modal-target</strong>" <strong>data-modal="modal:open"</strong> class="button"&gt;Show Modal&lt;/a&gt;
+&lt;div <strong>id="modal-target"</strong> class="modal" role="dialog" aria-labelledby="create-rule-modal-title" aria-hidden="true&gt;...&lt;/div&gt;
+</code></pre>
+
+    <p>If opening a <code>iframe</code> in a modal, add a <code>data-src=""</code> attribute to the link as well with the src of the iframe</p>
+
     <a href="#new-modal" data-modal="modal:open" class="button button--cta button--rounded">Show Modal</a>
 
     <div id="new-modal" class="modal">
+      <h4 class="modal__heading">Lorem ipsum, dolor sit amet</h4>
       <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolores saepe ratione perspiciatis ullam doloribus modi quo dolore a, corporis deleniti quia alias porro sint provident! Explicabo incidunt expedita provident modi?</p>
     </div>
 

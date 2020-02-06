@@ -1,6 +1,10 @@
 {% extends 'os2datascanner/base.html' %}
-{%  block title %}
-Login
+{% load staticfiles %}
+
+{%  block title %}Login{% endblock %}
+
+{% block styling %}
+<link rel="stylesheet" href="{% static "dist/bundle.css" %}">
 {% endblock %}
 
 {% block body %}
