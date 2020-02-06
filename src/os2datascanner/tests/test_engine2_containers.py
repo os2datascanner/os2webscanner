@@ -6,7 +6,7 @@ from os2datascanner.engine2.model.core import Source, SourceManager
 from os2datascanner.engine2.model.file import (
         FilesystemSource, FilesystemHandle)
 from os2datascanner.engine2.model.data import DataSource
-from os2datascanner.engine2.model.utilities import SingleResult
+from os2datascanner.engine2.conversions.utilities.results import SingleResult
 
 
 here_path = os.path.dirname(__file__)

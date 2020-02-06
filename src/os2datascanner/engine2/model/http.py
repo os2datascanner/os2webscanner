@@ -8,8 +8,9 @@ from requests.exceptions import ConnectionError
 from contextlib import contextmanager
 
 from ..rules.types import InputType
+from ..conversions.utilities.results import MultipleResults
 from .core import Source, Handle, FileResource, ResourceUnavailableError
-from .utilities import MultipleResults, NamedTemporaryResource
+from .utilities import NamedTemporaryResource
 
 
 MAX_REQUESTS_PER_SECOND = 10

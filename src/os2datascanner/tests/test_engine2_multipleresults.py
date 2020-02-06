@@ -1,6 +1,6 @@
 import unittest
 
-from os2datascanner.engine2.model.utilities import (
+from os2datascanner.engine2.conversions.utilities.results import (
         SingleResult, MultipleResults)
 
 

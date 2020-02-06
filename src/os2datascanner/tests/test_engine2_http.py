@@ -5,8 +5,8 @@ import contextlib
 from os2datascanner.engine2.model.core import (
         Source, SourceManager, UnknownSchemeError, ResourceUnavailableError)
 from os2datascanner.engine2.model.http import WebSource, WebHandle
-from os2datascanner.engine2.model.utilities import SingleResult
 from os2datascanner.engine2.rules.types import InputType
+from os2datascanner.engine2.conversions.utilities.results import SingleResult
 
 
 magenta = WebSource("https://www.magenta.dk")

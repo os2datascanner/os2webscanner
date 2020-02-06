@@ -6,10 +6,11 @@ from datetime import datetime
 from contextlib import contextmanager
 
 from ..rules.types import InputType
+from ..conversions.utilities.results import MultipleResults
 from .smb import make_smb_url, SMBSource
 from .core import Source, Handle, FileResource, ResourceUnavailableError
 from .file import stat_attributes
-from .utilities import MultipleResults, NamedTemporaryResource
+from .utilities import NamedTemporaryResource
 
 
 class SMBCSource(Source):

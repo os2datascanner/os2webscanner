@@ -2,9 +2,10 @@ from zipfile import ZipFile
 from datetime import datetime
 from contextlib import contextmanager
 
+from ...conversions.utilities.results import MultipleResults
 from ...rules.types import InputType
 from ..core import Source, Handle, FileResource, SourceManager
-from ..utilities import MultipleResults, NamedTemporaryResource
+from ..utilities import NamedTemporaryResource
 from .derived import DerivedSource
 
 

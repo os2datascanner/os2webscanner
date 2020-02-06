@@ -5,8 +5,8 @@ from ..rules.rule import Rule
 from ..rules.types import InputType, encode_dict
 from ..model.core import (Source,
         Handle, SourceManager, ResourceUnavailableError)
-from ..model.utilities import SingleResult
 from ..conversions import convert
+from ..conversions.utilities.results import SingleResult
 from .utilities import (notify_ready, pika_session, notify_stopping,
         prometheus_summary, json_event_processor, make_common_argument_parser)
 

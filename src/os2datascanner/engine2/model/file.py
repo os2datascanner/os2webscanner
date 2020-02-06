@@ -7,8 +7,8 @@ from pathlib import Path
 from datetime import datetime
 from contextlib import contextmanager
 
+from ..conversions.utilities.results import MultipleResults
 from ..rules.types import InputType
-from .utilities import MultipleResults
 
 
 class FilesystemSource(Source):

@@ -3,7 +3,7 @@ import magic
 from datetime import datetime
 
 from ...rules.types import InputType
-from ..utilities import SingleResult, MultipleResults
+from ...conversions.utilities.results import SingleResult, MultipleResults
 
 
 class Resource(ABC):

@@ -1,9 +1,10 @@
 from io import BytesIO
 from contextlib import contextmanager
 
+from ...conversions.utilities.results import SingleResult
 from ..core import Source, Handle, FileResource, SourceManager
 from ..core.resource import MAIL_MIME
-from ..utilities import SingleResult, NamedTemporaryResource
+from ..utilities import NamedTemporaryResource
 from .derived import DerivedSource
 
 

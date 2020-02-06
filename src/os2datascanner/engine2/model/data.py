@@ -4,8 +4,8 @@ from base64 import b64decode, b64encode
 from tempfile import NamedTemporaryFile
 from contextlib import contextmanager
 
+from ..conversions.utilities.results import SingleResult
 from .core import Source, Handle, FileResource, EMPTY_COOKIE
-from .utilities import SingleResult
 
 
 class DataSource(Source):

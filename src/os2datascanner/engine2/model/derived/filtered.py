@@ -8,9 +8,10 @@ from functools import partial
 from contextlib import contextmanager
 
 from ...rules.types import InputType
+from ...conversions.utilities.results import MultipleResults
 from ..core import (Source,
         Handle, FileResource, SourceManager, ResourceUnavailableError)
-from ..utilities import MultipleResults, NamedTemporaryResource
+from ..utilities import NamedTemporaryResource
 from .derived import DerivedSource
 
 
