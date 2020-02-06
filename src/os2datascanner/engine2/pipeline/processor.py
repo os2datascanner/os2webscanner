@@ -35,9 +35,7 @@ def message_received_raw(
                         do_conversion = False
                         break
             if do_conversion:
-                representation = SingleResult(
-                        None, InputType.Text,
-                        convert(resource, InputType.Text))
+                representation = convert(resource, InputType.Text)
         elif required == InputType.LastModified:
             if hasattr(resource, "get_last_modified"):
                 representation = resource.get_last_modified()

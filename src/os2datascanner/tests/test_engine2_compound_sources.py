@@ -23,7 +23,7 @@ def try_apply(sm, source, rule):
             resource = handle.follow(sm)
             representation = convert(resource, rule.operates_on)
             if representation:
-                yield from rule.match(representation)
+                yield from rule.match(representation.value)
 
 
 class Engine2CompoundSourceTest(unittest.TestCase):

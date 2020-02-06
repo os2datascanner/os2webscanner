@@ -17,6 +17,6 @@ class TestEngine2OCR(unittest.TestCase):
         with SourceManager() as sm:
             for h in fs.handles(sm):
                 self.assertEqual(
-                        convert(h.follow(sm), InputType.Text),
+                        convert(h.follow(sm), InputType.Text).value,
                         expected_result,
                         "{0} failed".format(h))

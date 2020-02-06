@@ -1,3 +1,6 @@
+from .utilities.results import SingleResult
+
+
 __converters = {}
 
 
@@ -22,7 +25,7 @@ def conversion(input_type, *mime_types):
     return _conversion
 
 
-def convert(resource, input_type, mime_override=None):
+def convert(resource, input_type, mime_override=None) -> SingleResult:
     """Tries to convert a Resource to the specified InputType by using the
     database of registered conversion functions.
 
@@ -36,4 +39,7 @@ def convert(resource, input_type, mime_override=None):
         except KeyError:
             # Raise the original, more specific, exception
             raise e
-    return converter(resource)
+    value = converter(resource)
+    if value and not isinstance(value, SingleResult):
+        value = SingleResult(None, input_type, value)
+    return value
