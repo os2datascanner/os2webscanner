@@ -13,6 +13,9 @@ class LastModifiedRule(SimpleRule):
         self._after = after
 
     def match(self, content):
+        if content is None:
+            return
+
         if content > self._after:
             yield {
                 "match": OutputType.LastModified.encode_json_object(content)

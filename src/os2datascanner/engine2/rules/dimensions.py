@@ -15,6 +15,9 @@ class DimensionsRule(SimpleRule):
         self._min_dim = min_dim
 
     def match(self, content):
+        if content is None:
+            return
+
         (w, h) = content
         max_dim = max(w, h)
         if (w in self._width_range

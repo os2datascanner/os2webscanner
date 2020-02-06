@@ -15,6 +15,9 @@ class CPRRule(RegexRule):
         self._ignore_irrelevant = ignore_irrelevant
 
     def match(self, content):
+        if content is None:
+            return
+
         for m in self._compiled_expression.finditer(content):
             cpr = m.group(1).replace(" ", "") + m.group(2)
             valid_date = date_check(cpr, self._ignore_irrelevant)
