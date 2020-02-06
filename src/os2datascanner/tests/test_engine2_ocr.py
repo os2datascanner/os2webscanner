@@ -3,9 +3,9 @@ import  unittest
 
 from    os2datascanner.engine2.model.core import SourceManager
 from    os2datascanner.engine2.model.file import FilesystemSource
-from    os2datascanner.engine2.rules.types import convert, InputType
+from    os2datascanner.engine2.rules.types import InputType
 import  os2datascanner.engine2.rules._transitional_conversions  # noqa
-
+from    os2datascanner.engine2.conversions import convert
 
 here_path = os.path.dirname(__file__)
 test_data_path = os.path.join(here_path, "data", "ocr")

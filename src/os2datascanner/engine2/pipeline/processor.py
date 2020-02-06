@@ -3,10 +3,11 @@ from os import getpid
 from ...utils.prometheus import prometheus_session
 from ..rules import _transitional_conversions  # noqa
 from ..rules.rule import Rule
-from ..rules.types import convert, InputType, encode_dict
+from ..rules.types import InputType, encode_dict
 from ..model.core import (Source,
         Handle, SourceManager, ResourceUnavailableError)
 from ..model.utilities import SingleResult
+from ..conversions import convert
 from .utilities import (notify_ready, pika_session, notify_stopping,
         prometheus_summary, json_event_processor, make_common_argument_parser)
 

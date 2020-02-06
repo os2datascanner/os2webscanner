@@ -6,8 +6,9 @@ from os2datascanner.engine2.model.file import FilesystemHandle
 from os2datascanner.engine2.model.derived.pdf import PDFSource
 from os2datascanner.engine2.model.derived.libreoffice import LibreOfficeSource
 from os2datascanner.engine2.rules.cpr import CPRRule
-from os2datascanner.engine2.rules.types import convert, InputType
+from os2datascanner.engine2.rules.types import InputType
 import os2datascanner.engine2.rules._transitional_conversions # noqa
+from os2datascanner.engine2.conversions import convert
 
 
 here_path = os.path.dirname(__file__)

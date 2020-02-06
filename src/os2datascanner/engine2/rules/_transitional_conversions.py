@@ -3,7 +3,8 @@ import  sys
 from    tempfile import NamedTemporaryFile
 from    subprocess import run, PIPE, DEVNULL
 
-from    .types import InputType, conversion
+from    ..conversions.registry import conversion
+from    .types import InputType
 
 
 @conversion(InputType.Text, "text/plain")
