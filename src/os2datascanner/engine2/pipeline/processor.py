@@ -23,24 +23,18 @@ def message_received_raw(
         resource = handle.follow(source_manager)
 
         representation = None
-        if required == InputType.Text:
-            do_conversion = True
-            if "skip_mime_types" in configuration:
-                mime_type = resource.compute_type()
-                for mt in configuration["skip_mime_types"]:
-                    if mt.endswith("*") and mime_type.startswith(mt[:-1]):
-                        do_conversion = False
-                        break
-                    elif mime_type == mt:
-                        do_conversion = False
-                        break
-            if do_conversion:
-                representation = convert(resource, InputType.Text)
-        elif required == InputType.LastModified:
-            if hasattr(resource, "get_last_modified"):
-                representation = resource.get_last_modified()
-
-        print(handle, representation)
+        if (required == InputType.Text
+                and "skip_mime_types" in configuration):
+            mime_type = resource.compute_type()
+            for mt in configuration["skip_mime_types"]:
+                if mt.endswith("*") and mime_type.startswith(mt[:-1]):
+                    break
+                elif mime_type == mt:
+                    break
+            else:
+                representation = convert(resource, InputType.text)
+        else:
+            representation = convert(resource, required)
 
         if representation:
             if representation.parent:
