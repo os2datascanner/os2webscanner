@@ -23,7 +23,9 @@ class DimensionsRule(SimpleRule):
         if (w in self._width_range
                 and h in self._height_range
                 and max_dim >= self._min_dim):
-            yield [w, h]
+            yield {
+                "match": [w, h]
+            }
 
     def to_json_object(self):
         return dict(**super().to_json_object(), **{

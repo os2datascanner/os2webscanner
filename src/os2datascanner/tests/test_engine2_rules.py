@@ -3,6 +3,7 @@ import unittest
 
 from os2datascanner.engine2.rules.cpr import CPRRule
 from os2datascanner.engine2.rules.regex import RegexRule
+from os2datascanner.engine2.rules.dimensions import DimensionsRule
 from os2datascanner.engine2.rules.last_modified import LastModifiedRule
 from os2datascanner.engine2.rules.logical import OrRule, AndRule, NotRule
 
@@ -70,9 +71,50 @@ more!""",
                 datetime(2019, 5, 22, 0, 0, 1, tzinfo=timezone.utc),
                 None
             ),
+            (
+                DimensionsRule(
+                        width_range=range(0, 16385),
+                        height_range=range(0, 16385),
+                        min_dim=256),
+                (128, 256),
+                [
+                    [128, 256]
+                ]
+            ),
+            (
+                DimensionsRule(
+                        width_range=range(0, 16385),
+                        height_range=range(0, 16385),
+                        min_dim=256),
+                (128, 255),
+                []
+            ),
+            (
+                DimensionsRule(
+                        width_range=range(256, 1024),
+                        height_range=range(256, 1024),
+                        min_dim=0),
+                (256, 256),
+                [
+                    [256, 256]
+                ]
+            ),
+            (
+                DimensionsRule(
+                        width_range=range(256, 1024),
+                        height_range=range(256, 1024),
+                        min_dim=0),
+                (32, 32),
+                []
+            ),
         ]
 
         for rule, in_value, expected in candidates:
+            with self.subTest(rule):
+                json = rule.to_json_object()
+                back_again = rule.from_json_object(json)
+                self.assertEqual(rule, back_again)
+
             with self.subTest(rule):
                 matches = rule.match(in_value)
                 if expected:
@@ -167,8 +209,4 @@ more!""",
             with self.subTest(rule):
                 json = rule.to_json_object()
                 back_again = rule.from_json_object(json)
-                print(rule)
-                print(json)
-                print(back_again)
                 self.assertEqual(rule, back_again)
-                print("--")

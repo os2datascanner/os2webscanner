@@ -60,9 +60,6 @@ class CPRRule(RegexRule):
         return CPRRule(modulus_11=obj["modulus_11"],
                 ignore_irrelevant=obj["ignore_irrelevant"])
 
-    def __str__(self):
-        return "CPRRule(modulus_11={0}, ignore_irrelevant={1})".format(
-                self.modulus_11, self.ignore_irrelevant)
 
 # Updated list of dates with CPR numbers violating the Modulo-11 check. (Last
 # synchronised with the CPR Office's list on November 19, 2019.)
