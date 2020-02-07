@@ -65,6 +65,18 @@ def message_received_raw(
             scan_spec["source"] = derived_source.to_json_object()
             scan_spec["progress"] = body["progress"]
             yield (sources_q, scan_spec)
+        else:
+            # If we can't recurse any deeper, then produce an empty conversion
+            # so that the matcher stage has something to work with
+            # (XXX: is this always the right approach?)
+            yield (representations_q, {
+                "scan_spec": body["scan_spec"],
+                "handle": body["handle"],
+                "progress": body["progress"],
+                "representations": {
+                    required.value: None
+                }
+            })
     except ResourceUnavailableError:
         pass
 
