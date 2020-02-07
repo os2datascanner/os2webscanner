@@ -1,4 +1,5 @@
 from . import cpr # noqa
+from . import dummy # noqa
 from . import regex # noqa
 from . import logical # noqa
 from . import dimensions # noqa

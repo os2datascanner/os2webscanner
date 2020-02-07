@@ -11,6 +11,8 @@ class OutputType(Enum):
     LastModified = "last-modified" # datetime.datetime
     ImageDimensions = "image-dimensions" # (int, int)
 
+    Dummy = "dummy"
+
     def encode_json_object(self, v):
         """Converts an object (of the appropriate type for this OutputType) to
         a JSON-friendly representation."""
