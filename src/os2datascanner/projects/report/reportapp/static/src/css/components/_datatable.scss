@@ -42,6 +42,7 @@
 }
 
 .datatable tr:focus, 
+.datatable tr:focus-within, 
 .datatable tr:hover {
   td {
     background-color: rgba(0, 0, 0, 0.05);
@@ -98,9 +99,30 @@
 }
 /* .datatable--click-rows, stop */
 
+/* Nested tables, start */
+.datatable table {
+
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+
+  td,
+  td:first-child,
+  td:last-child {
+    border-top: none;
+    padding: var(--size-ds-unit);
+  }
+}
+/* Nested tables, stop */
+
 .scan {
   &__item-title {
     display: block;
+  }
+
+  &__item-count {
+    display: block;
+    margin-top: var(--size-ds-unit);
   }
 
   &__item-meta {
