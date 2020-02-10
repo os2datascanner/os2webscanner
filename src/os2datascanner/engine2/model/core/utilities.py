@@ -32,55 +32,21 @@ class SourceManager:
     mean, for example, automatically disconnecting from remote resources,
     unmounting drives, or closing file handles.
 
-    SourceManagers can be nested to an arbitrary depth, provided that their
-    contexts are also nested; child SourceManagers will not try to open Sources
-    that their antecedents have already opened, and the nesting ensures that
-    their own state will be cleaned up before that of their antecedents.
-
     As SourceManagers track (potentially process-specific) state, they are not
     usefully serialisable. See, however, the SourceManager.share method and
     the ShareableCookie class below."""
-    def __init__(self, parent=None):
-        """Initialises this SourceManager.
-
-        If @parent is not None, then it *must* be a SourceManager operating as
-        a context manager in a containing scope."""
+    def __init__(self):
+        """Initialises this SourceManager."""
         self._order = []
         self._opened = {}
-        self._parent = parent
-        self._ro = False
+        self._dependencies = {}
 
-    def share(self):
-        """Returns a SourceManager that contains only the ShareableCookies from
-        this SourceManager. This SourceManager will be read-only, and can only
-        be used as a parent for a writable SourceManager: attempting to open
-        things in it, or to enter its context, will raise a TypeError."""
-        if self._ro:
-            return self
-        r = SourceManager()
-        r._parent = self._parent.share() if self._parent else None
-        r._ro = True
-        for v in self._order:
-            (generator, cookie) = self._opened[v]
-            if isinstance(cookie, ShareableCookie):
-                r._order.append(v)
-                r._opened[v] = (None, cookie)
-        return r
-
-    def open(self, source, try_open=True):
-        """Returns the cookie returned by opening the given Source. If
-        @try_open is True, the Source will be opened in this SourceManager if
-        necessary."""
-        if self._ro and try_open:
-            raise TypeError(
-                    "BUG: open(try_open=True) called on" +
-                    " a read-only SourceManager!")
+    def open(self, source):
+        """Returns the cookie returned by opening the given Source."""
         rv = None
         if not source in self._opened:
             cookie = None
-            if self._parent:
-                cookie = self._parent.open(source, try_open=False)
-            if not cookie and try_open:
+            if not cookie:
                 generator = source._generate_state(self)
                 cookie = next(generator)
                 self._order.append(source)
@@ -94,9 +60,6 @@ class SourceManager:
             return rv
 
     def __enter__(self):
-        if self._ro:
-            raise TypeError(
-                    "BUG: __enter__ called on a read-only SourceManager!")
         return self
 
     def __exit__(self, exc_type, exc_value, backtrace):
@@ -108,12 +71,7 @@ class SourceManager:
         try:
             for k in reversed(self._order):
                 generator, _ = self._opened[k]
-                if not generator and not self._ro:
-                    raise TypeError(
-                            "BUG: clear() on a normal SourceManager"
-                            + " encountered a None generator!")
-                else:
-                    generator.close()
+                generator.close()
         finally:
             self._order = []
             self._opened = {}
