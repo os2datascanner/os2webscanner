@@ -12,8 +12,10 @@ class Tracker:
 
     def _generate_state(self, sm):
         self.count += 1
-        yield self.special_cookie
-        self.count -= 1
+        try:
+            yield self.special_cookie
+        finally:
+            self.count -= 1
 
 
 class ShareableTracker(Tracker):
