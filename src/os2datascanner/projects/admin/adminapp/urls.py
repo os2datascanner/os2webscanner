@@ -28,7 +28,6 @@ from .views.exchangescanner_views import ExchangeScannerList, ExchangeScannerCre
     ExchangeScannerDelete, ExchangeScannerRun, ExchangeScannerAskRun
 from .views.filescanner_views import FileScannerCreate, FileScannerRun, FileScannerAskRun, FileScannerUpdate, \
     FileScannerDelete, FileScannerList
-from .views.report_views import ScanReportLog, CSVReportDetails, ReportDetails, ReportList, ReportDelete
 from .views.rule_views import RuleList, \
     CPRRuleCreate, CPRRuleUpdate, CPRRuleDelete, \
     RegexRuleCreate, RegexRuleUpdate, RegexRuleDelete
@@ -98,28 +97,6 @@ urlpatterns = [
         name='rule_update'),
     url(r'^rules/regex/(?P<pk>\d+)/delete/$', RegexRuleDelete.as_view(),
         name='rule_delete'),
-    url(r'^reports/$', ReportList.as_view(), name='reports'),
-    url(r'^reports/web/$', ReportList.as_view(active='web', queryset=Scan.objects.filter(scanner__webscanner__isnull=False)), name='reports'),
-    url(r'^reports/file/$', ReportList.as_view(active='file', queryset=Scan.objects.filter(scanner__filescanner__isnull=False)), name='reports'),
-    url(r'^reports/exchange/$', ReportList.as_view(active='exchange', queryset=Scan.objects.filter(scanner__exchangescanner__isnull=False)), name='reports'),
-    url(r'^report/(?P<pk>[0-9]+)/$', ReportDetails.as_view(),
-        name='report'),
-    url(r'^report/(?P<pk>[0-9]+)/full/$', ReportDetails.as_view(full=True),
-        name='full_report'),
-    url(r'^report/(?P<pk>[0-9]+)/csv/$', CSVReportDetails.as_view(),
-        name='csvreport'),
-    url(r'^report/(?P<pk>[0-9]+)/log/$', ScanReportLog.as_view(),
-        name='logreport'),
-    url(r'^report/(?P<pk>[0-9]+)/delete/$', ReportDelete.as_view(),
-        name='report_delete'),
-    url(r'^reports/summaries/$', SummaryList.as_view(), name='summaries'),
-    url(r'^reports/summaries/add/$', SummaryCreate.as_view(), name='summary_add'),
-    url(r'^reports/summary/(?P<pk>\d+)/$', SummaryUpdate.as_view(),
-        name='summary_update'),
-    url(r'^reports/summary/(?P<pk>\d+)/report/$', SummaryReport.as_view(),
-        name='summary_report'),
-    url(r'^reports/summary/(?P<pk>\d+)/delete/$', SummaryDelete.as_view(),
-        name='summary_delete'),
     # Login/logout stuff
     url(r'^accounts/login/',
         django.contrib.auth.views.LoginView.as_view(
@@ -174,9 +151,9 @@ urlpatterns = [
         DialogSuccess.as_view()),
     url(r'^(webscanners|filescanners|exchangescanners)/(\d+)/(saved)/$',
         DialogSuccess.as_view()),
-    url(r'^(rules/regex|rules/cpr|groups|reports/summaries)/(\d+)/(created)/$',
+    url(r'^(rules/regex|rules/cpr|groups)/(\d+)/(created)/$',
         DialogSuccess.as_view()),
-    url(r'^(rules/regex|rules/cpr|groups|reports/summaries)/(\d+)/(saved)/$',
+    url(r'^(rules/regex|rules/cpr|groups)/(\d+)/(saved)/$',
         DialogSuccess.as_view()),
 
     url(r'^jsi18n/$', JavaScriptCatalog.as_view(
