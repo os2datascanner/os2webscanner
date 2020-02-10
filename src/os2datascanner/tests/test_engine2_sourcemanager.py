@@ -1,7 +1,6 @@
 import unittest
 
-from os2datascanner.engine2.model.core import (ShareableCookie, SourceManager)
-from os2datascanner.engine2.model.http import WebSource, WebHandle
+from os2datascanner.engine2.model.core import SourceManager
 
 
 class Tracker:
@@ -16,10 +15,6 @@ class Tracker:
             yield self.special_cookie
         finally:
             self.count -= 1
-
-
-class ShareableTracker(Tracker):
-    special_cookie = ShareableCookie(object())
 
 
 class Dependent:

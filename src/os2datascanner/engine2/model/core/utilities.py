@@ -2,30 +2,6 @@ from sys import stderr
 from traceback import print_exc
 
 
-class ShareableCookie:
-    """A Source's cookie represents the fact that it has been opened somehow.
-    Precisely what this means is not defined: it might represent a mount
-    operation on a remote drive, or a connection to a server, or even nothing
-    at all.
-
-    Source._generate_state can yield a ShareableCookie to indicate that a
-    cookie can (for the duration of its SourceManager's context) meaningfully
-    be shared across processes, because the operations that it has performed
-    are not specific to a single process.
-
-    SourceManager will otherwise try to hide the existence of this class from
-    the outside world -- the value contained in this cookie, rather than the
-    cookie itself, will be returned from SourceManager.open and passed to
-    Source._close."""
-    def __init__(self, value):
-        self.value = value
-
-    def get(self):
-        return self.value
-
-EMPTY_COOKIE = ShareableCookie(None)
-"""A contentless (and therefore trivially shareable) cookie."""
-
 class SourceManager:
     """A SourceManager is responsible for tracking all of the state associated
     with one or more Sources. Operations on Sources and Handles that require
@@ -37,8 +13,7 @@ class SourceManager:
     unmounting drives, or closing file handles.
 
     As SourceManagers track (potentially process-specific) state, they are not
-    usefully serialisable. See, however, the SourceManager.share method and
-    the ShareableCookie class below."""
+    usefully serialisable."""
     def __init__(self):
         """Initialises this SourceManager."""
         self._opened = {}
@@ -84,10 +59,7 @@ class SourceManager:
                 rv = cookie
             else:
                 _, rv = self._opened[source]
-            if isinstance(rv, ShareableCookie):
-                return rv.get()
-            else:
-                return rv
+            return rv
         finally:
             self._opening = self._opening[:-1]
 
