@@ -36,30 +36,7 @@
         {% endfor %}
       </tbody>
     </table>
-
-    <!-- {% for match in rule.matches|slice:":4" %}
-      {% if forloop.counter0 == 4 %}
-        <span class="force-single-line">{{ match.match }}</span>
-      {% elif forloop.last %}
-        <span class="force-single-line">&hellip;</span>
-      {% else %}
-        <span class="force-single-line">{{ match.match }}</span>
-      {% endif %}
-    {% endfor %} -->
   </td>
-
-  <!-- <td class="datatable__column--context">
-    {% for match in rule.matches|slice:":4" %}
-      {% if forloop.counter0 == 4 %}
-        <div class="force-single-line">{{ match.context }}</div>
-      {% elif forloop.last %}
-        <div class="force-single-line">&hellip;</div>
-      {% else %}
-        <div class="force-single-line">{{ match.context }}</div>
-      {% endif %}
-    {% endfor %}
-  </td> -->
-
 </tr>
 {% endfor %}
 
@@ -67,10 +44,10 @@
 
   function copy() {
     var copyText = document.querySelector("input[type='text'].phantom")
-    // copyText.classList.remove("phantom")
+    copyText.classList.remove("phantom")
     copyText.select()
     document.execCommand("copy")
-    // copyText.classList.add("phantom")
+    copyText.classList.add("phantom")
   }
 
   document.querySelectorAll(".hit-link__folder").forEach(function (c) {
