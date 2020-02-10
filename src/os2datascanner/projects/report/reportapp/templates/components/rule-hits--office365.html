@@ -21,28 +21,18 @@
     </div>
   </td>
 
-  <td class="datatable__column--match">
-    {% for match in rule.matches|slice:":4" %}
-      {% if forloop.counter0 == 4 %}
-        <div>{{ match.match }}</div>
-      {% elif forloop.last %}
-        <div>last!</div>
-      {% else %}
-        <div>{{ match.match }}</div>
-      {% endif %}
-    {% endfor %}
-  </td>
+  <td class="datatable__column--match datatable__column--context" colspan="2">
 
-  <td class="datatable__column--context">
-    {% for match in rule.matches|slice:":4" %}
-      {% if forloop.counter0 == 4 %}
-        <div>{{ match.context }}</div>
-      {% elif forloop.last %}
-        <div>last!</div>
-      {% else %}
-        <div>{{ match.context }}</div>
-      {% endif %}
-    {% endfor %}
+    <table class="datatable datatable--nested">
+      <tbody>
+        {% for match in rule.matches|slice:":3" %}
+        <tr>
+          <td class="datatable__column--match">{{ match.match }}</td>
+          <td class="datatable__column--context">{{ match.context }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </td>
 
 </tr>
