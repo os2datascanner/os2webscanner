@@ -21,7 +21,7 @@ class ShareableTracker(Tracker):
 
 
 class Engine2SourceManagerTest(unittest.TestCase):
-    def test_opening(self):
+    def test_basic(self):
         tracker = Tracker()
         with SourceManager() as sm:
             sm.open(tracker)
@@ -30,3 +30,7 @@ class Engine2SourceManagerTest(unittest.TestCase):
                     tracker.count,
                     1,
                     "SourceManager opened the same object twice")
+        self.assertEqual(
+                tracker.count,
+                0,
+                "SourceManager didn't close the object")
