@@ -37,7 +37,9 @@
       width: 10rem;
     }
 
-    &--context {}
+    &--context {
+      // 
+    }
   }
 }
 
@@ -100,9 +102,9 @@
 /* .datatable--click-rows, stop */
 
 /* Nested tables, start */
-.datatable table {
-
+.datatable--nested {
   border-collapse: collapse;
+  box-shadow: initial;
   table-layout: fixed;
   width: 100%;
 
@@ -110,7 +112,7 @@
   td:first-child,
   td:last-child {
     border-top: none;
-    padding: var(--size-ds-unit);
+    padding: var(--size-ds-unit) 0;
   }
 }
 /* Nested tables, stop */

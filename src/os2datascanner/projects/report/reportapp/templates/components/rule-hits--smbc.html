@@ -24,14 +24,14 @@
     </div>
   </td>
 
-  <td class="datatable__column--match" colspan="2">
+  <td class="datatable__column--match datatable__column--context" colspan="2">
 
-    <table>
+    <table class="datatable datatable--nested">
       <tbody>
         {% for match in rule.matches|slice:":3" %}
         <tr>
-          <td>{{ match.match }}</td>
-          <td>{{ match.context }}</td>
+          <td class="datatable__column--match">{{ match.match }}</td>
+          <td class="datatable__column--context">{{ match.context }}</td>
         </tr>
         {% endfor %}
       </tbody>
