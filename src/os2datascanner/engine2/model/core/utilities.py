@@ -1,3 +1,7 @@
+from sys import stderr
+from traceback import print_exc
+
+
 class ShareableCookie:
     """A Source's cookie represents the fact that it has been opened somehow.
     Precisely what this means is not defined: it might represent a mount
@@ -37,27 +41,75 @@ class SourceManager:
     the ShareableCookie class below."""
     def __init__(self):
         """Initialises this SourceManager."""
-        self._order = []
         self._opened = {}
-        self._dependencies = {}
+        self._opening = []
+
+        self._paths = {}
+
+    def _register_path(self, path):
+        """Registers a path, a dependency list of Sources of the form [child,
+        parent, grandparent, ...], with this SourceManager. Paths are used to
+        decide which order to free resources in.
+
+        Paths can be either complete (such as [file in Zip archive, Zip
+        archive, network share]) or partial ([file in Zip archive, Zip
+        archive]). Previously registered complete paths will be used to
+        disambiguate partial paths.
+
+        Paths are an internal implementation detail, and this function is
+        intended for use only by SourceManager.open."""
+        if len(path) > 1:
+            # Convert the path [child, parent, grandparent, ..., ancestor K-1,
+            # ancestor K] into a number of pairs of the form (ancestor K,
+            # ancestor K-1), (ancestor K-1, ancestor K-2), ...,  (grandparent,
+            # parent), (parent, child)
+            for parent, child in zip(reversed(path), reversed(path[:-1])):
+                children = self._paths.setdefault(parent, [])
+                if child in children:
+                    children.remove(child)
+                children.append(child)
 
     def open(self, source):
         """Returns the cookie returned by opening the given Source."""
-        rv = None
-        if not source in self._opened:
-            cookie = None
-            if not cookie:
-                generator = source._generate_state(self)
-                cookie = next(generator)
-                self._order.append(source)
-                self._opened[source] = (generator, cookie)
-            rv = cookie
-        else:
-            _, rv = self._opened[source]
-        if isinstance(rv, ShareableCookie):
-            return rv.get()
-        else:
-            return rv
+        self._opening.append(source)
+        self._register_path(self._opening)
+        try:
+            rv = None
+            if not source in self._opened:
+                cookie = None
+                if not cookie:
+                    generator = source._generate_state(self)
+                    cookie = next(generator)
+                    self._opened[source] = (generator, cookie)
+                rv = cookie
+            else:
+                _, rv = self._opened[source]
+            if isinstance(rv, ShareableCookie):
+                return rv.get()
+            else:
+                return rv
+        finally:
+            self._opening = self._opening[:-1]
+
+    def close(self, source):
+        """Closes a Source opened in this SourceManager, in the process closing
+        all other open Sources that depend upon it."""
+        if source in self._opened:
+            # Leaf nodes will be in self._opened, but won't be in self._paths,
+            # because nothing depends upon them
+            if source in self._paths:
+                for child in self._paths[source]:
+                    self.close(child)
+                del self._paths[source]
+            generator, _ = self._opened[source]
+            try:
+                generator.close()  # not allowed to fail
+            except Exception:
+                stn = type(source).__name__
+                print("*** BUG: {0}._generate_state raised an exception!"
+                        " Continuing anyway...".format(stn), file=stderr)
+                print_exc(file=stderr)
+            del self._opened[source]
 
     def __enter__(self):
         return self
@@ -68,10 +120,6 @@ class SourceManager:
     def clear(self):
         """Closes all of the cookies returned by Sources that were opened in
         this SourceManager."""
-        try:
-            for k in reversed(self._order):
-                generator, _ = self._opened[k]
-                generator.close()
-        finally:
-            self._order = []
-            self._opened = {}
+        opened = list(self._opened.keys())
+        for source in opened:
+            self.close(source)
