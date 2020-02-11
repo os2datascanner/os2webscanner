@@ -3,11 +3,11 @@ from traceback import print_exc
 
 
 class _SourceDescriptor:
-    def __init__(self, *, source):
+    def __init__(self, *, source, parent=None):
         self.source = source
+        self.parent = parent
         self.generator = None
         self.state = None
-        self.parent = None
         self.children = []
 
 
@@ -28,9 +28,30 @@ class SourceManager:
         self._opened = {}
         self._opening = []
 
+        # A synthetic _SourceDescriptor used as the parent for top-level
+        # objects
+        self._top = _SourceDescriptor(source=None)
+
     def _make_descriptor(self, source):
         return self._opened.setdefault(
-                source, _SourceDescriptor(source=source))
+                source, _SourceDescriptor(source=source, parent=self._top))
+
+    def _reparent(self, child_d, parent_d):
+        if (child_d.parent
+                and child_d in child_d.parent.children):
+            child_d.parent.children.remove(child_d)
+        # Don't reparent to the dummy top element -- this case happens if the
+        # path is incomplete, and actually doing it will throw away the
+        # complete path
+        if parent_d != self._top:
+            child_d.parent = parent_d
+        child_d.parent.children.append(child_d)
+
+        # Also perform a dummy reparent operation all the way up the hierarchy
+        # to ensure that the rightmost child is always the most recently used
+        # one
+        if parent_d.parent:
+            self._reparent(parent_d, parent_d.parent)
 
     def _register_path(self, path):
         """Registers a path, a partial or complete reverse-ordered list of
@@ -39,19 +60,13 @@ class SourceManager:
 
         Paths are an internal implementation detail, and this function is
         intended for use only by SourceManager.open."""
-        if len(path) > 1:
-            # Convert the path [child, parent, grandparent, ..., ancestor K-1,
-            # ancestor K] into a number of pairs of the form (ancestor K,
-            # ancestor K-1), (ancestor K-1, ancestor K-2), ...,  (grandparent,
-            # parent), (parent, child)
-            for parent, child in zip(reversed(path), reversed(path[:-1])):
-                parent_d = self._make_descriptor(parent)
-                child_d = self._make_descriptor(child)
-
-                child_d.parent = parent_d
-                if child_d in parent_d.children:
-                    parent_d.children.remove(child_d)
-                parent_d.children.append(child_d)
+        path = list(reversed(path))
+        parent_d = self._top
+        for child in path:
+            child_d = self._make_descriptor(child)
+            self._reparent(child_d, parent_d)
+            parent_d = child_d
+        return parent_d
 
     def open(self, source):
         """Returns the cookie returned by opening the given Source."""
@@ -74,11 +89,13 @@ class SourceManager:
             desc = self._opened[source]
 
             if desc.children:
+                # Clear up descendants of this Source
                 for child in desc.children.copy():
                     self.close(child.source)
                 desc.children.clear()
 
             if desc.generator:
+                # Clear up the state and the generator
                 desc.cookie = None
                 try:
                     desc.generator.close()  # not allowed to fail
@@ -89,6 +106,7 @@ class SourceManager:
                     print_exc(file=stderr)
 
             if desc.parent:
+                # Detach this Source from its parent
                 desc.parent.children.remove(desc)
             del self._opened[source]
 
@@ -101,6 +119,5 @@ class SourceManager:
     def clear(self):
         """Closes all of the cookies returned by Sources that were opened in
         this SourceManager."""
-        opened = list(self._opened.keys())
-        for source in opened:
-            self.close(source)
+        for child in self._top.children.copy():
+            self.close(child.source)
