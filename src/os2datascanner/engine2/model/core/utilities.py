@@ -21,10 +21,21 @@ class SourceManager:
     mean, for example, automatically disconnecting from remote resources,
     unmounting drives, or closing file handles.
 
-    As SourceManagers track (potentially process-specific) state, they are not
-    usefully serialisable."""
-    def __init__(self):
+    SourceManagers have an optional property called their "width", which is the
+    number of open sub-Sources that can be below a Source at any given time.
+    For example, a SourceManager with a width of 3 can have three open
+    connections, each of which can have three open files, each of which can
+    have three open pages, and so on. When opening a new Source would cause
+    the width to be exceeded, the least-recently-used Source at that level will
+    be closed. (Opening an already-open Source marks it as the most recently
+    used one.)
+
+    SourceManagers track arbitrary state objects and so are not usefully
+    serialisable or shareable."""
+    def __init__(self, *, width=3):
         """Initialises this SourceManager."""
+        self._width = width
+
         self._opened = {}
         self._opening = []
 
@@ -46,6 +57,11 @@ class SourceManager:
         if parent_d != self._top:
             child_d.parent = parent_d
         child_d.parent.children.append(child_d)
+
+        # If the new parent can't have any more open Sources, then close the
+        # least-recently-used one
+        if self._width and len(child_d.parent.children) > self._width:
+            self.close(child_d.parent.children[0].source)
 
         # Also perform a dummy reparent operation all the way up the hierarchy
         # to ensure that the rightmost child is always the most recently used
