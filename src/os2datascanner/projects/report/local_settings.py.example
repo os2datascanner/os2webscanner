@@ -32,4 +32,7 @@ SAML2_AUTH = {
     'NAME_ID_FORMAT': FormatString, # Sets the Format property of authn NameIDPolicy element
     'USE_JWT': False, # Set this to True if you are running a Single Page Application (SPA) with Django Rest Framework (DRF), and are using JWT authentication to authorize client users
     'FRONTEND_URL': 'https://myfrontendclient.com', # Redirect URL for the client if you are using JWT auth with DRF. See explanation below
+    'CERT_FILE': '',
+    'KEY_FILE': '',
+    'AUTHN_REQUESTS_SIGNED': False,
 }
