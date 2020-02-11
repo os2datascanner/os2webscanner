@@ -63,13 +63,15 @@ def _restructure_and_save_result(result):
         report.data['metadata'] = None
         report.data['problems'] = []
 
-    # TODO: Make search for scan_tag more generic.
     if origin == 'os2ds_metadata':
         report.data['scan_tag'] = result.get('scan_tag')
         report.data['metadata'] = result
     elif origin == 'os2ds_matches':
-        report.data['scan_tag'] = result.get('scan_spec').get('scan_tag')
-        report.data['matches'] = result
+        if result.get('matched'):
+            report.data['scan_tag'] = result.get('scan_spec').get('scan_tag')
+            report.data['matches'] = result
+        else:
+            logger.info('Object processed with no matches: {}'.format(result))
     # elif origin == 'os2ds_problems':
     #     report.data['problems'].append(result)
 

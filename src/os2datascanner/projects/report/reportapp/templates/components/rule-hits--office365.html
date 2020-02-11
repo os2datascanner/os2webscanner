@@ -1,33 +1,38 @@
 {% for rule in match_by_type.data.matches.matches %}
-        <tr tabindex="0">
+<tr tabindex="0" data-type="office365">
 
-          <td class="datatable__column--filetype-icon">
-            <span class="icon-filetype icon-filetype--office365">
-              {% include "components/svg-icons/icon-office365.html" %}
-            </span>
-          </td>
+  <td class="datatable__column--filetype-icon">
+    <span class="icon-filetype icon-filetype--office365">
+      {% include "components/svg-icons/icon-office365.html" %}
+    </span>
+  </td>
 
-          <td class="datatable__column--item">
-            <span class="scan__item-title">{{ match_by_type.data.matches.handle.source.handle.mail_subject }}</span>
+  <td class="datatable__column--item">
+    <span class="scan__item-title">{{ match_by_type.data.matches.handle.source.handle.mail_subject }}</span>
 
-            <div class="scan__item-meta">
-              <span class="">{{ match_by_type.data.matches.handle.source.handle.source.user }}@{{ match_by_type.data.matches.handle.source.handle.source.domain }}</span>
-              <span class="">Folder data missing</span>
-            </div>
+    <div class="scan__item-meta">
+      <span class="">{{ match_by_type.data.matches.handle.source.handle.source.user }}@{{ match_by_type.data.matches.handle.source.handle.source.domain }}</span>
+      <span class="">Folder data missing</span>
+    </div>
 
-            <div class="hit-link">
-              <a href="#" class="hit-link__file">Open email</a>
-            </div>
-          </td>
-            <td class="datatable__column--match">
-            {% for match in rule.matches %}
-                {{ match.match }}
-            {% endfor %}
-            </td>
-          <td class="datatable__column--context">
-              {% for match in rule.matches %}
-                {{ match.context }}
-              {% endfor %}
-          </td>
+    <div class="hit-link">
+      <a href="#" class="hit-link__file">Open email</a>
+    </div>
+  </td>
+
+  <td class="datatable__column--match datatable__column--context" colspan="2">
+
+    <table class="datatable datatable--nested">
+      <tbody>
+        {% for match in rule.matches|slice:":3" %}
+        <tr>
+          <td class="datatable__column--match">{{ match.match }}</td>
+          <td class="datatable__column--context">{{ match.context }}</td>
         </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </td>
+
+</tr>
 {% endfor %}

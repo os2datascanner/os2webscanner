@@ -41,7 +41,7 @@ class WebScannerUpdate(ScannerUpdate):
 
     model = WebScanner
     type = 'web'
-    fields = ['name', 'schedule', 'exclusion_rules',
+    fields = ['name', 'schedule', 'url', 'exclusion_rules',
               'download_sitemap', 'sitemap_url', 'sitemap', 'do_ocr',
               'do_link_check', 'do_external_link_check', 'do_collect_cookies',
               'do_last_modified_check', 'do_last_modified_check_head_request',
