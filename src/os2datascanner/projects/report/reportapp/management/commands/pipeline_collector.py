@@ -71,7 +71,7 @@ def _restructure_and_save_result(result):
             report.data['scan_tag'] = result.get('scan_spec').get('scan_tag')
             report.data['matches'] = result
         else:
-            logger.info('Source processed: {}'.format(result))
+            logger.info('Object processed with no matches: {}'.format(result))
     # elif origin == 'os2ds_problems':
     #     report.data['problems'].append(result)
 
