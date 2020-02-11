@@ -2,6 +2,13 @@ from sys import stderr
 from traceback import print_exc
 
 
+class _SourceDescriptor:
+    def __init__(self, *, source):
+        self.source = source
+        self.generator = None
+        self.state = None
+
+
 class SourceManager:
     """A SourceManager is responsible for tracking all of the state associated
     with one or more Sources. Operations on Sources and Handles that require
@@ -49,17 +56,13 @@ class SourceManager:
         self._opening.append(source)
         self._register_path(self._opening)
         try:
-            rv = None
-            if not source in self._opened:
-                cookie = None
-                if not cookie:
-                    generator = source._generate_state(self)
-                    cookie = next(generator)
-                    self._opened[source] = (generator, cookie)
-                rv = cookie
-            else:
-                _, rv = self._opened[source]
-            return rv
+            desc = self._opened.setdefault(
+                    source, _SourceDescriptor(source=source))
+            if not desc.generator:
+                desc.generator = source._generate_state(self)
+                desc.cookie = next(desc.generator)
+                self._opened[source] = desc
+            return desc.cookie
         finally:
             self._opening = self._opening[:-1]
 
@@ -73,9 +76,11 @@ class SourceManager:
                 for child in self._paths[source]:
                     self.close(child)
                 del self._paths[source]
-            generator, _ = self._opened[source]
+
+            desc = self._opened[source]
+            desc.cookie = None
             try:
-                generator.close()  # not allowed to fail
+                desc.generator.close()  # not allowed to fail
             except Exception:
                 stn = type(source).__name__
                 print("*** BUG: {0}._generate_state raised an exception!"
