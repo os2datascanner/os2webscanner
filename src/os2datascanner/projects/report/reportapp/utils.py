@@ -33,14 +33,9 @@ def get_or_create_user_aliases(user_data):  # noqa: D401
     sid = get_user_data(saml_attr.get('sid'), user_data)
     user = User.objects.get(username=username)
     if email:
-        # Note: It could be nice to also log when an alias was updated..
-        object, created = EmailAlias.objects.get_or_create(user= user, address=email)
-        if created:
-            logger.info('Email alias was created for user {}'.format(username))
+        EmailAlias.objects.get_or_create(user= user, address=email)
     if sid:
-        object, created = ADSIDAlias.objects.get_or_create(user=user, sid=sid)
-        if created:
-            logger.info('ADSID alias was created for user {}'.format(username))
+        ADSIDAlias.objects.get_or_create(user=user, sid=sid)
 
 def get_user_data(key, user_data):
     """Helper method for retrieving data for a given key."""
