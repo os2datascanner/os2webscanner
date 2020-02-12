@@ -37,6 +37,19 @@ def make_common_argument_parser():
     return parser
 
 
+def make_sourcemanager_configuration_block(parser):
+    configuration = parser.add_argument_group("configuration")
+    configuration.add_argument(
+            "--width",
+            type=int,
+            metavar="SIZE",
+            help="allow each source to have at most %(metavar) "
+                    "simultaneous open sub-sources",
+            default=3)
+
+    return configuration
+
+
 def notify_ready():
     sd_notify("READY=1")
 
