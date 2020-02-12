@@ -37,4 +37,4 @@ lxml==4.4.2
 beautifulsoup4==4.8.2
 chardet==3.0.4
 python3-saml==1.9.0
-git+https://github.com/magenta-aps/django-saml2-auth#egg=django-saml2-auth
+-e git+https://github.com/magenta-aps/django-saml2-auth#egg=django-saml2-auth

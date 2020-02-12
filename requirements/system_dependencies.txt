@@ -30,8 +30,5 @@ linux-image-generic
 rsync
 libsystemd-dev
 npm
-xmlsec1
 openssl
-python-lxml
-libxmlsec1
 libxmlsec1-dev
