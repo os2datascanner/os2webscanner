@@ -118,6 +118,8 @@ class MainPageView(TemplateView, LoginRequiredMixin):
 
     template_name = 'index.html'
 
+class DesignGuide(TemplateView):
+    template_name = 'designguide.html'
 
 class OrganizationList(RestrictedListView):
     """Display a list of organizations, superusers only!"""

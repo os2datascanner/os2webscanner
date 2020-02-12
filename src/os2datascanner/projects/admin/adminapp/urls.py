@@ -41,6 +41,7 @@ from .views.webscanner_views import (WebScannerCreate, WebScannerUpdate,
                                      WebScannerDelete, WebScannerRun,
                                      WebScannerAskRun, WebScannerList,
                                      WebScannerValidate)
+from .views.views import DesignGuide
 
 urlpatterns = [
     # App URLs
@@ -167,7 +168,14 @@ urlpatterns = [
 
     # Referrer DOM content
     url(r'referrer/(?P<pk>[0-9]+)/$',
-        referrer_content, name='referrer_content')
+        referrer_content, name='referrer_content'),
+
+    url(r'^designguide',
+        DesignGuide.as_view(
+            template_name='designguide.html',
+        ),
+        name='designguide'),
+
 
 ]
 
