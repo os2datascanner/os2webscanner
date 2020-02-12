@@ -35,7 +35,10 @@
 </head>
 <body class="{{ body_class|default:'page' }}">
 
+  {% block topnav %}
   {% include "components/banner.html" with active_tab="home" %}
+  {% endblock %}
+
   {% block body %}
   {% endblock %}
 
