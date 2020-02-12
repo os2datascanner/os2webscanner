@@ -35,6 +35,7 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
+# Delegate the login process to an external SAML2 identity provider?
 SAML2_ENABLED = True
 
 # Application definition
