@@ -37,11 +37,14 @@
       width: 10rem;
     }
 
-    &--context {}
+    &--context {
+      // 
+    }
   }
 }
 
 .datatable tr:focus, 
+.datatable tr:focus-within, 
 .datatable tr:hover {
   td {
     background-color: rgba(0, 0, 0, 0.05);
@@ -98,9 +101,30 @@
 }
 /* .datatable--click-rows, stop */
 
+/* Nested tables, start */
+.datatable--nested {
+  border-collapse: collapse;
+  box-shadow: initial;
+  table-layout: fixed;
+  width: 100%;
+
+  td,
+  td:first-child,
+  td:last-child {
+    border-top: none;
+    padding: var(--size-ds-unit) 0;
+  }
+}
+/* Nested tables, stop */
+
 .scan {
   &__item-title {
     display: block;
+  }
+
+  &__item-count {
+    display: block;
+    margin-top: var(--size-ds-unit);
   }
 
   &__item-meta {
