@@ -35,8 +35,11 @@ from recurrence.fields import RecurrenceField
 
 from os2datascanner.engine2.model.core import (
         Source, SourceManager, ResourceUnavailableError)
-from os2datascanner.engine2.rules.logical import OrRule, AndRule
+from os2datascanner.engine2.rules.meta import HasConversionRule
+from os2datascanner.engine2.rules.logical import OrRule, AndRule, make_if
+from os2datascanner.engine2.rules.dimensions import DimensionsRule
 from os2datascanner.engine2.rules.last_modified import LastModifiedRule
+from os2datascanner.engine2.conversions.types import OutputType
 
 from ..authentication_model import Authentication
 from ..organization_model import Organization
@@ -253,6 +256,8 @@ class Scanner(models.Model):
         rule = OrRule.make(
                 *[r.make_engine2_rule()
                         for r in self.rules.all().select_subclasses()])
+
+        prerules = []
         if self.do_last_modified_check:
             # Make sure that the timestamp we give to LastModifiedRule is
             # timezone-aware; engine2's serialisation code requires this
@@ -262,7 +267,18 @@ class Scanner(models.Model):
             if last:
                 if not last.tzinfo or last.tzinfo.utcoffset(last) is None:
                     last = last.replace(tzinfo=local_tz)
-                rule = AndRule(LastModifiedRule(last), rule)
+                prerules.append(LastModifiedRule(last))
+        if self.do_ocr:
+            cr = make_if(
+                    HasConversionRule(OutputType.ImageDimensions),
+                    DimensionsRule(
+                            width_range=range(32, 16385),
+                            height_range=range(32, 16385),
+                            min_dim=128),
+                    True)
+            prerules.append(cr)
+
+        rule = AndRule.make(*prerules, rule)
 
         message = {
             'scan_tag': now.isoformat(),
