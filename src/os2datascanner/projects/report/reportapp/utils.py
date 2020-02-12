@@ -43,7 +43,7 @@ def get_or_create_user_aliases(user_data):  # noqa: D401
             logger.info('ADSID alias was created for user {}'.format(username))
 
 def get_user_data(key, user_data):
-    """Helper method for retreiving data for a given key."""
+    """Helper method for retrieving data for a given key."""
     data = None
     try:
         data = user_data.get(key)[0]
