@@ -18,6 +18,7 @@ urlpatterns = [
 if settings.SAML2_ENABLED:
     urlpatterns.append(url(r"^saml2_auth/", include("django_saml2_auth.urls")))
     urlpatterns.append(url(r"^accounts/login/$", django_saml2_auth.views.signin))
+    urlpatterns.append(url(r'^accounts/logout/$', django_saml2_auth.views.signout))
 else:
     urlpatterns.append(url(r'^accounts/login/',
         django.contrib.auth.views.LoginView.as_view(
