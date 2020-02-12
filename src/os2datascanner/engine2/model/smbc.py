@@ -118,7 +118,7 @@ class _SMBCFile(io.RawIOBase):
     def write(self, bytes):
         raise TypeError("_SMBCFile is read-only")
 
-    def seek(self, pos, whence):
+    def seek(self, pos, whence=0):
         r = self._file.lseek(pos, whence)
         if r != -1:
             return r
