@@ -5,3 +5,4 @@ unittest-xml-reporting==2.5.1
 django_extensions
 coverage
 systemd-python==234
+-e git+git://github.com/magenta-aps/django-saml2-auth#egg=django-saml2-auth
