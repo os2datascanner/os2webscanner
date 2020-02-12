@@ -77,3 +77,50 @@ class Engine2SourceManagerTest(unittest.TestCase):
                 tracker2.count,
                 0,
                 "SourceManager didn't eventually close the unrelated object")
+
+    def test_width(self):
+        tracker1 = Tracker()
+        tracker2 = Tracker()
+        tracker3 = Tracker()
+        with SourceManager(width=2) as sm:
+            sm.open(tracker1)
+            sm.open(tracker2)
+
+            self.assertEqual(
+                    tracker1.count,
+                    1)
+            self.assertEqual(
+                    tracker2.count,
+                    1)
+
+            sm.open(tracker3)
+
+            self.assertEqual(
+                    tracker1.count,
+                    0)
+            self.assertEqual(
+                    tracker3.count,
+                    1)
+
+    def test_nested_lru(self):
+        tracker1 = Tracker()
+        tracker2 = Tracker()
+        tracker3 = Tracker()
+        tracker4 = Dependent(tracker1)
+        tracker5 = Dependent(tracker1)
+        tracker6 = Dependent(tracker1)
+        with SourceManager(width=2) as sm:
+            sm.open(tracker1)
+            sm.open(tracker2)
+            # At this point, the SourceManager is full and tracker1 is the
+            # least recently used entry, so it should be evicted next
+
+            # Opening a dependency of tracker1 should mark it as most recently
+            # used, meaning that tracker2 will be evicted when we try to open
+            # something new
+            sm.open(tracker4)
+            sm.open(tracker3)
+
+            self.assertEqual(
+                    tracker2.count,
+                    0)
