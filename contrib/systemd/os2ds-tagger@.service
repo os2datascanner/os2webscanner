@@ -10,3 +10,4 @@ DynamicUser=true
 StandardOutput=journal
 SyslogIdentifier=OS2ds-tagg%i
 ExecStart=/vagrant/bin/pex python -m os2datascanner.engine2.pipeline.tagger
+Restart=on-failure
