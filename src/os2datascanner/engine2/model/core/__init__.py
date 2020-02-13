@@ -2,13 +2,13 @@ from .errors import UnknownSchemeError, DeserialisationError, ResourceUnavailabl
 from .source import Source
 from .handle import Handle
 from .resource import Resource, FileResource, MailResource
-from .utilities import ShareableCookie, SourceManager, EMPTY_COOKIE
+from .utilities import SourceManager
 
 __all__ = [
         "Source",
         "Handle",
         "Resource", "FileResource", "MailResource",
-        "SourceManager", "ShareableCookie", "EMPTY_COOKIE",
+        "SourceManager",
         "UnknownSchemeError", "DeserialisationError",
         "ResourceUnavailableError"
 ]

@@ -31,9 +31,10 @@ LOGS_DIR = os.path.join(VAR_DIR, 'logs')
 SECRET_KEY = 'rtt$!(67bg1np)@b5mt6f=j(k#0nzek)r1k(^swyp9g^zs#^=#'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+# Delegate the login process to an external SAML2 identity provider?
+SAML2_ENABLED = True
 
 # Application definition
 

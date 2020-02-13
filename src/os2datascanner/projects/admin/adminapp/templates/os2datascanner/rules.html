@@ -1,258 +1,127 @@
 {% extends 'os2datascanner/base.html' %}
-{% block rendertype %}regular{% endblock %}
+
 {%  block title %}
 Regler
 {% endblock %}
 
 {% block body %}
-<div class="container">
-  {% include 'os2datascanner/rules_above_content.html' with active='adhoc' %}
-  <div class="tab-content">
-    <div role="tabpanel" class="tab-pane active" id="adhoc">
-      <p class="h2" style="display:inline-block;">Regulær udtryk-regler</p>
-      <span class="page-action">
-        <button
-            type="button" class="btn btn-default"
-            onclick="os2web.iframeDialog(
-                  '#create-rule-modal',
-                  '/rules/regex/add/',
-                  'Tilføj ny regulær udtryk-regel')">
-          Tilføj ny
-          <span style="position:relative;top:.15em;" class="glyphicon glyphicon-plus-sign"></span>
-        </button>
-      </span>
-      <div class="table-responsive">
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <td>
-                <strong>
-                <small>
-                Navn
-                </small>
-                </strong>
-              </td>
-              {% if user.is_superuser %}
-              <td>
-                <strong>
-                <small>
-                Organisation
-                </small>
-                </strong>
-              </td>
-              {% endif %}
-              <td>
-                <strong>
-                <small>
-                Beskrivelse
-                </small>
-                </strong>
-              </td>
-              <td>
-                <strong>
-                <small>
-                Udtryk
-                </small>
-                </strong>
-              </td>
-              <td>
-                <strong>
-                <small>
-                Følsomhed
-                </small>
-                </strong>
-              </td>
-              <td>
-                <strong>
-                <small>
-                Handling
-                </small>
-                </strong>
-              </td>
-            </tr>
-          </thead>
-          <tbody>
-            {% for rule in regexrule_list %}
-            <tr>
-              <td class="rule-name">
-                <span>
-                {{ rule.name }}
-                </span>
-              </td>
-              {% if user.is_superuser %}
-              <td class="rule-organization">
-                <span>
-                {{ rule.organization }}
-                </span>
-              </td>
-              {% endif %}
-              <td class="rule-description">
-                <span>
-                {{ rule.description }}
-                </span>
-              </td>
-              <td class="rule-expression">
-                {% if rule.regexrule.patterns.all|length > 0 %}
-                <input type="checkbox" class="show-patterns" id="show-patterns-{{ forloop.counter }}" name="show-patterns-{{ forloop.counter }}">
-                <label for="show-patterns-{{ forloop.counter }}">
-                  Vis udtryk?
-                </label>
-                <div class="pattern-container clearfix">
-                  {% for pattern in rule.regexrule.patterns.all %}
-                  <code>{{ pattern.pattern_string }}</code>
-                  {% endfor %}
-                </div>
-                {% endif %}
-              </td>
-              <td class="rule-sensitivity">
-                <span>
-                {{ rule.get_sensitivity_display }}
-                </span>
-              </td>
-              <td class="rule-actions">
-                <button type="button" class="btn btn-default btn-xs btn-rule-settings"
-                  onclick="os2web.iframeDialog(
-                  &quot;#edit-rule-modal&quot;,
-                  &quot;/rules/regex/{{rule.pk}}&quot;,
-                  &quot;Redigér regulær udtryk-regel '{{rule.name}}'&quot;
-                  )">
-                <span class="glyphicon glyphicon-cog"></span> <span>Redigér</span>
-                </button>
-                <a href="/rules/regex/{{rule.pk}}/delete/" class="btn btn-default btn-xs">
-                <span class="glyphicon glyphicon-remove"></span>
-                <span>Slet</span>
-                </a>
-              </td>
-            </tr>
+<div class="wrapper">
+  <h2>Regulær udtryk-regler</h2>
+  <button type="button" class="btn btn-default" onclick="os2web.iframeDialog(
+          '#create-rule-modal',
+          '/rules/regex/add/',
+          'Tilføj ny regulær udtryk-regel')">
+    Tilføj ny
+  </button>
+
+  <table class="datatable">
+    <thead>
+      <tr>
+        <th>Navn</th>
+        {% if user.is_superuser %}
+        <th>Organisation</th>
+        {% endif %}
+        <th>Beskrivelse</th>
+        <th>Udtryk</th>
+        <th>Følsomhed</th>
+        <th>Handling</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for rule in regexrule_list %}
+      <tr tabindex="0">
+        <td>{{ rule.name }}</td>
+        {% if user.is_superuser %}
+        <td>{{ rule.organization }}</td>
+        {% endif %}
+        <td>{{ rule.description }}</td>
+
+        <td>
+          {% if rule.regexrule.patterns.all|length > 0 %}
+          <input type="checkbox" class="show-patterns" id="show-patterns-{{ forloop.counter }}"
+            name="show-patterns-{{ forloop.counter }}">
+          <label for="show-patterns-{{ forloop.counter }}">
+            Vis udtryk?
+          </label>
+          <div class="pattern-container clearfix">
+            {% for pattern in rule.regexrule.patterns.all %}
+            <code>{{ pattern.pattern_string }}</code>
             {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="tab-content">
-    <div role="tabpanel" class="tab-pane active" id="adhoc">
-      <p class="h2" style="display:inline-block;">CPR-regler</p>
-      <span class="page-action">
-        <button
-            type="button" class="btn btn-default"
-            onclick="os2web.iframeDialog(
-                  '#create-rule-modal',
-                  '/rules/cpr/add/',
-                  'Tilføj ny CPR-regel')">
-          Tilføj ny
-          <span style="position:relative;top:.15em;" class="glyphicon glyphicon-plus-sign"></span>
-        </button>
-      </span>
-      <div class="table-responsive">
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <td>
-                <strong>
-                <small>
-                Navn
-                </small>
-                </strong>
-              </td>
-              {% if user.is_superuser %}
-              <td>
-                <strong>
-                <small>
-                Organisation
-                </small>
-                </strong>
-              </td>
-              {% endif %}
-              <td>
-                <strong>
-                <small>
-                Beskrivelse
-                </small>
-                </strong>
-              </td>
-              <td>
-                <strong>
-                <small>
-                Modulo-11
-                </small>
-                </strong>
-              </td>
-              <td>
-                <strong>
-                <small>
-                Fødselsdagsdato tjek
-                </small>
-                </strong>
-              </td>
-              <td>
-                <strong>
-                <small>
-                Følsomhed
-                </small>
-                </strong>
-              </td>
-              <td>
-                <strong>
-                <small>
-                Handling
-                </small>
-                </strong>
-              </td>
-            </tr>
-          </thead>
-          <tbody>
-            {% for rule in cprrule_list %}
-            <tr>
-              <td class="rule-name">
-                <span>
-                {{ rule.name }}
-                </span>
-              </td>
-              {% if user.is_superuser %}
-              <td class="rule-organization">
-                <span>
-                {{ rule.organization }}
-                </span>
-              </td>
-              {% endif %}
-              <td class="rule-description">
-                <span>
-                {{ rule.description }}
-                </span>
-              </td>
-              <td class="rule-cpr-modulo-11">
-                {% if rule.cprrule.do_modulus11 %}<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>{% endif %}
-              </td>
-              <td class="rule-cpr-birthday">
-                {% if rule.cprrule.ignore_irrelevant %}<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>{% endif %}
-              </td>
-              <td class="rule-sensitivity">
-                <span>
-                {{ rule.get_sensitivity_display }}
-                </span>
-              </td>
-              <td class="rule-actions">
-                <button type="button" class="btn btn-default btn-xs btn-rule-settings"
-                  onclick="os2web.iframeDialog(
-                  &quot;#edit-rule-modal&quot;,
-                  &quot;/rules/cpr/{{rule.pk}}&quot;,
-                  &quot;Redigér CPR-regel '{{rule.name}}'&quot;
-                  )">
-                <span class="glyphicon glyphicon-cog"></span> <span>Redigér</span>
-                </button>
-                <a href="/rules/cpr/{{rule.pk}}/delete/" class="btn btn-default btn-xs">
-                <span class="glyphicon glyphicon-remove"></span>
-                <span>Slet</span>
-                </a>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+          </div>
+          {% endif %}
+        </td>
+        <td>{{ rule.get_sensitivity_display }}</td>
+        <td>
+          <button type="button" class="btn btn-default btn-xs btn-rule-settings" onclick="os2web.iframeDialog(
+              &quot;#edit-rule-modal&quot;,
+              &quot;/rules/regex/{{rule.pk}}&quot;,
+              &quot;Redigér regulær udtryk-regel '{{rule.name}}'&quot;
+              )">
+          </button>
+          <a href="/rules/regex/{{rule.pk}}/delete/" class="btn btn-default btn-xs">
+            <span class="glyphicon glyphicon-remove"></span>
+            <span>Slet</span>
+          </a>
+        </td>
+      </tr tabindex="0">
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>CPR-regler</h2>
+  <button type="button" class="btn btn-default" onclick="os2web.iframeDialog(
+          '#create-rule-modal',
+          '/rules/cpr/add/',
+          'Tilføj ny CPR-regel')">
+    Tilføj ny
+  </button>
+
+  <table class="datatable">
+    <thead>
+      <tr>
+        <th>Navn</th>
+        {% if user.is_superuser %}
+        <th>Organisation</th>
+        {% endif %}
+        <th>Beskrivelse</th>
+        <th>Modulo-11</th>
+        <th>Fødselsdagsdato tjek</th>
+        <th>Følsomhed</th>
+        <th>Handling</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for rule in cprrule_list %}
+      <tr tabindex="0">
+        <td>{{ rule.name }}</td>
+        {% if user.is_superuser %}
+        <td>{{ rule.organization }}</td>
+        {% endif %}
+        <td>{{ rule.description }}</td>
+        <td>
+          {% if rule.cprrule.do_modulus11 %}
+          <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+          {% endif %}
+        </td>
+        <td>
+          {% if rule.cprrule.ignore_irrelevant %}
+          <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+          {% endif %}
+        </td>
+        <td>{{ rule.get_sensitivity_display }}</td>
+        <td>
+          <button type="button" class="btn btn-default btn-xs btn-rule-settings" onclick="os2web.iframeDialog(
+                &quot;#edit-rule-modal&quot;,
+                &quot;/rules/cpr/{{rule.pk}}&quot;,
+                &quot;Redigér CPR-regel '{{rule.name}}'&quot;
+                )">Redigér
+          </button>
+          <a href="/rules/cpr/{{rule.pk}}/delete/" class="btn btn-default btn-xs">Slet</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 {% endblock %}
 
@@ -261,38 +130,33 @@ Regler
 {% endblock %}
 
 {% block modal %}
-<div class="modal iframe" id="create-rule-modal" tabindex="-1" role="dialog"
-  aria-labelledby="create-rule-modal-title" aria-hidden="true">
+<div class="modal iframe" id="create-rule-modal" tabindex="-1" role="dialog" aria-labelledby="create-rule-modal-title" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-	  &times;
-	</button>
-	<h4 class="modal-title" id="create-rule-modal-title">
-	  Opret ny ad hoc-regel
-	</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+          &times;
+        </button>
+        <h4 class="modal-title" id="create-rule-modal-title">Opret ny ad hoc-regel</h4>
       </div>
       <div class="modal-body">
-	<iframe src="about:blank" frameborder="0"></iframe>
+        <iframe src="about:blank" frameborder="0"></iframe>
       </div>
     </div>
   </div>
 </div>
-<div class="modal iframe" id="edit-rule-modal" tabindex="-1" role="dialog"
-  aria-labelledby="edit-rule-modal-title" aria-hidden="true">
+
+<div class="modal iframe" id="edit-rule-modal" tabindex="-1" role="dialog" aria-labelledby="edit-rule-modal-title" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-	  &times;
-	</button>
-	<h4 class="modal-title" id="edit-rule-modal-title">
-	  Redigér ad hoc-regel
-	</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+          &times;
+        </button>
+        <h4 class="modal-title" id="edit-rule-modal-title">Redigér ad hoc-regel</h4>
       </div>
       <div class="modal-body">
-	<iframe src="about:blank" frameborder="0"></iframe>
+        <iframe src="about:blank" frameborder="0"></iframe>
       </div>
     </div>
   </div>

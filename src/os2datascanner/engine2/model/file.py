@@ -1,4 +1,4 @@
-from .core import Source, Handle, FileResource, ShareableCookie
+from .core import Source, Handle, FileResource
 
 from os import stat
 import os.path
@@ -37,7 +37,7 @@ class FilesystemSource(Source):
 
         Other classes can also produce FilesystemResources if they have a
         compatible implementation of this function."""
-        yield ShareableCookie(self.path)
+        yield self.path
 
     def censor(self):
         return self
