@@ -8,6 +8,16 @@
   position: relative;
 }
 
+header,
+section,
+main,
+article,
+aside,
+nav,
+footer {
+  display: block;
+}
+
 .align-right {
   text-align: right !important;
 }
