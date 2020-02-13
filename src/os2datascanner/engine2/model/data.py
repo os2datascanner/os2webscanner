@@ -5,7 +5,7 @@ from tempfile import NamedTemporaryFile
 from contextlib import contextmanager
 
 from ..conversions.utilities.results import SingleResult
-from .core import Source, Handle, FileResource, EMPTY_COOKIE
+from .core import Source, Handle, FileResource
 
 
 class DataSource(Source):
@@ -23,7 +23,7 @@ class DataSource(Source):
         yield DataHandle(self, "file")
 
     def _generate_state(self, sm):
-        yield EMPTY_COOKIE
+        yield
 
     def censor(self):
         return self

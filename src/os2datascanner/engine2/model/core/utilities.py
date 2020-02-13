@@ -1,26 +1,15 @@
-class ShareableCookie:
-    """A Source's cookie represents the fact that it has been opened somehow.
-    Precisely what this means is not defined: it might represent a mount
-    operation on a remote drive, or a connection to a server, or even nothing
-    at all.
+from sys import stderr
+from traceback import print_exc
 
-    Source._generate_state can yield a ShareableCookie to indicate that a
-    cookie can (for the duration of its SourceManager's context) meaningfully
-    be shared across processes, because the operations that it has performed
-    are not specific to a single process.
 
-    SourceManager will otherwise try to hide the existence of this class from
-    the outside world -- the value contained in this cookie, rather than the
-    cookie itself, will be returned from SourceManager.open and passed to
-    Source._close."""
-    def __init__(self, value):
-        self.value = value
+class _SourceDescriptor:
+    def __init__(self, *, source, parent=None):
+        self.source = source
+        self.parent = parent
+        self.generator = None
+        self.state = None
+        self.children = []
 
-    def get(self):
-        return self.value
-
-EMPTY_COOKIE = ShareableCookie(None)
-"""A contentless (and therefore trivially shareable) cookie."""
 
 class SourceManager:
     """A SourceManager is responsible for tracking all of the state associated
@@ -32,71 +21,112 @@ class SourceManager:
     mean, for example, automatically disconnecting from remote resources,
     unmounting drives, or closing file handles.
 
-    SourceManagers can be nested to an arbitrary depth, provided that their
-    contexts are also nested; child SourceManagers will not try to open Sources
-    that their antecedents have already opened, and the nesting ensures that
-    their own state will be cleaned up before that of their antecedents.
+    SourceManagers have an optional property called their "width", which is the
+    number of open sub-Sources that can be below a Source at any given time.
+    For example, a SourceManager with a width of 3 can have three open
+    connections, each of which can have three open files, each of which can
+    have three open pages, and so on. When opening a new Source would cause
+    the width to be exceeded, the least-recently-used Source at that level will
+    be closed. (Opening an already-open Source marks it as the most recently
+    used one.)
 
-    As SourceManagers track (potentially process-specific) state, they are not
-    usefully serialisable. See, however, the SourceManager.share method and
-    the ShareableCookie class below."""
-    def __init__(self, parent=None):
-        """Initialises this SourceManager.
+    SourceManagers track arbitrary state objects and so are not usefully
+    serialisable or shareable."""
+    def __init__(self, *, width=3):
+        """Initialises this SourceManager."""
+        self._width = width
 
-        If @parent is not None, then it *must* be a SourceManager operating as
-        a context manager in a containing scope."""
-        self._order = []
         self._opened = {}
-        self._parent = parent
-        self._ro = False
+        self._opening = []
 
-    def share(self):
-        """Returns a SourceManager that contains only the ShareableCookies from
-        this SourceManager. This SourceManager will be read-only, and can only
-        be used as a parent for a writable SourceManager: attempting to open
-        things in it, or to enter its context, will raise a TypeError."""
-        if self._ro:
-            return self
-        r = SourceManager()
-        r._parent = self._parent.share() if self._parent else None
-        r._ro = True
-        for v in self._order:
-            (generator, cookie) = self._opened[v]
-            if isinstance(cookie, ShareableCookie):
-                r._order.append(v)
-                r._opened[v] = (None, cookie)
-        return r
+        # A synthetic _SourceDescriptor used as the parent for top-level
+        # objects
+        self._top = _SourceDescriptor(source=None)
 
-    def open(self, source, try_open=True):
-        """Returns the cookie returned by opening the given Source. If
-        @try_open is True, the Source will be opened in this SourceManager if
-        necessary."""
-        if self._ro and try_open:
-            raise TypeError(
-                    "BUG: open(try_open=True) called on" +
-                    " a read-only SourceManager!")
-        rv = None
-        if not source in self._opened:
-            cookie = None
-            if self._parent:
-                cookie = self._parent.open(source, try_open=False)
-            if not cookie and try_open:
-                generator = source._generate_state(self)
-                cookie = next(generator)
-                self._order.append(source)
-                self._opened[source] = (generator, cookie)
-            rv = cookie
-        else:
-            _, rv = self._opened[source]
-        if isinstance(rv, ShareableCookie):
-            return rv.get()
-        else:
-            return rv
+    def _make_descriptor(self, source):
+        return self._opened.setdefault(
+                source, _SourceDescriptor(source=source, parent=self._top))
+
+    def _reparent(self, child_d, parent_d):
+        if (child_d.parent
+                and child_d in child_d.parent.children):
+            child_d.parent.children.remove(child_d)
+        # Don't reparent to the dummy top element -- this case happens if the
+        # path is incomplete, and actually doing it will throw away the
+        # complete path
+        if parent_d != self._top:
+            child_d.parent = parent_d
+        child_d.parent.children.append(child_d)
+
+        # If the new parent can't have any more open Sources, then close the
+        # least-recently-used one
+        if self._width and len(child_d.parent.children) > self._width:
+            self.close(child_d.parent.children[0].source)
+
+        # Also perform a dummy reparent operation all the way up the hierarchy
+        # to ensure that the rightmost child is always the most recently used
+        # one
+        if parent_d.parent:
+            self._reparent(parent_d, parent_d.parent)
+
+    def _register_path(self, path):
+        """Registers a path, a partial or complete reverse-ordered list of
+        Sources of the form [child, parent, grandparent, ...], with this
+        SourceManager. Paths are used to free resources in a sensible order.
+
+        Paths are an internal implementation detail, and this function is
+        intended for use only by SourceManager.open."""
+        path = list(reversed(path))
+        parent_d = self._top
+        for child in path:
+            child_d = self._make_descriptor(child)
+            self._reparent(child_d, parent_d)
+            parent_d = child_d
+        return parent_d
+
+    def open(self, source):
+        """Returns the cookie returned by opening the given Source."""
+        self._opening.append(source)
+        self._register_path(self._opening)
+        try:
+            desc = self._make_descriptor(source)
+            if not desc.generator:
+                desc.generator = source._generate_state(self)
+                desc.cookie = next(desc.generator)
+                self._opened[source] = desc
+            return desc.cookie
+        finally:
+            self._opening = self._opening[:-1]
+
+    def close(self, source):
+        """Closes a Source opened in this SourceManager, in the process closing
+        all other open Sources that depend upon it."""
+        if source in self._opened:
+            desc = self._opened[source]
+
+            if desc.children:
+                # Clear up descendants of this Source
+                for child in desc.children.copy():
+                    self.close(child.source)
+                desc.children.clear()
+
+            if desc.generator:
+                # Clear up the state and the generator
+                desc.cookie = None
+                try:
+                    desc.generator.close()  # not allowed to fail
+                except Exception:
+                    stn = type(source).__name__
+                    print("*** BUG: {0}._generate_state raised an exception!"
+                            " Continuing anyway...".format(stn), file=stderr)
+                    print_exc(file=stderr)
+
+            if desc.parent:
+                # Detach this Source from its parent
+                desc.parent.children.remove(desc)
+            del self._opened[source]
 
     def __enter__(self):
-        if self._ro:
-            raise TypeError(
-                    "BUG: __enter__ called on a read-only SourceManager!")
         return self
 
     def __exit__(self, exc_type, exc_value, backtrace):
@@ -105,15 +135,5 @@ class SourceManager:
     def clear(self):
         """Closes all of the cookies returned by Sources that were opened in
         this SourceManager."""
-        try:
-            for k in reversed(self._order):
-                generator, _ = self._opened[k]
-                if not generator and not self._ro:
-                    raise TypeError(
-                            "BUG: clear() on a normal SourceManager"
-                            + " encountered a None generator!")
-                else:
-                    generator.close()
-        finally:
-            self._order = []
-            self._opened = {}
+        for child in self._top.children.copy():
+            self.close(child.source)

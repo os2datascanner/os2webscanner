@@ -8,7 +8,8 @@ from ..conversions import convert
 from ..conversions.types import OutputType, encode_dict
 from ..conversions.utilities.results import SingleResult
 from .utilities import (notify_ready, pika_session, notify_stopping,
-        prometheus_summary, json_event_processor, make_common_argument_parser)
+        prometheus_summary, json_event_processor, make_common_argument_parser,
+        make_sourcemanager_configuration_block)
 
 
 def message_received_raw(
@@ -93,13 +94,8 @@ def main():
             help="the name of the AMQP queue from which conversions"
                     + " should be read",
             default="os2ds_conversions")
-    inputs.add_argument(
-            "--cleanup-interval",
-            type=int,
-            metavar="COUNT",
-            help="clean up all open resources and connections after every"
-                    " %(metavar)s conversions",
-            default=50)
+
+    make_sourcemanager_configuration_block(parser)
 
     outputs = parser.add_argument_group("outputs")
     outputs.add_argument(
@@ -119,27 +115,16 @@ def main():
 
     with pika_session(args.sources, args.conversions, args.representations,
             host=args.host, heartbeat=6000) as channel:
-        count = 0
-        with SourceManager() as source_manager:
+        with SourceManager(width=args.width) as source_manager:
 
             @prometheus_summary("os2datascanner_pipeline_processor",
                     "Representations generated")
             @json_event_processor
             def message_received(body, channel):
-                nonlocal count
-
                 if args.debug:
                     print(channel, body)
-
-                if count and args.cleanup_interval and (
-                        count % args.cleanup_interval) == 0:
-                    source_manager.clear()
-
-                try:
-                    return message_received_raw(body, channel,
-                            source_manager, args.representations, args.sources)
-                finally:
-                    count += 1
+                return message_received_raw(body, channel,
+                        source_manager, args.representations, args.sources)
             channel.basic_consume(args.conversions, message_received)
 
             with prometheus_session(
