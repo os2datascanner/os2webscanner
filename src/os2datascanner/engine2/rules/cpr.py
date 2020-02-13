@@ -15,6 +15,9 @@ class CPRRule(RegexRule):
         self._ignore_irrelevant = ignore_irrelevant
 
     def match(self, content):
+        if content is None:
+            return
+
         for m in self._compiled_expression.finditer(content):
             cpr = m.group(1).replace(" ", "") + m.group(2)
             valid_date = date_check(cpr, self._ignore_irrelevant)
@@ -57,9 +60,6 @@ class CPRRule(RegexRule):
         return CPRRule(modulus_11=obj["modulus_11"],
                 ignore_irrelevant=obj["ignore_irrelevant"])
 
-    def __str__(self):
-        return "CPRRule(modulus_11={0}, ignore_irrelevant={1})".format(
-                self.modulus_11, self.ignore_irrelevant)
 
 # Updated list of dates with CPR numbers violating the Modulo-11 check. (Last
 # synchronised with the CPR Office's list on November 19, 2019.)

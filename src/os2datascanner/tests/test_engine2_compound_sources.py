@@ -6,8 +6,8 @@ from os2datascanner.engine2.model.file import FilesystemHandle
 from os2datascanner.engine2.model.derived.pdf import PDFSource
 from os2datascanner.engine2.model.derived.libreoffice import LibreOfficeSource
 from os2datascanner.engine2.rules.cpr import CPRRule
-from os2datascanner.engine2.rules.types import convert, InputType
-import os2datascanner.engine2.rules._transitional_conversions # noqa
+from os2datascanner.engine2.conversions import convert
+from os2datascanner.engine2.conversions.types import OutputType
 
 
 here_path = os.path.dirname(__file__)
@@ -23,7 +23,7 @@ def try_apply(sm, source, rule):
             resource = handle.follow(sm)
             representation = convert(resource, rule.operates_on)
             if representation:
-                yield from rule.match(representation)
+                yield from rule.match(representation.value)
 
 
 class Engine2CompoundSourceTest(unittest.TestCase):

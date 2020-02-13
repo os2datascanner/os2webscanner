@@ -1,11 +1,11 @@
 import re
 
+from ..conversions.types import OutputType
 from .rule import Rule, SimpleRule
-from .types import InputType
 
 
 class RegexRule(SimpleRule):
-    operates_on = InputType.Text
+    operates_on = OutputType.Text
     type_label = "regex"
     eq_properties = ("_expression",)
 
@@ -14,6 +14,9 @@ class RegexRule(SimpleRule):
         self._compiled_expression = re.compile(expression)
 
     def match(self, content):
+        if content is None:
+            return
+
         for match in self._compiled_expression.finditer(content):
             yield {
                 "offset": match.start(),

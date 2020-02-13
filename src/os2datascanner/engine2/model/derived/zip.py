@@ -2,9 +2,10 @@ from zipfile import ZipFile
 from datetime import datetime
 from contextlib import contextmanager
 
-from ...rules.types import InputType
+from ...conversions.types import OutputType
+from ...conversions.utilities.results import MultipleResults
 from ..core import Source, Handle, FileResource, SourceManager
-from ..utilities import MultipleResults, NamedTemporaryResource
+from ..utilities import NamedTemporaryResource
 from .derived import DerivedSource
 
 
@@ -38,7 +39,7 @@ class ZipResource(FileResource):
                     "external_attr", "extra", "extract_version", "file_size",
                     "filename", "flag_bits", "header_offset", "internal_attr",
                     "orig_filename", "reserved", "volume")
-            self._mr[InputType.LastModified] = datetime(
+            self._mr[OutputType.LastModified] = datetime(
                     *self._mr["date_time"].value)
         return self._mr
 
@@ -46,7 +47,7 @@ class ZipResource(FileResource):
         return self.unpack_info()["file_size"]
 
     def get_last_modified(self):
-        return self.unpack_info().get(InputType.LastModified,
+        return self.unpack_info().get(OutputType.LastModified,
                 super().get_last_modified())
 
     @contextmanager

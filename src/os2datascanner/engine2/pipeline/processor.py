@@ -1,82 +1,83 @@
 from os import getpid
 
 from ...utils.prometheus import prometheus_session
-from ..rules import _transitional_conversions  # noqa
 from ..rules.rule import Rule
-from ..rules.types import convert, InputType, encode_dict, conversion_exists
 from ..model.core import (Source,
         Handle, SourceManager, ResourceUnavailableError)
-from ..model.utilities import SingleResult
+from ..conversions import convert
+from ..conversions.types import OutputType, encode_dict
+from ..conversions.utilities.results import SingleResult
 from .utilities import (notify_ready, pika_session, notify_stopping,
         prometheus_summary, json_event_processor, make_common_argument_parser,
         make_sourcemanager_configuration_block)
 
 
-def get_processor(sm, handle, required, configuration) -> SingleResult:
-    if required == InputType.Text:
-        resource = handle.follow(sm)
-        mime_type = resource.compute_type()
-        if "skip_mime_types" in configuration:
-            for mt in configuration["skip_mime_types"]:
-                if mt.endswith("*") and mime_type.startswith(mt[:-1]):
-                    return None
-                elif mime_type == mt:
-                    return None
-        if conversion_exists(InputType.Text, mime_type):
-            return lambda handle: SingleResult(
-                    None, InputType.Text,
-                    convert(handle.follow(sm), InputType.Text))
-    elif required == InputType.LastModified:
-        resource = handle.follow(sm)
-        if hasattr(resource, "get_last_modified"):
-            def _get_time(handle):
-                return resource.get_last_modified()
-            return _get_time
-    return None
-
-
 def message_received_raw(
         body, channel, source_manager, representations_q, sources_q):
     handle = Handle.from_json_object(body["handle"])
+    configuration = body["scan_spec"]["configuration"]
     rule = Rule.from_json_object(body["progress"]["rule"])
     head, _, _ = rule.split()
     required = head.operates_on
 
     try:
-        processor = get_processor(
-                source_manager, handle, required,
-                body["scan_spec"]["configuration"])
-        if processor:
-            representation = processor(handle)
-            if representation:
-                if representation.parent:
-                    # If the conversion also produced other values at the same
-                    # time, then include all of those as well; they might also
-                    # be useful for the rule engine
-                    dv = {k.value: v.value
-                            for k, v in representation.parent.items()
-                            if isinstance(k, InputType)}
-                else:
-                    dv = {required.value: representation.value}
+        resource = handle.follow(source_manager)
 
-                yield (representations_q, {
-                    "scan_spec": body["scan_spec"],
-                    "handle": body["handle"],
-                    "progress": body["progress"],
-                    "representations": encode_dict(dv)
-                })
+        representation = None
+        if (required == OutputType.Text
+                and "skip_mime_types" in configuration):
+            mime_type = resource.compute_type()
+            for mt in configuration["skip_mime_types"]:
+                if mt.endswith("*") and mime_type.startswith(mt[:-1]):
+                    break
+                elif mime_type == mt:
+                    break
+            else:
+                representation = convert(resource, OutputType.Text)
         else:
-            # If we have a conversion we don't support, then check if the
-            # current handle can be reinterpreted as a Source; if it can, then
-            # try again with that
-            derived_source = Source.from_handle(handle, source_manager)
-            if derived_source:
-                # Copy almost all of the existing scan spec, but note the
-                # progress of rule execution and replace the source
-                scan_spec = body["scan_spec"].copy()
-                scan_spec["source"] = derived_source.to_json_object()
-                scan_spec["progress"] = body["progress"]
-                yield (sources_q, scan_spec)
+            representation = convert(resource, required)
+
+        if representation and representation.parent:
+            # If the conversion also produced other values at the same
+            # time, then include all of those as well; they might also be
+            # useful for the rule engine
+            dv = {k.value: v.value
+                    for k, v in representation.parent.items()
+                    if isinstance(k, OutputType)}
+        else:
+            dv = {required.value: representation.value
+                    if representation else None}
+
+        yield (representations_q, {
+            "scan_spec": body["scan_spec"],
+            "handle": body["handle"],
+            "progress": body["progress"],
+            "representations": encode_dict(dv)
+        })
+    except KeyError:
+        # If we have a conversion we don't support, then check if the current
+        # handle can be reinterpreted as a Source; if it can, then try again
+        # with that
+        derived_source = Source.from_handle(handle, source_manager)
+        if derived_source:
+            # Copy almost all of the existing scan spec, but note the progress
+            # of rule execution and replace the source
+            scan_spec = body["scan_spec"].copy()
+            scan_spec["source"] = derived_source.to_json_object()
+            scan_spec["progress"] = body["progress"]
+            yield (sources_q, scan_spec)
+        else:
+            # If we can't recurse any deeper, then produce an empty conversion
+            # so that the matcher stage has something to work with
+            # (XXX: is this always the right approach?)
+            yield (representations_q, {
+                "scan_spec": body["scan_spec"],
+                "handle": body["handle"],
+                "progress": body["progress"],
+                "representations": {
+                    required.value: None
+                }
+            })
     except ResourceUnavailableError:
         pass
 
