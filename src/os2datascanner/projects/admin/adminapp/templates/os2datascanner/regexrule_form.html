@@ -110,158 +110,165 @@
 <form class="form" role="form" method="post">
   {% csrf_token %}
 
-  <div class="form__group">
-    <label for="id_{{ form.name.name }}">{{ form.name.label }}</label>
-    <input 
-      type="text" 
-      class="form-control" 
-      name="{{ form.name.name }}" 
-      id="id_{{ form.name.name }}"
-      {% if form.name.value %}value="{{ form.name.value }}" {% endif %}
-      {% if form.name.field.required %}required{% endif %}>
-    {% if form.name.help_text %}
-    <span class="form__help-text">{{ form.name.help_text }}</span>
-    {% endif %}
-    {% if form.name.errors %}{{ form.name.errors }}{% endif %}
-  </div>
+  <fieldset class="form__fieldset">
+    <div class="form__group">
+      <label for="id_{{ form.name.name }}">{{ form.name.label }}</label>
+      <input 
+        autofocus="autofocus"
+        type="text" 
+        class="form-control" 
+        name="{{ form.name.name }}" 
+        id="id_{{ form.name.name }}"
+        {% if form.name.value %}value="{{ form.name.value }}" {% endif %}
+        {% if form.name.field.required %}required{% endif %}>
+      {% if form.name.help_text %}
+      <span class="form__help-text">{{ form.name.help_text }}</span>
+      {% endif %}
+      {% if form.name.errors %}{{ form.name.errors }}{% endif %}
+    </div>
 
-  {% if form.organization %}
-  <div 
-    id="{{ form.organization.auto_id }}_container" 
-    class="form__group{% if form.organization.errors %} has-error{% endif %}">
-    <label for="id_{{ form.organization.name }}">{{ form.organization.label }}</label>
-    <select 
-      name="{{ form.organization.name }}" 
-      id="id_{{ form.organization.name }}" 
-      class="form-control"
-      {% if form.organization.field.required %}required{% endif %}>
+    {% if form.organization %}
+    <div 
+      id="{{ form.organization.auto_id }}_container" 
+      class="form__group{% if form.organization.errors %} has-error{% endif %}">
+      <label for="id_{{ form.organization.name }}">{{ form.organization.label }}</label>
+      <select 
+        name="{{ form.organization.name }}" 
+        id="id_{{ form.organization.name }}" 
+        class="form-control"
+        {% if form.organization.field.required %}required{% endif %}>
 
-      {% for value, tag in form.organization.field.choices %}
-      <option value="{{ value }}" {% if form.organization.value|add:"0" == value|add:"0" %} selected{% endif %}>
-        {{ tag }}</option>{# silly type conversion #}
-      {% endfor %}
-    </select>
-    {% if form.organization.help_text %}
-    <span class="form__help-text">{{ form.organization.help_text }}</span>
-    {% endif %}
+        {% for value, tag in form.organization.field.choices %}
+        <option value="{{ value }}" {% if form.organization.value|add:"0" == value|add:"0" %} selected{% endif %}>
+          {{ tag }}</option>{# silly type conversion #}
+        {% endfor %}
+      </select>
+      {% if form.organization.help_text %}
+      <span class="form__help-text">{{ form.organization.help_text }}</span>
+      {% endif %}
 
-    {% if form.organization.errors %}{{ form.organization.errors }}{% endif %}
-  </div>
+      {% if form.organization.errors %}{{ form.organization.errors }}{% endif %}
+    </div>
+  </fieldset>
   {% endif %}
 
   {% if form.group %}
-  <div 
-    id="{{ form.group.auto_id }}_container" 
-    class="form__group form-group{% if form.group.errors %} has-error{% endif %}">
+  <fieldset class="form__fieldset">
+    <div 
+      id="{{ form.group.auto_id }}_container" 
+      class="form__group form-group{% if form.group.errors %} has-error{% endif %}">
 
-    <label for="id_{{ form.group.name }}">{{ form.group.label }}</label>
+      <label for="id_{{ form.group.name }}">{{ form.group.label }}</label>
 
-    <select 
-      name="{{ form.group.name }}" 
-      id="id_{{ form.group.name }}" 
-      class="form-control"
-      {% if form.group.field.required %}required{% endif %}>
+      <select 
+        name="{{ form.group.name }}" 
+        id="id_{{ form.group.name }}" 
+        class="form-control"
+        {% if form.group.field.required %}required{% endif %}>
 
-      {% for value, tag in form.group.field.choices %}
-      <option value="{{ value }}" {% if form.group.value|add:"0" == value|add:"0" %} selected{% endif %}>{{ tag }}</option>{# silly type conversion #}
-      {% endfor %}
-    </select>
+        {% for value, tag in form.group.field.choices %}
+        <option value="{{ value }}" {% if form.group.value|add:"0" == value|add:"0" %} selected{% endif %}>{{ tag }}</option>{# silly type conversion #}
+        {% endfor %}
+      </select>
 
-    {% if form.group.help_text %}
-    <span>{{ form.group.help_text }}</span>
-    {% endif %}
+      {% if form.group.help_text %}
+      <span>{{ form.group.help_text }}</span>
+      {% endif %}
 
-    {% if form.group.errors %}{{ form.group.errors }}{% endif %}
-  </div>
+      {% if form.group.errors %}{{ form.group.errors }}{% endif %}
+    </div>
+  </fieldset>
   {% endif %}
 
-  <div id="{{ form.pattern_0.auto_id }}_container" class="form__group col-sm-12{% if form.pattern_0.errors %} has-error{% endif %}">
+  <fieldset class="form__fieldset">
 
-    {% for pattern_name, pattern_value in view.get_pattern_fields %}
-    <div class="form__group form-group">
-      <label class="control-label col-sm-2" for="id_{{ pattern_name }}">{{ form.pattern_0.label }} {{ forloop.counter }}</label>
-      <div class="col-sm-10">
-        {% if forloop.counter > 1 %}
-        <div class="input-group">
-          {% endif %}
-          <input 
-            type="text" 
-            class="form-control" 
-            name="{{ pattern_name }}" 
-            id="id_{{ pattern_name }}"
-            {% if pattern_value %}value="{{ pattern_value }}" {% endif %}
-            {% if forloop.counter == 1 and form.pattern_0.field.required %}required{% endif %}>
-          {# required state of pattern_0 is variable #}
+    <div id="{{ form.pattern_0.auto_id }}_container" class="form__group col-sm-12{% if form.pattern_0.errors %} has-error{% endif %}">
 
+      {% for pattern_name, pattern_value in view.get_pattern_fields %}
+      <div class="form__group form-group">
+        <label class="control-label col-sm-2" for="id_{{ pattern_name }}">{{ form.pattern_0.label }} {{ forloop.counter }}</label>
+        <div class="col-sm-10">
           {% if forloop.counter > 1 %}
-          <span class="input-group-btn">
-            <button class="btn btn-default button-remove-expression" type="button">Fjern udtryk</button>
-          </span>
-          {% endif %}
+          <div class="input-group">
+            {% endif %}
+            <input 
+              type="text" 
+              class="form-control" 
+              name="{{ pattern_name }}" 
+              id="id_{{ pattern_name }}"
+              {% if pattern_value %}value="{{ pattern_value }}" {% endif %}
+              {% if forloop.counter == 1 and form.pattern_0.field.required %}required{% endif %}>
+            {# required state of pattern_0 is variable #}
 
-          {% if form.pattern_0.help_text %}
-          <span class="form__help-text">{{ form.pattern_0.help_text }}</span>
-          {% endif %}
+            {% if forloop.counter > 1 %}
+            <span class="input-group-btn">
+              <button class="btn btn-default button-remove-expression" type="button">Fjern udtryk</button>
+            </span>
+            {% endif %}
 
-          {% if form.pattern_0.errors %}{{ form.pattern_0.errors }}{% endif %}
-          {% if forloop.counter > 1 %}
+            {% if form.pattern_0.help_text %}
+            <span class="form__help-text">{{ form.pattern_0.help_text }}</span>
+            {% endif %}
+
+            {% if form.pattern_0.errors %}{{ form.pattern_0.errors }}{% endif %}
+            {% if forloop.counter > 1 %}
+          </div>
+          {% endif %}
         </div>
-        {% endif %}
+      </div>
+      {% endfor %}
+
+      <div class="row form__group">
+        <div class="col-sm-offset-2 col-sm-10">
+          <button id="button-add-expression" type="button" class="button button--cta button--small btn btn-default">Tilføj udtryk</button>
+        </div>
       </div>
     </div>
-    {% endfor %}
+  </fieldset>
 
-    <div class="row">
-      <div class="col-sm-offset-2 col-sm-10">
-        <button id="button-add-expression" type="button" class="button button--cta button--small btn btn-default">Tilføj udtryk</button>
+  <fieldset class="form__fieldset">
+    <div id="{{ form.description.auto_id }}_container" class="form__group col-sm-12{% if form.description.errors %} has-error{% endif %}">
+      <div class="form-group">
+        <label class="control-label col-sm-2" for="id_{{ form.description.name }}">{{ form.description.label }}</label>
+        <div class="col-sm-10">
+          <textarea class="form-control" name="{{ form.description.name }}" id="id_{{ form.description.name }}" rows="3"
+            {% if form.description.field.required %}required{% endif %}>{% if form.description.value %}{{ form.description.value }}{% endif %}</textarea>
+          {% if form.description.help_text %}
+          <p>
+            <small>{{ form.description.help_text }}</small>
+          </p>
+          {% endif %}
+          {% if form.description.errors %}{{ form.description.errors }}{% endif %}
+        </div>
       </div>
     </div>
-  </div>
 
-  <div id="{{ form.description.auto_id }}_container"
-    class="col-sm-12{% if form.description.errors %} has-error{% endif %}">
-    <div class="form-group">
-      <label class="control-label col-sm-2" for="id_{{ form.description.name }}">{{ form.description.label }}</label>
-      <div class="col-sm-10">
-        <textarea class="form-control" name="{{ form.description.name }}" id="id_{{ form.description.name }}" rows="3"
-          {% if form.description.field.required %}required{% endif %}>{% if form.description.value %}{{ form.description.value }}{% endif %}</textarea>
-        {% if form.description.help_text %}
-        <p>
-          <small>{{ form.description.help_text }}</small>
-        </p>
-        {% endif %}
-        {% if form.description.errors %}{{ form.description.errors }}{% endif %}
+    <div id="{{ form.sensitivity.auto_id }}_container" class="form__group col-sm-12{% if form.sensitivity.errors %} has-error{% endif %}">
+      <div class="form-group">
+        <label class="control-label col-sm-2" for="id_{{ form.sensitivity.name }}">{{ form.sensitivity.label }}</label>
+        <div class="col-sm-10">
+          <select name="{{ form.sensitivity.name }}" id="id_{{ form.sensitivity.name }}" class="form-control"
+            {% if form.sensitivity.field.required %}required{% endif %}>
+            {% for value, tag in form.sensitivity.field.choices %}
+            <option value="{{ value }}" {% if form.sensitivity.value|add:"0" == value|add:"0" %} selected="selected"
+              {% endif %}>{{ tag }}</option>
+            {% endfor %}
+          </select>
+          {% if form.sensitivity.help_text %}
+          <p>
+            <small>{{ form.sensitivity.help_text }}</small>
+          </p>
+          {% endif %}
+          {% if form.sensitivity.errors %}{{ form.sensitivity.errors }}{% endif %}
+        </div>
       </div>
     </div>
-  </div>
+  
+  </fieldset>
 
-  <div id="{{ form.sensitivity.auto_id }}_container"
-    class="col-sm-12{% if form.sensitivity.errors %} has-error{% endif %}">
-    <div class="form-group">
-      <label class="control-label col-sm-2" for="id_{{ form.sensitivity.name }}">{{ form.sensitivity.label }}</label>
-      <div class="col-sm-10">
-        <select name="{{ form.sensitivity.name }}" id="id_{{ form.sensitivity.name }}" class="form-control"
-          {% if form.sensitivity.field.required %}required{% endif %}>
-          {% for value, tag in form.sensitivity.field.choices %}
-          <option value="{{ value }}" {% if form.sensitivity.value|add:"0" == value|add:"0" %} selected="selected"
-            {% endif %}>{{ tag }}</option>
-          {% endfor %}
-        </select>
-        {% if form.sensitivity.help_text %}
-        <p>
-          <small>{{ form.sensitivity.help_text }}</small>
-        </p>
-        {% endif %}
-        {% if form.sensitivity.errors %}{{ form.sensitivity.errors }}{% endif %}
-      </div>
-    </div>
-  </div>
-
-  <div class="col-sm-offset-2">
+  <div class="form__group col-sm-offset-2">
     <div class="col-sm-12">
-      <button type="submit" class="btn btn-primary" name="save">
-        Gem ændringer
-      </button>
+      <button type="submit" class="btn btn-primary button button--cta button--rounded" name="save">Gem ændringer</button>
     </div>
   </div>
 

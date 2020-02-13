@@ -9,6 +9,10 @@ body {
 
 .page {
   padding: var(--size-ds-unit);
+
+  .iframe-modal & {
+    padding: calc(var(--size-ds-unit) * 2);
+  }
 }
 
 .wrapper {
