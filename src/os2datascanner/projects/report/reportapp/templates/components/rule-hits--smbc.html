@@ -1,4 +1,5 @@
 {% for rule in match_by_type.data.matches.matches %}
+    {% for match in rule.matches %}
 <tr tabindex="0" data-type="smbc">
 
   <td class="datatable__column--filetype-icon">
@@ -20,7 +21,7 @@
 
     <div class="hit-link">
       <input type="text" class="phantom" value="{{ match_by_type.data.matches.handle.path }}" />
-      <button class="hit-link__folder">Copy location</button>
+      <button class="hit-link__folder">Kopier fil sti</button>
     </div>
   </td>
 
