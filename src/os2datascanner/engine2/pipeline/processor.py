@@ -33,7 +33,7 @@ def message_received_raw(
                 elif mime_type == mt:
                     break
             else:
-                representation = convert(resource, OutputType.text)
+                representation = convert(resource, OutputType.Text)
         else:
             representation = convert(resource, required)
 
