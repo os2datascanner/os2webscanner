@@ -1,4 +1,4 @@
-from .core import Source, Handle, ShareableCookie
+from .core import Source, Handle
 from .file import FilesystemResource
 
 from os import rmdir
@@ -50,11 +50,12 @@ class SMBSource(Source):
             print(args)
             assert run(args).returncode == 0
 
-            yield ShareableCookie(mntdir)
-
-            assert run(["umount", mntdir]).returncode == 0
+            yield mntdir
         finally:
-            rmdir(mntdir)
+            try:
+                assert run(["umount", mntdir]).returncode == 0
+            finally:
+                rmdir(mntdir)
 
     def censor(self):
         return SMBSource(self.unc, None, None, None, self.driveletter)

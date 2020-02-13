@@ -4,10 +4,12 @@ from ...utils.prometheus import prometheus_session
 from ..model.core import (Source, SourceManager, UnknownSchemeError,
         DeserialisationError, ResourceUnavailableError)
 from .utilities import (notify_ready, pika_session, notify_stopping,
-        prometheus_summary, json_event_processor, make_common_argument_parser)
+        prometheus_summary, json_event_processor, make_common_argument_parser,
+        make_sourcemanager_configuration_block)
 
 
-def message_received_raw(body, channel, conversions_q, problems_q):
+def message_received_raw(
+        body, channel, source_manager, conversions_q, problems_q):
     try:
         source = Source.from_json_object(body["source"])
 
@@ -24,17 +26,16 @@ def message_received_raw(body, channel, conversions_q, problems_q):
         else:
             progress = dict(rule=body["rule"], matches=[])
 
-        with SourceManager() as sm:
-            for handle in source.handles(sm):
-                try:
-                    print(handle.censor())
-                except NotImplementedError:
-                    pass
-                yield (conversions_q, {
-                    "scan_spec": body,
-                    "handle": handle.to_json_object(),
-                    "progress": progress
-                })
+        for handle in source.handles(source_manager):
+            try:
+                print(handle.censor())
+            except NotImplementedError:
+                pass
+            yield (conversions_q, {
+                "scan_spec": body,
+                "handle": handle.to_json_object(),
+                "progress": progress
+            })
     except ResourceUnavailableError as ex:
         yield (problems_q, {
             "where": body["source"],
@@ -73,6 +74,8 @@ def main():
                     + " should be read",
             default="os2ds_scan_specs")
 
+    make_sourcemanager_configuration_block(parser)
+
     outputs = parser.add_argument_group("outputs")
     outputs.add_argument(
             "--conversions",
@@ -91,29 +94,30 @@ def main():
 
     with pika_session(args.sources, args.conversions, args.problems,
             host=args.host, heartbeat=6000) as channel:
+        with SourceManager(width=args.width) as source_manager:
 
-        @prometheus_summary(
-                "os2datascanner_pipeline_explorer", "Sources explored")
-        @json_event_processor
-        def message_received(body, channel):
-            if args.debug:
-                print(channel, body)
-            return message_received_raw(
-                    body, channel, args.conversions, args.problems)
-        channel.basic_consume(args.sources, message_received)
+            @prometheus_summary(
+                    "os2datascanner_pipeline_explorer", "Sources explored")
+            @json_event_processor
+            def message_received(body, channel):
+                if args.debug:
+                    print(channel, body)
+                return message_received_raw(body, channel,
+                        source_manager, args.conversions, args.problems)
+            channel.basic_consume(args.sources, message_received)
 
-        with prometheus_session(
-                str(getpid()),
-                args.prometheus_dir,
-                stage_type="explorer"):
-            try:
-                print("Start")
-                notify_ready()
-                channel.start_consuming()
-            finally:
-                print("Stop")
-                notify_stopping()
-                channel.stop_consuming()
+            with prometheus_session(
+                    str(getpid()),
+                    args.prometheus_dir,
+                    stage_type="explorer"):
+                try:
+                    print("Start")
+                    notify_ready()
+                    channel.start_consuming()
+                finally:
+                    print("Stop")
+                    notify_stopping()
+                    channel.stop_consuming()
 
 
 if __name__ == "__main__":
