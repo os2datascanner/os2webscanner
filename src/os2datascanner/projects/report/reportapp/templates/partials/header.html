@@ -4,7 +4,7 @@
 
 <head>
   {% block scripts %}
-  <script src="{% static "src/js/index.js" %} "></script>
+  <script src="{% static "dist/bundle.js" %} "></script>
   {% endblock %}
 
   <meta charset="utf-8">
@@ -23,45 +23,6 @@
   <link rel="mask-icon" href="{% static "src/favicons/safari-pinned-tab.svg" %}" color="#4DBA87">
   <meta name="msapplication-TileImage" content="{% static "src/favicons/msapplication-icon-144x144.png" %}">
   <meta name="msapplication-TileColor" content="#000000">
-
-  <style>
-    :root {
-      --transition-property: all;
-      --transition-timing: 0.2s;
-      --transition-timing-function: cubic-bezier(.86,0,.07,1);
-      --transition-delay: 0s;
-      --transition-default: var(--transition-property) var(--transition-timing) var(--transition-timing-function) var(--transition-delay);
-
-      --size-ds-unit: 8px;
-      --size-logo-height: calc(var(--size-ds-unit) * 8);
-      --size-logo-width: calc(var(--size-ds-unit) * 30);
-      --size-base-font-size: calc(var(--size-ds-unit) * 2);
-
-      --color-main: #42b983;
-      --color-text-main: #222;
-      --color-body-bg: #eee;
-
-      --color-ok: var(--color-main);
-      --color-ok-dark: #32845e;
-
-      --color-warning: #f7e70d;
-      --color-warning-dark: #f1c40f;
-
-      --color-error: #e74c3c;
-      --color-error-dark: #e74c3c;
-
-      --color-office365: #d83b01;
-
-      --color-header-bg: rgba(255, 255, 255, 0.95);
-      --color-logo-mark: var(--color-main);
-      --color-logo-text: var(--color-text-main);
-
-      --border-radius: 0.5rem;
-      --border-radius-small: 0.125rem;
-      --box-shadow: 0 0 1rem rgba(0, 0, 0, 0.2);
-      --box-shadow-large: 0 0 2rem rgba(0, 0, 0, 0.2);
-    }
-  </style>
 
   <link href="{% static "dist/bundle.css" %}" rel="stylesheet" />
 

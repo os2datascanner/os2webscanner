@@ -17,3 +17,5 @@ libsmbclient-dev
 moreutils
 libsystemd-dev
 cifs-utils
+openssl
+libxmlsec1-dev
