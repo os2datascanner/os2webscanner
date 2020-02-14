@@ -1,6 +1,61 @@
 OS2datascanner
 ==============
 
+Version 3.1.0, 14th February 2020
+---------------------------------
+
+"Plug and Play"
+
+New in this version:
+
+- SAML support in the report module:
+
+  - Users can now log in to the report module with organisational SSO.
+
+  - Metadata provided by SAML identity providers can be used to relate users to
+    matches.
+
+- Initial support for scanning Exchange Web Services servers.
+
+- The interface of the administration system has been modernised with a new
+  design.
+
+General improvements:
+
+- The user interface now uses version 2.2.10 of the Django framework.
+
+- The user interface is now consistently presented in Danish.
+
+- The documentation has been updated for the 3.x series.
+
+- Report module:
+
+  - Files with several matches are presented more cleanly.
+
+  - The user interface is correctly displayed with Internet Explorer 11.
+
+- Scanner engine:
+
+  - The old scanner engine has been entirely removed.
+
+  - Formatted text is now processed more quickly and more reliably.
+
+  - More image formats are supported for OCR.
+
+  - Disk space usage has been reduced, and performance has been improved.
+
+Bugfixes:
+
+- Document metadata is now more relevant.
+
+- Idle connections to network drives are now cleaned up more aggressively.
+
+- It is now possible to log out of the report module cleanly.
+
+- OCR is no longer performed on very small images.
+
+- Copying file paths in the report module works properly again.
+
 Version 3.0.0, 20th December 2019
 ---------------------------------
 
