@@ -1,4 +1,4 @@
-from .core import Source, Handle, FileResource, ShareableCookie
+from .core import Source, Handle, FileResource
 
 from os import stat
 import os.path
@@ -7,8 +7,8 @@ from pathlib import Path
 from datetime import datetime
 from contextlib import contextmanager
 
-from ..rules.types import InputType
-from .utilities import MultipleResults
+from ..conversions.types import OutputType
+from ..conversions.utilities.results import MultipleResults
 
 
 class FilesystemSource(Source):
@@ -37,7 +37,7 @@ class FilesystemSource(Source):
 
         Other classes can also produce FilesystemResources if they have a
         compatible implementation of this function."""
-        yield ShareableCookie(self.path)
+        yield self.path
 
     def censor(self):
         return self
@@ -79,7 +79,7 @@ class FilesystemResource(FileResource):
         if not self._mr:
             self._mr = MultipleResults.make_from_attrs(
                     os.stat(self._full_path), *stat_attributes)
-            self._mr[InputType.LastModified] = datetime.fromtimestamp(
+            self._mr[OutputType.LastModified] = datetime.fromtimestamp(
                     self._mr["st_mtime"].value)
         return self._mr
 
@@ -88,7 +88,7 @@ class FilesystemResource(FileResource):
 
     def get_last_modified(self):
         return self.unpack_stat().setdefault(
-                InputType.LastModified, super().get_last_modified())
+                OutputType.LastModified, super().get_last_modified())
 
     @contextmanager
     def make_path(self):

@@ -115,3 +115,9 @@ class NotRule(Rule):
 
     def __str__(self):
         return "NotRule({0})".format(str(self._rule))
+
+
+def make_if(predicate, then, else_):
+    return OrRule.make(
+            AndRule.make(predicate, then),
+            AndRule.make(NotRule.make(predicate), else_))

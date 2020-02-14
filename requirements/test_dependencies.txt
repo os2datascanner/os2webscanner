@@ -15,5 +15,7 @@ prometheus
 prometheus-postgres-exporter
 libsmbclient-dev
 moreutils
-html2text
 libsystemd-dev
+cifs-utils
+openssl
+libxmlsec1-dev

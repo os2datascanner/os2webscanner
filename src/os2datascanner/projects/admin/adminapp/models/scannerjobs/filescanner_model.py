@@ -33,14 +33,7 @@ class FileScanner(Scanner):
     """File scanner for scanning network drives and folders"""
 
 
-    mountpath = models.CharField(max_length=2048, verbose_name='Folder sti', null=True)
     alias = models.CharField(max_length=64, verbose_name='Drevbogstav', null=True)
-
-    # Run error messages
-    MOUNT_FAILED = (
-            "Scanneren kunne ikke startes," +
-            " fordi netværksdrev ikke kunne monteres"
-    )
 
     @property
     def root_url(self):
@@ -48,82 +41,9 @@ class FileScanner(Scanner):
         url = self.url.replace('*.', '')
         return url
 
-    @property
-    def is_mounted(self):
-        """Checks if networkdrive is already mounted."""
-
-        if not self.mountpath or not os.path.isdir(self.mountpath):
-            self.set_mount_path()
-
-        return os.path.ismount(self.mountpath)
-
-    def set_mount_path(self):
-        os.makedirs(settings.NETWORKDRIVE_TMP_PREFIX, exist_ok=True)
-
-        tempdir = tempfile.mkdtemp(dir=settings.NETWORKDRIVE_TMP_PREFIX)
-        self.mountpath = tempdir
-        self.save()
-
-    def get_source(self):
-        assert settings.USE_ENGINE2, "don't call this when using orig. engine"
-        return self.make_engine2_source()
-
-    def smb_mount(self):
-        """Mounts networkdrive if not already mounted."""
-        if self.is_mounted:
-            logger.info('mount_skipped', mountpath=self.mountpath, url=self.url)
-            return True
-
-        # Make only one scanner able to scan mounted file directory.
-        # Scrapy locks the files while reading, so it is not possible to have two scan jobs
-        # running at the same time on the same mount point.
-
-        command = ['sudo', 'mount', '-t', 'cifs',
-                   self.root_url, self.mountpath, '-o']
-
-        optarg = 'iocharset=utf8'
-        if settings.PRODUCTION_MODE:
-            # Mount as apache user (www-data). It will always have uid 33
-            optarg += ',uid=33,gid=33'
-        if self.authentication.username:
-            optarg += ',username=' + self.authentication.username
-        if self.authentication.ciphertext:
-            password = self.authentication.get_password()
-            optarg += ',password=' + password
-        if self.authentication.domain:
-            optarg += ',domain=' + self.authentication.domain
-        command.append(optarg)
-
-        response = call(command)
-
-        if response:
-            logger.error('mount_failed', response=response,
-                         mountpath=self.mountpath, url=self.url)
-            return False
-
-        logger.info('mount_complete', mountpath=self.mountpath, url=self.url)
-
-        return True
-
-    def smb_umount(self):
-        """Unmounts networkdrive if mounted."""
-        if not settings.USE_ENGINE2 and self.is_mounted:
-            call(['sudo', 'umount', '-l', self.mountpath])
-            if self.is_mounted:
-                call(['sudo', 'umount', '-f', self.mountpath])
-            logger.info('unmount_complete', mountpath=self.mountpath, url=self.url)
-        else:
-            logger.info('unmount_skipped', mountpath=self.mountpath, url=self.url)
-
     def __str__(self):
         """Return the URL for the scanner."""
         return self.url
-
-    def run(self, type, blocking=False, user=None):
-        if (not settings.USE_ENGINE2) and (not self.smb_mount()):
-            return self.MOUNT_FAILED
-
-        return super().run(type, blocking, user)
 
     def path_for(self, path):
         root_url = (
@@ -139,7 +59,7 @@ class FileScanner(Scanner):
         return path
 
     def get_type(self):
-            return 'file'
+        return 'file'
 
     def get_absolute_url(self):
         """Get the absolute URL for scanners."""

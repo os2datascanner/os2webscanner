@@ -33,15 +33,14 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'APP_DIRS': True,
         'OPTIONS': {
-            'debug': DEBUG,
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django_settings_export.settings_export',
-             ],
-         },
+            ],
+        },
     },
 ]
 
@@ -101,7 +100,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'os2datascanner.projects.admin.adminapp.apps.OS2WebScanner',
+    'os2datascanner.projects.admin.adminapp.apps.AdminappConfig',
     'recurrence',
     'django_xmlrpc',
 )
@@ -209,9 +208,6 @@ DO_USE_GROUPS = False
 # scanner.
 
 DO_USE_MD5 = True
-
-# Use engine2 components in the scan process where possible?
-USE_ENGINE2 = False
 
 # The threshold for number of OCR conversion queue items per scan above which
 # non-OCR conversion will be paused. The reason to have this feature is that

@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 import magic
 from datetime import datetime
 
-from ...rules.types import InputType
-from ..utilities import SingleResult
+from ...conversions.types import OutputType
+from ...conversions.utilities.results import SingleResult, MultipleResults
 
 
 class Resource(ABC):
@@ -36,9 +36,29 @@ class Resource(ABC):
         return self._sm.open(self.handle.source)
 
 
-class FileResource(Resource):
-    """A FileResource is a Resource that can, when necessary, be viewed as a
-    file."""
+class TimestampedResource(Resource):
+    def __init__(self, handle, sm):
+        super().__init__(handle, sm)
+        self._lm_timestamp = None
+
+    @abstractmethod
+    def get_last_modified(self):
+        """Returns the last modification date of this TimestampedResource as a
+        wrapped Python datetime.datetime; this may be used to decide whether or
+        not a FileResource's content should be re-examined. Multiple calls to
+        this method should normally return the same value.
+
+        The default implementation of this method returns the time this
+        method was first called on this TimestampedResource."""
+        if not self._lm_timestamp:
+            self._lm_timestamp = SingleResult(
+                    None, OutputType.LastModified, datetime.now())
+        return self._lm_timestamp
+
+
+class FileResource(TimestampedResource):
+    """A FileResource is a TimestampedResource that can be viewed as a file: a
+    sequence of bytes with a size."""
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
         self._lm_timestamp = None
@@ -49,20 +69,6 @@ class FileResource(Resource):
         of this FileResource's content. (Note that this is not necessarily the
         same as the *actual* size of that content: some Sources support
         transparent compression and decompression.)"""
-
-    @abstractmethod
-    def get_last_modified(self):
-        """Returns the last modification date of this FileResource as a wrapped
-        Python datetime.datetime; this may be used to decide whether or not a
-        FileResource's content should be re-examined. Multiple calls to this
-        method should normally return the same value.
-
-        The default implementation of this method returns the time this
-        method was first called on this FileResource."""
-        if not self._lm_timestamp:
-            self._lm_timestamp = SingleResult(
-                    None, InputType.LastModified, datetime.now())
-        return self._lm_timestamp
 
     @abstractmethod
     def make_path(self):
@@ -83,3 +89,47 @@ class FileResource(Resource):
         bytes of the file."""
         with self.make_stream() as s:
             return magic.from_buffer(s.read(512), True)
+
+
+MAIL_MIME = "message/rfc822"
+"""A special MIME type for explorable emails. Resources (and their associated
+Handles) that represent an email message, and that have a get_email_message
+function that returns the content of that message as a Python email.message.
+EmailMessage, should report this type in order to be automatically
+explorable."""
+
+
+class MailResource(TimestampedResource):
+    """A MailResource is a TimestampedResource that can be viewed as an email:
+    a message body accompanied by a number of headers."""
+
+    def __init__(self, handle, sm):
+        super().__init__(handle, sm)
+        self._mr = None
+        self._lm_timestamp = None
+
+    def unpack_headers(self):
+        if not self._mr:
+            self._mr = MultipleResults()
+            m = self.get_email_message()
+            for k in m.keys():
+                v = m.get_all(k)
+                if v and len(v) == 1:
+                    v = v[0]
+                self._mr[k.lower()] = v
+            date = self._mr.get("date")
+            if date and date.value.datetime:
+                self._mr[OutputType.LastModified] = date.value.datetime
+        return self._mr
+
+    @abstractmethod
+    def get_email_message(self):
+        """Returns a structured representation of this email as a Python
+        email.message.EmailMessage."""
+
+    def get_last_modified(self):
+        return self.unpack_headers().get(OutputType.LastModified,
+                super().get_last_modified())
+
+    def compute_type(self):
+        return MAIL_MIME

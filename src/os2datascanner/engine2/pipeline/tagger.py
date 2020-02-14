@@ -1,52 +1,25 @@
 from os import getpid
-import pika
 
 from ...utils.metadata import guess_responsible_party
 from ...utils.prometheus import prometheus_session
 from ..model.core import Handle, SourceManager, ResourceUnavailableError
-from .utilities import (json_event_processor, notify_ready, notify_stopping,
-        prometheus_summary, make_common_argument_parser)
+from .utilities import (notify_ready, pika_session, notify_stopping,
+        prometheus_summary, json_event_processor, make_common_argument_parser,
+        make_sourcemanager_configuration_block)
 
-args = None
 
+def message_received_raw(body, channel, source_manager, metadata_q):
+    handle = Handle.from_json_object(body["handle"])
 
-@prometheus_summary(
-        "os2datascanner_pipeline_tagger", "Metadata extractions")
-@json_event_processor
-def message_received(channel, method, properties, body):
-    print("message_received({0}, {1}, {2}, {3})".format(
-            channel, method, properties, body))
     try:
-        handle = Handle.from_json_object(body["handle"])
+        yield (metadata_q, {
+            "scan_tag": body["scan_tag"],
+            "handle": body["handle"],
+            "metadata": guess_responsible_party(handle, source_manager)
+        })
+    except ResourceUnavailableError as ex:
+        pass
 
-        with SourceManager() as sm:
-            try:
-                resource = handle.follow(sm)
-                
-                with resource.make_path() as p:
-                    print(p)
-
-                    metadata = guess_responsible_party(str(p))
-                    # FIXME: this should go away once guess_responsible_party
-                    # stops needing to care about engine1 compatibility
-                    if ("filesystem-owner-sid" not in metadata
-                            and hasattr(resource, "get_owner_sid")):
-                        metadata["filesystem-owner-sid"] = \
-                            resource.get_owner_sid()
-
-                    yield (args.metadata, {
-                        "scan_tag": body["scan_tag"],
-                        "handle": body["handle"],
-                        "metadata": metadata
-                    })
-            except ResourceUnavailableError as ex:
-                print(ex)
-                pass
-        
-        channel.basic_ack(method.delivery_tag)
-    except Exception:
-        channel.basic_reject(method.delivery_tag)
-        raise
 
 def main():
     parser = make_common_argument_parser()
@@ -60,6 +33,8 @@ def main():
                     + " should be read",
             default="os2ds_handles")
 
+    make_sourcemanager_configuration_block(parser)
+
     outputs = parser.add_argument_group("outputs")
     outputs.add_argument(
             "--metadata",
@@ -68,33 +43,35 @@ def main():
                     + " written",
             default="os2ds_metadata")
 
-    global args
     args = parser.parse_args()
 
-    parameters = pika.ConnectionParameters(host=args.host, heartbeat=6000)
-    connection = pika.BlockingConnection(parameters)
+    with pika_session(args.handles, args.metadata,
+            host=args.host, heartbeat=6000) as channel:
+        with SourceManager(width=args.width) as source_manager:
 
-    channel = connection.channel()
-    channel.queue_declare(args.handles, passive=False,
-            durable=True, exclusive=False, auto_delete=False)
-    channel.queue_declare(args.metadata, passive=False,
-            durable=True, exclusive=False, auto_delete=False)
+            @prometheus_summary(
+                    "os2datascanner_pipeline_tagger", "Metadata extractions")
+            @json_event_processor
+            def message_received(body, channel):
+                if args.debug:
+                    print(channel, body)
+                return message_received_raw(
+                        body, channel, source_manager, args.metadata)
+            channel.basic_consume(args.handles, message_received)
 
-    channel.basic_consume(args.handles, message_received)
+            with prometheus_session(
+                    str(getpid()),
+                    args.prometheus_dir,
+                    stage_type="tagger"):
+                try:
+                    print("Start")
+                    notify_ready()
+                    channel.start_consuming()
+                finally:
+                    print("Stop")
+                    notify_stopping()
+                    channel.stop_consuming()
 
-    with prometheus_session(
-            str(getpid()),
-            args.prometheus_dir,
-            stage_type="tagger"):
-        try:
-            print("Start")
-            notify_ready()
-            channel.start_consuming()
-        finally:
-            print("Stop")
-            notify_stopping()
-            channel.stop_consuming()
-            connection.close()
 
 if __name__ == "__main__":
     main()

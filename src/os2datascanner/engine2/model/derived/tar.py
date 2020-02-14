@@ -2,9 +2,10 @@ from tarfile import open as open_tar
 from datetime import datetime
 from contextlib import contextmanager
 
-from ...rules.types import InputType
+from ...conversions.types import OutputType
+from ...conversions.utilities.results import MultipleResults
 from ..core import Source, Handle, FileResource, SourceManager
-from ..utilities import MultipleResults, NamedTemporaryResource
+from ..utilities import NamedTemporaryResource
 from .derived import DerivedSource
 
 
@@ -19,12 +20,9 @@ class TarSource(DerivedSource):
                 yield TarHandle(self, f.name)
 
     def _generate_state(self, sm):
-        # Using a nested SourceManager means that closing this generator will
-        # automatically clean up as much as possible
-        with SourceManager(sm) as derived:
-            with self.handle.follow(derived).make_path() as r:
-                with open_tar(str(r), "r") as tp:
-                    yield tp
+        with self.handle.follow(sm).make_path() as r:
+            with open_tar(str(r), "r") as tp:
+                yield tp
 
 
 class TarResource(FileResource):
@@ -40,7 +38,7 @@ class TarResource(FileResource):
                     "linkname", "linkpath", "mode", "mtime", "name", "offset",
                     "offset_data", "path", "pax_headers", "size", "sparse",
                     "tarfile", "type", "uid", "uname")
-            self._mr[InputType.LastModified] = datetime.fromtimestamp(
+            self._mr[OutputType.LastModified] = datetime.fromtimestamp(
                     self._mr["mtime"].value)
         return self._mr
 
@@ -48,7 +46,7 @@ class TarResource(FileResource):
         return self.unpack_info()["size"]
 
     def get_last_modified(self):
-        return self.unpack_info().setdefault(InputType.LastModified,
+        return self.unpack_info().setdefault(OutputType.LastModified,
                 super().get_last_modified())
 
     @contextmanager

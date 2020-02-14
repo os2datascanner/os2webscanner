@@ -2,7 +2,7 @@ from abc import abstractmethod
 
 from ..utilities.json import JSONSerialisable
 from ..utilities.equality import TypePropertyEquality
-from .types import InputType
+from ..conversions.types import OutputType
 
 
 class Rule(TypePropertyEquality, JSONSerialisable):
@@ -55,7 +55,7 @@ class SimpleRule(Rule):
 
     @property
     @abstractmethod
-    def operates_on(self) -> InputType:
+    def operates_on(self) -> OutputType:
         """The type of input expected by this SimpleRule."""
 
     @abstractmethod

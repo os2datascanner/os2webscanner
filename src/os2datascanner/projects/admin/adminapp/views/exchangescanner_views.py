@@ -1,6 +1,8 @@
 from django import forms
+from django.conf import settings
 
 from .scanner_views import *
+from ..aescipher import decrypt
 from ..models.scannerjobs.exchangescanner_model import ExchangeScanner
 
 
@@ -15,8 +17,8 @@ class ExchangeScannerCreate(ScannerCreate):
     """Create a exchange scanner view."""
 
     model = ExchangeScanner
-    fields = ['name', 'schedule', 'do_ocr',
-              'do_last_modified_check', 'rules', 'recipients']
+    fields = ['name', 'url', 'schedule', 'exclusion_rules', 'do_ocr',
+              'do_last_modified_check', 'rules', 'recipients', 'userlist']
 
     def get_success_url(self):
         """The URL to redirect to after successful creation."""
@@ -36,8 +38,8 @@ class ExchangeScannerUpdate(ScannerUpdate):
     """Update a scanner view."""
 
     model = ExchangeScanner
-    fields = ['name', 'schedule', 'do_ocr', 'do_last_modified_check',
-              'rules', 'recipients', 'url', 'userlist']
+    fields = ['name', 'url', 'schedule', 'exclusion_rules', 'do_ocr',
+              'do_last_modified_check', 'rules', 'recipients', 'userlist']
 
     def get_success_url(self):
         """The URL to redirect to after successful updating.
@@ -56,16 +58,19 @@ class ExchangeScannerUpdate(ScannerUpdate):
             form_class = self.get_form_class()
 
         form = super().get_form(form_class)
-        exchangedomain = self.get_object()
-        authentication = exchangedomain.authentication
+        exchangescanner = self.get_object()
+
+        authentication = exchangescanner.authentication
         form.fields['username'] = forms.CharField(max_length=1024, required=False)
         form.fields['password'] = forms.CharField(max_length=50, required=False)
+
         if authentication.username:
             form.fields['username'].initial = authentication.username
         if authentication.ciphertext:
             password = decrypt(bytes(authentication.iv),
                                bytes(authentication.ciphertext))
             form.fields['password'].initial = password
+
         return form
 
 
@@ -84,17 +89,7 @@ class ExchangeScannerAskRun(ScannerAskRun):
     def get_context_data(self, **kwargs):
         """Check that user is allowed to run this scanner."""
         context = super().get_context_data(**kwargs)
-
-        if not self.object.is_ready_to_scan:
-            ok = False
-            error_message = Scanner.EXCHANGE_EXPORT_IS_RUNNING
-        else:
-            ok = True
-
-        context['ok'] = ok
-        if not ok:
-            context['error_message'] = error_message
-
+        context['ok'] = True
         return context
 
 

@@ -1,4 +1,5 @@
-<tr tabindex="0">
+{% for rule in match_by_type.data.matches.matches %}
+<tr tabindex="0" data-type="office365">
 
   <td class="datatable__column--filetype-icon">
     <span class="icon-filetype icon-filetype--office365">
@@ -7,23 +8,31 @@
   </td>
 
   <td class="datatable__column--item">
-    <span class="scan__item-title">6c60aef0-4fa2-e211-8dbf-005056bc59d0.eml</span>
+    <span class="scan__item-title">{{ match_by_type.data.matches.handle.source.handle.mail_subject }}</span>
 
     <div class="scan__item-meta">
-      <span class="">sj@magenta.dk</span>
-      <span class="">Inbox</span>
+      <span class="">{{ match_by_type.data.matches.handle.source.handle.source.user }}@{{ match_by_type.data.matches.handle.source.handle.source.domain }}</span>
+      <span class="">Folder data mangler</span>
     </div>
 
     <div class="hit-link">
-      <a href="#" class="hit-link__file">Open file</a>
-      <a href="#" class="hit-link__folder">Open folder</a>
+      <a href="#" class="hit-link__file">Åben email</a>
     </div>
   </td>
 
-  <td class="datatable__column--match">odit unde</td>
+  <td class="datatable__column--match datatable__column--context" colspan="2">
 
-  <td class="datatable__column--context">
-    Lorem ipsum dolor sit, amet consectetur adipisicing elit. Explicabo <mark>odit unde</mark> at ex. Nulla, et asperiores corrupti commodi dolores optio dignissimos, nesciunt suscipit iure quae minima consectetur tenetur, dolorem deserunt.
+    <table class="datatable datatable--nested">
+      <tbody>
+        {% for match in rule.matches|slice:":3" %}
+        <tr>
+          <td class="datatable__column--match">{{ match.match }}</td>
+          <td class="datatable__column--context">{{ match.context }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </td>
 
 </tr>
+{% endfor %}

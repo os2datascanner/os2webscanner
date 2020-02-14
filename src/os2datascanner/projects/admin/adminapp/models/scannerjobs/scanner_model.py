@@ -20,6 +20,7 @@
 
 import os
 import datetime
+from dateutil import tz
 from contextlib import closing
 import json
 import re
@@ -34,8 +35,11 @@ from recurrence.fields import RecurrenceField
 
 from os2datascanner.engine2.model.core import (
         Source, SourceManager, ResourceUnavailableError)
-from os2datascanner.engine2.rules.logical import OrRule, AndRule
+from os2datascanner.engine2.rules.meta import HasConversionRule
+from os2datascanner.engine2.rules.logical import OrRule, AndRule, make_if
+from os2datascanner.engine2.rules.dimensions import DimensionsRule
 from os2datascanner.engine2.rules.last_modified import LastModifiedRule
+from os2datascanner.engine2.conversions.types import OutputType
 
 from ..authentication_model import Authentication
 from ..organization_model import Organization
@@ -235,72 +239,58 @@ class Scanner(models.Model):
         Return None if there is already a scanner running,
         or if there was a problem running the scanner.
         """
-        if not settings.USE_ENGINE2:
-            if self.is_running:
-                return Scanner.ALREADY_RUNNING
+        local_tz = tz.gettz()
+        now = datetime.datetime.now().replace(microsecond=0)
 
-            # Create a new Scan
-            scan = self.create_scan()
-            if isinstance(scan, str):
-                return scan
-            # Add user as recipient on scan
-            if user:
-                try:
-                    profile = user.profile
-                except UserProfile.DoesNotExist:
-                    profile = None
+        # Check that this source is accessible, and return the resulting error
+        # if it isn't
+        source = self.make_engine2_source()
+        with SourceManager() as sm, closing(source.handles(sm)) as handles:
+            try:
+                print(next(handles, True))
+            except ResourceUnavailableError as ex:
+                return ", ".join([str(a) for a in ex.args[1:]])
 
-                if profile is not None:
-                    scan.recipients.add(user.profile)
+        # Create a new engine2 scan specification and submit it to the
+        # pipeline
+        rule = OrRule.make(
+                *[r.make_engine2_rule()
+                        for r in self.rules.all().select_subclasses()])
 
-            completed_scans = \
-                self.webscans.all().filter(start_time__isnull=False,
-                        end_time__isnull=False).order_by('pk')
-            last_scan_started_at = \
-                completed_scans.last().start_time.isoformat() \
-                if completed_scans else None
+        prerules = []
+        if self.do_last_modified_check:
+            # Make sure that the timestamp we give to LastModifiedRule is
+            # timezone-aware; engine2's serialisation code requires this
+            # for all datetime.datetimes, so LastModifiedRule will raise a
+            # ValueError if we try to give it a naive one
+            last = self.e2_last_run_at
+            if last:
+                if not last.tzinfo or last.tzinfo.utcoffset(last) is None:
+                    last = last.replace(tzinfo=local_tz)
+                prerules.append(LastModifiedRule(last))
+        if self.do_ocr:
+            cr = make_if(
+                    HasConversionRule(OutputType.ImageDimensions),
+                    DimensionsRule(
+                            width_range=range(32, 16385),
+                            height_range=range(32, 16385),
+                            min_dim=128),
+                    True)
+            prerules.append(cr)
 
-            queue_name = "datascanner"
-            message = {
-                'type': type,
-                'id': scan.pk,
-                'logfile': scan.scan_log_file,
-                'last_started': last_scan_started_at
-            }
-        else:
-            now = datetime.datetime.now().replace(microsecond=0)
+        rule = AndRule.make(*prerules, rule)
 
-            # Check that this source is accessible, and return the resulting
-            # error if it isn't
-            source = self.make_engine2_source()
-            with SourceManager() as sm, closing(source.handles(sm)) as handles:
-                try:
-                    print(next(handles, True))
-                except ResourceUnavailableError as ex:
-                    return ", ".join([str(a) for a in ex.args[1:]])
+        message = {
+            'scan_tag': now.isoformat(),
+            'source': source.to_json_object(),
+            'rule': rule.to_json_object()
+        }
+        queue_name = settings.AMQP_PIPELINE_TARGET
 
-            # Create a new engine2 scan specification and submit it to the
-            # pipeline
-            rule = OrRule.make(
-                    *[r.make_engine2_rule()
-                            for r in self.rules.all().select_subclasses()])
-            if self.do_last_modified_check:
-                rule = AndRule(
-                        LastModifiedRule(
-                                self.e2_last_run_at or datetime.datetime.min),
-                        rule)
+        self.e2_last_run_at = now
+        self.save()
 
-            message = {
-                'scan_tag': now.isoformat(),
-                'source': source.to_json_object(),
-                'rule': rule.to_json_object()
-            }
-            queue_name = settings.AMQP_PIPELINE_TARGET
-
-            self.e2_last_run_at = now
-            self.save()
-
-            scan = now.isoformat()
+        scan = now.isoformat()
 
         print(queue_name, json.dumps(message))
         amqp_connection_manager.start_amqp(queue_name)

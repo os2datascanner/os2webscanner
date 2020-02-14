@@ -1,21 +1,27 @@
-<h1 class="page-title">Hits:</h1>
+<h1 class="page-title">Matches:</h1>
 <table class="datatable datatable--click-rows">
     <thead>
     <tr>
       <th class="datatable__column--label">Regel:</th>
-      <th class="datatable__column--count">Antal:</th>
+      <th class="datatable__column--count">Antal filer:</th>
       <th class="datatable__column--status">Status:</th>
     </tr>
   </thead>
   <tbody>
   {% for result in dashboard_results %}
       {% with type=result.data__matches__scan_spec__rule.type %}
-      <tr>
+    <tr>
       <td class="datatable__column--label"><a href="/rule?type={{ type }}">{{ type }}</a></td>
       <td class="datatable__column--count"><a href="/rule?type={{ type }}">{{ result.type_count }}</a></td>
-      <td class="datatable__column--status"><a href="/rule?type={{ type }}"> <span class="level-label level-label--1">Critical!</span></a> </td>
+      <td class="datatable__column--status"><a href="/rule?type={{ type }}"> <span class="level-label level-label--1">Kritisk!</span></a> </td>
     </tr>
       {% endwith %}
+      {% empty %}
+    <tr>
+      <td class="datatable__column--label"><a>Ingen tilgængelig data</a></td>
+      <td></td>
+      <td></td>
+    </tr>
   {% endfor %}
   </tbody>
 </table>

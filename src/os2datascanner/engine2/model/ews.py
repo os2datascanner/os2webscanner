@@ -1,12 +1,19 @@
-from .core import (Source, Handle,
-        Resource, FileResource, SourceManager, ResourceUnavailableError)
-from .derived.mail import MIME_TYPE as MAIL_MIME
-
 import email
+import email.policy
+import chardet
 from datetime import datetime
 from exchangelib import Account, Credentials, IMPERSONATION, Configuration
 from exchangelib.protocol import BaseProtocol
-from exchangelib.errors import ErrorNonExistentMailbox
+from exchangelib.errors import ErrorServerBusy, ErrorNonExistentMailbox
+
+from ..utilities.backoff import run_with_backoff
+from .core import (
+        Source, Handle, MailResource, SourceManager, ResourceUnavailableError)
+from .core.resource import MAIL_MIME
+
+from .core import (
+        Source, Handle, MailResource, SourceManager, ResourceUnavailableError)
+from .core.resource import MAIL_MIME
 
 
 BaseProtocol.SESSION_POOLSIZE = 1
@@ -58,19 +65,22 @@ class EWSAccountSource(Source):
     def domain(self):
         return self._domain
 
+    @property
+    def address(self):
+        return "{0}@{1}".format(self.user, self.domain)
+
     def _generate_state(self, sm):
         config = None
         service_account = Credentials(
                 username=self._admin_user, password=self._admin_password)
-        if self._server == OFFICE_365_ENDPOINT:
+        if self._server is not None:
             config = Configuration(
                     service_endpoint=self._server,
                     credentials=service_account)
 
-        address = "{0}@{1}".format(self._user, self._domain)
         try:
             account = Account(
-                    primary_smtp_address=address,
+                    primary_smtp_address=self.address,
                     credentials=service_account,
                     config=config,
                     autodiscover=not bool(config),
@@ -107,7 +117,7 @@ class EWSAccountSource(Source):
                     if headers:
                         yield EWSMailHandle(self,
                                 "{0}.{1}".format(folder.id, mail.id),
-                                headers["subject"])
+                                headers["subject"], folder.name)
 
         yield from relevant_mails(relevant_folders())
 
@@ -128,7 +138,7 @@ class EWSAccountSource(Source):
                 obj["admin_password"], obj["user"])
 
 
-class EWSMailResource(Resource):
+class EWSMailResource(MailResource):
     def __init__(self, handle, sm):
         super().__init__(handle, sm)
         self._ids = self.handle.relative_path.split(".", maxsplit=1)
@@ -138,14 +148,21 @@ class EWSMailResource(Resource):
         if not self._message:
             folder_id, mail_id = self._ids
             account = self._get_cookie()
-            self._message = account.root.get_folder(folder_id).get(id=mail_id)
+
+            def _retrieve_message():
+                return account.root.get_folder(folder_id).get(id=mail_id)
+            self._message, _ = run_with_backoff(
+                    _retrieve_message, ErrorServerBusy)
         return self._message
 
     def get_email_message(self):
         msg = self.get_message_object().mime_content
         if isinstance(msg, bytes):
-            msg = msg.decode("utf-8") # XXX: is this always correct?
-        return email.message_from_string(msg)
+            # exchangelib seems not to (be able to?) give us any clues about
+            # message encoding, so try using chardet to work out what this is
+            detected = chardet.detect(msg)
+            msg = msg.decode(detected["encoding"])
+        return email.message_from_string(msg, policy=email.policy.default)
 
     def compute_type(self):
         return MAIL_MIME
@@ -155,33 +172,37 @@ class EWSMailHandle(Handle):
     type_label = "ews"
     resource_type = EWSMailResource
 
-    # The mail subject is useful for presentation purposes, but not important
-    # when computing equality
+    # The mail subject and folder name are useful for presentation purposes,
+    # but not important when computing equality
     eq_properties = Handle.BASE_PROPERTIES
 
-    def __init__(self, source, path, mail_subject):
+    def __init__(self, source, path, mail_subject, folder_name=None):
         super().__init__(source, path)
         self._mail_subject = mail_subject
+        self._folder_name = folder_name
 
     @property
     def presentation(self):
-        return "\"{0}\" (in {1}@{2})".format(self._mail_subject,
-                self.source.user, self.source.domain)
+        return "\"{0}\" (in folder {1} of account {2})".format(
+                self._mail_subject,
+                self._folder_name or "(unknown folder)", self.source.address)
 
     def censor(self):
         return EWSMailHandle(
-                self.source.censor(), self.relative_path, self._mail_subject)
+                self.source.censor(), self.relative_path,
+                self._mail_subject, self._folder_name)
 
     def guess_type(self):
         return MAIL_MIME
 
     def to_json_object(self):
         return dict(**super().to_json_object(), **{
-            "mail_subject": self._mail_subject
+            "mail_subject": self._mail_subject,
+            "folder_name": self._folder_name
         })
 
     @staticmethod
     @Handle.json_handler(type_label)
     def from_json_object(obj):
         return EWSMailHandle(Source.from_json_object(obj["source"]),
-                obj["path"], obj["mail_subject"])
+                obj["path"], obj["mail_subject"], obj.get("folder_name"))

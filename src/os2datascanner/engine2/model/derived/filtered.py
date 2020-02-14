@@ -7,10 +7,11 @@ from datetime import datetime
 from functools import partial
 from contextlib import contextmanager
 
-from ...rules.types import InputType
+from ...conversions.types import OutputType
+from ...conversions.utilities.results import MultipleResults
 from ..core import (Source,
         Handle, FileResource, SourceManager, ResourceUnavailableError)
-from ..utilities import MultipleResults, NamedTemporaryResource
+from ..utilities import NamedTemporaryResource
 from .derived import DerivedSource
 
 
@@ -29,13 +30,7 @@ class FilteredSource(DerivedSource):
         yield FilteredHandle(self, rest)
 
     def _generate_state(self, sm):
-        # Using a nested SourceManager means that closing this generator will
-        # automatically clean up as much as possible
-        with SourceManager(sm) as derived:
-            yield self.handle.follow(derived)
-
-    def censor(self):
-        return FilteredSource(self.handle.censor(), self._filter_type)
+        yield self.handle.follow(sm)
 
 
 @Source.mime_handler("application/gzip")
@@ -87,7 +82,7 @@ class FilteredResource(FileResource):
                 s.seek(0, 2)
                 self._mr = MultipleResults.make_from_attrs(s,
                         "mtime", "filename", size=s.tell())
-                self._mr[InputType.LastModified] = datetime.fromtimestamp(
+                self._mr[OutputType.LastModified] = datetime.fromtimestamp(
                         s.mtime)
         return self._mr
 
@@ -95,7 +90,7 @@ class FilteredResource(FileResource):
         return self.unpack_stream()["size"]
 
     def get_last_modified(self):
-        return self.unpack_stream().setdefault(InputType.LastModified,
+        return self.unpack_stream().setdefault(OutputType.LastModified,
                 super().get_last_modified())
 
     @contextmanager

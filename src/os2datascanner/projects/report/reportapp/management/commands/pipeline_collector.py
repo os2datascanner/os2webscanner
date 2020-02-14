@@ -14,6 +14,7 @@
 #
 # The code is currently governed by OS2 the Danish community of open
 # source municipalities ( https://os2.eu/ )
+import structlog
 from django.core.management.base import BaseCommand
 
 from os2datascanner.utils.system_utilities import json_utf8_decode
@@ -22,6 +23,8 @@ from os2datascanner.utils.amqp_connection_manager import start_amqp, \
 
 from ...utils import hash_handle
 from ...models.documentreport_model import DocumentReport
+
+logger = structlog.get_logger()
 
 
 def consume_results(channel, method, properties, body):
@@ -40,8 +43,15 @@ def _restructure_and_save_result(result):
     """
 
     result = json_utf8_decode(result)
+    # TODO: Problem messages do not have a well enough
+    # defined structure to be used in the system yet.
+    # Therefore they are just logged for now.
+    origin = result.get('origin')
+    if origin == 'os2ds_problems':
+        logger.info('Problem message recieved: {}'.format(result))
+        return
 
-    handle = result['handle']
+    handle = result.get('handle')
 
     report, created = DocumentReport.objects.get_or_create(
         path=hash_handle(handle))
@@ -53,16 +63,17 @@ def _restructure_and_save_result(result):
         report.data['metadata'] = None
         report.data['problems'] = []
 
-    # TODO: Make search for scan_tag more generic.
-    origin = result['origin']
     if origin == 'os2ds_metadata':
-        report.data['scan_tag'] = result['scan_tag']
+        report.data['scan_tag'] = result.get('scan_tag')
         report.data['metadata'] = result
     elif origin == 'os2ds_matches':
-        report.data['scan_tag'] = result['scan_spec']['scan_tag']
-        report.data['matches'] = result
-    elif origin == 'os2ds_problems':
-        report.data['problems'].append(result)
+        if result.get('matched'):
+            report.data['scan_tag'] = result.get('scan_spec').get('scan_tag')
+            report.data['matches'] = result
+        else:
+            logger.info('Object processed with no matches: {}'.format(result))
+    # elif origin == 'os2ds_problems':
+    #     report.data['problems'].append(result)
 
     report.save()
 

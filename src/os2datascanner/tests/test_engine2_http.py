@@ -5,8 +5,8 @@ import contextlib
 from os2datascanner.engine2.model.core import (
         Source, SourceManager, UnknownSchemeError, ResourceUnavailableError)
 from os2datascanner.engine2.model.http import WebSource, WebHandle
-from os2datascanner.engine2.model.utilities import SingleResult
-from os2datascanner.engine2.rules.types import InputType
+from os2datascanner.engine2.conversions.types import OutputType
+from os2datascanner.engine2.conversions.utilities.results import SingleResult
 
 
 magenta = WebSource("https://www.magenta.dk")
@@ -94,7 +94,7 @@ class Engine2HTTPTest(unittest.TestCase):
             # It is not documented anywhere that WebResource.get_header()
             # returns a live dictionary, so don't depend on this behaviour
             del r.unpack_header()['content-type']
-            del r.unpack_header()[InputType.LastModified]
+            del r.unpack_header()[OutputType.LastModified]
 
             self.assertEqual(
                     r.compute_type(),
