@@ -88,12 +88,21 @@
 
 {% block body %}
 
+<div class="alert">
+  <ul>
+    <li>Der er en fejl!</li>
+    <li>Der er flere fejl...</li>
+  </ul>
+</div>
+
 {% if form.non_field_errors %}
-<ul>
-  {% for error in form.non_field_errors %}
-  <li>{{ error }}</li>
-  {% endfor %}
-</ul>
+<div class="alert">
+  <ul>
+    {% for error in form.non_field_errors %}
+    <li>{{ error }}</li>
+    {% endfor %}
+  </ul>
+</div>
 {% endif %}
 
 {% if form.errors %}
@@ -140,7 +149,8 @@
 
         {% for value, tag in form.organization.field.choices %}
         <option value="{{ value }}" {% if form.organization.value|add:"0" == value|add:"0" %} selected{% endif %}>
-          {{ tag }}</option>{# silly type conversion #}
+          {{ tag }}
+        </option>{# silly type conversion #}
         {% endfor %}
       </select>
       {% if form.organization.help_text %}
@@ -249,10 +259,13 @@
         <div class="col-sm-10">
           <select name="{{ form.sensitivity.name }}" id="id_{{ form.sensitivity.name }}" class="form-control"
             {% if form.sensitivity.field.required %}required{% endif %}>
+
             {% for value, tag in form.sensitivity.field.choices %}
-            <option value="{{ value }}" {% if form.sensitivity.value|add:"0" == value|add:"0" %} selected="selected"
-              {% endif %}>{{ tag }}</option>
+            <option value="{{ value }}" {% if form.sensitivity.value|add:"0" == value|add:"0" %} selected="selected" {% endif %}>
+              {{ tag }}
+            </option>
             {% endfor %}
+
           </select>
           {% if form.sensitivity.help_text %}
           <p>

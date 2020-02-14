@@ -21,6 +21,9 @@ Designguide
 
   <ol class="toc">
     <li>
+      <a href="#colors">Colors</a>
+    </li>
+    <li>
       <a href="#icons">Icons</a>
     </li>
     <li>
@@ -38,7 +41,140 @@ Designguide
     <li>
       <a href="#form-controls">Form Controls</a>
     </li>
+    <li>
+      <a href="#alerts">Alerts</a>
+    </li>
   </ol>
+
+  <article id="colors">
+    <style>
+      .design-color-wrapper {
+        display: grid;
+        gap: 0.5rem;
+        grid-template-columns: repeat(6, 1fr);
+      }
+
+      .color {
+        border: 1px solid #ddd;
+        padding: 1rem;
+      }
+
+      .color .example {
+        height: 4rem;
+      }
+
+      .color code {
+        display: block;
+        margin-top: 0.5rem;
+      }
+    </style>
+
+    <h2>Colors:</h2>
+
+    <div class="design-color-wrapper">
+
+      <div class="color">
+        <div class="example" style="background-color: var(--color-main);"></div>
+        <div class="meta">
+          <div>
+            <code>var(--color-main)</code>
+            <code>#3a69b4</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="color">
+        <div class="example" style="background-color: var(--color-main-dark);"></div>
+        <div class="meta">
+          <div>
+            <code>var(--color-main-dark)</code>
+            <code>#3a69b4</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="color">
+        <div class="example" style="background-color: var(--color-text-main);"></div>
+        <div class="meta">
+          <div>
+            <code>var(--color-text-main)</code>
+            <code>#3a69b4</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="color">
+        <div class="example" style="background-color: var(--color-body-bg);"></div>
+        <div class="meta">
+          <div>
+            <code>var(--color-body-bg)</code>
+            <code>#3a69b4</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="color">
+        <div class="example" style="background-color: var(--color-ok);"></div>
+        <div class="meta">
+          <div>
+            <code>var(--color-ok)</code>
+            <code>#3a69b4</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="color">
+        <div class="example" style="background-color: var(--color-ok-dark);"></div>
+        <div class="meta">
+          <div>
+            <code>var(--color-ok-dark)</code>
+            <code>#3a69b4</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="color">
+        <div class="example" style="background-color: var(--color-warning);"></div>
+        <div class="meta">
+          <div>
+            <code>var(--color-warning)</code>
+            <code>#3a69b4</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="color">
+        <div class="example" style="background-color: var(--color-warning-dark);"></div>
+        <div class="meta">
+          <div>
+            <code>var(--color-warning-dark)</code>
+            <code>#3a69b4</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="color">
+        <div class="example" style="background-color: var(--color-error);"></div>
+        <div class="meta">
+          <div>
+            <code>var(--color-error)</code>
+            <code>#3a69b4</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="color">
+        <div class="example" style="background-color: var(--color-error-dark);"></div>
+        <div class="meta">
+          <div>
+            <code>var(--color-error-dark)</code>
+            <code>#3a69b4</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </article>
 
   <article id="icons">
     <h2>Icons:</h2>
@@ -259,6 +395,22 @@ Designguide
       </fieldset>
 
     </form>
+  </article>
+
+  <article id="alerts">
+    <h2>Alerts:</h2>
+
+    <div class="alert alert--success">
+      <p>Alt er gået lige efter planen! Ingen grund til bekymring.</p>
+    </div>
+
+    <div class="alert alert--warning">
+      <p>Alt er gået lige efter planen! Ingen grund til bekymring.</p>
+    </div>
+
+    <div class="alert alert--danger">
+      <p>Alt er gået lige efter planen! Ingen grund til bekymring.</p>
+    </div>
   </article>
 
 </div>

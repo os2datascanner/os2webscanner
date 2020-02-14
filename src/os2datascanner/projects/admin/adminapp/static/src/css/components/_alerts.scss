@@ -1,0 +1,29 @@
+.alert {
+  background-color: rgba(0, 0, 0, 0.05);
+  border: 1px solid #ddd;
+  border-radius: var(--border-radius-small);
+  margin: 1rem 0;
+  padding: 1rem;
+
+  p,
+  ul {
+    margin: 0;
+    max-width: none;
+  }
+
+  li {
+    margin-left: 1em;
+  }
+
+  &--success {
+    background-color: var(--color-ok);
+  }
+
+  &--warning {
+    background-color: var(--color-warning);
+  }
+
+  &--danger {
+    background-color: var(--color-error);
+  }
+}

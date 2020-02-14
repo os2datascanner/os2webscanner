@@ -10,10 +10,6 @@
 <script src="{% static "dist/bundle.js" %}"></script>
 {% endblock %}
 
-{%  block title %}
-Regler
-{% endblock %}
-
 {% block body %}
 <div class="wrapper">
   <h2 style="display: inline-block;">Regulær udtryk-regler</h2>
@@ -66,18 +62,24 @@ Regler
         </td>
         <td>{{ rule.get_sensitivity_display }}</td>
         <td>
-          <button 
-            type="button" 
-            class="btn btn-default btn-xs btn-rule-settings" 
-            onclick="os2web.iframeDialog(
-              &quot;#edit-rule-modal&quot;,
-              &quot;/rules/regex/{{rule.pk}}&quot;,
-              &quot;Redigér regulær udtryk-regel '{{rule.name}}'&quot;
-              )">
-          </button>
-          <a href="/rules/regex/{{rule.pk}}/delete/" class="btn btn-default btn-xs">
-            <span class="glyphicon glyphicon-remove"></span>
-            <span>Slet</span>
+          <a 
+            href="#edit-rule-modal" 
+            data-modal="modal:open" 
+            data-src="/rules/regex/{{rule.pk}}"
+            class="button button--small button--rounded"
+            title="Redigér">
+            <svg class="icon">
+              <use xlink:href="/static/src/svg/symbol-defs.svg#icon-pencil"></use>
+            </svg>
+          </a>
+
+          <a 
+            href="/rules/regex/{{rule.pk}}/delete/" 
+            class="button button--small button--rounded"
+            title="Slet">
+            <svg class="icon">
+              <use xlink:href="/static/src/svg/symbol-defs.svg#icon-cross"></use>
+            </svg>
           </a>
         </td>
       </tr tabindex="0">
@@ -86,18 +88,16 @@ Regler
   </table>
 
   <h2 style="display: inline-block;">CPR-regler</h2>
-  <button 
-    class="button button--add button--cta button--small button--round" 
-    title="Tilføj ny"
-    type="button" 
-    onclick="os2web.iframeDialog(
-      '#create-rule-modal',
-      '/rules/cpr/add/',
-      'Tilføj ny CPR-regel')">
+  <a 
+    class="button button--add button--cta button--small button--round"
+    data-modal="modal:open"
+    data-src="/rules/cpr/add/"
+    href="#create-rule-modal"
+    title="Tilføj ny">
     <svg class="icon">
       <use xlink:href="/static/src/svg/symbol-defs.svg#icon-plus"></use>
     </svg>
-  </button>
+  </a>
 
   <table class="datatable">
     <thead>
@@ -134,15 +134,24 @@ Regler
         </td>
         <td>{{ rule.get_sensitivity_display }}</td>
         <td>
-          <button 
-            type="button" 
-            class="btn btn-default btn-xs btn-rule-settings" 
-            onclick="os2web.iframeDialog(
-              &quot;#edit-rule-modal&quot;,
-              &quot;/rules/cpr/{{rule.pk}}&quot;,
-              &quot;Redigér CPR-regel '{{rule.name}}'&quot;
-              )">Redigér</button>
-          <a href="/rules/cpr/{{rule.pk}}/delete/" class="btn btn-default btn-xs">Slet</a>
+          <a 
+            href="#edit-rule-modal" 
+            data-modal="modal:open" 
+            data-src="/rules/cpr/{{rule.pk}}"
+            class="button button--small button--rounded"
+            title="Redigér">
+            <svg class="icon">
+              <use xlink:href="/static/src/svg/symbol-defs.svg#icon-pencil"></use>
+            </svg>
+          </a>
+          <a 
+            href="/rules/cpr/{{rule.pk}}/delete/" 
+            class="button button--small button--rounded"
+            title="Slet">
+            <svg class="icon">
+              <use xlink:href="/static/src/svg/symbol-defs.svg#icon-cross"></use>
+            </svg>
+          </a>
         </td>
       </tr>
       {% endfor %}
@@ -157,20 +166,9 @@ Regler
   <iframe src="about:blank" frameborder="0"></iframe>
 </div>
 
-<div class="modal iframe" id="edit-rule-modal" tabindex="-1" role="dialog" aria-labelledby="edit-rule-modal-title" aria-hidden="true" hidden>
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-          &times;
-        </button>
-        <h4 class="modal-title" id="edit-rule-modal-title">Redigér ad hoc-regel</h4>
-      </div>
-      <div class="modal-body">
-        <iframe src="about:blank" frameborder="0"></iframe>
-      </div>
-    </div>
-  </div>
+<div class="modal" id="edit-rule-modal" tabindex="-1" role="dialog" aria-labelledby="edit-rule-modal-title" aria-hidden="true" hidden>
+  <h4 class="modal__heading" id="edit-rule-modal-title">Redigér ad hoc-regel</h4>
+  <iframe src="about:blank" frameborder="0"></iframe>
 </div>
 {% endblock %}
 
