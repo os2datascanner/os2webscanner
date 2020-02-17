@@ -17,13 +17,16 @@
 
   &--success {
     background-color: var(--color-ok);
+    border-color: var(--color-ok-dark);
   }
 
   &--warning {
     background-color: var(--color-warning);
+    border-color: var(--color-warning-dark);
   }
 
   &--danger {
     background-color: var(--color-error);
+    border-color: var(--color-error-dark);
   }
 }

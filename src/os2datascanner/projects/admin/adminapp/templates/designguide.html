@@ -52,11 +52,20 @@ Designguide
         display: grid;
         gap: 0.5rem;
         grid-template-columns: repeat(6, 1fr);
+        margin: 1rem 0;
       }
 
       .color {
+        background-color: #fff;
         border: 1px solid #ddd;
         padding: 1rem;
+        transition: var(--transition-default);
+      }
+
+      .color:hover {
+        border-color: #ccc;
+        box-shadow: var(--box-shadow-large);
+        z-index: 1;
       }
 
       .color .example {
@@ -112,6 +121,8 @@ Designguide
           </div>
         </div>
       </div>
+    </div>
+    <div class="design-color-wrapper">
 
       <div class="color">
         <div class="example" style="background-color: var(--color-ok);"></div>
@@ -128,7 +139,7 @@ Designguide
         <div class="meta">
           <div>
             <code>var(--color-ok-dark)</code>
-            <code>#3a69b4</code>
+            <code>#16a085</code>
           </div>
         </div>
       </div>
@@ -405,11 +416,11 @@ Designguide
     </div>
 
     <div class="alert alert--warning">
-      <p>Alt er gået lige efter planen! Ingen grund til bekymring.</p>
+      <p>Der er lige et par småting du skal være opmærksom på inden du fortsætter.</p>
     </div>
 
     <div class="alert alert--danger">
-      <p>Alt er gået lige efter planen! Ingen grund til bekymring.</p>
+      <p>Intet er gået efter planen! Der er grund til bekymring.</p>
     </div>
   </article>
 
