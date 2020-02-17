@@ -1,7 +1,6 @@
 // Webpack uses this to work with directories
 const path = require('path');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const VueLoaderPlugin = require('vue-loader/lib/plugin')
 
 // This is main configuration object.
 // Here you write different options and tell Webpack what to do
@@ -94,17 +93,12 @@ module.exports = {
           }
         ]
       },
-      {
-        test: /\.vue$/,
-        loader: 'vue-loader'
-      }
     ]
   },
   plugins: [
     new MiniCssExtractPlugin({
       filename: "bundle.css"
-    }),
-    new VueLoaderPlugin()
+    })
   ],
 
   watch: true,
