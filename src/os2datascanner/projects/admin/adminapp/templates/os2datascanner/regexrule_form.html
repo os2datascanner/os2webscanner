@@ -1,6 +1,5 @@
 {% extends 'os2datascanner/base.html' %}
 {% load staticfiles %}
-
 {% block topnav %}{% endblock %}
 {% block rendertype %}iframe-modal{% endblock %}
 
@@ -88,13 +87,6 @@
 
 {% block body %}
 
-<div class="alert">
-  <ul>
-    <li>Der er en fejl!</li>
-    <li>Der er flere fejl...</li>
-  </ul>
-</div>
-
 {% if form.non_field_errors %}
 <div class="alert">
   <ul>
@@ -106,7 +98,7 @@
 {% endif %}
 
 {% if form.errors %}
-<div class="alert alert-danger" role="alert">
+<div class="alert alert--danger" role="alert">
   <p>Følgende felter er ikke udfyldt korrekt:</p>
   <ul>
     {% for error in form.errors %}
@@ -120,6 +112,8 @@
   {% csrf_token %}
 
   <fieldset class="form__fieldset">
+    <legend>Organisation:</legend>
+
     <div class="form__group">
       <label for="id_{{ form.name.name }}">{{ form.name.label }}</label>
       <input 
@@ -191,6 +185,7 @@
   {% endif %}
 
   <fieldset class="form__fieldset">
+    <legend>Regel:</legend>
 
     <div id="{{ form.pattern_0.auto_id }}_container" class="form__group col-sm-12{% if form.pattern_0.errors %} has-error{% endif %}">
 
@@ -234,9 +229,7 @@
         </div>
       </div>
     </div>
-  </fieldset>
 
-  <fieldset class="form__fieldset">
     <div id="{{ form.description.auto_id }}_container" class="form__group col-sm-12{% if form.description.errors %} has-error{% endif %}">
       <div class="form-group">
         <label class="control-label col-sm-2" for="id_{{ form.description.name }}">{{ form.description.label }}</label>
@@ -268,9 +261,7 @@
 
           </select>
           {% if form.sensitivity.help_text %}
-          <p>
-            <small>{{ form.sensitivity.help_text }}</small>
-          </p>
+          <span class="form__help-text">{{ form.sensitivity.help_text }}</span>
           {% endif %}
           {% if form.sensitivity.errors %}{{ form.sensitivity.errors }}{% endif %}
         </div>
@@ -280,9 +271,7 @@
   </fieldset>
 
   <div class="form__group col-sm-offset-2">
-    <div class="col-sm-12">
-      <button type="submit" class="btn btn-primary button button--cta button--rounded" name="save">Gem ændringer</button>
-    </div>
+    <button type="submit" class="btn btn-primary button button--cta button--rounded" name="save">Gem ændringer</button>
   </div>
 
   {#{ form.as_p }#}
