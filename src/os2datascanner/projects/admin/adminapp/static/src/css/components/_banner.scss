@@ -2,9 +2,12 @@
   background-color: var(--color-header-bg);
   box-shadow: var(--box-shadow);
   display: grid;
-  grid-template-columns: var(--size-logo-width) auto auto;
+  grid-template-columns: var(--size-logo-width) 1fr 1fr;
+  grid-template-areas: "banner-logo banner-navigation banner-user";
+  left: var(--size-ds-unit);
   line-height: 1;
-  position: sticky;
+  position: fixed;
+  right: var(--size-ds-unit);
   top: var(--size-ds-unit);
   transition: background-color 0.2s ease-in-out;
   z-index: var(--z-index-navigation);
@@ -16,16 +19,19 @@
 
 .banner .logo {
   background-color: rgba(0, 0, 0, 0.05);
+  grid-area: banner-logo;
   height: var(--size-logo-height);
   padding: 1rem;
   width: var(--size-logo-width);
 }
 
 .banner .navigation {
+  grid-area: banner-navigation;
   padding: 1rem;
 }
 
 .banner .user {
+  grid-area: banner-user;
   margin-right: 1rem;
   padding: 1rem 1rem 1rem 0;
   text-align: right;

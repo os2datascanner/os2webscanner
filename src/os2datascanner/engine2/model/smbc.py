@@ -5,11 +5,12 @@ from urllib.parse import quote, unquote, urlsplit
 from datetime import datetime
 from contextlib import contextmanager
 
-from ..rules.types import InputType
+from ..conversions.types import OutputType
+from ..conversions.utilities.results import MultipleResults
 from .smb import make_smb_url, SMBSource
 from .core import Source, Handle, FileResource, ResourceUnavailableError
 from .file import stat_attributes
-from .utilities import MultipleResults, NamedTemporaryResource
+from .utilities import NamedTemporaryResource
 
 
 class SMBCSource(Source):
@@ -117,7 +118,7 @@ class _SMBCFile(io.RawIOBase):
     def write(self, bytes):
         raise TypeError("_SMBCFile is read-only")
 
-    def seek(self, pos, whence):
+    def seek(self, pos, whence=0):
         r = self._file.lseek(pos, whence)
         if r != -1:
             return r
@@ -192,7 +193,7 @@ class SMBCResource(FileResource):
             try:
                 self._mr = MultipleResults.make_from_attrs(
                         stat_result(f.fstat()), *stat_attributes)
-                self._mr[InputType.LastModified] = datetime.fromtimestamp(
+                self._mr[OutputType.LastModified] = datetime.fromtimestamp(
                         self._mr["st_mtime"].value)
             finally:
                 f.close()
@@ -202,7 +203,7 @@ class SMBCResource(FileResource):
         return self.unpack_stat()["st_size"]
 
     def get_last_modified(self):
-        return self.unpack_stat().setdefault(InputType.LastModified,
+        return self.unpack_stat().setdefault(OutputType.LastModified,
                 super().get_last_modified())
 
     def get_owner_sid(self):

@@ -19,8 +19,7 @@
     </div>
 
     <div class="hit-link">
-      <input type="text" class="phantom" value="{{ match_by_type.data.matches.handle.path }}" />
-      <button class="hit-link__folder">Copy location</button>
+      <button class="button button--small button--cta" data-clipboard-text="{{ match_by_type.data.matches.handle.path }}">Copy location</button>
     </div>
   </td>
 
@@ -39,19 +38,3 @@
   </td>
 </tr>
 {% endfor %}
-
-<script type="text/javascript">
-
-  function copy() {
-    var copyText = document.querySelector("input[type='text'].phantom")
-    copyText.classList.remove("phantom")
-    copyText.select()
-    document.execCommand("copy")
-    copyText.classList.add("phantom")
-  }
-
-  document.querySelectorAll(".hit-link__folder").forEach(function (c) {
-    c.addEventListener("click", copy)
-  })
-
-</script>

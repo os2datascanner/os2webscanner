@@ -25,9 +25,7 @@ def print_source(manager, source, depth=0, guess=False, summarise=False):
         derived_source = Source.from_handle(
                 handle, manager if not guess else None)
         if derived_source:
-            with SourceManager(manager) as derived_manager:
-                print_source(derived_manager,
-                        derived_source, depth + 1, guess, summarise)
+            print_source(manager, derived_source, depth + 1, guess, summarise)
 
 
 def add_arguments(parser):

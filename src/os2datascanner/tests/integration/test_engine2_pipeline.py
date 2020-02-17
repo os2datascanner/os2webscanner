@@ -50,8 +50,9 @@ class StopHandling(Exception):
 
 def handle_message(body, channel):
     if channel == "os2ds_scan_specs":
-        yield from explorer.message_received_raw(body, channel,
-                "os2ds_conversions", "os2ds_problems")
+        with SourceManager() as sm:
+            yield from explorer.message_received_raw(body, channel, sm,
+                    "os2ds_conversions", "os2ds_problems")
     elif channel == "os2ds_conversions":
         with SourceManager() as sm:
             yield from processor.message_received_raw(body, channel, sm,
@@ -60,8 +61,9 @@ def handle_message(body, channel):
         yield from matcher.message_received_raw(body, channel,
                 "os2ds_matches", "os2ds_handles", "os2ds_conversions")
     elif channel == "os2ds_handles":
-        yield from tagger.message_received_raw(body, channel,
-                "os2ds_metadata")
+        with SourceManager() as sm:
+            yield from tagger.message_received_raw(body, channel, sm,
+                    "os2ds_metadata")
     elif channel in ("os2ds_matches", "os2ds_metadata", "os2ds_problems",):
         yield from exporter.message_received_raw(body, channel,
                 False, "os2ds_results")

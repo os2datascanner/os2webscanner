@@ -4,21 +4,21 @@ from ...utils.metadata import guess_responsible_party
 from ...utils.prometheus import prometheus_session
 from ..model.core import Handle, SourceManager, ResourceUnavailableError
 from .utilities import (notify_ready, pika_session, notify_stopping,
-        prometheus_summary, json_event_processor, make_common_argument_parser)
+        prometheus_summary, json_event_processor, make_common_argument_parser,
+        make_sourcemanager_configuration_block)
 
 
-def message_received_raw(body, channel, metadata_q):
+def message_received_raw(body, channel, source_manager, metadata_q):
     handle = Handle.from_json_object(body["handle"])
 
-    with SourceManager() as sm:
-        try:
-            yield (metadata_q, {
-                "scan_tag": body["scan_tag"],
-                "handle": body["handle"],
-                "metadata": guess_responsible_party(handle, sm)
-            })
-        except ResourceUnavailableError as ex:
-            pass
+    try:
+        yield (metadata_q, {
+            "scan_tag": body["scan_tag"],
+            "handle": body["handle"],
+            "metadata": guess_responsible_party(handle, source_manager)
+        })
+    except ResourceUnavailableError as ex:
+        pass
 
 
 def main():
@@ -33,6 +33,8 @@ def main():
                     + " should be read",
             default="os2ds_handles")
 
+    make_sourcemanager_configuration_block(parser)
+
     outputs = parser.add_argument_group("outputs")
     outputs.add_argument(
             "--metadata",
@@ -45,28 +47,30 @@ def main():
 
     with pika_session(args.handles, args.metadata,
             host=args.host, heartbeat=6000) as channel:
+        with SourceManager(width=args.width) as source_manager:
 
-        @prometheus_summary(
-                "os2datascanner_pipeline_tagger", "Metadata extractions")
-        @json_event_processor
-        def message_received(body, channel):
-            if args.debug:
-                print(channel, body)
-            return message_received_raw(body, channel, args.metadata)
-        channel.basic_consume(args.handles, message_received)
+            @prometheus_summary(
+                    "os2datascanner_pipeline_tagger", "Metadata extractions")
+            @json_event_processor
+            def message_received(body, channel):
+                if args.debug:
+                    print(channel, body)
+                return message_received_raw(
+                        body, channel, source_manager, args.metadata)
+            channel.basic_consume(args.handles, message_received)
 
-        with prometheus_session(
-                str(getpid()),
-                args.prometheus_dir,
-                stage_type="tagger"):
-            try:
-                print("Start")
-                notify_ready()
-                channel.start_consuming()
-            finally:
-                print("Stop")
-                notify_stopping()
-                channel.stop_consuming()
+            with prometheus_session(
+                    str(getpid()),
+                    args.prometheus_dir,
+                    stage_type="tagger"):
+                try:
+                    print("Start")
+                    notify_ready()
+                    channel.start_consuming()
+                finally:
+                    print("Stop")
+                    notify_stopping()
+                    channel.stop_consuming()
 
 
 if __name__ == "__main__":

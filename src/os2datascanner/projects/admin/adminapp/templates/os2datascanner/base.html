@@ -31,6 +31,16 @@
   <meta name="msapplication-TileColor" content="#000000">
 
   {% block extra_head_html %}{% endblock %}
+  <script>window.MSInputMethodContext && document.documentMode && document.write('<script src="{% static "3rdparty/ie11CustomProperties.js" %}"><\x2fscript>');</script>
+  <script>
+    document.createElement('header');
+    document.createElement('section');
+    document.createElement('main');
+    document.createElement('article');
+    document.createElement('aside');
+    document.createElement('nav');
+    document.createElement('footer');
+  </script>
 
 </head>
 <body class="{{ body_class|default:'page' }}">

@@ -1,1 +1,1 @@
-doc/INSTALL.rst
+doc/getting-started.rst

@@ -45,7 +45,6 @@
   }
 }
 
-.datatable tr:focus, 
 .datatable tr:hover {
   td {
     background-color: rgba(0, 0, 0, 0.05);
@@ -53,6 +52,21 @@
     
   .hit-link {
     opacity: 1;
+  }
+}
+
+@supports(display: grid) {
+  // We use CSS Grid to detect IE11, as "tr:focus" breaks the whole selector in IE11
+  .datatable tr:focus, 
+  .datatable tr:focus-within, 
+  .datatable tr:hover {
+    td {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+      
+    .hit-link {
+      opacity: 1;
+    }
   }
 }
 

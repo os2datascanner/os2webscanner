@@ -9,6 +9,7 @@ body {
 
 .page {
   padding: var(--size-ds-unit);
+  padding: 5rem var(--size-ds-unit) var(--size-ds-unit) var(--size-ds-unit);
 
   .iframe-modal & {
     padding: calc(var(--size-ds-unit) * 2);
