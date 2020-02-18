@@ -1,8 +1,28 @@
 from abc import abstractmethod
+from enum import Enum
 
 from ..utilities.json import JSONSerialisable
 from ..utilities.equality import TypePropertyEquality
 from ..conversions.types import OutputType
+
+
+class Sensitivity(Enum):
+    """Rules have an optional property called "sensitivity", whose values are
+    given by the Sensitivity enumeration. This property has no particular
+    significance for the rule engine, but user interfaces might wish to present
+    matches differently based on it."""
+    INFORMATION = 0
+    NOTICE = 250
+    WARNING = 500
+    PROBLEM = 750
+    CRITICAL = 1000
+
+    @staticmethod
+    def make_from_dict(obj):
+        if "sensitivity" in obj and obj["sensitivity"] is not None:
+            return Sensitivity(obj["sensitivity"])
+        else:
+            return None
 
 
 class Rule(TypePropertyEquality, JSONSerialisable):
