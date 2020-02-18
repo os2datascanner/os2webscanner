@@ -1,5 +1,5 @@
 from ..conversions.types import OutputType
-from .rule import Rule, SimpleRule
+from .rule import Rule, SimpleRule, Sensitivity
 
 
 class DummyRule(SimpleRule):
@@ -21,4 +21,4 @@ class DummyRule(SimpleRule):
     @staticmethod
     @Rule.json_handler(type_label)
     def from_json_object(obj):
-        return DummyRule()
+        return DummyRule(sensitivity=Sensitivity.make_from_dict(obj))

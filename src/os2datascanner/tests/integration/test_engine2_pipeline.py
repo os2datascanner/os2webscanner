@@ -25,6 +25,7 @@ expected_matches = [
     {
         "rule": {
             "type": "regex",
+            "sensitivity": None,
             "expression": "Æthelred the Unready"
         },
         "matches": None
@@ -32,6 +33,7 @@ expected_matches = [
     {
         "rule": {
             "type": "regex",
+            "sensitivity": None,
             "expression": "Scyld S(.*)g"
         },
         "matches": [
