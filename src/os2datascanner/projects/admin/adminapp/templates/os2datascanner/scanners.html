@@ -14,15 +14,7 @@
 <div class="wrapper">
   <div class="tab-content">
     <div role="tabpanel" class="tab-pane active" id="{{view.type}}scan">
-      <h2 style="display:inline-block;">
-        {% if view.type == 'web' %}
-        Webscanner
-        {% elif view.type == 'file' %}
-        Filscanner
-        {% elif view.type == 'exchange' %}
-        Exchangescanner
-        {% endif %}
-      </h2>
+      <h2 style="display:inline-block;">Scannerjobs</h2>
 
       <a 
         class="button button--add button--cta button--small button--round"
@@ -39,16 +31,17 @@
         <thead>
           <tr>
             <th>Beskrivelse</th>
+
             {% if user.is_superuser %}
             <th>Organisation</th>
             {% endif %}
+
             <th>URL</th>
+
             {% if view.type == 'file' %}
             <th>Drev</th>
             {% endif %}
-            {% if user.is_superuser %}
-            <th>Organisation</th>
-            {% endif %}
+
             <th>Ekskluderingsregler</th>
             <th>Valideret</th>
             <th>Automatisk kørsel</th>
@@ -71,10 +64,6 @@
               {{ scanner.alias }}:
               {% endif %}
             </td>
-            {% endif %}
-
-            {% if user.is_superuser %}
-            <td class="domain-organization">{{scanner.organization}}</td>
             {% endif %}
 
             <td class="domain-exclusion-rules">
@@ -121,39 +110,16 @@
                 </svg>
               </a>
 
-              <!-- <button type="button" class="btn btn-default btn-xs btn-scanner-settings" onclick="os2web.iframeDialog(
-                &quot;#run-scanner-modal&quot;,
-                &quot;/{{ view.type }}scanners/{{scanner.pk}}/askrun/&quot;,
-                        &quot;Kør scanner '{{scanner.name}}'&quot;)">
-                <span class="glyphicon glyphicon-play">
-                </span> <span>Kør</span>
-              </button> -->
-              <!-- <button type="button" class="btn btn-default btn-xs btn-scanner-settings" onclick="os2web.iframeDialog(
-                &quot;#edit-scanner-modal&quot;,
-                &quot;/{{ view.type }}scanners/{{scanner.pk}}&quot;,
-                &quot;Redigér scannerjob '{{scanner.name}}'&quot;
-                )">
-
-                <span class="glyphicon glyphicon-cog">
-                </span> <span>Redigér</span>
-
-                <span class="screen-reader-only">
-                  Indstillinger for scanner
-                </span>
-
-              </button> -->
               {% if not scanner.scans %}
-
               <a 
                 href="/{{ view.type }}scanners/{{scanner.pk}}/delete/" 
                 class="button button--small button--rounded"
                 title="Slet">
                 <svg class="icon">
-                  <use xlink:href="/static/src/svg/symbol-defs.svg#icon-minus"></use>
+                  <use xlink:href="/static/src/svg/symbol-defs.svg#icon-cross"></use>
                 </svg>
               </a>
               {% endif %}
-              </span>
             </td>
           </tr>
           {% endfor %}
