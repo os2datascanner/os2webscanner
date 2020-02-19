@@ -22,6 +22,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import View, TemplateView
 
 from ..models.documentreport_model import DocumentReport
+from ..models.roles.defaultrole_model import DefaultRole
 
 logger = structlog.get_logger()
 
@@ -53,17 +54,10 @@ class MainPageView(TemplateView, LoginRequiredMixin):
         # them self against any allegations of wrong doing.
         logger.info('{} is watching {}.'.format(user, self.template_name))
 
-        aliases = user.aliases.select_subclasses()
+        roles = user.roles.select_subclasses() or [DefaultRole(user=user)]
         results = DocumentReport.objects.none()
-        for alias in aliases:
-            # TODO: Filter only where matched are True (waiting on test data)
-            result = DocumentReport.objects.filter(
-                data__metadata__metadata__contains={
-                    str(alias.key): str(alias)
-                })
-            # Merges django querysets together
-            results = results | result
-
+        for role in roles:
+            results |= role.filter(DocumentReport.objects.all())
         self.data_results = results
 
         # Results are grouped by the rule they where found with,
