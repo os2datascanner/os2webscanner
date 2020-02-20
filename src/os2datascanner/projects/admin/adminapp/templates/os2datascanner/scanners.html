@@ -28,17 +28,13 @@
   <table class="datatable">
     <thead>
       <tr>
-        <th>Beskrivelse/URL</th>
-
+        <th>Navn/URL</th>
         {% if user.is_superuser %}
         <th class="datatable__column--org">Organisation</th>
         {% endif %}
-
         {% if view.type == 'file' %}
         <th>Drev</th>
         {% endif %}
-
-        <th>Ekskluderingsregler</th>
         <th class="datatable__column--validated">Valideret</th>
         <th class="datatable__column--automatic">Automatisk</th>
         <th class="datatable__column--actions">Handling</th>
@@ -63,12 +59,6 @@
           {% endif %}
         </td>
         {% endif %}
-
-        <td class="domain-exclusion-rules">
-          {% if scanner.exclusion_rules %}
-          <code>{{scanner.exclusion_rules}}</code>
-        {% endif %}
-        </td>
 
         <td class="domain-validation datatable__column--validated">
           {% if scanner.validation_status %}

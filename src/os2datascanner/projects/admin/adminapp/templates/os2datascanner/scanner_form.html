@@ -321,21 +321,6 @@
           </div>
       {% endif %}
 
-      <div id="{{ form.exclusion_rules.auto_id }}_container" class="col-sm-12{% if form.exclusion_rules.errors %} has-error{% endif %}">
-          <div class="form-group">
-              <label class="control-label col-sm-3" for="id_{{ form.exclusion_rules.name }}">{{ form.exclusion_rules.label }}</label>
-              <div class="col-sm-9">
-                  <textarea class="form-control" name="{{ form.exclusion_rules.name }}" id="id_{{ form.exclusion_rules.name }}" rows="3">{% if form.exclusion_rules.value %}{{ form.exclusion_rules.value }}{% endif %}</textarea>
-                  {% if form.exclusion_rules.help_text %}
-                      <p>
-                          <small>{{ form.exclusion_rules.help_text }}</small>
-                      </p>
-                  {% endif %}
-                  {% if form.exclusion_rules.errors %}{{ form.exclusion_rules.errors }}{% endif %}
-              </div>
-          </div>
-      </div>
-
       {% if form.download_sitemap %}
           <div id="{{ form.download_sitemap.auto_id }}_container" class="col-sm-12{% if form.download_sitemap.errors %} has-error{% endif %}">
               <div class="form-group">
