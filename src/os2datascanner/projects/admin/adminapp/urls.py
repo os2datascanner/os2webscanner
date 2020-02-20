@@ -45,7 +45,7 @@ from .views.views import DesignGuide
 
 urlpatterns = [
     # App URLs
-    url(r'^$', MainPageView.as_view(), name='index'),
+    url(r'^$', WebScannerList.as_view(), name='index'),
     url(r'^exchangescanners/$', ExchangeScannerList.as_view(), name='exchangescanners'),
     url(r'^exchangescanners/add/$', ExchangeScannerCreate.as_view(), name='exchangescanner_add'),
     url(r'^exchangescanners/(?P<pk>\d+)/delete/$', ExchangeScannerDelete.as_view(),
