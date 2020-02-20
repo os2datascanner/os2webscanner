@@ -1,6 +1,6 @@
 from datetime import date
 
-from .rule import Rule
+from .rule import Rule, Sensitivity
 from .regex import RegexRule
 
 cpr_regex = r"\b(\d{2}[\s]?\d{2}[\s]?\d{2})(?:[\s\-/\.]|\s\-\s)?(\d{4})\b"
@@ -9,8 +9,9 @@ cpr_regex = r"\b(\d{2}[\s]?\d{2}[\s]?\d{2})(?:[\s\-/\.]|\s\-\s)?(\d{4})\b"
 class CPRRule(RegexRule):
     type_label = "cpr"
 
-    def __init__(self, modulus_11=True, ignore_irrelevant=True):
-        super().__init__(cpr_regex)
+    def __init__(self, modulus_11=True,
+            ignore_irrelevant=True, *, sensitivity=None):
+        super().__init__(cpr_regex, sensitivity=sensitivity)
         self._modulus_11 = modulus_11
         self._ignore_irrelevant = ignore_irrelevant
 
@@ -58,7 +59,8 @@ class CPRRule(RegexRule):
     @Rule.json_handler(type_label)
     def from_json_object(obj):
         return CPRRule(modulus_11=obj["modulus_11"],
-                ignore_irrelevant=obj["ignore_irrelevant"])
+                ignore_irrelevant=obj["ignore_irrelevant"],
+                sensitivity=Sensitivity.make_from_dict(obj))
 
 
 # Updated list of dates with CPR numbers violating the Modulo-11 check. (Last

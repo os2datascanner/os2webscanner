@@ -1,11 +1,12 @@
 from ..conversions.types import OutputType
-from .rule import Rule, SimpleRule
+from .rule import Rule, SimpleRule, Sensitivity
 
 
 class HasConversionRule(SimpleRule):
     type_label = "conversion"
 
-    def __init__(self, target):
+    def __init__(self, target, *, sensitivity=None):
+        super().__init__(sensitivity)
         self._target = target
 
     @property
@@ -32,7 +33,9 @@ class HasConversionRule(SimpleRule):
     @staticmethod
     @Rule.json_handler(type_label)
     def from_json_object(obj):
-        return HasConversionRule(target=OutputType(obj["target"]))
+        return HasConversionRule(
+                target=OutputType(obj["target"]),
+                sensitivity=Sensitivity.make_from_dict(obj))
 
     def __str__(self):
         return "HasConversionRule({0})".format(self._target.value)

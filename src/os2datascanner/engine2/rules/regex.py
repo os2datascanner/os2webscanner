@@ -1,7 +1,7 @@
 import re
 
 from ..conversions.types import OutputType
-from .rule import Rule, SimpleRule
+from .rule import Rule, SimpleRule, Sensitivity
 
 
 class RegexRule(SimpleRule):
@@ -9,7 +9,8 @@ class RegexRule(SimpleRule):
     type_label = "regex"
     eq_properties = ("_expression",)
 
-    def __init__(self, expression):
+    def __init__(self, expression, *, sensitivity=None):
+        super().__init__(sensitivity=sensitivity)
         self._expression = expression
         self._compiled_expression = re.compile(expression)
 
@@ -31,7 +32,9 @@ class RegexRule(SimpleRule):
     @staticmethod
     @Rule.json_handler(type_label)
     def from_json_object(obj):
-        return RegexRule(expression=obj["expression"])
+        return RegexRule(
+                expression=obj["expression"],
+                sensitivity=Sensitivity.make_from_dict(obj))
 
     def __str__(self):
         return "RegexRule({0})".format(self._expression)

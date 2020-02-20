@@ -1,5 +1,5 @@
 from ..conversions.types import OutputType
-from .rule import Rule, SimpleRule
+from .rule import Rule, SimpleRule, Sensitivity
 
 
 class DimensionsRule(SimpleRule):
@@ -9,7 +9,8 @@ class DimensionsRule(SimpleRule):
     def __init__(self,
             width_range=range(16, 16385),
             height_range=range(16, 16385),
-            min_dim=128):
+            min_dim=128, *, sensitivity=None):
+        super().__init__(sensitivity=sensitivity)
         self._width_range = width_range
         self._height_range = height_range
         self._min_dim = min_dim
@@ -40,4 +41,5 @@ class DimensionsRule(SimpleRule):
         return DimensionsRule(
                 width_range=range(obj["width"][0], obj["width"][1]),
                 height_range=range(obj["height"][0], obj["height"][1]),
-                min_dim=obj["minimum"])
+                min_dim=obj["minimum"],
+                sensitivity=Sensitivity.make_from_dict(obj))
