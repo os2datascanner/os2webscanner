@@ -88,7 +88,7 @@
 {% block body %}
 
 {% if form.non_field_errors %}
-<div class="alert">
+<div class="alert" role="alert">
   <ul>
     {% for error in form.non_field_errors %}
     <li>{{ error }}</li>
