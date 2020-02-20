@@ -32,7 +32,7 @@
     display: block;
     font-size: 0.75em;
     margin-bottom: 0.25rem;
-    text-transform: uppercase;
+    // text-transform: uppercase;
     user-select: none;
 
     + .form-control {
@@ -41,7 +41,7 @@
   }
 
   input[type=checkbox] + label {
-    display: inline;
+    display: inline-block;
   }
 
   .form-control {
@@ -63,6 +63,8 @@
       box-shadow: inset 0 0 0 4px rgba(0, 0, 0, 0.2);
     }
   }
+
+  input[type="checkbox"] {}
 
   &__help-text {
     font-size: small;
@@ -94,5 +96,103 @@
     line-height: 1;
     margin-top: 1rem;
     padding: 0.5rem;
+  }
+}
+
+.checkbox-group {
+  background-color: rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: var(--border-radius-small);
+  margin: 0.5rem 0;
+  overflow: hidden;
+  padding: var(--size-ds-unit);
+}
+
+.ds-checkbox {
+  display: block;
+  min-height: 1.5rem;
+  padding-left: 1.5rem;
+
+  &--inline {
+    display: inline-block;
+    margin-right: 1rem;
+  }
+
+  input[type="checkbox"] {
+    opacity: 0;
+    position: absolute;
+    z-index: -1;
+  }
+
+  label {
+    display: inline-block;
+    left: 0;
+    line-height: 1.5rem;
+    margin-bottom: initial;
+    margin-left: -1.5rem;
+    min-height: 1.5rem;
+    padding-left: 1.5rem;
+  }
+
+  input[type="checkbox"] + label {
+    &::before,
+    &::after {
+      :root {
+        --transition-property: opacity;
+      }
+
+      background-color: transparent;
+      content: "";
+      display: inline-block;
+      height: 1rem;
+      left: 0;
+      pointer-events: none;
+      position: absolute;
+      top: 0.25rem;
+      transition: var(--transition-default);
+      width: 1rem;
+    }
+
+    &::before {
+      border: 2px solid rgba(0, 0, 0, 0.4);
+      border-radius: 3px;
+    }
+
+    &::after {
+      background: no-repeat 50%/50% 50%;
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23fff' d='M6.564.75l-3.59 3.612-1.538-1.55L0 4.26 2.974 7.25 8 2.193z'/%3e%3c/svg%3e");
+      opacity: 0;
+      transition: var(--transition-default);
+    }
+  }
+
+  &:hover {
+    input[type="checkbox"] + label {
+      &::before {
+        border-color: var(--color-main);
+      }
+    }
+  }
+
+  input[type="checkbox"]:checked + label {
+    &::before {
+      background-color: var(--color-main);
+      border-color: transparent;
+    }
+
+    &::after {
+      opacity: 1;
+      transition-delay: 0.2s;
+    }
+  }
+
+  input[type="checkbox"]:disabled + label {
+    &::before {
+      border: 2px solid rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  input[type="checkbox"]:disabled + label {
+    opacity: 0.5;
   }
 }
