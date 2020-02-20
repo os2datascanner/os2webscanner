@@ -13,6 +13,9 @@ class HasConversionRule(SimpleRule):
         return self._target
 
     def match(self, content):
+        if content is None:
+            return
+
         try:
             self._target.encode_json_object(content)
             yield {
