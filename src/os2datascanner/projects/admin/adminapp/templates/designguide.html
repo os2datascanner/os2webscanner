@@ -40,6 +40,14 @@ Designguide
     </li>
     <li>
       <a href="#form-controls">Form Controls</a>
+      <ol>
+        <li>
+          <a href="#form-controls-inputs">Input fields</a>
+        </li>
+        <li>
+          <a href="#form-controls-checkboxes">Checkboxes</a>
+        </li>
+      </ol>
     </li>
     <li>
       <a href="#alerts">Alerts</a>
@@ -371,7 +379,8 @@ Designguide
     <h2>Form Controls:</h2>
 
     <form class="form">
-      <fieldset>
+      <fieldset id="form-controls-inputs">
+        <legend>Input fields:</legend>
 
         <div class="form__group">
           <label for="test-input--text">Input field, Text</label>
@@ -405,25 +414,57 @@ Designguide
         </div>
       </fieldset>
 
+      <fieldset class="form__fieldset" id="form-controls-checkboxes">
+        <legend>Checkboxes:</legend>
+
+<pre>
+<code>&lt;div class="ds-checkbox"&gt;
+  &lt;input type="checkbox" name="abc" id="abc"&gt;
+  &lt;label for="abc"&gt;Checkbox label&lt;/label&gt;
+&lt;/div&gt;</code>
+</pre>
+
+        <div class="form__group">
+
+          <div class="checkbox-group">
+            <div class="ds-checkbox">
+              <input type="checkbox" name="abc" id="abc">
+              <label for="abc">Checkbox</label>
+            </div>
+
+            <div class="ds-checkbox">
+              <input type="checkbox" name="xyz" id="xyz" checked>
+              <label for="xyz">Checked checkbox</label>
+            </div>
+
+            <div class="ds-checkbox">
+              <input type="checkbox" name="def" id="def" disabled>
+              <label for="def">Disabled checkbox</label>
+            </div>
+          </div>
+        </div>
+
+      </fieldset>
+
     </form>
   </article>
 
   <article id="alerts">
     <h2>Alerts:</h2>
 
-    <div class="alert">
+    <div class="alert" role="alert">
       <p>Bare lidt generel information du bør være opmærksom på.</p>
     </div>
 
-    <div class="alert alert--success">
+    <div class="alert alert--success" role="alert">
       <p>Alt er gået lige efter planen! Ingen grund til bekymring.</p>
     </div>
 
-    <div class="alert alert--warning">
+    <div class="alert alert--warning" role="alert">
       <p>Der er lige et par småting du skal være opmærksom på inden du fortsætter.</p>
     </div>
 
-    <div class="alert alert--danger">
+    <div class="alert alert--danger" role="alert">
       <p>Intet er gået efter planen! Der er grund til bekymring.</p>
     </div>
   </article>
