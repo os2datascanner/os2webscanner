@@ -41,6 +41,19 @@ dl {
   max-width: 40rem;
 }
 
+ol,
+ul {
+  ol,
+  ul {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  li {
+    margin-left: 1em;
+  }
+}
+
 th,
 td {
   text-align: left;
