@@ -33,15 +33,25 @@
       width: 5rem;
     }
 
-    &--item {
-      // 
-    }
-
     &--match {
       width: 10rem;
     }
 
-    &--context {}
+    &--org {
+      width: 13rem;
+    }
+
+    &--validated {
+      width: 8rem;
+    }
+
+    &--automatic {
+      width: 10rem;
+    }
+
+    &--actions {
+      width: 10rem;
+    }
   }
 }
 

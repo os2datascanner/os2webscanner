@@ -12,123 +12,123 @@
 
 {% block body %}
 <div class="wrapper">
-  <div class="tab-content">
-    <div role="tabpanel" class="tab-pane active" id="{{view.type}}scan">
-      <h2 style="display:inline-block;">Scannerjobs</h2>
+  <h2 style="display:inline-block;">Scannerjob</h2>
 
-      <a 
-        class="button button--add button--cta button--small button--round"
-        data-modal="modal:open"
-        data-src="/{{ view.type }}scanners/add/"
-        href="#create-scanner-modal"
-        title="Tilføj ny">
-        <svg class="icon">
-          <use xlink:href="/static/src/svg/symbol-defs.svg#icon-plus"></use>
-        </svg>
-      </a>
+  <a 
+    class="button button--add button--cta button--small button--round"
+    data-modal="modal:open"
+    data-src="/{{ view.type }}scanners/add/"
+    href="#create-scanner-modal"
+    title="Tilføj ny">
+    <svg class="icon">
+      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-plus"></use>
+    </svg>
+  </a>
 
-      <table class="datatable datatable--wide">
-        <thead>
-          <tr>
-            <th>Beskrivelse</th>
+  <table class="datatable">
+    <thead>
+      <tr>
+        <th>Beskrivelse/URL</th>
 
-            {% if user.is_superuser %}
-            <th>Organisation</th>
-            {% endif %}
+        {% if user.is_superuser %}
+        <th class="datatable__column--org">Organisation</th>
+        {% endif %}
 
-            <th>URL</th>
+        {% if view.type == 'file' %}
+        <th>Drev</th>
+        {% endif %}
 
-            {% if view.type == 'file' %}
-            <th>Drev</th>
-            {% endif %}
+        <th>Ekskluderingsregler</th>
+        <th class="datatable__column--validated">Valideret</th>
+        <th class="datatable__column--automatic">Automatisk</th>
+        <th class="datatable__column--actions">Handling</th>
+      </tr>
+    </thead>
 
-            <th>Ekskluderingsregler</th>
-            <th>Valideret</th>
-            <th>Automatisk kørsel</th>
-            <th>Handling</th>
-          </tr>
-        </thead>
+    <tbody>
+      {% for scanner in scanner_list %}
+      <tr tabindex="0">
 
-        <tbody>
-          {% for scanner in scanner_list %}
-          <tr tabindex="0">
-            <td class="scanner-description">{{scanner.name}}</td>
+        {% if user.is_superuser %}
+        <td class="domain-url">
+          <div>{{scanner.name}}</div>
+          <div style="margin-top: 0.5rem;"><small>{{scanner.url}}</small></div>
+        </td>
+        <td class="scanner-organization datatable__column--org">{{scanner.organization}}</td>
 
-            {% if user.is_superuser %}
-            <td class="scanner-organization">{{scanner.organization}}</td>
-            <td class="domain-url">{{scanner.url}}</td>
+        {% if view.type == 'file' %}
+        <td class="domain-letter">
+          {% if scanner.alias %}
+          {{ scanner.alias }}:
+          {% endif %}
+        </td>
+        {% endif %}
 
-            {% if view.type == 'file' %}
-            <td class="domain-letter">
-              {% if scanner.alias %}
-              {{ scanner.alias }}:
-              {% endif %}
-            </td>
-            {% endif %}
+        <td class="domain-exclusion-rules">
+          {% if scanner.exclusion_rules %}
+          <code>{{scanner.exclusion_rules}}</code>
+        {% endif %}
+        </td>
 
-            <td class="domain-exclusion-rules">
-              <code>{{scanner.exclusion_rules}}</code>
-            </td>
+        <td class="domain-validation datatable__column--validated">
+          {% if scanner.validation_status %}
+          <svg class="icon" title="Er valideret">
+            <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-checkmark1"></use>
+          </svg>
+          <span class="">Ja</span>
+          {% else %}
+          <svg class="icon" title="Er ikke valideret">
+            <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-minus"></use>
+          </svg>
+          <span class="">Nej</span>
+          {% endif %}
+        </td>
+        {% endif %}
 
-            <td class="domain-validation">
-              {% if scanner.validation_status %}
-              <svg class="icon" title="Er valideret">
-                <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-checkmark1"></use>
-              </svg>
-              <span class="">Er valideret</span>
-              {% else %}
-              <svg class="icon" title="Er ikke valideret">
-                <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-checkmark2"></use>
-              </svg>
-              <span class="">Er ikke valideret</span>
-              {% endif %}
-            </td>
-            {% endif %}
+        <td class="scanner-runtime datatable__column--automatic">
+          {{ scanner.schedule_description|truncatechars:20 }}
+        </td>
 
-            <td class="scanner-runtime">{{ scanner.schedule_description|truncatechars:20 }}</td>
+        <td class="scanner-actions datatable__column--actions">
+          <a 
+            href="#run-scanner-modal" 
+            data-modal="modal:open" 
+            data-src="/{{ view.type }}scanners/{{scanner.pk}}/askrun/"
+            class="button button--small button--rounded"
+            title="Kør">
+            <svg class="icon">
+              <use xlink:href="/static/src/svg/symbol-defs.svg#icon-play"></use>
+            </svg>
+          </a>
 
-            <td class="scanner-actions">
-              <a 
-                href="#run-scanner-modal" 
-                data-modal="modal:open" 
-                data-src="/{{ view.type }}scanners/{{scanner.pk}}/askrun/"
-                class="button button--small button--rounded"
-                title="Kør">
-                <svg class="icon">
-                  <use xlink:href="/static/src/svg/symbol-defs.svg#icon-play"></use>
-                </svg>
-              </a>
+          <a 
+            href="#edit-scanner-modal" 
+            data-modal="modal:open" 
+            data-src="/{{ view.type }}scanners/{{scanner.pk}}"
+            class="button button--small button--rounded"
+            title="Redigér">
+            <svg class="icon">
+              <use xlink:href="/static/src/svg/symbol-defs.svg#icon-pencil"></use>
+            </svg>
+          </a>
 
-              <a 
-                href="#edit-scanner-modal" 
-                data-modal="modal:open" 
-                data-src="/{{ view.type }}scanners/{{scanner.pk}}"
-                class="button button--small button--rounded"
-                title="Redigér">
-                <svg class="icon">
-                  <use xlink:href="/static/src/svg/symbol-defs.svg#icon-pencil"></use>
-                </svg>
-              </a>
-
-              {% if not scanner.scans %}
-              <a 
-                href="/{{ view.type }}scanners/{{scanner.pk}}/delete/" 
-                class="button button--small button--rounded"
-                title="Slet">
-                <svg class="icon">
-                  <use xlink:href="/static/src/svg/symbol-defs.svg#icon-cross"></use>
-                </svg>
-              </a>
-              {% endif %}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-  {% endblock %}
+          {% if not scanner.scans %}
+          <a 
+            href="/{{ view.type }}scanners/{{scanner.pk}}/delete/" 
+            class="button button--small button--rounded"
+            title="Slet">
+            <svg class="icon">
+              <use xlink:href="/static/src/svg/symbol-defs.svg#icon-cross"></use>
+            </svg>
+          </a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
+{% endblock %}
 
 {% block modal %}
 <div class="modal" id="create-scanner-modal" tabindex="-1" role="dialog" aria-labelledby="create-scanner-modal-title" aria-hidden="true">
