@@ -1,5 +1,6 @@
 from .views import RestrictedListView, RestrictedCreateView, \
     RestrictedUpdateView, RestrictedDeleteView
+from ..models.sensitivity_level import Sensitivity
 from ..models.rules.rule_model import Rule
 from ..models.rules.cprrule_model import CPRRule
 from ..models.rules.regexrule_model import RegexRule, RegexPattern
@@ -18,6 +19,7 @@ class RuleList(RestrictedListView):
 
         context["cprrule_list"] = self.get_queryset().filter(cprrule__isnull=False)
         context["regexrule_list"] = self.get_queryset().filter(regexrule__isnull=False)
+        context["sensitivity"] = Sensitivity
 
         return context
 
