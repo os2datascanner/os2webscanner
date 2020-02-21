@@ -18,6 +18,9 @@
       {% if user.is_superuser or user.is_staff %}
         <a href="/admin/" target="_NEW">Administration</a>
       {% endif %}
+      {% if settings.DEBUG %}
+        <a href="/designguide">Designguide</a>
+      {% endif %}
     {% endif %}
   {% endif %}
 

@@ -1,18 +1,23 @@
 {% extends 'os2datascanner/base.html' %}
+{% load staticfiles %}
 {% block topnav %}{% endblock %}
 {% block rendertype %}iframe-modal{% endblock %}
+
+{% block styling %}
+<link rel="stylesheet" href="{% static "dist/bundle.css" %}">
+{% endblock %}
 
 {% block body %}
 
 {% if form.non_field_errors %}
-  <ul>
-    {% for error in form.non_field_errors %}
-    <li>{{ error }}</li>
-    {% endfor %}
-  </ul>
+<ul>
+  {% for error in form.non_field_errors %}
+  <li>{{ error }}</li>
+  {% endfor %}
+</ul>
 {% endif %}
 {% if form.errors %}
-<div class="alert alert-danger" role="alert">
+<div class="alert alert--danger" role="alert">
   <p>Følgende felter er ikke udfyldt korrekt:</p>
   <ul>
     {% for error in form.errors %}
@@ -22,143 +27,185 @@
 </div>
 {% endif %}
 
-<form class="form-horizontal" role="form" method="post">
-{% csrf_token %}
+<form class="form form-horizontal" role="form" method="post">
+  {% csrf_token %}
 
-  <div id="{{ form.name.auto_id }}_container" class="col-sm-12{% if form.name.errors %} has-error{% endif %}">
-    <div class="form-group">
+  <fieldset class="form__fieldset">
+    <legend>Organisation:</legend>
+
+    <div 
+      id="{{ form.name.auto_id }}_container"
+      class="form__group col-sm-12{% if form.name.errors %} has-error{% endif %}">
       <label class="control-label col-sm-2" for="id_{{ form.name.name }}">{{ form.name.label }}</label>
       <div class="col-sm-10">
-	<input type="text" class="form-control" name="{{ form.name.name }}" id="id_{{ form.name.name }}" {% if form.name.value %}value="{{ form.name.value }}"{% endif %} {% if form.name.field.required %}required{% endif %}>
-	{% if form.name.help_text %}
-	  <p>
-            <small>{{ form.name.help_text }}</small>
-          </p>
+        <input 
+          type="text" 
+          class="form-control" 
+          name="{{ form.name.name }}" 
+          id="id_{{ form.name.name }}"
+          {% if form.name.value %}value="{{ form.name.value }}" {% endif %}
+          {% if form.name.field.required %}required{% endif %}>
+
+        {% if form.name.help_text %}
+        <span class="form__help-text">{{ form.name.help_text }}</span>
         {% endif %}
+
         {% if form.name.errors %}{{ form.name.errors }}{% endif %}
       </div>
     </div>
-  </div>
 
-  {% if form.organization %}
-  <div id="{{ form.organization.auto_id }}_container" class="col-sm-12{% if form.organization.errors %} has-error{% endif %}">
-    <div class="form-group">
+    {% if form.organization %}
+    <div 
+      id="{{ form.organization.auto_id }}_container"
+      class="form__group col-sm-12{% if form.organization.errors %} has-error{% endif %}">
       <label class="control-label col-sm-2" for="id_{{ form.organization.name }}">{{ form.organization.label }}</label>
       <div class="col-sm-10">
-        <select name="{{ form.organization.name }}" id="id_{{ form.organization.name }}" class="form-control" {% if form.organization.field.required %}required{% endif %}>
+        <select name="{{ form.organization.name }}" id="id_{{ form.organization.name }}" class="form-control"
+          {% if form.organization.field.required %}required{% endif %}>
           {% for value, tag in form.organization.field.choices %}
-            <option value="{{ value }}"{% if form.organization.value|add:"0" == value|add:"0" %} selected{% endif %}>{{ tag }}</option>{# silly type conversion #}
+          <option value="{{ value }}" {% if form.organization.value|add:"0" == value|add:"0" %} selected{% endif %}>
+            {{ tag }}</option>{# silly type conversion #}
           {% endfor %}
         </select>
+
         {% if form.organization.help_text %}
-          <p>
-            <small>{{ form.organization.help_text }}</small>
-          </p>
+        <span class="form__help-text">{{ form.organization.help_text }}</span>
         {% endif %}
+
         {% if form.organization.errors %}{{ form.organization.errors }}{% endif %}
       </div>
     </div>
-  </div>
-  {% endif %}
+    {% endif %}
 
-  {% if form.group %}
-  <div id="{{ form.group.auto_id }}_container" class="col-sm-12{% if form.group.errors %} has-error{% endif %}">
-    <div class="form-group">
+    {% if form.group %}
+    <div 
+      id="{{ form.group.auto_id }}_container" 
+      class="form__group col-sm-12{% if form.group.errors %} has-error{% endif %}">
       <label class="control-label col-sm-2" for="id_{{ form.group.name }}">{{ form.group.label }}</label>
       <div class="col-sm-10">
-        <select name="{{ form.group.name }}" id="id_{{ form.group.name }}" class="form-control" {% if form.group.field.required %}required{% endif %}>
+        <select name="{{ form.group.name }}" id="id_{{ form.group.name }}" class="form-control"
+          {% if form.group.field.required %}required{% endif %}>
           {% for value, tag in form.group.field.choices %}
-            <option value="{{ value }}"{% if form.group.value|add:"0" == value|add:"0" %} selected{% endif %}>{{ tag }}</option>{# silly type conversion #}
+          <option value="{{ value }}" {% if form.group.value|add:"0" == value|add:"0" %} selected{% endif %}>{{ tag }}
+          </option>{# silly type conversion #}
           {% endfor %}
         </select>
+
         {% if form.group.help_text %}
-          <p>
-            <small>{{ form.group.help_text }}</small>
-          </p>
+        <span class="form__help-text">{{ form.group.help_text }}</span>
         {% endif %}
+
         {% if form.group.errors %}{{ form.group.errors }}{% endif %}
       </div>
     </div>
-  </div>
-  {% endif %}
+    {% endif %}
 
-  <div id="cpr_settings_container" class="col-sm-12">
-    <div class="form-group">
-      <strong class="control-label col-sm-2" for="id_cpr_rule">CPR-indstillinger</strong>
+  </fieldset>
+
+  <fieldset class="form__fieldset">
+    <legend>Regel:</legend>
+
+    <div 
+      id="cpr_settings_container" 
+      class="form__group col-sm-12">
       <div class="col-sm-10">
+
         <div class="checkbox-group">
-          <input type="checkbox" id="id_{{ form.do_modulus11.name }}" name="{{ form.do_modulus11.name }}" value="{{ form.do_modulus11.name }}" {% if form.do_modulus11.value %} checked="checked" {% endif %}>
+          <input 
+            type="checkbox" 
+            id="id_{{ form.do_modulus11.name }}" 
+            name="{{ form.do_modulus11.name }}"
+            value="{{ form.do_modulus11.name }}" 
+            {% if form.do_modulus11.value %} checked="checked" {% endif %}>
           <label class="cpr_option" for="id_{{ form.do_modulus11.name }}">
             {{ form.do_modulus11.label }}
             {% if form.do_modulus11.help_text %}<small>{{ form.do_modulus11.help_text }}</small>{% endif %}
           </label>
-          <input type="checkbox" id="id_{{ form.ignore_irrelevant.name }}" name="{{ form.ignore_irrelevant.name }}" value="{{ form.ignore_irrelevant.name }}" {% if form.ignore_irrelevant.value %} checked="checked" {% endif %}>
+
+          <input 
+            type="checkbox" 
+            id="id_{{ form.ignore_irrelevant.name }}" 
+            name="{{ form.ignore_irrelevant.name }}"
+            value="{{ form.ignore_irrelevant.name }}" 
+            {% if form.ignore_irrelevant.value %} checked="checked"{% endif %}>
           <label class="cpr_option" for="id_{{ form.ignore_irrelevant.name }}">
             {{ form.ignore_irrelevant.label }}
             {% if form.ignore_irrelevant.help_text %}<small>{{ form.ignore_irrelevant.help_text }}</small>{% endif %}
           </label>
         </div>
+
       </div>
     </div>
-  </div>
 
-  <div id="{{ form.description.auto_id }}_container" class="col-sm-12{% if form.description.errors %} has-error{% endif %}">
-    <div class="form-group">
+    <div 
+      id="{{ form.description.auto_id }}_container"
+      class="form__group col-sm-12{% if form.description.errors %} has-error{% endif %}">
       <label class="control-label col-sm-2" for="id_{{ form.description.name }}">{{ form.description.label }}</label>
       <div class="col-sm-10">
-	<textarea class="form-control" name="{{ form.description.name }}" id="id_{{ form.description.name }}" rows="3" {% if form.description.field.required %}required{% endif %}>{% if form.description.value %}{{ form.description.value }}{% endif %}</textarea>
-	{% if form.description.help_text %}
-	  <p>
-            <small>{{ form.description.help_text }}</small>
-          </p>
+        <textarea 
+          class="form-control" 
+          name="{{ form.description.name }}" 
+          id="id_{{ form.description.name }}" rows="3"
+          {% if form.description.field.required %}required{% endif %}>{% if form.description.value %}{{ form.description.value }}{% endif %}</textarea>
+
+        {% if form.description.help_text %}
+        <span class="form__help-text">{{ form.description.help_text }}</span>
         {% endif %}
+
         {% if form.description.errors %}{{ form.description.errors }}{% endif %}
       </div>
     </div>
-  </div>
 
-  <div id="{{ form.whitelist.auto_id }}_container" class="col-sm-12{% if form.whitelist.errors %} has-error{% endif %}">
-    <div class="form-group">
+    <div 
+      id="{{ form.whitelist.auto_id }}_container" 
+      class="form__group col-sm-12{% if form.whitelist.errors %} has-error{% endif %}">
       <label class="control-label col-sm-2" for="id_{{ form.whitelist.name }}">{{ form.whitelist.label }}</label>
       <div class="col-sm-10">
-	<textarea class="form-control" name="{{ form.whitelist.name }}" id="id_{{ form.whitelist.name }}" rows="3" {% if form.whitelist.field.required %}required{% endif %}>{% if form.whitelist.value %}{{ form.whitelist.value }}{% endif %}</textarea>
-	{% if form.whitelist.help_text %}
-	  <p>
-            <small>{{ form.whitelist.help_text }}</small>
-          </p>
+        <textarea 
+          class="form-control" 
+          name="{{ form.whitelist.name }}" 
+          id="id_{{ form.whitelist.name }}" 
+          rows="3"
+          {% if form.whitelist.field.required %}required{% endif %}>{% if form.whitelist.value %}{{ form.whitelist.value }}{% endif %}</textarea>
+
+        {% if form.whitelist.help_text %}
+        <span class="form__help-text">{{ form.whitelist.help_text }}</span>
         {% endif %}
+
         {% if form.whitelist.errors %}{{ form.whitelist.errors }}{% endif %}
       </div>
     </div>
-  </div>
 
-  <div id="{{ form.sensitivity.auto_id }}_container" class="col-sm-12{% if form.sensitivity.errors %} has-error{% endif %}">
-    <div class="form-group">
+    <div 
+      id="{{ form.sensitivity.auto_id }}_container"
+      class="form__group col-sm-12{% if form.sensitivity.errors %} has-error{% endif %}">
       <label class="control-label col-sm-2" for="id_{{ form.sensitivity.name }}">{{ form.sensitivity.label }}</label>
       <div class="col-sm-10">
-	<select name="{{ form.sensitivity.name }}" id="id_{{ form.sensitivity.name }}" class="form-control" {% if form.sensitivity.field.required %}required{% endif %}>
+        <select 
+          name="{{ form.sensitivity.name }}" 
+          id="id_{{ form.sensitivity.name }}" 
+          class="form-control"
+          {% if form.sensitivity.field.required %}required{% endif %}>
+          
           {% for value, tag in form.sensitivity.field.choices %}
-            <option value="{{ value }}"{% if form.sensitivity.value|add:"0" == value|add:"0" %} selected="selected"{% endif %}>{{ tag }}</option>
+          <option value="{{ value }}" {% if form.sensitivity.value|add:"0" == value|add:"0" %} selected="selected"
+            {% endif %}>{{ tag }}</option>
           {% endfor %}
         </select>
         {% if form.sensitivity.help_text %}
-          <p>
-            <small>{{ form.sensitivity.help_text }}</small>
-          </p>
+        <p>
+          <small>{{ form.sensitivity.help_text }}</small>
+        </p>
         {% endif %}
         {% if form.sensitivity.errors %}{{ form.sensitivity.errors }}{% endif %}
       </div>
     </div>
+  </fieldset>
+
+  <div class="form__group col-sm-offset-2">
+    <button type="submit" class="btn btn-primary button button--cta button--rounded" name="save">Gem ændringer</button>
   </div>
 
-  <div class="col-sm-offset-2">
-    <div class="col-sm-12">
-      <button type="submit" class="btn btn-primary" name="save">
-        Gem ændringer
-      </button>
-    </div>
-  </div>
-
-    {#{ form.as_p }#}
+  {#{ form.as_p }#}
 </form>
 {% endblock %}

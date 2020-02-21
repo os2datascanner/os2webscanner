@@ -1,0 +1,32 @@
+.alert {
+  background-color: rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: var(--border-radius-small);
+  margin: 1rem 0;
+  padding: 1rem;
+
+  p,
+  ul {
+    margin: 0;
+    max-width: none;
+  }
+
+  li {
+    margin-left: 1em;
+  }
+
+  &--success {
+    background-color: var(--color-ok);
+    border-color: var(--color-ok-dark);
+  }
+
+  &--warning {
+    background-color: var(--color-warning);
+    border-color: var(--color-warning-dark);
+  }
+
+  &--danger {
+    background-color: var(--color-error);
+    border-color: var(--color-error-dark);
+  }
+}

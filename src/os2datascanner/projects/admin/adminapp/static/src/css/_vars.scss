@@ -11,17 +11,18 @@
   --size-base-font-size: calc(var(--size-ds-unit) * 2);
 
   --color-main: #3a69b4;
+  --color-main-dark: #1c417d;
   --color-text-main: #222;
   --color-body-bg: #eee;
 
-  --color-ok: var(--color-main);
-  --color-ok-dark: #32845e;
+  --color-ok: #1abc9c;
+  --color-ok-dark: #16a085;
 
-  --color-warning: #f7e70d;
-  --color-warning-dark: #f1c40f;
+  --color-warning: #f1c40f;
+  --color-warning-dark: #f39c12;
 
   --color-error: #e74c3c;
-  --color-error-dark: #e74c3c;
+  --color-error-dark: #c0392b;
 
   --color-office365: #d83b01;
 
@@ -30,7 +31,10 @@
   --color-logo-text: var(--color-text-main);
 
   --border-radius: 0.5rem;
-  --border-radius-small: 0.125rem;
+  --border-radius-small: 0.25rem;
   --box-shadow: 0 0 1rem rgba(0, 0, 0, 0.2);
   --box-shadow-large: 0 0 2rem rgba(0, 0, 0, 0.2);
+
+  --z-index-navigation: 10;
+  --z-index-modal: 20;
 }

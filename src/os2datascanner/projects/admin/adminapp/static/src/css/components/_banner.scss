@@ -10,7 +10,7 @@
   right: var(--size-ds-unit);
   top: var(--size-ds-unit);
   transition: background-color 0.2s ease-in-out;
-  z-index: 99;
+  z-index: var(--z-index-navigation);
 
   &:hover {
     background-color: #fff;

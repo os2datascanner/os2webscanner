@@ -10,6 +10,10 @@
   table-layout: fixed;
   width: calc(100% - 2rem);
 
+  &--wide {
+    max-width: none;
+  }
+
   &__column {
     &--label {
       width: auto;
@@ -45,6 +49,10 @@
   td {
     background-color: rgba(0, 0, 0, 0.05);
   }
+
+  &+.expandable-row td {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
     
   .hit-link {
     opacity: 1;
@@ -59,7 +67,11 @@
     td {
       background-color: rgba(0, 0, 0, 0.05);
     }
-      
+
+    &+.expandable-row td {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+  
     .hit-link {
       opacity: 1;
     }

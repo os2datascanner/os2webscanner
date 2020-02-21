@@ -1,266 +1,138 @@
 {% extends 'os2datascanner/base.html' %}
-{% block title %}
-Scannerjob
+{% load staticfiles %}
+
+{% block styling %}
+<link rel="stylesheet" href="{% static "dist/bundle.css" %}">
 {% endblock %}
-{% block scanners_active %}
-class="active"
+
+{% block scripts %}
+<script src="{% static "3rdparty/jquery.modal.js" %} "></script>
+<script src="{% static "dist/bundle.js" %}"></script>
 {% endblock %}
-{% block rendertype %}regular{% endblock %}
 
 {% block body %}
-<div class="container">
-    {% include 'os2datascanner/scanner_above_content.html' with active=view.type %}
-    <div class="tab-content">
-        <div role="tabpanel" class="tab-pane active" id="{{view.type}}scan">
-            <p class="h2" style="display:inline-block;">
-                {% if view.type == 'web' %}
-                    Webscanner
-                {% elif view.type == 'file' %}
-                    Filscanner
-                {% elif view.type == 'exchange' %}
-                    Exchangescanner
-                {% endif %}
-            </p>
-            <span class="page-action">
-            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#create-scanner-modal">
-              Tilføj ny
-              <span style="position:relative;top:.15em;" class="glyphicon glyphicon-plus-sign"></span>
-            </button>
-          </span>
-            <div class="table-responsive">
-              <table class="table table-striped">
-                <thead>
-                  <tr>
-                <td>
-                  <strong>
-                    <small>
-                      Beskrivelse
-                    </small>
-                  </strong>
-                </td>
-                    {% if user.is_superuser %}
-                <td>
-                  <strong>
-                    <small>
-                      Organisation
-                    </small>
-                  </strong>
-                </td>
-                    {% endif %}
-                      <td>
-                          <strong>
-                              <small>
-                                  URL
-                              </small>
-                          </strong>
-                      </td>
-                      {% if view.type == 'file' %}
-                          <td>
-                              <strong>
-                                  <small>
-                                      Drev
-                                  </small>
-                              </strong>
-                          </td>
-                      {% endif %}
-                      {% if user.is_superuser %}
-                          <td>
-                              <strong>
-                                  <small>
-                                      Organisation
-                                  </small>
-                              </strong>
-                          </td>
-                      {% endif %}
-                      <td>
-                          <strong>
-                              <small>
-                                  Ekskluderingsregler
-                              </small>
-                          </strong>
-                      </td>
-                      <td>
-                          <strong>
-                              <small>
-                                  Valideret
-                              </small>
-                          </strong>
-                      </td>
-                <td>
-                  <strong>
-                    <small>
-                      Automatisk kørsel
-                    </small>
-                  </strong>
-                </td>
-                <td>
-                  <strong>
-                    <small>
-                      Handling
-                    </small>
-                  </strong>
-                </td>
-                  </tr>
-                </thead>
-                <tbody>
-                {% for scanner in scanner_list %}
-                  <tr>
-                      <td class="scanner-description">
-                  <span>
-                      {{scanner.name}}
-                  </span>
-                      </td>
-                    {% if user.is_superuser %}
-                <td class="scanner-organization">
-                  <span>
-                      {{scanner.organization}}
-                  </span>
-                </td>
-                        <td class="domain-url">
-                <span>
-                    {{scanner.url}}
-                </span>
-                        </td>
-                        {% if view.type == 'file' %}
-                            <td class="domain-letter">
-                                {% if scanner.alias %}
-                                    {{ scanner.alias }}:
-                                {% endif %}
-                            </td>
-                        {% endif %}
-                        {% if user.is_superuser %}
-                            <td class="domain-organization">
-                <span>
-                    {{scanner.organization}}
-                </span>
-                            </td>
-                        {% endif %}
-                        <td class="domain-exclusion-rules">
-                            <pre>{{scanner.exclusion_rules}}</pre>
-                        </td>
-                        <td class="domain-validation">
-                            {% if scanner.validation_status %}
-                                <span class="glyphicon glyphicon-ok"></span><span class="sr-only">Er valideret</span>
-                            {% else %}
-                                <span class="glyphicon glyphicon-remove"></span><span class="sr-only">Er ikke valideret</span>
-                            {% endif %}
-                        </td>
-                    {% endif %}
-                <td class="scanner-runtime">
-                  <span class="scanner-schedule-description">
-                      {{ scanner.schedule_description|truncatechars:20 }}
-                  </span>
+<div class="wrapper">
+  <h2 style="display:inline-block;">Scannerjob</h2>
 
-                </td>
-                <td class="scanner-actions">
-                  <button type="button"
-                    class="btn btn-default btn-xs btn-scanner-settings"
-                    onclick="os2web.iframeDialog(
-                    &quot;#run-scanner-modal&quot;,
-                    &quot;/{{ view.type }}scanners/{{scanner.pk}}/askrun/&quot;,
-                            &quot;Kør scanner '{{scanner.name}}'&quot;)">
-                    <span class="glyphicon glyphicon-play">
-                    </span> <span>Kør</span>
-                  </button>
-                  <button type="button"
-                    class="btn btn-default btn-xs btn-scanner-settings"
-                    onclick="os2web.iframeDialog(
-                    &quot;#edit-scanner-modal&quot;,
-                    &quot;/{{ view.type }}scanners/{{scanner.pk}}&quot;,
-                    &quot;Redigér scannerjob '{{scanner.name}}'&quot;
-                    )">
+  <a 
+    class="button button--add button--cta button--small button--round"
+    data-modal="modal:open"
+    data-src="/{{ view.type }}scanners/add/"
+    href="#create-scanner-modal"
+    title="Tilføj ny">
+    <svg class="icon">
+      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-plus"></use>
+    </svg>
+  </a>
 
-                    <span class="glyphicon glyphicon-cog">
-                    </span> <span>Redigér</span>
+  <table class="datatable">
+    <thead>
+      <tr>
+        <th>Navn/URL</th>
+        {% if user.is_superuser %}
+        <th class="datatable__column--org">Organisation</th>
+        {% endif %}
+        {% if view.type == 'file' %}
+        <th>Drev</th>
+        {% endif %}
+        <th class="datatable__column--validated">Valideret</th>
+        <th class="datatable__column--automatic">Automatisk</th>
+        <th class="datatable__column--actions">Handling</th>
+      </tr>
+    </thead>
 
-                    <span class="sr-only">
-                      Indstillinger for scanner
-                    </span>
+    <tbody>
+      {% for scanner in scanner_list %}
+      <tr tabindex="0">
 
-                  </button>
-                  {% if not scanner.scans %}
-                  <a href="/{{ view.type }}scanners/{{scanner.pk}}/delete/" class="btn btn-default btn-xs">
-                      <span class="glyphicon glyphicon-remove"></span>
-                      <span>Slet</span>
-                  </a>
-                  {% endif %}
-                  </span>
-                </td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-        </div>
-    </div>
-{% endblock %}
+        {% if user.is_superuser %}
+        <td class="domain-url">
+          <div>{{scanner.name}}</div>
+          <div style="margin-top: 0.5rem;"><small>{{scanner.url}}</small></div>
+        </td>
+        <td class="scanner-organization datatable__column--org">{{scanner.organization}}</td>
 
-{% block heading %} 
-Scannerjob
+        {% if view.type == 'file' %}
+        <td class="domain-letter">
+          {% if scanner.alias %}
+          {{ scanner.alias }}:
+          {% endif %}
+        </td>
+        {% endif %}
+
+        <td class="domain-validation datatable__column--validated">
+          {% if scanner.validation_status %}
+          <svg class="icon" title="Er valideret">
+            <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-checkmark1"></use>
+          </svg>
+          <span class="">Ja</span>
+          {% else %}
+          <svg class="icon" title="Er ikke valideret">
+            <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-minus"></use>
+          </svg>
+          <span class="">Nej</span>
+          {% endif %}
+        </td>
+        {% endif %}
+
+        <td class="scanner-runtime datatable__column--automatic">
+          {{ scanner.schedule_description|truncatechars:20 }}
+        </td>
+
+        <td class="scanner-actions datatable__column--actions">
+          <a 
+            href="#run-scanner-modal" 
+            data-modal="modal:open" 
+            data-src="/{{ view.type }}scanners/{{scanner.pk}}/askrun/"
+            class="button button--small button--rounded"
+            title="Kør">
+            <svg class="icon">
+              <use xlink:href="/static/src/svg/symbol-defs.svg#icon-play"></use>
+            </svg>
+          </a>
+
+          <a 
+            href="#edit-scanner-modal" 
+            data-modal="modal:open" 
+            data-src="/{{ view.type }}scanners/{{scanner.pk}}"
+            class="button button--small button--rounded"
+            title="Redigér">
+            <svg class="icon">
+              <use xlink:href="/static/src/svg/symbol-defs.svg#icon-pencil"></use>
+            </svg>
+          </a>
+
+          {% if not scanner.scans %}
+          <a 
+            href="/{{ view.type }}scanners/{{scanner.pk}}/delete/" 
+            class="button button--small button--rounded"
+            title="Slet">
+            <svg class="icon">
+              <use xlink:href="/static/src/svg/symbol-defs.svg#icon-cross"></use>
+            </svg>
+          </a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}
 
 {% block modal %}
-<div class="modal iframe" id="create-scanner-modal" tabindex="-1" role="dialog"
-    aria-labelledby="create-scanner-modal-title" aria-hidden="true"
-    data-href="/{{ view.type }}scanners/add/">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-	  &times;
-	</button>
-	<h4 class="modal-title" id="create-scanner-modal-title">
-	  Opret nyt scannerjob
-	</h4>
-      </div>
-      <div class="modal-body">
-	<iframe src="about:blank" frameborder="0"></iframe>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="modal iframe" id="edit-scanner-modal" tabindex="-1" role="dialog"
-    aria-labelledby="edit-scanner-modal-title" aria-hidden="true"
-    data-href="/{{ view.type }}scanners/add/">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-	  &times;
-	</button>
-	<h4 class="modal-title" id="edit-scanner-modal-title">
-	  Rediger scannerjob
-	</h4>
-      </div>
-      <div class="modal-body">
-	<iframe src="about:blank" frameborder="0"></iframe>
-      </div>
-    </div>
-  </div>
+<div class="modal" id="create-scanner-modal" tabindex="-1" role="dialog" aria-labelledby="create-scanner-modal-title" aria-hidden="true">
+  <h4 class="modal__heading" id="create-scanner-modal-title">Opret nyt scannerjob</h4>
+  <iframe src="about:blank" frameborder="0"></iframe>
 </div>
 
-<div class="modal iframe" id="run-scanner-modal" tabindex="-1" role="dialog"
-    aria-labelledby="run-scanner-modal-title" aria-hidden="true"
-    data-href="/{{ view.type }}scanners/add/">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-	  &times;
-	</button>
-	<h4 class="modal-title" id="run-scanner-modal-title">
-	  Kør scanner
-	</h4>
-      </div>
-      <div class="modal-body">
-	<iframe src="about:blank" frameborder="0"></iframe>
-      </div>
-    </div>
-  </div>
+<div class="modal" id="run-scanner-modal" tabindex="-1" role="dialog" aria-labelledby="run-scanner-modal-title" aria-hidden="true" data-href="/{{ view.type }}scanners/add/">
+  <h4 class="modal__heading" id="run-scanner-modal-title">Kør scanner</h4>
+  <iframe src="about:blank" frameborder="0"></iframe>
 </div>
-{% endblock %}
 
-{% block jquery_script %}
-<script type="text/javascript"><!--
-//--></script>
+<div class="modal" id="edit-scanner-modal" tabindex="-1" role="dialog" aria-labelledby="edit-scanner-modal-title" aria-hidden="true" data-href="/{{ view.type }}scanners/add/">
+  <h4 class="modal__heading" id="edit-scanner-modal-title">Rediger scannerjob</h4>
+  <iframe src="about:blank" frameborder="0"></iframe>
+</div>
 {% endblock %}

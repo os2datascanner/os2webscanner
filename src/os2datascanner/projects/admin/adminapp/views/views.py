@@ -116,7 +116,7 @@ class RestrictedListView(ListView, LoginRequiredMixin):
 class MainPageView(TemplateView, LoginRequiredMixin):
     """Display the main page."""
 
-    template_name = 'index.html'
+    template_name = 'os2datascanner/scanners.html'
 
 class DesignGuide(TemplateView):
     template_name = 'designguide.html'
