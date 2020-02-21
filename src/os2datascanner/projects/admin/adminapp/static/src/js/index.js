@@ -1,7 +1,5 @@
 import '../css/master.scss';
 
-console.log('Datascanner sees all');
-
 $(document).ready(function(){
   $("a[data-modal='modal:open']").click(function(e){
       e.preventDefault()
@@ -14,5 +12,17 @@ $(document).ready(function(){
 
       // Find the iframe in our target and set its src
       $(target).find("iframe").attr("src",src);
-  })
+  });
+
+  // Toggle visiblity of expandable rows, start
+  $(document).on("click", "[data-toggle]", function() {
+    var expandTarget = $(this).attr("data-toggle");
+
+    if ($(expandTarget).is('[hidden]')) {
+      $(expandTarget).removeAttr('hidden');
+    } else {
+      $(expandTarget).attr('hidden','');
+    }
+  });
+  // Toggle visiblity of expandable rows, stop
 })

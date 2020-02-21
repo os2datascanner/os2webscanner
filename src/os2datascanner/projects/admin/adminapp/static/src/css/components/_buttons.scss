@@ -9,7 +9,7 @@
   line-height: 1;
   padding: 0.5em;
   text-decoration: none;
-  transition: background-color var(--transition-timing) var(--transition-timing-function);
+  transition: var(--transition-default);
 
   &:focus,
   &:hover {
@@ -35,6 +35,17 @@
     &:hover {
       background-color: var(--color-main-dark);
       color: #fff;
+    }
+  }
+
+  &--ghost {
+    background-color: transparent;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+
+    &:focus,
+    &:hover {
+      background-color: transparent;
+      border-color: rgba(0, 0, 0, 0.2);
     }
   }
 

@@ -33,30 +33,24 @@
       width: 5rem;
     }
 
+    &--item {
+      // 
+    }
+
     &--match {
       width: 10rem;
     }
 
-    &--org {
-      width: 13rem;
-    }
-
-    &--validated {
-      width: 8rem;
-    }
-
-    &--automatic {
-      width: 10rem;
-    }
-
-    &--actions {
-      width: 10rem;
-    }
+    &--context {}
   }
 }
 
 .datatable tr:hover {
   td {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  &+.expandable-row td {
     background-color: rgba(0, 0, 0, 0.05);
   }
     
@@ -73,7 +67,11 @@
     td {
       background-color: rgba(0, 0, 0, 0.05);
     }
-      
+
+    &+.expandable-row td {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+  
     .hit-link {
       opacity: 1;
     }

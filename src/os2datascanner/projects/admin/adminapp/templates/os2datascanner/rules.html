@@ -12,7 +12,7 @@
 
 {% block body %}
 <div class="wrapper">
-  <h2 style="display: inline-block;">Regulær udtryk-regler</h2>
+  <h2 style="display: inline-block;">Regler</h2>
   <a 
     class="button button--add button--cta button--small button--round"
     data-modal="modal:open"
@@ -48,19 +48,19 @@
 
         <td>
           {% if rule.regexrule.patterns.all|length > 0 %}
-          <input type="checkbox" class="show-patterns" id="show-patterns-{{ forloop.counter }}"
-            name="show-patterns-{{ forloop.counter }}">
-          <label for="show-patterns-{{ forloop.counter }}">
-            Vis udtryk?
-          </label>
-          <div class="pattern-container clearfix">
-            {% for pattern in rule.regexrule.patterns.all %}
-            <code>{{ pattern.pattern_string }}</code>
-            {% endfor %}
+          <button type="button" class="button button--ghost button--small button--rounded" data-toggle="#show-patterns-{{ forloop.counter }}">Vis udtryk</button>
           </div>
           {% endif %}
         </td>
-        <td>{{ rule.get_sensitivity_display }}</td>
+        <td>
+          {% if rule.get_sensitivity_display == sensitivity.choices.0.1 %}
+          <span class="level-label level-label--3">{{ rule.get_sensitivity_display }}</span>
+          {% elif rule.get_sensitivity_display == sensitivity.choices.1.1 %}
+          <span class="level-label level-label--2">{{ rule.get_sensitivity_display }}</span>
+          {% else %}
+          <span class="level-label level-label--1">{{ rule.get_sensitivity_display }}</span>
+          {% endif %}
+        </td>
         <td>
           <a 
             href="#edit-rule-modal" 
@@ -74,7 +74,8 @@
           </a>
 
           <a 
-            href="/rules/regex/{{rule.pk}}/delete/" 
+            href="#delete-rule-modal"
+            data-modal="modal:open"
             class="button button--small button--rounded"
             title="Slet">
             <svg class="icon">
@@ -82,22 +83,21 @@
             </svg>
           </a>
         </td>
-      </tr tabindex="0">
+      </tr>
+      <tr class="expandable-row" id="show-patterns-{{ forloop.counter }}" hidden>
+        <td colspan="6">
+          {% if rule.regexrule.patterns.all|length > 0 %}
+          {% for pattern in rule.regexrule.patterns.all %}
+          <code>{{ pattern.pattern_string }}</code>
+          {% endfor %}
+          {% endif %}
+        </td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>
 
   <h2 style="display: inline-block;">CPR-regler</h2>
-  <a 
-    class="button button--add button--cta button--small button--round"
-    data-modal="modal:open"
-    data-src="/rules/cpr/add/"
-    href="#create-rule-modal"
-    title="Tilføj ny">
-    <svg class="icon">
-      <use xlink:href="/static/src/svg/symbol-defs.svg#icon-plus"></use>
-    </svg>
-  </a>
 
   <table class="datatable">
     <thead>
@@ -107,10 +107,8 @@
         <th>Organisation</th>
         {% endif %}
         <th>Beskrivelse</th>
-        <th>Modulo-11</th>
-        <th>Fødselsdagsdato tjek</th>
+        <th>Sandsynlighed</th>
         <th>Følsomhed</th>
-        <th>Handling</th>
       </tr>
     </thead>
 
@@ -122,36 +120,15 @@
         <td>{{ rule.organization }}</td>
         {% endif %}
         <td>{{ rule.description }}</td>
+        <td></td>
         <td>
-          {% if rule.cprrule.do_modulus11 %}
-          <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+          {% if rule.get_sensitivity_display == sensitivity.choices.0.1 %}
+          <span class="level-label level-label--3">{{ rule.get_sensitivity_display }}</span>
+          {% elif rule.get_sensitivity_display == sensitivity.choices.1.1 %}
+          <span class="level-label level-label--2">{{ rule.get_sensitivity_display }}</span>
+          {% else %}
+          <span class="level-label level-label--1">{{ rule.get_sensitivity_display }}</span>
           {% endif %}
-        </td>
-        <td>
-          {% if rule.cprrule.ignore_irrelevant %}
-          <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
-          {% endif %}
-        </td>
-        <td>{{ rule.get_sensitivity_display }}</td>
-        <td>
-          <a 
-            href="#edit-rule-modal" 
-            data-modal="modal:open" 
-            data-src="/rules/cpr/{{rule.pk}}"
-            class="button button--small button--rounded"
-            title="Redigér">
-            <svg class="icon">
-              <use xlink:href="/static/src/svg/symbol-defs.svg#icon-pencil"></use>
-            </svg>
-          </a>
-          <a 
-            href="/rules/cpr/{{rule.pk}}/delete/" 
-            class="button button--small button--rounded"
-            title="Slet">
-            <svg class="icon">
-              <use xlink:href="/static/src/svg/symbol-defs.svg#icon-cross"></use>
-            </svg>
-          </a>
         </td>
       </tr>
       {% endfor %}
@@ -162,13 +139,37 @@
 
 {% block modal %}
 <div class="modal" id="create-rule-modal" tabindex="-1" role="dialog" aria-labelledby="create-rule-modal-title" aria-hidden="true">
-  <h4 class="modal__heading" id="create-rule-modal-title">Opret ny ad hoc-regel</h4>
+  <h4 class="modal__heading" id="create-rule-modal-title">Opret regel</h4>
   <iframe src="about:blank" frameborder="0"></iframe>
 </div>
 
 <div class="modal" id="edit-rule-modal" tabindex="-1" role="dialog" aria-labelledby="edit-rule-modal-title" aria-hidden="true" hidden>
-  <h4 class="modal__heading" id="edit-rule-modal-title">Redigér ad hoc-regel</h4>
+  <h4 class="modal__heading" id="edit-rule-modal-title">Redigér regel</h4>
   <iframe src="about:blank" frameborder="0"></iframe>
+</div>
+
+<div class="modal modal--small" id="delete-rule-modal" tabindex="-1" role="dialog" aria-labelledby="delete-rule-modal-title" aria-hidden="true" hidden>
+  <h4 class="modal__heading" id="delete-rule-modal-title">Slet regel</h4>
+  <iframe src="about:blank" frameborder="0"></iframe>
+</div>
+
+<div class="modal modal--small" id="delete-rule-modal" tabindex="-1" role="dialog" aria-labelledby="delete-rule-modal-title" aria-hidden="true" hidden>
+  <h4 class="modal__heading" id="delete-rule-modal-title">Slet regel</h4>
+
+  <div class="modal__content">
+    <form action="" method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+  
+      <p>Ønsker du at slette <em>{{ object }}</em>? Handlingen kan ikke fortrydes.</p>
+      <p>Bemærk venligst at denne regel i øjeblikket indgår i <em>{{ object.scanners.all.count }}</em> scannerjob og <em>{{ object.scans.all.count }}</em> rapporter.</p>
+  
+      <div class="form__group">
+        <button class="button button--cta button--small btn btn-default" type="submit">Ja</button>
+        <button class="button button--cta button--small btn btn-default" type="button" data-modal="modal:close">Næh!</button>
+      </div>
+    </form>
+  </div>
 </div>
 {% endblock %}
 
