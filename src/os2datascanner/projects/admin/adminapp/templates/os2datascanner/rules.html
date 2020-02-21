@@ -85,7 +85,11 @@
         </td>
       </tr>
       <tr class="expandable-row" id="show-patterns-{{ forloop.counter }}" hidden>
+        {% if user.is_superuser %}
         <td colspan="6">
+        {% else %}
+        <td colspan="5">
+        {% endif %}
           {% if rule.regexrule.patterns.all|length > 0 %}
           {% for pattern in rule.regexrule.patterns.all %}
           <code>{{ pattern.pattern_string }}</code>
