@@ -77,7 +77,8 @@ class AndRule(CompoundRule):
     def from_json_object(obj):
         return AndRule(
                 *[Rule.from_json_object(o) for o in obj["components"]],
-                sensitivity=Sensitivity.make_from_dict(obj))
+                sensitivity=Sensitivity.make_from_dict(obj),
+                name=obj["name"] if "name" in obj else None)
 
 
 class OrRule(CompoundRule):
@@ -103,7 +104,8 @@ class OrRule(CompoundRule):
     def from_json_object(obj):
         return OrRule(
                 *[Rule.from_json_object(o) for o in obj["components"]],
-                sensitivity=Sensitivity.make_from_dict(obj))
+                sensitivity=Sensitivity.make_from_dict(obj),
+                name=obj["name"] if "name" in obj else None)
 
 
 class NotRule(Rule):
@@ -142,7 +144,8 @@ class NotRule(Rule):
     def from_json_object(obj):
         return NotRule(
                 Rule.from_json_object(obj["rule"]),
-                sensitivity=Sensitivity.make_from_dict(obj))
+                sensitivity=Sensitivity.make_from_dict(obj),
+                name=obj["name"] if "name" in obj else None)
 
 
 def make_if(predicate, then, else_):

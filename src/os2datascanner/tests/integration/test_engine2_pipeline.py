@@ -2,6 +2,7 @@ import base64
 import unittest
 
 from os2datascanner.engine2.model.core import Source, SourceManager
+from os2datascanner.engine2.rules.rule import Sensitivity
 from os2datascanner.engine2.rules.regex import RegexRule
 from os2datascanner.engine2.rules.logical import OrRule
 from os2datascanner.engine2.pipeline import (
@@ -17,14 +18,15 @@ data_url = "data:text/plain;base64,{0}".format(
        base64.encodebytes(data.encode("utf-8")).decode("ascii"))
 
 rule = OrRule(
-        RegexRule("Æthelred the Unready"),
-        RegexRule("Scyld S(.*)g"),
+        RegexRule("Æthelred the Unready", name="Check for ill-advised kings"),
+        RegexRule("Scyld S(.*)g", sensitivity=Sensitivity.CRITICAL),
         RegexRule("Professor James Moriarty"))
 
 expected_matches = [
     {
         "rule": {
             "type": "regex",
+            "name": "Check for ill-advised kings",
             "sensitivity": None,
             "expression": "Æthelred the Unready"
         },
@@ -33,7 +35,8 @@ expected_matches = [
     {
         "rule": {
             "type": "regex",
-            "sensitivity": None,
+            "name": None,
+            "sensitivity": Sensitivity.CRITICAL.value,
             "expression": "Scyld S(.*)g"
         },
         "matches": [

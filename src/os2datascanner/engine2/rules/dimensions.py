@@ -52,4 +52,5 @@ class DimensionsRule(SimpleRule):
                 width_range=range(obj["width"][0], obj["width"][1]),
                 height_range=range(obj["height"][0], obj["height"][1]),
                 min_dim=obj["minimum"],
-                sensitivity=Sensitivity.make_from_dict(obj))
+                sensitivity=Sensitivity.make_from_dict(obj),
+                name=obj["name"] if "name" in obj else None)

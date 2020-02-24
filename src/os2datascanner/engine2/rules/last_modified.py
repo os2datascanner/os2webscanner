@@ -37,4 +37,5 @@ class LastModifiedRule(SimpleRule):
     def from_json_object(obj):
         return LastModifiedRule(
                 after=OutputType.LastModified.decode_json_object(obj["after"]),
-                sensitivity=Sensitivity.make_from_dict(obj))
+                sensitivity=Sensitivity.make_from_dict(obj),
+                name=obj["name"] if "name" in obj else None)

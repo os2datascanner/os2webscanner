@@ -39,4 +39,5 @@ class HasConversionRule(SimpleRule):
     def from_json_object(obj):
         return HasConversionRule(
                 target=OutputType(obj["target"]),
-                sensitivity=Sensitivity.make_from_dict(obj))
+                sensitivity=Sensitivity.make_from_dict(obj),
+                name=obj["name"] if "name" in obj else None)

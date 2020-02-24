@@ -38,4 +38,5 @@ class RegexRule(SimpleRule):
     def from_json_object(obj):
         return RegexRule(
                 expression=obj["expression"],
-                sensitivity=Sensitivity.make_from_dict(obj))
+                sensitivity=Sensitivity.make_from_dict(obj),
+                name=obj["name"] if "name" in obj else None)

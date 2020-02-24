@@ -75,7 +75,8 @@ class CPRRule(RegexRule):
     def from_json_object(obj):
         return CPRRule(modulus_11=obj["modulus_11"],
                 ignore_irrelevant=obj["ignore_irrelevant"],
-                sensitivity=Sensitivity.make_from_dict(obj))
+                sensitivity=Sensitivity.make_from_dict(obj),
+                name=obj["name"] if "name" in obj else None)
 
 
 # Updated list of dates with CPR numbers violating the Modulo-11 check. (Last

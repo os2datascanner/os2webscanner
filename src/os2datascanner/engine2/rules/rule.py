@@ -83,7 +83,9 @@ class Rule(TypePropertyEquality, JSONSerialisable):
         this Rule."""
         return {
             "type": self.type_label,
-            "sensitivity": self.sensitivity.value if self.sensitivity else None
+            "sensitivity": self.sensitivity.value
+                    if self.sensitivity else None,
+            "name": self._name
         }
 
     def __str__(self):
