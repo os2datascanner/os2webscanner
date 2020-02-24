@@ -9,8 +9,8 @@ class RegexRule(SimpleRule):
     type_label = "regex"
     eq_properties = ("_expression",)
 
-    def __init__(self, expression, *, sensitivity=None):
-        super().__init__(sensitivity=sensitivity)
+    def __init__(self, expression, **super_kwargs):
+        super().__init__(**super_kwargs)
         self._expression = expression
         self._compiled_expression = re.compile(expression)
 

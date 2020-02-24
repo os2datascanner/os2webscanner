@@ -4,8 +4,8 @@ from .rule import Rule, Sensitivity
 
 
 class CompoundRule(Rule):
-    def __init__(self, *components, sensitivity=None):
-        super().__init__(sensitivity=sensitivity)
+    def __init__(self, *components, **super_kwargs):
+        super().__init__(**super_kwargs)
         self._components = components
 
     # It might have been nice to have a special implementation of
@@ -96,8 +96,8 @@ class OrRule(CompoundRule):
 class NotRule(Rule):
     type_label = "not"
 
-    def __init__(self, rule, *, sensitivity=None):
-        super().__init__(sensitivity=sensitivity)
+    def __init__(self, rule, **super_kwargs):
+        super().__init__(**super_kwargs)
         self._rule = rule
 
     @staticmethod

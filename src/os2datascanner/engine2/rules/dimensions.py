@@ -9,8 +9,8 @@ class DimensionsRule(SimpleRule):
     def __init__(self,
             width_range=range(16, 16385),
             height_range=range(16, 16385),
-            min_dim=128, *, sensitivity=None):
-        super().__init__(sensitivity=sensitivity)
+            min_dim=128, **super_kwargs):
+        super().__init__(**super_kwargs)
         self._width_range = width_range
         self._height_range = height_range
         self._min_dim = min_dim

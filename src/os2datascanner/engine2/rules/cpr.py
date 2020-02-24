@@ -10,8 +10,8 @@ class CPRRule(RegexRule):
     type_label = "cpr"
 
     def __init__(self, modulus_11=True,
-            ignore_irrelevant=True, *, sensitivity=None):
-        super().__init__(cpr_regex, sensitivity=sensitivity)
+            ignore_irrelevant=True, **super_kwargs):
+        super().__init__(cpr_regex, **super_kwargs)
         self._modulus_11 = modulus_11
         self._ignore_irrelevant = ignore_irrelevant
 

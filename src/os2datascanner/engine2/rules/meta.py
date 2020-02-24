@@ -5,8 +5,8 @@ from .rule import Rule, SimpleRule, Sensitivity
 class HasConversionRule(SimpleRule):
     type_label = "conversion"
 
-    def __init__(self, target, *, sensitivity=None):
-        super().__init__(sensitivity)
+    def __init__(self, target, **super_kwargs):
+        super().__init__(**super_kwargs)
         self._target = target
 
     @property

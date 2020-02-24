@@ -6,8 +6,8 @@ class LastModifiedRule(SimpleRule):
     operates_on = OutputType.LastModified
     type_label = "last-modified"
 
-    def __init__(self, after, *, sensitivity=None):
-        super().__init__(sensitivity=sensitivity)
+    def __init__(self, after, **super_kwargs):
+        super().__init__(**super_kwargs)
         # Try encoding the given datetime.datetime as a JSON object; this will
         # raise a TypeError if something is wrong with it
         OutputType.LastModified.encode_json_object(after)
