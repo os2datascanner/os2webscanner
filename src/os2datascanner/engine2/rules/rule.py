@@ -36,8 +36,15 @@ class Rule(TypePropertyEquality, JSONSerialisable):
     If you're not sure which class your new rule should inherit from, then use
     SimpleRule."""
 
-    def __init__(self, *, sensitivity=None):
+    def __init__(self, *, sensitivity=None, name=None):
         self._sensitivity = sensitivity
+        self._name = name
+
+    @property
+    def presentation(self) -> str:
+        """Returns a (perhaps localised) human-readable string representing
+        this Rule, for use in user interfaces."""
+        return self._name
 
     @property
     def sensitivity(self) -> Optional[Sensitivity]:
@@ -73,6 +80,9 @@ class Rule(TypePropertyEquality, JSONSerialisable):
             "type": self.type_label,
             "sensitivity": self.sensitivity.value if self.sensitivity else None
         }
+
+    def __str__(self):
+        return self.presentation
 
 
 class SimpleRule(Rule):
