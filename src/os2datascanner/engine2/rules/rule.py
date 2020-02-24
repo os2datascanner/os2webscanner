@@ -44,7 +44,12 @@ class Rule(TypePropertyEquality, JSONSerialisable):
     def presentation(self) -> str:
         """Returns a (perhaps localised) human-readable string representing
         this Rule, for use in user interfaces."""
-        return self._name
+        return self._name or self.presentation_raw
+
+    @property
+    @abstractmethod
+    def presentation_raw(self) -> str:
+        """Returns a presentation form of this Rule based on its properties."""
 
     @property
     def sensitivity(self) -> Optional[Sensitivity]:

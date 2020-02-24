@@ -15,6 +15,16 @@ class DimensionsRule(SimpleRule):
         self._height_range = height_range
         self._min_dim = min_dim
 
+    @property
+    def presentation_raw(self):
+        return ("image dimensions between {0}x{1} and {2}x{3}"
+                " and greater than {4}x{1} or {0}x{4}").format(
+                self._width_range.start,
+                self._height_range.start,
+                self._width_range.stop - 1,
+                self._height_range.stop - 1,
+                self._min_dim)
+
     def match(self, content):
         if content is None:
             return

@@ -15,6 +15,21 @@ class CPRRule(RegexRule):
         self._modulus_11 = modulus_11
         self._ignore_irrelevant = ignore_irrelevant
 
+    @property
+    def presentation_raw(self):
+        subdescriptor = "with "
+        if self._modulus_11:
+            subdescriptor += "modulus 11"
+            if self._ignore_irrelevant:
+                subdescriptor += " and "
+        if self._ignore_irrelevant:
+            subdescriptor += "relevance check"
+
+        if subdescriptor != "with ":
+            return "CPR number ({0})".format(subdescriptor)
+        else:
+            return "CPR number"
+
     def match(self, content):
         if content is None:
             return

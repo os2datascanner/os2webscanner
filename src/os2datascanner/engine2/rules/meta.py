@@ -10,6 +10,10 @@ class HasConversionRule(SimpleRule):
         self._target = target
 
     @property
+    def presentation_raw(self):
+        return "convertible to {0}".format(self._target.value)
+
+    @property
     def operates_on(self):
         return self._target
 
@@ -36,6 +40,3 @@ class HasConversionRule(SimpleRule):
         return HasConversionRule(
                 target=OutputType(obj["target"]),
                 sensitivity=Sensitivity.make_from_dict(obj))
-
-    def __str__(self):
-        return "HasConversionRule({0})".format(self._target.value)

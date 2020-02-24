@@ -13,6 +13,11 @@ class LastModifiedRule(SimpleRule):
         OutputType.LastModified.encode_json_object(after)
         self._after = after
 
+    @property
+    def presentation_raw(self):
+        return "last modified after {0}".format(
+                OutputType.LastModified.encode_json_object(self._after))
+
     def match(self, content):
         if content is None:
             return
@@ -33,6 +38,3 @@ class LastModifiedRule(SimpleRule):
         return LastModifiedRule(
                 after=OutputType.LastModified.decode_json_object(obj["after"]),
                 sensitivity=Sensitivity.make_from_dict(obj))
-
-    def __str__(self):
-        return "LastModifiedRule({0})".format(self._after)

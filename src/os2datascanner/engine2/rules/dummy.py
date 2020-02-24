@@ -12,6 +12,10 @@ class DummyRule(SimpleRule):
     operates_on = OutputType.Dummy
     type_label = "dummy"
 
+    @property
+    def presentation_raw(self):
+        return "unconditional failure"
+
     def match(self, content):
         yield from []
 
@@ -54,6 +58,10 @@ class FallbackRule(SimpleRule):
 
     operates_on = OutputType.Fallback
     type_label = "fallback"
+
+    @property
+    def presentation_raw(self):
+        return "unconditional success"
 
     def match(self, content):
         yield {

@@ -14,6 +14,10 @@ class RegexRule(SimpleRule):
         self._expression = expression
         self._compiled_expression = re.compile(expression)
 
+    @property
+    def presentation_raw(self):
+        return "regular expression \"{0}\"".format(self._expression)
+
     def match(self, content):
         if content is None:
             return
@@ -35,6 +39,3 @@ class RegexRule(SimpleRule):
         return RegexRule(
                 expression=obj["expression"],
                 sensitivity=Sensitivity.make_from_dict(obj))
-
-    def __str__(self):
-        return "RegexRule({0})".format(self._expression)

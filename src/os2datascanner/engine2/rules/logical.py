@@ -3,6 +3,18 @@ from abc import abstractmethod
 from .rule import Rule, Sensitivity
 
 
+def oxford_comma(parts, conjunction, *, key=lambda c: str(c)):
+    if len(parts) == 1:
+        return key(parts[0])
+    else:
+        start = [key(p) for p in parts[0:-1]]
+        end = key(parts[-1])
+        if len(start) == 1:
+            return "({0} {1} {2})".format(start[0], conjunction, end)
+        else:
+            return "({0}, {1} {2})".format(", ".join(start), conjunction, end)
+
+
 class CompoundRule(Rule):
     def __init__(self, *components, **super_kwargs):
         super().__init__(**super_kwargs)
@@ -49,6 +61,10 @@ class AndRule(CompoundRule):
 
     type_label = "and"
 
+    @property
+    def presentation_raw(self):
+        return oxford_comma(self._components, "and")
+
     @classmethod
     def make(cls, *components):
         if False in components:
@@ -63,9 +79,6 @@ class AndRule(CompoundRule):
                 *[Rule.from_json_object(o) for o in obj["components"]],
                 sensitivity=Sensitivity.make_from_dict(obj))
 
-    def __str__(self):
-        return "AndRule({0})".format(
-                ", ".join([str(r) for r in self._components]))
 
 class OrRule(CompoundRule):
     """An AndRule is a CompoundRule corresponding to the C "||" operator or the
@@ -73,6 +86,10 @@ class OrRule(CompoundRule):
     component reduces to True, no other components will be evaluated)."""
 
     type_label = "or"
+
+    @property
+    def presentation_raw(self):
+        return oxford_comma(self._components, "or")
 
     @classmethod
     def make(cls, *components):
@@ -88,10 +105,6 @@ class OrRule(CompoundRule):
                 *[Rule.from_json_object(o) for o in obj["components"]],
                 sensitivity=Sensitivity.make_from_dict(obj))
 
-    def __str__(self):
-        return "OrRule({0})".format(
-                ", ".join([str(r) for r in self._components]))
-
 
 class NotRule(Rule):
     type_label = "not"
@@ -99,6 +112,10 @@ class NotRule(Rule):
     def __init__(self, rule, **super_kwargs):
         super().__init__(**super_kwargs)
         self._rule = rule
+
+    @property
+    def presentation_raw(self):
+        return "not {0}".format(self._rule.presentation)
 
     @staticmethod
     def make(component):
@@ -126,9 +143,6 @@ class NotRule(Rule):
         return NotRule(
                 Rule.from_json_object(obj["rule"]),
                 sensitivity=Sensitivity.make_from_dict(obj))
-
-    def __str__(self):
-        return "NotRule({0})".format(str(self._rule))
 
 
 def make_if(predicate, then, else_):
