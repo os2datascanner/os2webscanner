@@ -1,14 +1,21 @@
 {% extends 'os2datascanner/base.html' %}
+{% load staticfiles %}
+
 {%  block title %}
 Logout
+{% endblock %}
+
+{% block styling %}
+<link rel="stylesheet" href="{% static "dist/bundle.css" %}">
 {% endblock %}
 
 {% block body %}
 
 <div class="container">
-    <p class="lead">
+    <p>
       Tak, fordi du brugte OS2Webscanner.
     </p>
+    <a href="/accounts/login/">Log ind</a> igen
 </div>
 
 {% endblock %}
