@@ -62,7 +62,7 @@
       // $("#select_scan_rules_container").css('opacity', '.35')
       {% endif %}
 
-      $("#id_{{ form.download_sitemap.name }}").click(function() {
+      $("#id_{{ form.download_sitemap.name }}").change(function() {
         if( $(this).is(':checked')) {
           $("#{{ form.sitemap_url.auto_id }}_container").show();
           $("id_{{ form.sitemap_url.name }}").addClass("xyz");
@@ -345,15 +345,15 @@
     <div id="{{ form.download_sitemap.auto_id }}_container" class="form__group{% if form.download_sitemap.errors %} has-error{% endif %}">
       <div class="ds-checkbox">
         <input 
-        type="checkbox" 
-        class="checkbox" 
-        id="id_{{ form.download_sitemap.name }}"
-        name="{{ form.download_sitemap.name }}" 
-        value="{{ form.download_sitemap.name }}"
-        {% if form.download_sitemap.value %} 
-        checked="checked" 
-        {% endif %} />
-        <label class="control-label" for="id_{{ form.download_sitemap.name }}">{{ form.download_sitemap.label }}</label>
+          type="checkbox" 
+          class="checkbox" 
+          id="id_{{ form.download_sitemap.name }}"
+          name="{{ form.download_sitemap.name }}" 
+          value="{{ form.download_sitemap.name }}"
+          {% if form.download_sitemap.value %} 
+          checked="checked" 
+          {% endif %} />
+        <label class="control-label" for="id_{{ form.download_sitemap.name }}" tabindex="0">{{ form.download_sitemap.label }}</label>
       </div>
 
       {% if form.download_sitemap.help_text %}
