@@ -59,7 +59,7 @@
       {% if form.rules.field.disabled %}
       $("#selected_rules .remove-rule").addClass('disabled')
       $("#selected_rules span").addClass('disabled')
-      // $("#select_scan_rules_container").css('opacity', '.35')
+      $("#select_scan_rules_container input").attr('disabled', '' )
       {% endif %}
 
       $("#id_{{ form.download_sitemap.name }}").change(function() {
@@ -108,7 +108,7 @@
   {% csrf_token %}
 
   <fieldset class="form__fieldset">
-    <legend>Organisation</legend>
+    <legend>Generelt</legend>
     <div id="{{ form.name.auto_id }}_container" class="form__group{% if form.name.errors %} has-error{% endif %}">
       <label for="id_{{ form.name.name }}">{{ form.name.label }}</label>
       <input 
@@ -175,6 +175,32 @@
       {% if form.organization.errors %}
       {{ form.organization.errors }}
       {% endif %}
+    </div>
+    {% endif %}
+
+    {% if form.validation_status %}
+    <div id="{{ form.validation_status.auto_id }}_container" class="form__group{% if form.validation_status.errors %} has-error{% endif %}">
+      <label class="control-label" for="id_{{ form.validation_status.name }}">{{ form.validation_status.label }}</label>
+      <select 
+        name="{{ form.validation_status.name }}" 
+        id="id_{{ form.validation_status.name }}" 
+        class="form-control">
+
+        {% for value, tag in form.validation_status.field.choices %}
+        <option 
+          value="{{ value }}" 
+          {% if form.validation_status.value|add:"0" == value|add:"0" %} 
+          selected="selected"
+          {% endif %}>
+          {{ tag }}
+        </option> {# silly type conversion #}
+        {% endfor %}
+      </select>
+
+      {% if form.validation_status.help_text %}
+      <span class="form__help-text">{{ form.validation_status.help_text }}</span>
+      {% endif %}
+      {% if form.validation_status.errors %}{{ form.validation_status.errors }}{% endif %}
     </div>
     {% endif %}
   </fieldset>
@@ -298,33 +324,7 @@
     </div>
     {% endif %}
 
-    {% if form.validation_status %}
-    <div id="{{ form.validation_status.auto_id }}_container" class="form__group{% if form.validation_status.errors %} has-error{% endif %}">
-      <label class="control-label" for="id_{{ form.validation_status.name }}">{{ form.validation_status.label }}</label>
-      <select 
-        name="{{ form.validation_status.name }}" 
-        id="id_{{ form.validation_status.name }}" 
-        class="form-control">
-
-        {% for value, tag in form.validation_status.field.choices %}
-        <option 
-          value="{{ value }}" 
-          {% if form.validation_status.value|add:"0" == value|add:"0" %} 
-          selected="selected"
-          {% endif %}>
-          {{ tag }}
-        </option> {# silly type conversion #}
-        {% endfor %}
-      </select>
-
-      {% if form.validation_status.help_text %}
-      <span class="form__help-text">{{ form.validation_status.help_text }}</span>
-      {% endif %}
-      {% if form.validation_status.errors %}{{ form.validation_status.errors }}{% endif %}
-    </div>
-    {% endif %}
-
-    <div id="{{ form.exclusion_rules.auto_id }}_container" class="form__group{% if form.exclusion_rules.errors %} has-error{% endif %}">
+    <!-- <div id="{{ form.exclusion_rules.auto_id }}_container" class="form__group{% if form.exclusion_rules.errors %} has-error{% endif %}">
       <label class="control-label" for="id_{{ form.exclusion_rules.name }}">{{ form.exclusion_rules.label }}</label>
       <textarea 
         class="form-control" 
@@ -339,7 +339,7 @@
       <span class="form__help-text">{{ form.exclusion_rules.help_text }}</span>
       {% endif %}
       {% if form.exclusion_rules.errors %}{{ form.exclusion_rules.errors }}{% endif %}
-    </div>
+    </div> -->
 
     {% if form.download_sitemap %}
     <div id="{{ form.download_sitemap.auto_id }}_container" class="form__group{% if form.download_sitemap.errors %} has-error{% endif %}">
@@ -397,11 +397,18 @@
         <label for="{{ form.sitemap.name }}-clear_id">Fjern</label>
       </div>
     </div>
-    {% if form.sitemap %}
     {% endif %}
 
+    {% if form.sitemap %}
     <div class="form__group">
-      <input class="form-control" id="id_{{ form.sitemap.name }}" name="{{ form.sitemap.name }}" type="file" data-filename-placement="inside" title="Klik her for at uploade sitemap.xml" />
+      <label class="control-label" for="id_{{ form.sitemap.name }}">Upload Sitemap</label>
+      <input 
+        class="form-control" 
+        id="id_{{ form.sitemap.name }}" 
+        name="{{ form.sitemap.name }}" 
+        type="file" 
+        data-filename-placement="inside" 
+        title="Klik her for at uploade sitemap.xml" />
 
       {% if form.sitemap.help_text %}
       <span class="form__help-text">{{ form.sitemap.help_text }}</span>
@@ -410,195 +417,185 @@
       {% if form.sitemap.errors %}{{ form.sitemap.errors }}{% endif %}
     </div>
     {% endif %}
-    <!-- abc456 -->
-  </fieldset>
 
-<fieldset class="form__fieldset">
-  <legend>Regler</legend>
-
-  <div class="form__group">
     {% if view.edit %}
-    <div class="alert alert--warning">
+    <div class="alert alert--warning" role="alert">
       <p>{% trans "Listen af regler kan ikke redigeres. For at scanne med andre regler, opret da et nyt scannerjob." %}</p>
     </div>
     {% endif %}
 
-      <div id="select_scan_rules_container" class=">
-        <div class="form__group">
-          <h5>Indstillinger:</h5>
-          <div class="checkbox-group">
-            <div class="ds-checkbox ds-checkbox--inline">
-              <input 
-                type="checkbox" 
-                id="id_{{ form.do_ocr.name }}" 
-                name="{{ form.do_ocr.name }}"
-                value="{{ form.do_ocr.name }}" 
-                {% if form.do_ocr.field.disabled %} 
-                disabled 
-                {% endif %}
-                {% if form.do_ocr.value %} 
-                checked="checked" 
-                {% endif %}>
-              <label for="id_{{ form.do_ocr.name }}">
-                {{ form.do_ocr.label }}
-                {% if form.do_ocr.help_text %}
-                <small>{{ form.do_ocr.help_text }}</small>
-                {% endif %}
-              </label>
-            </div>
+    <div class="form__group">
+      <div id="select_scan_rules_container" class="">
+        <h5>Regler</h5>
+        <div class="checkbox-group">
+          <div class="ds-checkbox ds-checkbox--inline">
+            <input 
+              type="checkbox" 
+              id="id_{{ form.do_ocr.name }}" 
+              name="{{ form.do_ocr.name }}"
+              value="{{ form.do_ocr.name }}" 
+              {% if form.do_ocr.field.disabled %} 
+              disabled 
+              {% endif %}
+              {% if form.do_ocr.value %} 
+              checked="checked" 
+              {% endif %}>
+            <label for="id_{{ form.do_ocr.name }}">
+              {{ form.do_ocr.label }}
+              {% if form.do_ocr.help_text %}
+              <small>{{ form.do_ocr.help_text }}</small>
+              {% endif %}
+            </label>
           </div>
+        </div>
 
-          <div class="checkbox-group">
-            <div class="ds-checkbox ds-checkbox--inline">
-              <input 
-                type="checkbox" 
-                id="id_{{ form.do_last_modified_check.name }}"
-                name="{{ form.do_last_modified_check.name }}" 
-                value="{{ form.do_last_modified_check.name }}"
-                {% if form.do_last_modified_check.field.disabled %} disabled {% endif %}
-                {% if form.do_last_modified_check.value %} checked="checked" {% endif %}>
-              <label for="id_{{ form.do_last_modified_check.name }}">
-                {{ form.do_last_modified_check.label }}
-                {% if form.do_last_modified_check.help_text %}
-                <small>{{ form.do_last_modified_check.help_text }}</small>
-                {% endif %}
-              </label>
-            </div>
-            {% if view.type == 'web' %}
-            <div class="ds-checkbox ds-checkbox--inline">
-              <input 
-                type="checkbox" 
-                id="id_{{ form.do_last_modified_check_head_request.name }}"
-                name="{{ form.do_last_modified_check_head_request.name }}"
-                value="{{ form.do_last_modified_check_head_request.name }}"
-                {% if form.do_last_modified_check_head_request.field.disabled %} disabled {% endif %}
-                {% if form.do_last_modified_check_head_request.value %} checked="checked" {% endif %}>
-              <label for="id_{{ form.do_last_modified_check_head_request.name }}">
-                {{ form.do_last_modified_check_head_request.label }}
-                {% if form.do_last_modified_check_head_request.help_text %}
-                <small>{{ form.do_last_modified_check_head_request.help_text }}</small>
-                {% endif %}
-              </label>
-            </div>
-            {% endif %}
+        <div class="checkbox-group">
+          <div class="ds-checkbox ds-checkbox--inline">
+            <input 
+              type="checkbox" 
+              id="id_{{ form.do_last_modified_check.name }}"
+              name="{{ form.do_last_modified_check.name }}" 
+              value="{{ form.do_last_modified_check.name }}"
+              {% if form.do_last_modified_check.field.disabled %} disabled {% endif %}
+              {% if form.do_last_modified_check.value %} checked="checked" {% endif %}>
+            <label for="id_{{ form.do_last_modified_check.name }}">
+              {{ form.do_last_modified_check.label }}
+              {% if form.do_last_modified_check.help_text %}
+              <small>{{ form.do_last_modified_check.help_text }}</small>
+              {% endif %}
+            </label>
           </div>
-
           {% if view.type == 'web' %}
-          <div class="checkbox-group">
-            <div class="ds-checkbox ds-checkbox--inline">
-              <input 
-                type="checkbox" 
-                id="id_{{ form.do_link_check.name }}" 
-                name="{{ form.do_link_check.name }}"
-                value="{{ form.do_link_check.name }}" 
-                {% if form.do_link_check.field.disabled %} disabled {% endif %}
-                {% if form.do_link_check.value %} checked="checked" {% endif %}>
-              <label for="id_{{ form.do_link_check.name }}">
-                {{ form.do_link_check.label }}
-                {% if form.do_link_check.help_text %}
-                <small>{{ form.do_link_check.help_text }}</small>
-                {% endif %}
-              </label>
-            </div>
-            <div class="ds-checkbox ds-checkbox--inline">
-              <input 
-                type="checkbox" 
-                id="id_{{ form.do_external_link_check.name }}"
-                name="{{ form.do_external_link_check.name }}" 
-                value="{{ form.do_external_link_check.name }}"
-                {% if form.do_external_link_check.field.disabled %} disabled {% endif %}
-                {% if form.do_external_link_check.value %} checked="checked" {% endif %}>
-              <label for="id_{{ form.do_external_link_check.name }}">
-                {{ form.do_external_link_check.label }}
-                {% if form.do_external_link_check.help_text %}
-                <small>{{ form.do_external_link_check.help_text }}</small>
-                {% endif %}
-              </label>
-            </div>
-          </div>
-
-          <div class="checkbox-group">
-            <div class="ds-checkbox ds-checkbox--inline">
-              <input 
-                type="checkbox" 
-                id="id_{{ form.do_collect_cookies.name }}" 
-                name="{{ form.do_collect_cookies.name }}"
-                value="{{ form.do_collect_cookies.name }}" 
-                {% if form.do_collect_cookies.field.disabled %} disabled
-                {% endif %} {% if form.do_collect_cookies.value %} checked="checked" {% endif %}>
-              <label for="id_{{ form.do_collect_cookies.name }}">
-                {{ form.do_collect_cookies.label }}
-                {% if form.do_collect_cookies.help_text %}
-                <small>{{ form.do_collect_cookies.help_text }}</small>
-                {% endif %}
-              </label>
-            </div>
+          <div class="ds-checkbox ds-checkbox--inline">
+            <input 
+              type="checkbox" 
+              id="id_{{ form.do_last_modified_check_head_request.name }}"
+              name="{{ form.do_last_modified_check_head_request.name }}"
+              value="{{ form.do_last_modified_check_head_request.name }}"
+              {% if form.do_last_modified_check_head_request.field.disabled %} disabled {% endif %}
+              {% if form.do_last_modified_check_head_request.value %} checked="checked" {% endif %}>
+            <label for="id_{{ form.do_last_modified_check_head_request.name }}">
+              {{ form.do_last_modified_check_head_request.label }}
+              {% if form.do_last_modified_check_head_request.help_text %}
+              <small>{{ form.do_last_modified_check_head_request.help_text }}</small>
+              {% endif %}
+            </label>
           </div>
           {% endif %}
         </div>
 
-        <div class="form__group">
-          <h5>Tilføj regler:</h5>
-
-          <div id="selected_rules" class="clearfix">
-            <div id="rules_list" class="dropup">
-              <button 
-                class="btn btn-default dropdown-toggle" 
-                type="button" 
-                data-toggle="dropdown" 
-                aria-haspopup="true"
-                aria-expanded="true" 
-                {% if form.rules.field.disabled %} 
-                disabled 
-                {% endif %}>Tilføj regler</button>
-
-              <ul class="dropdown-menu-right dropdown-menu" id="available_rules" aria-labelledby="rules_list">
-                <li class="dropdown-header">Filtrer</li>
-                <li><input type="text" id="rule-filter" placeholder="Indtast mindst tre bogstaver"></li>
-                <li class="dropdown-header">{{ form.rules.label }}</li>
-                
-                {% for value, tag in form.rules.field.choices %}
-                <li class="rule" data-rule-id="{{ value }}">
-                  <a href="#" data-toggle="tooltip" data-placement="left" title="{{ description }}">{{ tag }}</a>
-                </li>
-                {% endfor %}
-              </ul>
-            </div>
+        {% if view.type == 'web' %}
+        <div class="checkbox-group">
+          <div class="ds-checkbox ds-checkbox--inline">
+            <input 
+              type="checkbox" 
+              id="id_{{ form.do_link_check.name }}" 
+              name="{{ form.do_link_check.name }}"
+              value="{{ form.do_link_check.name }}" 
+              {% if form.do_link_check.field.disabled %} disabled {% endif %}
+              {% if form.do_link_check.value %} checked="checked" {% endif %}>
+            <label for="id_{{ form.do_link_check.name }}">
+              {{ form.do_link_check.label }}
+              {% if form.do_link_check.help_text %}
+              <small>{{ form.do_link_check.help_text }}</small>
+              {% endif %}
+            </label>
+          </div>
+          <div class="ds-checkbox ds-checkbox--inline">
+            <input 
+              type="checkbox" 
+              id="id_{{ form.do_external_link_check.name }}"
+              name="{{ form.do_external_link_check.name }}" 
+              value="{{ form.do_external_link_check.name }}"
+              {% if form.do_external_link_check.field.disabled %} disabled {% endif %}
+              {% if form.do_external_link_check.value %} checked="checked" {% endif %}>
+            <label for="id_{{ form.do_external_link_check.name }}">
+              {{ form.do_external_link_check.label }}
+              {% if form.do_external_link_check.help_text %}
+              <small>{{ form.do_external_link_check.help_text }}</small>
+              {% endif %}
+            </label>
           </div>
         </div>
-      </div>
-  </div>
-</fieldset>
 
-<fieldset class="form__fieldset">
-  <legend>Interval</legend>
-
-  <div class="form__group">
-    <div class="tab-pane" id="interval">
-      <div class= form-group">
-        <div id="{{ form.schedule.auto_id }}_container">
-          <div>{{ form.schedule.help_text }}</div>
-          <div>
-            <div>{{ form.schedule.label_tag }}</div>
-            {{ form.schedule }}
-          </div>
-          <div id="{{ form.schedule.auto_id }}_errors">
-            {{ form.schedule.errors }}
+        <div class="checkbox-group">
+          <div class="ds-checkbox ds-checkbox--inline">
+            <input 
+              type="checkbox" 
+              id="id_{{ form.do_collect_cookies.name }}" 
+              name="{{ form.do_collect_cookies.name }}"
+              value="{{ form.do_collect_cookies.name }}" 
+              {% if form.do_collect_cookies.field.disabled %} disabled
+              {% endif %} {% if form.do_collect_cookies.value %} checked="checked" {% endif %}>
+            <label for="id_{{ form.do_collect_cookies.name }}">
+              {{ form.do_collect_cookies.label }}
+              {% if form.do_collect_cookies.help_text %}
+              <small>{{ form.do_collect_cookies.help_text }}</small>
+              {% endif %}
+            </label>
           </div>
         </div>
-        {% if object.pk %}
-        <p>
-          Scanneren vil starte på følgende tidspunkt på de valgte dage:<br /> {{ object.get_start_time }}
-        </p>
         {% endif %}
       </div>
     </div>
-  </div>
-</fieldset>
+  </fieldset>
 
-<div class="form__group">
-  <button type="submit" class="btn btn-primary" name="save">Gem ændringer</button>
-</div>
+  <fieldset class="form__fieldset">
+    <div class="form__group">
+      <h5>Tilføj regler:</h5>
+
+      <div id="selected_rules" class="clearfix">
+        <div id="rules_list" class="dropup">
+          <button 
+            class="btn btn-default dropdown-toggle" 
+            type="button" 
+            data-toggle="dropdown" 
+            aria-haspopup="true"
+            aria-expanded="true" 
+            {% if form.rules.field.disabled %} 
+            disabled 
+            {% endif %}>Tilføj regler</button>
+
+          <ul class="dropdown-menu-right dropdown-menu" id="available_rules" aria-labelledby="rules_list">
+            <li class="dropdown-header">Filtrer</li>
+            <li><input type="text" id="rule-filter" placeholder="Indtast mindst tre bogstaver"></li>
+            <li class="dropdown-header">{{ form.rules.label }}</li>
+            
+            {% for value, tag in form.rules.field.choices %}
+            <li class="rule" data-rule-id="{{ value }}">
+              <a href="#" data-toggle="tooltip" data-placement="left" title="{{ description }}">{{ tag }}</a>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset class="form__fieldset">
+    <legend>Interval</legend>
+
+    <div class="form__group">
+      <div id="{{ form.schedule.auto_id }}_container">
+        <div>{{ form.schedule.help_text }}</div>
+        <div>
+          <div>{{ form.schedule.label_tag }}</div>
+          {{ form.schedule }}
+        </div>
+        <div id="{{ form.schedule.auto_id }}_errors">
+          {{ form.schedule.errors }}
+        </div>
+      </div>
+
+      {% if object.pk %}
+      <p>Scanneren vil starte på følgende tidspunkt på de valgte dage:<br /> {{ object.get_start_time }}</p>
+      {% endif %}
+    </div>
+  </fieldset>
+
+  <div class="form__group">
+    <button type="submit" class="button button--cta button--rounded name="save">Gem ændringer</button>
+  </div>
 </form>
 
 {% endblock %}
