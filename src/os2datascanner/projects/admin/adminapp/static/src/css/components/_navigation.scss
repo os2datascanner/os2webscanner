@@ -1,8 +1,8 @@
-.navigation {
+#navigation {
   margin-left: 1rem;
 }
 
-.navigation a {
+#navigation li a {
   color: inherit;
   display: block;
   float: left;
@@ -12,7 +12,7 @@
   transition: var(--transition-default);
 }
 
-.navigation a::after {
+#navigation li a::after {
   background-color: var(--color-main);
   bottom: 0;
   content: "";
@@ -25,8 +25,16 @@
   transition: transform 0.2s cubic-bezier(0.86, 0, 0.07, 1);
 }
 
-.navigation a.active::after,
-.navigation a:focus::after, 
-.navigation a:hover::after {
+#navigation li a:hover::after,
+#navigation li a:focus::after {
   transform: scale(1);
+}
+
+#navigation li a.active::after {
+  transform: scale(1);
+  background-color: var(--color-main);
+}
+
+#navigation li {
+  list-style-type: none;
 }
