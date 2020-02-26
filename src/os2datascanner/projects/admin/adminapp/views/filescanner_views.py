@@ -1,9 +1,7 @@
 from django import forms
-
 from .scanner_views import *
 from ..aescipher import decrypt
 from ..models.scannerjobs.filescanner_model import FileScanner
-
 
 class FileScannerList(ScannerList):
     """Displays list of file scanners."""
@@ -11,13 +9,21 @@ class FileScannerList(ScannerList):
     model = FileScanner
     type = 'file'
 
-
 class FileScannerCreate(ScannerCreate):
     """Create a file scanner view."""
 
     model = FileScanner
-    fields = ['name', 'schedule', 'url', 'exclusion_rules', 'alias',
-              'do_ocr', 'do_last_modified_check', 'rules', 'recipients']
+    fields = [
+        'name', 
+        'schedule', 
+        'url', 
+        'exclusion_rules', 
+        'alias', 
+        'do_ocr', 
+        'do_last_modified_check', 
+        'rules', 
+        'recipients'
+        ]
 
     def get_form(self, form_class=None):
         """Adds special field password."""
@@ -40,8 +46,17 @@ class FileScannerUpdate(ScannerUpdate):
     """Update a scanner view."""
 
     model = FileScanner
-    fields = ['name', 'schedule', 'url', 'exclusion_rules', 'alias',
-              'do_ocr', 'do_last_modified_check', 'rules', 'recipients']
+    fields = [
+        'name', 
+        'schedule', 
+        'url', 
+        'exclusion_rules', 
+        'alias', 
+        'do_ocr', 
+        'do_last_modified_check', 
+        'rules', 
+        'recipients'
+        ]
 
     def get_form(self, form_class=None):
         """Adds special field password and decrypts password."""
