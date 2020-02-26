@@ -65,8 +65,17 @@
   input[type="checkbox"] {}
 
   &__help-text {
-    font-size: small;
+    display: block;
+    font-size: 0.75em;
+    margin-top: 0.25rem;
     opacity: 0.75;
+
+    &::before {
+      color: var(--color-main);
+      content: "\2191";
+      line-height: 1;
+      margin-right: 0.5em;
+    }
   }
 
   &__legend {
@@ -75,7 +84,7 @@
     margin-bottom: 1rem;
     text-align: left;
   }
-  
+
   &__group {
     display: block;
     overflow: hidden;
@@ -112,7 +121,7 @@
   padding-left: 1.5rem;
 
   &--inline {
-    display: inline-block;
+    float: left;
     margin-right: 1rem;
   }
 
@@ -185,12 +194,10 @@
   }
 
   input[type="checkbox"]:disabled + label {
+    opacity: 0.5;
+
     &::before {
       border: 2px solid rgba(0, 0, 0, 0.1);
     }
-  }
-
-  input[type="checkbox"]:disabled + label {
-    opacity: 0.5;
   }
 }
