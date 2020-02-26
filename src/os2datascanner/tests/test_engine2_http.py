@@ -17,14 +17,14 @@ class Engine2HTTPTest(unittest.TestCase):
         count = 0
         with SourceManager() as sm:
             for h in magenta.handles(sm):
-                if count == 10:
+                if count == 5:
                     break
                 else:
                     count += 1
         self.assertEqual(
                 count,
-                10,
-                "magenta.dk should have more than 10 pages")
+                5,
+                "magenta.dk should have more than 5 pages")
 
     def test_resource(self):
         with SourceManager() as sm:
