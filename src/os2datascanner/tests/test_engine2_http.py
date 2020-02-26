@@ -93,8 +93,10 @@ class Engine2HTTPTest(unittest.TestCase):
 
             # It is not documented anywhere that WebResource.get_header()
             # returns a live dictionary, so don't depend on this behaviour
-            del r.unpack_header()['content-type']
-            del r.unpack_header()[OutputType.LastModified]
+            header = r.unpack_header()
+            for name in ("content-type", OutputType.LastModified, ):
+                if name in header:
+                    del header[name]
 
             self.assertEqual(
                     r.compute_type(),
