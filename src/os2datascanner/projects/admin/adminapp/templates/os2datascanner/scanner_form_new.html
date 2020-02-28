@@ -541,33 +541,22 @@
   </fieldset>
 
   <fieldset class="form__fieldset">
+    <legend>Tilføj regler</legend>
     <div class="form__group">
-      <h5>Tilføj regler:</h5>
+      <div class="select-rules">
 
-      <div id="selected_rules" class="clearfix">
-        <div id="rules_list" class="dropup">
-          <button 
-            class="btn btn-default dropdown-toggle" 
-            type="button" 
-            data-toggle="dropdown" 
-            aria-haspopup="true"
-            aria-expanded="true" 
-            {% if form.rules.field.disabled %} 
-            disabled 
-            {% endif %}>Tilføj regler</button>
+        <ul id="available_rules" class="select-rules__available">
+          {% for value, tag in form.rules.field.choices %}
+          <li class="rule" data-rule-id="{{ value }}">
+            <a href="javascript:void();" class="add-rule-button" title="{{ description }}" role="button">{{ tag }}</a>
+          </li>
+          {% endfor %}
+        </ul>
 
-          <ul class="dropdown-menu-right dropdown-menu" id="available_rules" aria-labelledby="rules_list">
-            <li class="dropdown-header">Filtrer</li>
-            <li><input type="text" id="rule-filter" placeholder="Indtast mindst tre bogstaver"></li>
-            <li class="dropdown-header">{{ form.rules.label }}</li>
-            
-            {% for value, tag in form.rules.field.choices %}
-            <li class="rule" data-rule-id="{{ value }}">
-              <a href="#" data-toggle="tooltip" data-placement="left" title="{{ description }}">{{ tag }}</a>
-            </li>
-            {% endfor %}
-          </ul>
+        <div id="selected_rules" class="select-rules__selected">
+          <div id="rules_list"></div>
         </div>
+
       </div>
     </div>
   </fieldset>
@@ -577,11 +566,15 @@
 
     <div class="form__group">
       <div id="{{ form.schedule.auto_id }}_container">
-        <div>{{ form.schedule.help_text }}</div>
-        <div>
-          <div>{{ form.schedule.label_tag }}</div>
-          {{ form.schedule }}
-        </div>
+
+        {% if form.schedule.help_text %}
+        <span class="form__help-text">{{ form.schedule.help_text }}</span>
+        {% endif %}
+
+        {{ form.schedule.label_tag }}
+
+        {{ form.schedule }}
+
         <div id="{{ form.schedule.auto_id }}_errors">
           {{ form.schedule.errors }}
         </div>
