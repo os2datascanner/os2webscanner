@@ -8,6 +8,7 @@
 {% block scripts %}
 <script src="{% static "3rdparty/jquery.modal.js" %} "></script>
 <script src="{% static "dist/bundle.js" %}"></script>
+<script src="{% static "js/tabs.js" %}"></script>
 {% endblock %}
 
 {%  block title %}
@@ -51,6 +52,9 @@ Designguide
     </li>
     <li>
       <a href="#alerts">Alerts</a>
+    </li>
+    <li>
+      <a href="#tabs">Tabs</a>
     </li>
   </ol>
 
@@ -467,6 +471,35 @@ Designguide
     <div class="alert alert--danger" role="alert">
       <p>Intet er gået efter planen! Der er grund til bekymring.</p>
     </div>
+  </article>
+
+  <article id="tabs">
+    <h2>Tabs:</h2>
+
+    <fieldset class="form__fieldset" id="form-controls-checkboxes">
+
+      <div class="tab">
+        <button id="defaultOpen" class="tablinks" onclick="openTab(event, 'web')">Webscannere</button>
+        <button class="tablinks" onclick="openTab(event, 'file')">Filscannere</button>
+        <button class="tablinks" onclick="openTab(event, 'exchange')">Exchangescannere</button>
+      </div>
+
+      <div id="web" class="tabcontent">
+        <h2>Webscannere</h2>
+        <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit.</p>
+      </div>
+      
+      <div id="file" class="tabcontent">
+        <h2>Filscannere</h2>
+        <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit.</p>
+      </div>
+      
+      <div id="exchange" class="tabcontent">
+        <h2>Exchangescannere</h2>
+        <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit.</p>
+      </div>
+
+    </fieldset>
   </article>
 
 </div>
