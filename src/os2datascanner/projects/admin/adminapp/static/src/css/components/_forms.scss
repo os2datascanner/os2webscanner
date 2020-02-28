@@ -62,8 +62,6 @@
     }
   }
 
-  input[type="checkbox"] {}
-
   &__help-text {
     display: block;
     font-size: 0.75em;
@@ -92,6 +90,21 @@
 
     & + & {
       margin-top: 1rem;
+    }
+
+    &--inline {
+      display: inline-block;
+      margin-top: initial;
+      width: auto;
+
+      .form-control {
+        display: inline-block;
+        width: auto;
+      }
+
+      & + & {
+        margin-left: 1rem;
+      }
     }
   }
 

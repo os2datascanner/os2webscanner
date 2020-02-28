@@ -1,3 +1,17 @@
+.panel-heading {
+    background-color: rgba(0, 0, 0, 0.1);
+    float: left;
+    overflow: hidden;
+    width: 100%;
+}
+
+.panel-body {
+    float: left;
+    overflow: hidden;
+    padding: 1rem 0;
+    width: 100%;
+}
+
 div.recurrence-widget {
     /*float: left;
     border: 1px solid #ccc;*/
@@ -7,12 +21,18 @@ div.recurrence-widget {
 }
 
 div.recurrence-widget div.panel {
-    /*border-bottom: 1px solid #ddd;*/
+    /* border-bottom: 1px solid #ddd; */
+    float: left;
+    width: 100%;
+}
+
+div.recurrence-widget div.panel + .panel {
+    margin-top: 0.5rem;
 }
 
 div.recurrence-widget select,
 div.recurrence-widget input {
-    margin: 0 .5em;
+    /* margin: 0 .5em; */
     display: inline-block;
     width:auto;
 }
@@ -21,11 +41,12 @@ div.recurrence-widget a.recurrence-label {
     display: block;
     cursor: pointer;
     color: black;
-    padding: 0;
+    padding: 0.5rem;
     font-weight: bold;
     white-space: nowrap;
     position:relative;
     overflow:hidden;
+    text-decoration: none;
 
     /* REMOVED TO NOT DISRUPT BOOTSTRAP STYLES */
 }
@@ -42,7 +63,7 @@ div.recurrence-widget a.recurrence-label:after {
 }
 
 label[for="interval"] {
-    font-weight:normal;
+    /* font-weight:normal; */
 }
 
 div.recurrence-widget .remove,
@@ -94,22 +115,24 @@ div.recurrence-widget .control .add-date {
 }
 
 div.recurrence-widget .freq {
-    display: inline
+    /* display: inline */
 }
 
 div.recurrence-widget .interval {
-    display: inline;
-    padding-left: 1em;
+    /* display: inline; */
+    /* padding-left: 1em; */
+}
+
+div.recurrence-widget .interval span {
+    display: inline-block;
+    margin-left: 0.5rem;
 }
 
 div.recurrence-widget form {
     overflow: hidden;
     /*padding: .5em 2.2em;
     border-top: 1px solid #ddd;*/
-}
-
-div.recurrence-widget .form {
-    padding: .5em 0;
+    width: 100%;
 }
 
 div.recurrence-widget .radio {
@@ -209,11 +232,7 @@ div.recurrence-widget .checkbox {
 }
 
 div.recurrence-widget .until-count {
-    margin-left: 1.5em;
-}
-
-div.recurrence-widget .mode {
-    padding: .25em 0 1em 0;
+    /* margin-left: 1.5em; */
 }
 
 div.recurrence-widget .date-selector .calendar-button {
