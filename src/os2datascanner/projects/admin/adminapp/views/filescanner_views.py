@@ -3,25 +3,27 @@ from .scanner_views import *
 from ..aescipher import decrypt
 from ..models.scannerjobs.filescanner_model import FileScanner
 
+
 class FileScannerList(ScannerList):
     """Displays list of file scanners."""
 
     model = FileScanner
     type = 'file'
 
+
 class FileScannerCreate(ScannerCreate):
     """Create a file scanner view."""
 
     model = FileScanner
     fields = [
-        'name', 
-        'schedule', 
-        'url', 
-        'exclusion_rules', 
-        'alias', 
-        'do_ocr', 
-        'do_last_modified_check', 
-        'rules', 
+        'name',
+        'schedule',
+        'url',
+        'exclusion_rules',
+        'alias',
+        'do_ocr',
+        'do_last_modified_check',
+        'rules',
         'recipients'
         ]
 
@@ -47,14 +49,14 @@ class FileScannerUpdate(ScannerUpdate):
 
     model = FileScanner
     fields = [
-        'name', 
-        'schedule', 
-        'url', 
-        'exclusion_rules', 
-        'alias', 
-        'do_ocr', 
-        'do_last_modified_check', 
-        'rules', 
+        'name',
+        'schedule',
+        'url',
+        'exclusion_rules',
+        'alias',
+        'do_ocr',
+        'do_last_modified_check',
+        'rules',
         'recipients'
         ]
 
@@ -79,7 +81,6 @@ class FileScannerUpdate(ScannerUpdate):
         if authentication.domain:
             form.fields['domain'].initial = authentication.domain
         return form
-
 
     def get_success_url(self):
         """The URL to redirect to after successful updating.
