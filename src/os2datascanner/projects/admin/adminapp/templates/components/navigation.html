@@ -16,9 +16,6 @@
       {% endif %}
       <a href="/rules/">Regler</a>
       {% if user.is_superuser or user.is_staff %}
-        {% if user.is_superuser %}
-          <a href="/system/orgs_and_domains/">Domæneoversigt</a>
-        {% endif %}
         <a href="/admin/" target="_NEW">Administration</a>
       {% endif %}
       {% if settings.DEBUG %}

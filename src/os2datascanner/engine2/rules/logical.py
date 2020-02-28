@@ -1,11 +1,18 @@
 from abc import abstractmethod
 
-from .rule import Rule
+from .rule import Rule, Sensitivity
 
 
 class CompoundRule(Rule):
-    def __init__(self, *components):
+    def __init__(self, *components, sensitivity=None):
+        super().__init__(sensitivity=sensitivity)
         self._components = components
+
+    # It might have been nice to have a special implementation of
+    # Rule.sensitivity here that finds the component with the highest
+    # sensitivity and returns that, but that doesn't actually make sense: the
+    # sensitivity of a CompoundRule is a function of the *matched* components,
+    # not of all components considered out of context
 
     @classmethod
     @abstractmethod
@@ -52,7 +59,9 @@ class AndRule(CompoundRule):
     @staticmethod
     @Rule.json_handler(type_label)
     def from_json_object(obj):
-        return AndRule(*[Rule.from_json_object(o) for o in obj["components"]])
+        return AndRule(
+                *[Rule.from_json_object(o) for o in obj["components"]],
+                sensitivity=Sensitivity.make_from_dict(obj))
 
     def __str__(self):
         return "AndRule({0})".format(
@@ -75,7 +84,9 @@ class OrRule(CompoundRule):
     @staticmethod
     @Rule.json_handler(type_label)
     def from_json_object(obj):
-        return OrRule(*[Rule.from_json_object(o) for o in obj["components"]])
+        return OrRule(
+                *[Rule.from_json_object(o) for o in obj["components"]],
+                sensitivity=Sensitivity.make_from_dict(obj))
 
     def __str__(self):
         return "OrRule({0})".format(
@@ -85,7 +96,8 @@ class OrRule(CompoundRule):
 class NotRule(Rule):
     type_label = "not"
 
-    def __init__(self, rule):
+    def __init__(self, rule, *, sensitivity=None):
+        super().__init__(sensitivity=sensitivity)
         self._rule = rule
 
     @staticmethod
@@ -111,7 +123,9 @@ class NotRule(Rule):
     @staticmethod
     @Rule.json_handler(type_label)
     def from_json_object(obj):
-        return NotRule(Rule.from_json_object(obj["rule"]))
+        return NotRule(
+                Rule.from_json_object(obj["rule"]),
+                sensitivity=Sensitivity.make_from_dict(obj))
 
     def __str__(self):
         return "NotRule({0})".format(str(self._rule))

@@ -1,12 +1,13 @@
 from ..conversions.types import OutputType
-from .rule import Rule, SimpleRule
+from .rule import Rule, SimpleRule, Sensitivity
 
 
 class LastModifiedRule(SimpleRule):
     operates_on = OutputType.LastModified
     type_label = "last-modified"
 
-    def __init__(self, after):
+    def __init__(self, after, *, sensitivity=None):
+        super().__init__(sensitivity=sensitivity)
         # Try encoding the given datetime.datetime as a JSON object; this will
         # raise a TypeError if something is wrong with it
         OutputType.LastModified.encode_json_object(after)
@@ -30,7 +31,8 @@ class LastModifiedRule(SimpleRule):
     @Rule.json_handler(type_label)
     def from_json_object(obj):
         return LastModifiedRule(
-                after=OutputType.LastModified.decode_json_object(obj["after"]))
+                after=OutputType.LastModified.decode_json_object(obj["after"]),
+                sensitivity=Sensitivity.make_from_dict(obj))
 
     def __str__(self):
         return "LastModifiedRule({0})".format(self._after)
