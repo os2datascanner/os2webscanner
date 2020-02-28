@@ -17,14 +17,14 @@ class Engine2HTTPTest(unittest.TestCase):
         count = 0
         with SourceManager() as sm:
             for h in magenta.handles(sm):
-                if count == 10:
+                if count == 5:
                     break
                 else:
                     count += 1
         self.assertEqual(
                 count,
-                10,
-                "magenta.dk should have more than 10 pages")
+                5,
+                "magenta.dk should have more than 5 pages")
 
     def test_resource(self):
         with SourceManager() as sm:
@@ -93,8 +93,10 @@ class Engine2HTTPTest(unittest.TestCase):
 
             # It is not documented anywhere that WebResource.get_header()
             # returns a live dictionary, so don't depend on this behaviour
-            del r.unpack_header()['content-type']
-            del r.unpack_header()[OutputType.LastModified]
+            header = r.unpack_header()
+            for name in ("content-type", OutputType.LastModified, ):
+                if name in header:
+                    del header[name]
 
             self.assertEqual(
                     r.compute_type(),
