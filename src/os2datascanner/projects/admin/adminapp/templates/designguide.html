@@ -3,6 +3,13 @@
 
 {% block styling %}
 <link rel="stylesheet" href="{% static "dist/bundle.css" %}">
+
+<style>
+  article + article {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    margin-top: 1rem;
+  }
+</style>
 {% endblock %}
 
 {% block scripts %}
@@ -40,6 +47,9 @@ Designguide
       <a href="#modal">Modal</a>
     </li>
     <li>
+      <a href="#tabs">Tabs</a>
+    </li>
+    <li>
       <a href="#form-controls">Form Controls</a>
       <ol>
         <li>
@@ -52,9 +62,6 @@ Designguide
     </li>
     <li>
       <a href="#alerts">Alerts</a>
-    </li>
-    <li>
-      <a href="#tabs">Tabs</a>
     </li>
   </ol>
 
@@ -379,6 +386,32 @@ Designguide
 
   </article>
 
+  <article id="tabs">
+    <h2>Tabs:</h2>
+
+    <div class="tabs">
+      <button id="defaultOpen" class="tabs__control" onclick="openTab(event, 'web')">Webscannere</button>
+      <button class="tabs__control" onclick="openTab(event, 'file')">Filscannere</button>
+      <button class="tabs__control" onclick="openTab(event, 'exchange')">Exchangescannere</button>
+    </div>
+
+    <div id="web" class="tabs__content">
+      <h2>Webscannere</h2>
+      <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit.</p>
+    </div>
+    
+    <div id="file" class="tabs__content">
+      <h2>Filscannere</h2>
+      <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit.</p>
+    </div>
+    
+    <div id="exchange" class="tabs__content">
+      <h2>Exchangescannere</h2>
+      <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit.</p>
+    </div>
+
+  </article>
+
   <article id="form-controls">
     <h2>Form Controls:</h2>
 
@@ -471,35 +504,6 @@ Designguide
     <div class="alert alert--danger" role="alert">
       <p>Intet er gået efter planen! Der er grund til bekymring.</p>
     </div>
-  </article>
-
-  <article id="tabs">
-    <h2>Tabs:</h2>
-
-    <fieldset class="form__fieldset" id="form-controls-checkboxes">
-
-      <div class="tab">
-        <button id="defaultOpen" class="tablinks" onclick="openTab(event, 'web')">Webscannere</button>
-        <button class="tablinks" onclick="openTab(event, 'file')">Filscannere</button>
-        <button class="tablinks" onclick="openTab(event, 'exchange')">Exchangescannere</button>
-      </div>
-
-      <div id="web" class="tabcontent">
-        <h2>Webscannere</h2>
-        <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit.</p>
-      </div>
-      
-      <div id="file" class="tabcontent">
-        <h2>Filscannere</h2>
-        <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit.</p>
-      </div>
-      
-      <div id="exchange" class="tabcontent">
-        <h2>Exchangescannere</h2>
-        <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit.</p>
-      </div>
-
-    </fieldset>
   </article>
 
 </div>
