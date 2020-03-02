@@ -1,4 +1,4 @@
-//Active menu links
+// Set active link in menu
 function setActive() {
   aObj = document.getElementById('navigation').getElementsByTagName('a');
   for(i=0;i<aObj.length;i++) { 
