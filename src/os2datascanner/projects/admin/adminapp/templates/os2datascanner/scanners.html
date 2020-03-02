@@ -16,13 +16,13 @@
 
   <div class="tab">
     {% if settings.ENABLE_WEBSCAN %}
-    <button {% if tabcontent == 'web' %} class="tablinks"{% endif %} onclick="openTab(event, window.location.href='/webscanners/')">Webscannere</button>
+    <button id="web" onclick="window.location.href='/webscanners/'">Webscannere</button>
     {% endif %}
     {% if settings.ENABLE_FILESCAN %}
-    <button {% if tabcontent == 'file' %} class="tablinks"{% endif %} onclick="openTab(event, window.location.href='/filescanners/')">Filscannere</button>
+    <button id="file" onclick="window.location.href='/filescanners/'">Filscannere</button>
     {% endif %}
     {% if settings.ENABLE_EXCHANGESCAN %}
-    <button {% if tabcontent == 'exchange' %} class="tablinks"{% endif %} onclick="openTab(event, window.location.href='/exchangescanners/')">Exchangescannere</button>
+    <button id="exchange" onclick="window.location.href='/exchangescanners/'">Exchangescannere</button>
     {% endif %}
   </div>
 
