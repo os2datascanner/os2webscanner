@@ -409,8 +409,18 @@ Designguide
         </div>
 
         <div class="form__group">
-          <input type="checkbox" name="remember-me" id="remember-me">
-          <label for="remember-me">Remember me</label>
+          <div class="ds-checkbox">
+            <input type="checkbox" name="abc" id="abc">
+            <label for="abc">Checkbox label</label>
+          </div>
+        </div>
+
+        <div class="form__group has-error">
+          <label for="test-input--text-w-error">Navn</label>
+          <input type="text" class="form-control" name="name" id="test-input--text-w-error">
+          <ul class="errorlist">
+            <li>Dette felt er påkrævet.</li>
+          </ul>
         </div>
       </fieldset>
 

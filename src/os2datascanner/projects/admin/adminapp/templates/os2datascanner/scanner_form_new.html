@@ -129,6 +129,23 @@
       {% endif %}
     </div>
 
+    <div id="{{ form.url.auto_id }}_container" class="form__group{% if form.url.errors %} has-error{% endif %}">
+      <label for="id_{{ form.url.name }}">{{ form.url.label }}</label>
+      <input 
+        type="text" 
+        class="form-control" 
+        name="{{ form.url.name }}" 
+        id="id_{{ form.url.name }}" 
+        {% if form.url.value %}value="{{ form.url.value }}"{% endif %}>
+      {% if form.url.help_text %}
+      <span class="form__help-text">{{ form.url.help_text }}</span>
+      {% endif %}
+
+      {% if form.url.errors %}
+      {{ form.url.errors }}
+      {% endif %}
+    </div>
+
     {% if form.alias %}
     <div id="{{ form.alias.auto_id }}_container" class="form__group{% if form.alias.errors %} has-error{% endif %}">
       <label class="control-label" for="id_{{ form.alias.name }}">Drevbogstav</label>
