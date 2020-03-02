@@ -14,15 +14,15 @@
 {% block body %}
 <div class="wrapper">
 
-  <div class="tab">
+  <div class="tabs">
     {% if settings.ENABLE_WEBSCAN %}
-    <button id="web" onclick="window.location.href='/webscanners/'">Webscannere</button>
+    <button id="web" class="tabs__control" onclick="window.location.href='/webscanners/'">Webscannere</button>
     {% endif %}
     {% if settings.ENABLE_FILESCAN %}
-    <button id="file" onclick="window.location.href='/filescanners/'">Filscannere</button>
+    <button id="file" class="tabs__control" onclick="window.location.href='/filescanners/'">Filscannere</button>
     {% endif %}
     {% if settings.ENABLE_EXCHANGESCAN %}
-    <button id="exchange" onclick="window.location.href='/exchangescanners/'">Exchangescannere</button>
+    <button id="exchange" class="tabs__control" onclick="window.location.href='/exchangescanners/'">Exchangescannere</button>
     {% endif %}
   </div>
 
