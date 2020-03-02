@@ -23,7 +23,6 @@ def run_with_backoff(
                 # the fuzz parameter (0 - 0% adjustment, 1 - ±100% adjustment)
                 fuzz_diff = (max_delay * fuzz)
                 adj = -fuzz_diff + (2 * random() * fuzz_diff)
-                print(fuzz, fuzz_diff, adj, max_delay)
                 max_delay += adj
             sleep(max_delay)
         try:
