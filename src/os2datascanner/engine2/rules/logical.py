@@ -10,9 +10,9 @@ def oxford_comma(parts, conjunction, *, key=lambda c: str(c)):
         start = [key(p) for p in parts[0:-1]]
         end = key(parts[-1])
         if len(start) == 1:
-            return "({0} {1} {2})".format(start[0], conjunction, end)
+            return "{0} {1} {2}".format(start[0], conjunction, end)
         else:
-            return "({0}, {1} {2})".format(", ".join(start), conjunction, end)
+            return "{0}, {1} {2}".format(", ".join(start), conjunction, end)
 
 
 class CompoundRule(Rule):
@@ -63,7 +63,7 @@ class AndRule(CompoundRule):
 
     @property
     def presentation_raw(self):
-        return oxford_comma(self._components, "and")
+        return "({0})".format(oxford_comma(self._components, "and"))
 
     @classmethod
     def make(cls, *components):
@@ -90,7 +90,7 @@ class OrRule(CompoundRule):
 
     @property
     def presentation_raw(self):
-        return oxford_comma(self._components, "or")
+        return "({0})".format(oxford_comma(self._components, "or"))
 
     @classmethod
     def make(cls, *components):
