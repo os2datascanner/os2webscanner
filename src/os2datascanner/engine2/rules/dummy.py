@@ -12,6 +12,10 @@ class DummyRule(SimpleRule):
     operates_on = OutputType.Dummy
     type_label = "dummy"
 
+    @property
+    def presentation_raw(self):
+        return "unconditional failure"
+
     def match(self, content):
         yield from []
 
@@ -21,7 +25,8 @@ class DummyRule(SimpleRule):
     @staticmethod
     @Rule.json_handler(type_label)
     def from_json_object(obj):
-        return DummyRule(sensitivity=Sensitivity.make_from_dict(obj))
+        return DummyRule(sensitivity=Sensitivity.make_from_dict(obj),
+                name=obj["name"] if "name" in obj else None)
 
 
 class FallbackRule(SimpleRule):
@@ -55,6 +60,10 @@ class FallbackRule(SimpleRule):
     operates_on = OutputType.Fallback
     type_label = "fallback"
 
+    @property
+    def presentation_raw(self):
+        return "unconditional success"
+
     def match(self, content):
         yield {
             "match": True
@@ -66,4 +75,5 @@ class FallbackRule(SimpleRule):
     @staticmethod
     @Rule.json_handler(type_label)
     def from_json_object(obj):
-        return FallbackRule(sensitivity=Sensitivity.make_from_dict(obj))
+        return FallbackRule(sensitivity=Sensitivity.make_from_dict(obj),
+                name=obj["name"] if "name" in obj else None)

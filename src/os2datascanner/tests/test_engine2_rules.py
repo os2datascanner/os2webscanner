@@ -5,7 +5,8 @@ from os2datascanner.engine2.rules.cpr import CPRRule
 from os2datascanner.engine2.rules.regex import RegexRule
 from os2datascanner.engine2.rules.dimensions import DimensionsRule
 from os2datascanner.engine2.rules.last_modified import LastModifiedRule
-from os2datascanner.engine2.rules.logical import OrRule, AndRule, NotRule
+from os2datascanner.engine2.rules.logical import (
+        OrRule, AndRule, NotRule, oxford_comma)
 
 
 class RuleTests(unittest.TestCase):
@@ -210,3 +211,27 @@ more!""",
                 json = rule.to_json_object()
                 back_again = rule.from_json_object(json)
                 self.assertEqual(rule, back_again)
+
+    def test_oxford_comma(self):
+        self.assertEqual(
+                oxford_comma(["Monday"], "and"),
+                "Monday")
+        self.assertEqual(
+                oxford_comma(["Monday", "Tuesday"], "and"),
+                "Monday and Tuesday")
+        self.assertEqual(
+                oxford_comma(["Monday", "Tuesday", "Wednesday"], "and"),
+                "Monday, Tuesday, and Wednesday")
+
+    def test_rule_names(self):
+        A = RegexRule("A", name="Fragment A")
+        B = RegexRule("B", name="Fragment B")
+        C1 = RegexRule("C1", name="Fragment C1")
+        C2 = RegexRule("C2", name="Fragment C2")
+        C = OrRule(C1, C2, name="Fragment C")
+        self.assertEqual(
+                AndRule(A, B).presentation,
+                "(Fragment A and Fragment B)")
+        self.assertEqual(
+                OrRule(A, B, C).presentation,
+                "(Fragment A, Fragment B, or Fragment C)")
