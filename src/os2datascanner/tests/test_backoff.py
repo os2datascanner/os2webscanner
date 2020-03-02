@@ -20,6 +20,9 @@ class TestBackoff(unittest.TestCase):
     def setUp(self):
         self.reset_busy_time()
 
+    def fail_unconditionally(self):
+        raise EtiquetteBreach()
+
     def fail_if_too_busy(self):
         now = time()
         try:
@@ -99,3 +102,26 @@ class TestBackoff(unittest.TestCase):
         self.assertTrue(
                 (second_duration + 6) < first_duration,
                 "learned backoff slower than naive backoff(?)")
+
+    def test_fuzz(self):
+        for fuzz in [0.1, 0.25, 0.5, 1.0]:
+            # Setting count=1 means that we sleep for 2^0=1 second, which
+            # conveniently means that each fuzz factor can be treated directly
+            # as a time adjustment
+            for i in range(0, 5):
+                start = time()
+                try:
+                    run_with_backoff(
+                            self.fail_unconditionally,
+                            count=1,
+                            max_tries=2,
+                            fuzz=fuzz)
+                except EtiquetteBreach:
+                    duration = time() - start
+
+                # Check that we slept for a duration in the expected fuzz range
+                # (with a bit of leeway)
+                self.assertTrue(
+                        duration >= (1 - fuzz - 0.05)
+                                and duration <= (1 + fuzz + 0.05),
+                        "Fuzz range exceeded")
