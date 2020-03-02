@@ -1,42 +1,37 @@
 .tabs {
-  overflow: hidden;
-  border: 1px solid #ccc;
-  box-shadow: var(--box-shadow);
   background-color: var(--color-header-bg);
+  box-shadow: var(--box-shadow);
   max-width: 80rem;
+  overflow: hidden;
 
   &__control {
     background-color: inherit;
     border: none;
+    color: var(--color-main);
     cursor: pointer;
     float: left;
     font-size: 1rem;
     line-height: 1;
     outline: none;
     padding: 1rem;
+    text-decoration: none;
     transition: 0.3s;
 
-    &:focus,
-    &:hover {
-      color: #fff;
+    &:focus, 
+    &:hover, 
+    &.active {
       background-color: var(--color-main);
+      color: #fff;
     }
 
-    &.active {
-      color: #fff;
-      background-color: var(--color-main);
+    & + & {
+      border-left: 1px solid rgba(0, 0, 0, 0.1);
     }
   }
 
   &__content {
     display: none;
-    padding: 1rem 0;
     max-width: 80rem;
-    animation: fadeEffect 1s;
+    padding: 1rem 0;
   }
-}
-
-@keyframes fadeEffect {
-  from {opacity: 0;}
-  to {opacity: 1;}
 }
