@@ -1,3 +1,4 @@
+// Designguide
 function openTab(evt, typeName) {
   // Declare all variables
   var i, tabcontent, tablinks;
@@ -19,4 +20,20 @@ function openTab(evt, typeName) {
   evt.currentTarget.className += " active";
 }
 
-document.getElementById("defaultOpen").click();
+// Menu tabs
+var web = document.getElementById('web')
+var file = document.getElementById('file')
+var exchange = document.getElementById('exchange')
+
+if (location.pathname === '/') {
+  web.classList.add('active')
+}
+if (location.pathname === '/webscanners/') {
+  web.classList.add('active')
+}
+if (location.pathname === '/filescanners/') {
+  file.classList.add('active')
+}
+if (location.pathname === '/exchangescanners/') {
+  exchange.classList.add('active')
+}
