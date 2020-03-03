@@ -1,4 +1,4 @@
-{% for rule in match_by_type.data.matches.matches %}
+{% for rule in match_by_type.matches.matches %}
 <tr tabindex="0" data-type="office365">
 
   <td class="datatable__column--filetype-icon">
@@ -8,16 +8,21 @@
   </td>
 
   <td class="datatable__column--item">
-    <span class="scan__item-title">{{ match_by_type.data.matches.handle.source.handle.mail_subject }}</span>
+    <span class="scan__item-title">
+      <strong>{{ match_by_type.matches.handle.presentation }}</strong>
+    </span>
+
+    <span class="scan__item-count">Matches: <em>{{ rule.matches|length }}</em></span>
 
     <div class="scan__item-meta">
-      <span class="">{{ match_by_type.data.matches.handle.source.handle.source.user }}@{{ match_by_type.data.matches.handle.source.handle.source.domain }}</span>
-      <span class="">Folder data mangler</span>
+      <span class="">{{ match_by_type.matches.handle.presentation }}</span>
     </div>
 
+    {% if match_by_type.matches.handle.presentation_url %}
     <div class="hit-link">
-      <a href="#" class="hit-link__file">Åben email</a>
+      <a href="{{ match_by_type.matches.handle.presentation_url }}" class="hit-link__file">Åben email</a>
     </div>
+    {% endif %}
   </td>
 
   <td class="datatable__column--match datatable__column--context" colspan="2">

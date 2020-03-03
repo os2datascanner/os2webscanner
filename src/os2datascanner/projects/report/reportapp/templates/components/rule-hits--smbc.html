@@ -1,4 +1,4 @@
-{% for rule in match_by_type.data.matches.matches %}
+{% for rule in match_by_type.matches.matches %}
 <tr tabindex="0" data-type="smbc">
 
   <td class="datatable__column--filetype-icon">
@@ -9,17 +9,17 @@
 
   <td class="datatable__column--item">
     <span class="scan__item-title">
-      <strong>{{ match_by_type.data.matches.handle.path }}</strong>
+      <strong>{{ match_by_type.matches.handle.presentation }}</strong>
     </span>
 
     <span class="scan__item-count">Matches: <em>{{ rule.matches|length }}</em></span>
 
     <div class="scan__item-meta">
-      <span class="">{{ match_by_type.data.matches.handle.path }}</span>
+      <span class="">{{ match_by_type.matches.handle.presentation }}</span>
     </div>
 
     <div class="hit-link">
-      <button class="button button--small button--cta" data-clipboard-text="{{ match_by_type.data.matches.handle.path }}">Copy location</button>
+      <button class="button button--small button--cta" data-clipboard-text="{{ match_by_type.matches.handle.presentation }}">Copy location</button>
     </div>
   </td>
 
