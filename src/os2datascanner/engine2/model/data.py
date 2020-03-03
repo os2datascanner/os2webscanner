@@ -75,6 +75,9 @@ class DataResource(FileResource):
         with BytesIO(self.handle.source._content) as s:
             yield s
 
+    def compute_type(self):
+        return self.handle.source.mime
+
 
 @Handle.stock_json_handler("data")
 class DataHandle(Handle):
