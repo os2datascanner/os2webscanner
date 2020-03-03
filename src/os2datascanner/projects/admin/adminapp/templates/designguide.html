@@ -3,11 +3,19 @@
 
 {% block styling %}
 <link rel="stylesheet" href="{% static "dist/bundle.css" %}">
+
+<style>
+  article + article {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    margin-top: 1rem;
+  }
+</style>
 {% endblock %}
 
 {% block scripts %}
 <script src="{% static "3rdparty/jquery.modal.js" %} "></script>
 <script src="{% static "dist/bundle.js" %}"></script>
+<script src="{% static "js/tabs.js" %}"></script>
 {% endblock %}
 
 {%  block title %}
@@ -37,6 +45,9 @@ Designguide
     </li>
     <li>
       <a href="#modal">Modal</a>
+    </li>
+    <li>
+      <a href="#tabs">Tabs</a>
     </li>
     <li>
       <a href="#form-controls">Form Controls</a>
@@ -371,6 +382,32 @@ Designguide
     <div id="new-modal" class="modal">
       <h4 class="modal__heading">Lorem ipsum, dolor sit amet</h4>
       <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolores saepe ratione perspiciatis ullam doloribus modi quo dolore a, corporis deleniti quia alias porro sint provident! Explicabo incidunt expedita provident modi?</p>
+    </div>
+
+  </article>
+
+  <article id="tabs">
+    <h2>Tabs:</h2>
+
+    <div class="tabs">
+      <button id="defaultOpen" class="tabs__control" onclick="openTab(event, 'web')">Webscannere</button>
+      <button class="tabs__control" onclick="openTab(event, 'file')">Filscannere</button>
+      <button class="tabs__control" onclick="openTab(event, 'exchange')">Exchangescannere</button>
+    </div>
+
+    <div id="web" class="tabs__content">
+      <h2>Webscannere</h2>
+      <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit.</p>
+    </div>
+    
+    <div id="file" class="tabs__content">
+      <h2>Filscannere</h2>
+      <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit.</p>
+    </div>
+    
+    <div id="exchange" class="tabs__content">
+      <h2>Exchangescannere</h2>
+      <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit.</p>
     </div>
 
   </article>
