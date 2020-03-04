@@ -1,19 +1,13 @@
 import email
 import email.policy
 import chardet
-from datetime import datetime
 from exchangelib import (Account,
         Credentials, IMPERSONATION, Configuration, FaultTolerance)
-from exchangelib.protocol import BaseProtocol
 from exchangelib.errors import ErrorServerBusy, ErrorNonExistentMailbox
+from exchangelib.protocol import BaseProtocol
 
 from ..utilities.backoff import run_with_backoff
-from .core import (
-        Source, Handle, MailResource, SourceManager, ResourceUnavailableError)
-from .core.resource import MAIL_MIME
-
-from .core import (
-        Source, Handle, MailResource, SourceManager, ResourceUnavailableError)
+from .core import Source, Handle, MailResource, ResourceUnavailableError
 from .core.resource import MAIL_MIME
 
 
