@@ -9,11 +9,21 @@ class DimensionsRule(SimpleRule):
     def __init__(self,
             width_range=range(16, 16385),
             height_range=range(16, 16385),
-            min_dim=128, *, sensitivity=None):
-        super().__init__(sensitivity=sensitivity)
+            min_dim=128, **super_kwargs):
+        super().__init__(**super_kwargs)
         self._width_range = width_range
         self._height_range = height_range
         self._min_dim = min_dim
+
+    @property
+    def presentation_raw(self):
+        return ("image dimensions between {0}x{1} and {2}x{3}"
+                " and greater than {4}x{1} or {0}x{4}").format(
+                self._width_range.start,
+                self._height_range.start,
+                self._width_range.stop - 1,
+                self._height_range.stop - 1,
+                self._min_dim)
 
     def match(self, content):
         if content is None:
@@ -42,4 +52,5 @@ class DimensionsRule(SimpleRule):
                 width_range=range(obj["width"][0], obj["width"][1]),
                 height_range=range(obj["height"][0], obj["height"][1]),
                 min_dim=obj["minimum"],
-                sensitivity=Sensitivity.make_from_dict(obj))
+                sensitivity=Sensitivity.make_from_dict(obj),
+                name=obj["name"] if "name" in obj else None)

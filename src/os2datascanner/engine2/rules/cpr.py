@@ -10,10 +10,25 @@ class CPRRule(RegexRule):
     type_label = "cpr"
 
     def __init__(self, modulus_11=True,
-            ignore_irrelevant=True, *, sensitivity=None):
-        super().__init__(cpr_regex, sensitivity=sensitivity)
+            ignore_irrelevant=True, **super_kwargs):
+        super().__init__(cpr_regex, **super_kwargs)
         self._modulus_11 = modulus_11
         self._ignore_irrelevant = ignore_irrelevant
+
+    @property
+    def presentation_raw(self):
+        subdescriptor = "with "
+        if self._modulus_11:
+            subdescriptor += "modulus 11"
+            if self._ignore_irrelevant:
+                subdescriptor += " and "
+        if self._ignore_irrelevant:
+            subdescriptor += "relevance check"
+
+        if subdescriptor != "with ":
+            return "CPR number ({0})".format(subdescriptor)
+        else:
+            return "CPR number"
 
     def match(self, content):
         if content is None:
@@ -60,7 +75,8 @@ class CPRRule(RegexRule):
     def from_json_object(obj):
         return CPRRule(modulus_11=obj["modulus_11"],
                 ignore_irrelevant=obj["ignore_irrelevant"],
-                sensitivity=Sensitivity.make_from_dict(obj))
+                sensitivity=Sensitivity.make_from_dict(obj),
+                name=obj["name"] if "name" in obj else None)
 
 
 # Updated list of dates with CPR numbers violating the Modulo-11 check. (Last
