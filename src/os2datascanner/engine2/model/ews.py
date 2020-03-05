@@ -118,7 +118,7 @@ class EWSAccountSource(Source):
                     if headers:
                         yield EWSMailHandle(self,
                                 "{0}.{1}".format(folder.id, mail.id),
-                                headers["subject"], folder.name)
+                                headers.get("subject", "(no subject)"), folder.name)
 
         yield from relevant_mails(relevant_folders())
 
