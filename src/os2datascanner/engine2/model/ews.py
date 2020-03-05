@@ -1,5 +1,6 @@
 import email
 import email.policy
+from urllib.parse import urlsplit
 import chardet
 from datetime import datetime
 from exchangelib import Account, Credentials, IMPERSONATION, Configuration
@@ -129,6 +130,19 @@ class EWSAccountSource(Source):
             "admin_password": self._admin_password,
             "user": self._user
         })
+
+    @staticmethod
+    @Source.url_handler("test-ews365")
+    def from_url(url):
+        scheme, netloc, path, _, _ = urlsplit(url)
+        auth, domain = netloc.split("@", maxsplit=1)
+        au, ap = auth.split(":", maxsplit=1)
+        return EWSAccountSource(
+                domain=domain,
+                server=OFFICE_365_ENDPOINT,
+                admin_user="{0}@{1}".format(au, domain),
+                admin_password=ap,
+                user=path[1:])
 
     @staticmethod
     @Source.json_handler(type_label)
