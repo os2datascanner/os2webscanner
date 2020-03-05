@@ -3,6 +3,7 @@
 import argparse
 
 from ..model.core import Source, SourceManager
+from ..model.core import FileResource
 from ..model.core import UnknownSchemeError, ResourceUnavailableError
 
 def format_d(depth, fmt, *args, **kwargs):
@@ -14,12 +15,13 @@ def print_source(manager, source, depth=0, guess=False, summarise=False):
         if summarise:
             resource = handle.follow(manager)
             try:
-                size = resource.get_size().value
-                mime = resource.compute_type()
-                lm = resource.get_last_modified().value
-                print(format_d(depth + 1, "size {0} bytes", size))
-                print(format_d(depth + 1, "type {0}", mime))
-                print(format_d(depth + 1, "lmod {0}", lm))
+                if isinstance(resource, FileResource):
+                    size = resource.get_size().value
+                    mime = resource.compute_type()
+                    lm = resource.get_last_modified().value
+                    print(format_d(depth + 1, "size {0} bytes", size))
+                    print(format_d(depth + 1, "type {0}", mime))
+                    print(format_d(depth + 1, "lmod {0}", lm))
             except ResourceUnavailableError as ex:
                 print(format_d(depth + 1, "not available: {0}", ex.args[1:]))
         derived_source = Source.from_handle(
