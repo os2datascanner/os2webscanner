@@ -52,7 +52,10 @@ def message_received_raw(
             try:
                 print(handle.censor())
             except NotImplementedError:
-                pass
+                # If a Handle doesn't implement censor(), then that indicates
+                # that it doesn't know enough about its internal state to
+                # censor itself -- just print its type
+                print("(unprintable {0})".format(type(handle).__name__))
             yield (conversions_q, {
                 "scan_spec": body,
                 "handle": handle.to_json_object(),
@@ -64,6 +67,9 @@ def message_received_raw(
             "problem": "unavailable",
             "extra": [str(arg) for arg in ex.args]
         })
+    # Note that exceptions not caught and wrapped by engine2 will cause this
+    # (and every other!) pipeline stage to abort unexpectedly. To trigger an
+    # automatic restart in this case, use a service manager like systemd
 
 
 def main():
