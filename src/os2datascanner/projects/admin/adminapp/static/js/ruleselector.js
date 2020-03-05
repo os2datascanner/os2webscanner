@@ -40,8 +40,6 @@
       name: "rules",
       value: ruleId
     }));
-
-    // recalcIframeHeight();
   });
 
   // removing a rule from the list of selected rules
@@ -57,21 +55,7 @@
     elm.remove();
 
     return false;
-    // recalcIframeHeight();
   });
-
-  // // adding a system rule
-  // $("#available_rules").on("click", "[data-systemrule-target]:not([data-disabled])", function() {
-  //   var $this = $(this);
-  //   var targ = $("#id_" + $this.attr("data-systemrule-target"));
-  //   targ.prop("checked", true).trigger("change"); // we need to manually trigger change event, as it doesn't happen automatically when programmatically setting the checked prop
-  // });
-  //
-  // // toggling a .checkbox-group input[type="checkbox"]:first-of-type should also toggle the visibility of the parent .checkbox-group
-  // $("#selected_rules .checkbox-group input[type=\"checkbox\"]:first-of-type").change(function() {
-  //   toggleCheckboxGroup($(this));
-  //   recalcIframeHeight();
-  // });
 
   // filter the list of rules when search field changes value
   $("#rule-filter").on("textInput input", os2debounce(function() {
@@ -109,13 +93,5 @@
       }
     });
   }, 150));
-
-  // set height of dropdown list in order to prevent it from breaking out of window
-  // $("#rules_list").on("show.bs.dropdown", function() {
-  //   var top = $(this).offset().top;
-  //   var docHeight = $("body").height();
-  //   var maxHeight = top - 15;
-  //   $("#available_rules").css("max-height", maxHeight + "px");
-  // });
 
 })(os2web, jQuery);
