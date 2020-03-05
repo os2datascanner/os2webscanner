@@ -25,12 +25,37 @@ def message_received_raw(
             del body["progress"]
         else:
             progress = dict(rule=body["rule"], matches=[])
+    except UnknownSchemeError as ex:
+        yield (problems_q, {
+            "where": body["source"],
+            "problem": "unsupported",
+            "extra": [str(arg) for arg in ex.args]
+        })
+        return
+    except DeserialisationError as ex:
+        yield (problems_q, {
+            "where": body["source"],
+            "problem": "malformed",
+            "extra": [str(arg) for arg in ex.args]
+        })
+        return
+    except KeyError as ex:
+        yield (problems_q, {
+            "where": body,
+            "problem": "malformed",
+            "extra": [str(arg) for arg in ex.args]
+        })
+        return
 
+    try:
         for handle in source.handles(source_manager):
             try:
                 print(handle.censor())
             except NotImplementedError:
-                pass
+                # If a Handle doesn't implement censor(), then that indicates
+                # that it doesn't know enough about its internal state to
+                # censor itself -- just print its type
+                print("(unprintable {0})".format(type(handle).__name__))
             yield (conversions_q, {
                 "scan_spec": body,
                 "handle": handle.to_json_object(),
@@ -42,24 +67,9 @@ def message_received_raw(
             "problem": "unavailable",
             "extra": [str(arg) for arg in ex.args]
         })
-    except UnknownSchemeError as ex:
-        yield (problems_q, {
-            "where": body["source"],
-            "problem": "unsupported",
-            "extra": [str(arg) for arg in ex.args]
-        })
-    except DeserialisationError as ex:
-        yield (problems_q, {
-            "where": body["source"],
-            "problem": "malformed",
-            "extra": [str(arg) for arg in ex.args]
-        })
-    except KeyError as ex:
-        yield (problems_q, {
-            "where": body,
-            "problem": "malformed",
-            "extra": [str(arg) for arg in ex.args]
-        })
+    # Note that exceptions not caught and wrapped by engine2 will cause this
+    # (and every other!) pipeline stage to abort unexpectedly. To trigger an
+    # automatic restart in this case, use a service manager like systemd
 
 
 def main():
