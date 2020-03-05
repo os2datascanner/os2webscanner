@@ -25,7 +25,29 @@ def message_received_raw(
             del body["progress"]
         else:
             progress = dict(rule=body["rule"], matches=[])
+    except UnknownSchemeError as ex:
+        yield (problems_q, {
+            "where": body["source"],
+            "problem": "unsupported",
+            "extra": [str(arg) for arg in ex.args]
+        })
+        return
+    except DeserialisationError as ex:
+        yield (problems_q, {
+            "where": body["source"],
+            "problem": "malformed",
+            "extra": [str(arg) for arg in ex.args]
+        })
+        return
+    except KeyError as ex:
+        yield (problems_q, {
+            "where": body,
+            "problem": "malformed",
+            "extra": [str(arg) for arg in ex.args]
+        })
+        return
 
+    try:
         for handle in source.handles(source_manager):
             try:
                 print(handle.censor())
@@ -40,24 +62,6 @@ def message_received_raw(
         yield (problems_q, {
             "where": body["source"],
             "problem": "unavailable",
-            "extra": [str(arg) for arg in ex.args]
-        })
-    except UnknownSchemeError as ex:
-        yield (problems_q, {
-            "where": body["source"],
-            "problem": "unsupported",
-            "extra": [str(arg) for arg in ex.args]
-        })
-    except DeserialisationError as ex:
-        yield (problems_q, {
-            "where": body["source"],
-            "problem": "malformed",
-            "extra": [str(arg) for arg in ex.args]
-        })
-    except KeyError as ex:
-        yield (problems_q, {
-            "where": body,
-            "problem": "malformed",
             "extra": [str(arg) for arg in ex.args]
         })
 
