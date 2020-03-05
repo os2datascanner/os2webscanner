@@ -67,10 +67,10 @@ class EWSAccountSource(Source):
     def _generate_state(self, sm):
         service_account = Credentials(
                 username=self._admin_user, password=self._admin_password)
-        config = Configuration(retry_policy=FaultTolerance(max_wait=1800))
-        if self._server:
-            config.service_endpoint = self._server
-            config.credentials = service_account
+        config = Configuration(
+                retry_policy=FaultTolerance(max_wait=1800),
+                service_endpoint=self._server,
+                credentials=service_account if self._server else None)
 
         try:
             account = Account(
