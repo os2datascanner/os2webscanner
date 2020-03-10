@@ -1,42 +1,37 @@
-/*! ie11CustomProperties.js v2.2.0 | MIT License | https://git.io/fjXMN */
-// c1.onElement helper
+/*! ie11CustomProperties.js v3.0.6 | MIT License | https://git.io/fjXMN */
 !function () {
-    'use strict';
+	'use strict';
 
-    if (!Element.prototype.matches) Element.prototype.matches = Element.prototype.msMatchesSelector;
+	// check for support
+	var testEl = document.createElement('i');
+	testEl.style.setProperty('--x', 'y');
+	if (testEl.style.getPropertyValue('--x') === 'y' || !testEl.msMatchesSelector) return;
 
-	var w = window;
-    if (!w.c1) w.c1 = {};
+	if (!Element.prototype.matches) Element.prototype.matches = Element.prototype.msMatchesSelector;
+
     var listeners = [],
         root = document,
         Observer;
 
-    c1.onElement = function (selector, options/*, disconnectedCallback*/) {
-        if (typeof options === 'function') {
-            options = { parsed: options }
-        }
+	function qsa(el, selector){
+		try {
+			return el.querySelectorAll(selector);
+		} catch(e) {
+			// console.warn('the Selector '+selector+' can not be parsed');
+			return [];
+		}
+	}
+    function onElement (selector, callback) {
         var listener = {
             selector: selector,
-            immediate: options.immediate,
-            //disconnectedCallback: disconnectedCallback,
+            callback: callback,
             elements: new WeakMap(),
         };
-
-        if (options.parsed) {
-            listener.parsed = function (el) {
-                requestAnimationFrame(function () {
-                    options.parsed(el);
-                });
-            };
+		var els = qsa(root, listener.selector), i=0, el;
+		while (el = els[i++]) {
+            listener.elements.set(el, true);
+            listener.callback.call(el, el);
         }
-
-        var els = root.querySelectorAll(listener.selector), i = 0, el;
-        while (el = els[i++]) {
-            listener.elements.set(el,true);
-            listener.parsed && listener.parsed.call(el, el);
-            listener.immediate && listener.immediate.call(el, el);
-        }
-
         listeners.push(listener);
         if (!Observer) {
             Observer = new MutationObserver(checkMutations);
@@ -49,16 +44,16 @@
     };
     function checkListener(listener, target) {
         var i = 0, el, els = [];
-        target && target.matches(listener.selector) && els.push(target);
+		try {
+			target && target.matches(listener.selector) && els.push(target);
+		} catch(e) {}
         if (loaded) { // ok? check inside node on innerHTML - only when loaded
-            Array.prototype.push.apply(els, (target || root).querySelectorAll(listener.selector));
+            Array.prototype.push.apply(els, qsa(target || root, listener.selector));
         }
         while (el = els[i++]) {
             if (listener.elements.has(el)) continue;
             listener.elements.set(el,true);
-            //listener.connectedCallback.call(el, el);
-            listener.parsed && listener.parsed.call(el, el);
-            listener.immediate && listener.immediate.call(el, el);
+            listener.callback.call(el, el);
         }
     }
     function checkListeners(inside) {
@@ -78,7 +73,7 @@
         loaded = true;
     });
 
-	// svg-classList polyfill
+	// svg polyfills
 	function copyProperty(prop, from, to){
 		var desc = Object.getOwnPropertyDescriptor(from, prop);
 		Object.defineProperty(to, prop, desc);
@@ -86,58 +81,75 @@
 	if (!('classList' in Element.prototype)) {
 		copyProperty('classList', HTMLElement.prototype, Element.prototype);
 	}
-	// if ('children' in HTMLElement.prototype && !('children' in Element.prototype)) {
-	// 	copyProperty('children', HTMLElement.prototype, Element.prototype);
-	// }
-	// if ('contains' in HTMLElement.prototype && !('contains' in Element.prototype)) {
-	// 	copyProperty('contains', HTMLElement.prototype, Element.prototype);
-	// }
-	// if ('getElementsByClassName' in HTMLElement.prototype && !('getElementsByClassName' in Element.prototype)) {
-	// 	copyProperty('getElementsByClassName', HTMLElement.prototype, Element.prototype);
-	// }
+	if (!('innerHTML' in Element.prototype)) {
+		copyProperty('innerHTML', HTMLElement.prototype, Element.prototype);
+	}
+	if (!('sheet' in SVGStyleElement.prototype)) {
+		Object.defineProperty(SVGStyleElement.prototype, 'sheet', {
+			get:function(){
+				var all = document.styleSheets, i=0, sheet;
+				while (sheet=all[i++]) {
+					if (sheet.ownerNode === this) return sheet;
+				}
+
+			}
+		});
+	}
 
 
-}();
-
-// main logic
-!function () {
-	'use strict';
-	var testEl = document.createElement('i');
-	testEl.style.setProperty('--x', 'y');
-	if (testEl.style.getPropertyValue('--x') === 'y' || !testEl.msMatchesSelector) return;
+	// main logic
 
 	// cached regexps, better performance
-	const regFindSetters = /([\s{;])(--([^;}]+:[^;!}]+)(!important)?)/g;
-	const regFindGetters = /([{;]\s*)([^;}{]+:[^;}]*var\([^!;}]+)(!important)?/g;
+	const regFindSetters = /([\s{;])(--([A-Za-z0-9-_]*)\s*:([^;!}{]+)(!important)?)(?=\s*([;}]|$))/g;
+	const regFindGetters = /([{;]\s*)([A-Za-z0-9-_]+\s*:[^;}{]*var\([^!;}{]+)(!important)?(?=\s*([;}$]|$))/g;
 	const regRuleIEGetters = /-ieVar-([^:]+):/g
 	const regRuleIESetters = /-ie-([^};]+)/g
-	const regHasVar = /var\(/;
-	const regPseudos = /:(hover|active|focus|target|:before|:after)/;
+	//const regHasVar = /var\(/;
+	const regPseudos = /:(hover|active|focus|target|:before|:after|:first-letter|:first-line)/;
 
-	c1.onElement('link[rel="stylesheet"]', {immediate:function (el) {
+	onElement('link[rel="stylesheet"]', function (el) {
 		fetchCss(el.href, function (css) {
 			var newCss = rewriteCss(css);
 			if (css === newCss) return;
+			newCss = relToAbs(el.href, newCss);
 			el.disabled = true;
 			var style = document.createElement('style');
+			if (el.media) style.setAttribute('media', el.media);
 			el.parentNode.insertBefore(style, el);
 			activateStyleElement(style, newCss);
 		});
-	}});
-	c1.onElement('style', {immediate:function (el) {
-		if (el.hasAttribute('ie-polyfilled')) return;
+	});
+
+	function foundStyle(el){
+		if (el.ieCP_polyfilled) return;
+		if (el.ieCP_elementSheet) return;
 		var css = el.innerHTML;
 		var newCss = rewriteCss(css);
 		if (css === newCss) return;
 		activateStyleElement(el, newCss);
-	}});
-	c1.onElement('[ie-style]', {immediate:function (el) {
+	}
+	onElement('style', foundStyle);
+	// immediate, to pass w3c-tests, bud its a bad idea
+	// addEventListener('DOMNodeInserted',function(e){ e.target.tagName === 'STYLE' && foundStyle(e.target); });
+
+
+
+	onElement('[ie-style]', function (el) {
 		var newCss = rewriteCss('{'+el.getAttribute('ie-style')).substr(1);
 		el.style.cssText += ';'+ newCss;
-		var found = parseRewrittenCss(newCss);
+		var found = parseRewrittenStyle(el.style);
 		if (found.getters) addGetterElement(el, found.getters, '%styleAttr');
 		if (found.setters) addSetterElement(el, found.setters);
-	}});
+	});
+
+	function relToAbs(base, css) {
+		return css.replace(/url\(([^)]+)\)/g, function($0, $1){
+			$1 = $1.trim().replace(/(^['"]|['"]$)/g,'');
+			if ($1.match(/^([a-z]+:|\/)/)) return $0;
+			base = base.replace(/\?.*/,'');
+			return 'url('+ base + './../' + $1 +')';
+		});
+	}
 
 	// ie has a bug, where unknown properties at pseudo-selectors are computed at the element
 	// #el::after { -content:'x'; } => getComputedStyle(el)['-content'] == 'x'
@@ -158,26 +170,52 @@
 			return '/*\n @property ... removed \n*'+'/';
 		});
 		*/
-
-		css = css.replace(regFindSetters, function($0, $1, $2, $3, important){ return $1+'-ie-'+(important?'❗':'')+$3}); // !imporant
-		//css = css.replace(regFindSetters, '$1-ie-$3$4');
-		return css.replace(regFindGetters, function($0, $1, $2, important){ return $1+'-ieVar-'+(important?'❗':'')+$2+'; '+$2; }) // keep the original, so chaining works "--x:var(--y)"
-		//return css.replace(regFindGetters, '$1-ieVar-$2; $2'); // keep the original, so chaining works "--x:var(--y)"
+		return css.replace(regFindSetters, function($0, $1, $2, $3, $4, important){
+			return $1+'-ie-'+(important?'❗':'')+$3+':'+encodeValue($4);
+		}).replace(regFindGetters, function($0, $1, $2, important){
+			return $1+'-ieVar-'+(important?'❗':'')+$2+'; '+$2; // keep the original, so chaining works "--x:var(--y)"
+		});
 	}
-	function parseRewrittenCss(cssText) {
-		var matchesGetters = cssText.match(regRuleIEGetters);
+	function encodeValue(value){
+		return value;
+		return value.replace(/ /g,'␣');
+	}
+	const keywords = {initial:1,inherit:1,revert:1,unset:1};
+	function decodeValue(value){
+		return value;
+		if (value===undefined) return;
+		value =  value.replace(/␣/g,' ');
+		const trimmed = value.trim();
+		if (keywords[trimmed]) return trimmed;
+		return value;
+	}
+
+	// beta
+	const styles_of_getter_properties = {};
+
+	function parseRewrittenStyle(style) { // less memory then parameter cssText?
+
+		// beta
+		style['z-index']; // ie11 can access unknown properties in stylesheets only if accessed a dashed known property
+
+		const cssText = style.cssText;
+		var matchesGetters = cssText.match(regRuleIEGetters), j, match;
 		if (matchesGetters) {
 			var getters = []; // eg. [border,color]
-			for (var j = 0, match; match = matchesGetters[j++];) {
+			for (j = 0; match = matchesGetters[j++];) {
 				let propName = match.slice(7, -1);
 				if (propName[0] === '❗') propName = propName.substr(1);
 				getters.push(propName);
+
+				// beta
+				if (!styles_of_getter_properties[propName]) styles_of_getter_properties[propName] = [];
+				styles_of_getter_properties[propName].push(style);
 			}
 		}
 		var matchesSetters = cssText.match(regRuleIESetters);
 		if (matchesSetters) {
 			var setters = {}; // eg. [--color:#fff, --padding:10px];
-			for (var j = 0, match; match = matchesSetters[j++];) {
+			for (j = 0; match = matchesSetters[j++];) {
 				let x = match.substr(4).split(':');
 				let propName = x[0];
 				let propValue = x[1];
@@ -189,10 +227,10 @@
 	}
 	function activateStyleElement(style, css) {
 		style.innerHTML = css;
-		style.setAttribute('ie-polyfilled', true);
-		var rules = style.sheet.rules || style.sheet.cssRules;
-		for (var i = 0, rule; rule = rules[i++];) {
-			const found = parseRewrittenCss(rule.cssText)
+		style.ieCP_polyfilled = true;
+		var rules = style.sheet.rules, i=0, rule; // cssRules = CSSRuleList, rules = MSCSSRuleList
+		while (rule = rules[i++]) {
+			const found = parseRewrittenStyle(rule.style);
 			if (found.getters) addGettersSelector(rule.selectorText, found.getters);
 			if (found.setters) addSettersSelector(rule.selectorText, found.setters);
 
@@ -204,34 +242,39 @@
 					drawTree(document.documentElement)
 				})
 			}
-
 		}
+
+		// beta
+		redrawStyleSheets()
 	}
 
 	function addGettersSelector(selector, properties) {
 		selectorAddPseudoListeners(selector);
-		c1.onElement(unPseudo(selector), function (el) {
+		onElement(unPseudo(selector), function (el) {
 			addGetterElement(el, properties, selector);
 			drawElement(el);
 		});
 	}
 	function addGetterElement(el, properties, selector) {
+		var i=0, prop, j;
+		const selectors = selector.split(','); // split grouped selectors
 		el.setAttribute('iecp-needed', true);
 		if (!el.ieCPSelectors) el.ieCPSelectors = {};
-		for (var i = 0, prop; prop = properties[i++];) {
-			const parts = selector.trim().split('::');
-			if (!el.ieCPSelectors[prop]) el.ieCPSelectors[prop] = [];
-			el.ieCPSelectors[prop].push({
-				selector: parts[0],
-				pseudo: parts[1] ? '::'+parts[1] : '',
-			});
+		while (prop = properties[i++]) {
+			for (j = 0; selector = selectors[j++];) {
+				const parts = selector.trim().split('::');
+				if (!el.ieCPSelectors[prop]) el.ieCPSelectors[prop] = [];
+				el.ieCPSelectors[prop].push({
+					selector: parts[0],
+					pseudo: parts[1] ? '::' + parts[1] : ''
+				});
+			}
 		}
 	}
 	function addSettersSelector(selector, propVals) {
 		selectorAddPseudoListeners(selector);
-		c1.onElement(unPseudo(selector), function (el) {
+		onElement(unPseudo(selector), function (el) {
 			addSetterElement(el, propVals);
-			drawTree(el);
 		});
 	}
 	function addSetterElement(el, propVals) {
@@ -239,7 +282,26 @@
 		for (var prop in propVals) { // eg. {foo:#fff, bar:baz}
 			el.ieCP_setters['--' + prop] = 1;
 		}
+		drawTree(el);
 	}
+
+	//beta
+	function redrawStyleSheets() {
+		for (var prop in styles_of_getter_properties) {
+			let styles = styles_of_getter_properties[prop];
+			for (var i=0, style; style=styles[i++];) {
+				if (style.owningElement) continue;
+				var value = style['-ieVar-'+prop];
+				if (!value) continue;
+				value = styleComputeValueWidthVars(getComputedStyle(document.documentElement), value);
+				if (value === '') continue;
+				try {
+					style[prop] = value;
+				} catch(e) {}
+			}
+		}
+	}
+
 
 	const pseudos = {
 		hover:{
@@ -264,9 +326,9 @@
 			var parts = selector.split(':'+pseudo);
 			if (parts.length > 1) {
 				var ending = parts[1].match(/^[^\s]*/); // ending elementpart of selector (used for not(:active))
-				let selector = unPseudo(parts[0]+ending);
+				let sel = unPseudo(parts[0]+ending);
 				const listeners = pseudos[pseudo];
-				c1.onElement(selector, function (el) {
+				onElement(sel, function (el) {
 					el.addEventListener(listeners.on, drawTreeEvent);
 					el.addEventListener(listeners.off, drawTreeEvent);
 				});
@@ -299,33 +361,93 @@
 
 	var uniqueCounter = 0;
 
+	/* old *
 	function _drawElement(el) {
 		if (!el.ieCP_unique) { // use el.uniqueNumber? but needs class for the css-selector => test performance
 			el.ieCP_unique = ++uniqueCounter;
 			el.classList.add('iecp-u' + el.ieCP_unique);
 		}
-		if (!el.ieCP_sheet) {
-			var tag = document.createElement('style');
-			document.head.appendChild(tag);
-			el.ieCP_sheet = tag.sheet;
-		}
 		var style = getComputedStyle(el);
-		while (el.ieCP_sheet.rules[0]) el.ieCP_sheet.deleteRule(0);
+		if (el.ieCP_sheet) while (el.ieCP_sheet.rules[0]) el.ieCP_sheet.deleteRule(0);
 		for (var prop in el.ieCPSelectors) {
 			var important = style['-ieVar-❗' + prop];
 			let valueWithVar = important || style['-ieVar-' + prop];
-			if (!valueWithVar) continue;
-			var value = styleComputeValueWidthVars(style, valueWithVar);
+			if (!valueWithVar) continue; // todo, what if '0'
+
+			var details = {};
+			var value = styleComputeValueWidthVars(style, valueWithVar, details);
+
 			if (important) value += ' !important';
 			for (var i=0, item; item=el.ieCPSelectors[prop][i++];) { // todo: split and use requestAnimationFrame?
 				if (item.selector === '%styleAttr') {
 					el.style[prop] = value;
 				} else {
-					el.ieCP_sheet.insertRule(item.selector + '.iecp-u' + el.ieCP_unique + item.pseudo + ' {' + prop + ':' + value + '}', 0); // faster then innerHTML
+
+					// beta
+					if (!important && details.allByRoot !== false) continue; // dont have to draw root-properties
+
+					//let selector = item.selector.replace(/>? \.[^ ]+/, ' ', item.selector); // todo: try to equalize specificity
+					let selector = item.selector;
+					elementStyleSheet(el).insertRule(selector + '.iecp-u' + el.ieCP_unique + item.pseudo + ' {' + prop + ':' + value + '}', 0);
 				}
 			}
 		}
 	}
+	function elementStyleSheet(el){
+		if (!el.ieCP_sheet) {
+			const styleEl = document.createElement('style');
+			styleEl.ieCP_elementSheet = 1;
+			//el.appendChild(styleEl); // yes! self-closing tags can have style as children, but - if i set innerHTML, the stylesheet is lost
+			document.head.appendChild(styleEl);
+			el.ieCP_sheet = styleEl.sheet;
+		}
+		return el.ieCP_sheet;
+	}
+
+	/* */
+	function _drawElement(el) {
+		if (!el.ieCP_unique) { // use el.uniqueNumber? but needs class for the css-selector => test performance
+			el.ieCP_unique = ++uniqueCounter;
+			el.classList.add('iecp-u' + el.ieCP_unique);
+		}
+		var style = getComputedStyle(el);
+		let css = '';
+		for (var prop in el.ieCPSelectors) {
+			var important = style['-ieVar-❗' + prop];
+			let valueWithVar = important || style['-ieVar-' + prop];
+			if (!valueWithVar) continue; // todo, what if '0'
+			var details = {};
+			var value = styleComputeValueWidthVars(style, valueWithVar, details);
+			//if (value==='initial') value = initials[prop];
+			if (important) value += ' !important';
+			for (var i=0, item; item=el.ieCPSelectors[prop][i++];) { // todo: split and use requestAnimationFrame?
+				if (item.selector === '%styleAttr') {
+					el.style[prop] = value;
+				} else {
+
+					// beta
+					if (!important && details.allByRoot !== false) continue; // dont have to draw root-properties
+
+					//let selector = item.selector.replace(/>? \.[^ ]+/, ' ', item.selector); // todo: try to equalize specificity
+					let selector = item.selector;
+					css += selector + '.iecp-u' + el.ieCP_unique + item.pseudo + '{' + prop + ':' + value + '}\n';
+				}
+			}
+		}
+		elementSetCss(el, css);
+	}
+	function elementSetCss(el, css){
+		if (!el.ieCP_styleEl && css) {
+			const styleEl = document.createElement('style');
+			styleEl.ieCP_elementSheet = 1;
+			//el.appendChild(styleEl); // yes! self-closing tags can have style as children, but - if i set innerHTML, the stylesheet is lost
+			document.head.appendChild(styleEl);
+			el.ieCP_styleEl = styleEl;
+		}
+		if (el.ieCP_styleEl) el.ieCP_styleEl.innerHTML = css;
+	}
+	/* */
+
 	function drawTree(target) {
 		if (!target) return;
 		var els = target.querySelectorAll('[iecp-needed]');
@@ -333,21 +455,22 @@
 		for (var i = 0, el; el = els[i++];) drawElement(el); // tree
 	}
 	// draw queue
-	let drawQueue = {};
+	let drawQueue = new Set();
 	let collecting = false;
 	let drawing = false;
 	function drawElement(el){
-		drawQueue[el.uniqueNumber] = el;
+		drawQueue.add(el);
 		if (collecting) return;
 		collecting = true;
 		requestAnimationFrame(function(){
+		//setImmediate(function(){
 			collecting = false;
 			drawing = true;
-			for (var nr in drawQueue) _drawElement(drawQueue[nr]);
-			requestAnimationFrame(function(){ // mutationObserver will trigger delayed
+			drawQueue.forEach(_drawElement);
+			drawQueue.clear();
+			setTimeout(function(){ // mutationObserver will trigger delayed, requestAnimationFrame will miss some changes
 				drawing = false;
 			})
-			drawQueue = {};
 		})
 	}
 
@@ -356,14 +479,46 @@
 		drawTree(e.target)
 	}
 
-	const regValueGetters = /var\(([^),]+)(\,(.+))?\)/g;
-	function styleComputeValueWidthVars(style, valueWithVar){
-		return valueWithVar.replace(regValueGetters, function (full, variable, x, fallback) {
-			variable = variable.trim();
-			var pValue = style.getPropertyValue(variable);
-			//if (pValue === undefined && fallback !== undefined) pValue = fallback.trim(); // fallback
-			if (pValue === '' && fallback !== undefined) pValue = fallback.trim(); // fallback
-			return pValue;
+	function findVars(str, cb){ // css value parser
+		let level=0, openedLevel=null, lastPoint=0, newStr = '', i=0, char, insideCalc;
+		while (char=str[i++]) {
+			if (char === '(') {
+				++level;
+				if (openedLevel === null && str[i-4]+str[i-3]+str[i-2] === 'var') {
+					openedLevel = level;
+					newStr += str.substring(lastPoint, i-4);
+					lastPoint = i;
+				}
+				if (str[i-5]+str[i-4]+str[i-3]+str[i-2] === 'calc') {
+					insideCalc = level;
+				}
+			}
+			if (char === ')' && openedLevel === level) {
+				let variable = str.substring(lastPoint, i-1).trim(), fallback;
+				let x = variable.indexOf(',');
+				if (x!==-1) {
+					fallback = variable.slice(x+1);
+					variable = variable.slice(0,x);
+				}
+				newStr += cb(variable, fallback, insideCalc);
+				lastPoint = i;
+				openedLevel = null;
+			}
+			if (char === ')') {
+				--level;
+				if (insideCalc === level) insideCalc = null;
+			}
+		}
+		newStr += str.substring(lastPoint);
+		return newStr;
+	}
+	function styleComputeValueWidthVars(style, valueWithVars, details){
+		return findVars(valueWithVars, function(variable, fallback, insideCalc){
+			var value = style.getPropertyValue(variable);
+			if (insideCalc) value = value.replace(/^calc\(/, '('); // prevent nested calc
+			if (details && style.lastPropertyServedBy !== document.documentElement) details.allByRoot = false;
+			if (value==='' && fallback) value = styleComputeValueWidthVars(style, fallback, details);
+			return value;
 		});
 	}
 
@@ -371,8 +526,7 @@
 	var observer = new MutationObserver(function(mutations) {
 		if (drawing) return;
 		for (var i=0, mutation; mutation=mutations[i++];) {
-			if (mutation.attributeName === 'ie-polyfilled') continue;
-			if (mutation.attributeName === 'iecp-needed') continue;
+			if (mutation.attributeName === 'iecp-needed') continue; // why?
 			// recheck all selectors if it targets new elements?
 			drawTree(mutation.target);
 		}
@@ -415,83 +569,125 @@
 	}
 
 	// getPropertyValue / setProperty hooks
-	var CSSStyleDeclarationProto = CSSStyleDeclaration.prototype;
+	const StyleProto = CSSStyleDeclaration.prototype;
 
-	const regStartingVar = /^--/;
-	var original = CSSStyleDeclarationProto.getPropertyValue;
-	Object.defineProperty(CSSStyleDeclarationProto, 'getPropertyValue', {
-		value: function (property) {
-			if (property.match(regStartingVar)) {
-				const ieProperty = property.replace(regStartingVar, '-ie-');
-				const iePropertyImportant = property.replace(regStartingVar, '-ie-❗');
-				let value = this[iePropertyImportant] || this[ieProperty];
-				if (this.computedFor) { // computedStyle
-					if (value !== undefined) {
-						if (regHasVar.test(value)) {
-							value = styleComputeValueWidthVars(this, value);
-						}
-					} else {
-						if (!register[property] || register[property].inherits) {
-							// inherited
-							//let el = this.pseudoElt ? this.computedFor : this.computedFor.parentNode;
-							let el = this.computedFor.parentNode;
-							while (el.nodeType === 1) {
-								// how slower would it be to getComputedStyle for every element, not just with defined ieCP_setters
-								if (el.ieCP_setters && el.ieCP_setters[property]) {
-									// i could make
-									// value = el.nodeType ? getComputedStyle(this.computedFor.parentNode).getPropertyValue(property)
-									// but i fear performance, stupid?
-									var style = getComputedStyle(el);
-									var tmpVal = style[iePropertyImportant] || style[ieProperty];
-									if (tmpVal !== undefined) {
-										value = tmpVal;
-										if (regHasVar.test(value)) {
-											// calculated style from current element not from the element the value was inherited from! (style, value)
-											value = styleComputeValueWidthVars(this, value);
-										}
-										break;
-									}
-								}
-								el = el.parentNode;
-							}
-						}
-					}
-				}
-				if (value === undefined && register[property]) value = register[property].initialValue;
-				if (value === undefined) value = '';
+	const oldGetP = StyleProto.getPropertyValue;
+	StyleProto.getPropertyValue = function (property) {
+		this.lastPropertyServedBy = false;
+		property = property.trim();
+
+		/* *
+		if (this.owningElement) {
+			const ieProperty = '-ieVar-'+property;
+			const iePropertyImportant = '-ieVar-❗'+property;
+			let value = this[iePropertyImportant] || this[ieProperty];
+			if (value !== undefined) {
+				// todo, test if syntax valid
 				return value;
 			}
-			return original.apply(this, arguments);
 		}
-	});
+		/* */
 
-	var originalSetProp = CSSStyleDeclarationProto.setProperty;
-	Object.defineProperty(CSSStyleDeclarationProto, 'setProperty', {
-		value: function (property, value, prio) {
-			if (property.match(regStartingVar)) {
+		if (property[0] !== '-' || property[1] !== '-') return oldGetP.apply(this, arguments);
+		const undashed = property.substr(2);
+		const ieProperty = '-ie-'+undashed;
+		const iePropertyImportant = '-ie-❗'+undashed;
+		let value = decodeValue(this[iePropertyImportant] || this[ieProperty]);
 
-				if (this.owningElement) {
-					const el = this.owningElement;
-					if (!el.ieCP_setters) el.ieCP_setters = {};
-					el.ieCP_setters[property] = 1;
-					drawTree(el);
+		if (this.computedFor) { // computedStyle
+			if (value !== undefined && !inheritingKeywords[value]) {
+				//if (regHasVar.test(value))  // todo: to i need this check?!!! i think its faster without
+					value = styleComputeValueWidthVars(this, value);
+				this.lastPropertyServedBy = this.computedFor;
+			} else { // inherited
+				if (inheritingKeywords[value] || !register[property] || register[property].inherits) {
+					//let el = this.pseudoElt ? this.computedFor : this.computedFor.parentNode;
+					let el = this.computedFor.parentNode;
+					while (el.nodeType === 1) {
+						// how slower would it be to getComputedStyle for every element, not just with defined ieCP_setters
+						if (el.ieCP_setters && el.ieCP_setters[property]) {
+							// i could make
+							// value = el.nodeType ? getComputedStyle(this.computedFor.parentNode).getPropertyValue(property)
+							// but i fear performance, stupid?
+							var style = getComputedStyle(el);
+							var tmpVal = decodeValue(style[iePropertyImportant] || style[ieProperty]);
+							if (tmpVal !== undefined) {
+								// calculated style from current element not from the element the value was inherited from! (style, value)
+								//value = tmpVal; if (regHasVar.test(tmpVal))  // todo: to i need this check?!!! i think its faster without
+									value = styleComputeValueWidthVars(this, tmpVal);
+								this.lastPropertyServedBy = el;
+								break;
+							}
+						}
+						el = el.parentNode;
+					}
 				}
-
-				property = property.replace(regStartingVar, '-ie-'+(prio==='important'?'❗':''));
-				this.cssText += '; ' + property + ':' + value + ';';
-				//this[property] = value;
 			}
-			return originalSetProp.apply(this, arguments);
+			if (value==='initial') return '';
 		}
-	});
+		//if ((value === undefined || value === 'initial') && register[property]) value = register[property].initialValue; // todo?
+		if (value === undefined && register[property]) value = register[property].initialValue;
+		if (value === undefined) return '';
+		return value;
+	};
+	const inheritingKeywords = {inherit:1,revert:1,unset:1};
+
+	const oldSetP = StyleProto.setProperty;
+	StyleProto.setProperty = function (property, value, prio) {
+		if (property[0] !== '-' || property[1] !== '-') return oldSetP.apply(this, arguments);
+		const el = this.owningElement;
+		if (el) {
+			if (!el.ieCP_setters) el.ieCP_setters = {};
+			el.ieCP_setters[property] = 1;
+		}
+		property = '-ie-'+(prio==='important'?'❗':'') + property.substr(2);
+		this.cssText += '; ' + property + ':' + encodeValue(value) + ';';
+		//this[property] = value;
+		el === document.documentElement && redrawStyleSheets();
+		el && drawTree(el); // its delayed internal
+	};
+
+
+	/*
+	var descriptor = Object.getOwnPropertyDescriptor(StyleProto, 'cssText');
+	var cssTextGetter = descriptor.get;
+	var cssTextSetter = descriptor.set;
+	// descriptor.get = function () {
+	// 	const style = styleGetter.call(this);
+	// 	style.owningElement = this;
+	// 	return style;
+	// }
+	descriptor.set = function (css) {
+		var el = this.owningElement;
+		if (el) {
+			css = rewriteCss('{'+css).substr(1);
+			cssTextSetter.call(this, css);
+			var found = parseRewrittenStyle(this);
+			if (found.getters) addGetterElement(el, found.getters, '%styleAttr');
+			if (found.setters) addSetterElement(el, found.setters);
+			return;
+		}
+		return cssTextSetter.call(this, css);
+	}
+	Object.defineProperty(StyleProto, 'cssText', descriptor);
+	*/
 
 
 	if (!window.CSS) window.CSS = {};
-	let register = {}
+	const register = {}
 	CSS.registerProperty = function(options){
 		register[options.name] = options;
 	}
 
+	// fix "initial" keyword with generated custom properties, this is not supported ad all by ie, should i make a separate "inherit"-polyfill?
+	/*
+	const computed = getComputedStyle(document.documentElement)
+	const initials = {};
+	for (let i in computed) {
+		initials[i.replace(/([A-Z])/, function(x){ return '-'+x.toLowerCase(x) })] = computed[i];
+	}
+	initials['display'] = 'inline';
+	*/
 
 	// utils
 	function fetchCss(url, callback) {
