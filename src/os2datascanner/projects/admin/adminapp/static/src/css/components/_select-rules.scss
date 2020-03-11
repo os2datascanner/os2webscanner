@@ -62,4 +62,9 @@
   height: 0.75rem;
   margin-right: 0.5rem;
   width: 0.75rem;
+
+  &.disabled {
+    background-color: rgba(0, 0, 0, 0.2);
+    cursor: not-allowed;
+  }
 }

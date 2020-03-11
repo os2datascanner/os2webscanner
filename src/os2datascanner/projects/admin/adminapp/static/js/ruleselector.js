@@ -44,17 +44,22 @@
 
   // removing a rule from the list of selected rules
   $("#selected_rules").on("click", ".remove-rule-button", function() {
-    var elm = $(this).closest("div"); // we want the actual parent div, not the a itself
-    var ruleId = elm.attr("data-rule-id");
-    var ruleLi = $("#available_rules").find("li[data-rule-id=\"" + ruleId + "\"]");
-    var ruleAnchor = ruleLi.find("a");
-    ruleLi.removeAttr("data-disabled");
-    ruleAnchor.tooltip(); // re-enable tooltip
+    if ( !$( this ).hasClass( "disabled" ) ) {
+      var elm = $(this).closest("div"); // we want the actual parent div, not the a itself
+      var ruleId = elm.attr("data-rule-id");
+      var ruleLi = $("#available_rules").find("li[data-rule-id=\"" + ruleId + "\"]");
+      var ruleAnchor = ruleLi.find("a");
+      ruleLi.removeAttr("data-disabled");
+      ruleAnchor.tooltip(); // re-enable tooltip
 
-    $(this).closest("form").find("input[type=\"hidden\"][name=\"rules\"][value=\"" + ruleId + "\"]").remove(); // remove the hidden input field corresponding to the rule we removed
-    elm.remove();
+      $(this).closest("form").find("input[type=\"hidden\"][name=\"rules\"][value=\"" + ruleId + "\"]").remove(); // remove the hidden input field corresponding to the rule we removed
+      elm.remove();
 
-    return false;
+      return false;
+    }
+    else {
+      return false;
+    }
   });
 
   // filter the list of rules when search field changes value
