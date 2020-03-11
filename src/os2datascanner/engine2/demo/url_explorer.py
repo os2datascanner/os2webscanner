@@ -1,5 +1,6 @@
 #!/bin/sh
 
+from sys import stderr
 import argparse
 
 from ..model.core import Source, SourceManager
@@ -72,10 +73,15 @@ def main():
         for i in args.urls:
             try:
                 s = Source.from_url(i)
-                print_source(sm, s, guess=args.guess, summarise=args.summarise,
-                        max_depth=args.max_depth)
-            except UnknownSchemeError:
-                pass
+                if not s:
+                    print("{0}: URL parsing failure".format(i), file=stderr)
+                else:
+                    print_source(sm, s,
+                            guess=args.guess,
+                            summarise=args.summarise,
+                            max_depth=args.max_depth)
+            except UnknownSchemeError as ex:
+                print("{0}: unknown URL scheme".format(i), file=stderr)
 
 if __name__ == '__main__':
     main()
