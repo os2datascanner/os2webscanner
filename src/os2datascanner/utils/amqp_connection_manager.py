@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import pika
 
-from .pika_settings import AMQP_HOST
+from .pika_settings import AMQP_HOST, AMQP_USER, AMQP_PWD
 
 _amqp_obj = {
     "amqp_channels": None,
@@ -35,7 +35,9 @@ def _create_connection():
     Creates a amqp connection
     """
     if not _amqp_obj['connection']:
-        conn_params = pika.ConnectionParameters(AMQP_HOST,
+        credentials = pika.PlainCredentials(AMQP_USER, AMQP_PWD)
+        conn_params = pika.ConnectionParameters(host=AMQP_HOST,
+                                                credentials=credentials,
                                                 heartbeat=6000)
         _amqp_obj['connection'] = pika.BlockingConnection(conn_params)
 
