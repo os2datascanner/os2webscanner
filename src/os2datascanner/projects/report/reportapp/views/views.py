@@ -76,7 +76,7 @@ class RulePageView(MainPageView):
         type = self.request.GET.get('type')
 
         context = super().get_context_data(**kwargs)
-        context['matches_by_type'] = self.data_results.filter(
+        context['matches'] = self.data_results.filter(
             data__matches__scan_spec__rule__type=type)
         context['type'] = type
 
