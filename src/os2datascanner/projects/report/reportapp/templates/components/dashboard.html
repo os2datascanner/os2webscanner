@@ -2,24 +2,19 @@
 <table class="datatable datatable--click-rows">
     <thead>
     <tr>
-      <th class="datatable__column--label">Regel:</th>
+      <th class="datatable__column--label">Følsomhed:</th>
       <th class="datatable__column--count">Antal filer:</th>
-      <th class="datatable__column--status">Status:</th>
     </tr>
   </thead>
   <tbody>
-  {% for result in dashboard_results %}
-      {% with type=result.data__matches__scan_spec__rule.type %}
+  {% for sensitivity, count in dashboard_results.items %}
     <tr>
-      <td class="datatable__column--label"><a href="/rule?type={{ type }}">{{ type }}</a></td>
-      <td class="datatable__column--count"><a href="/rule?type={{ type }}">{{ result.type_count }}</a></td>
-      <td class="datatable__column--status"><a href="/rule?type={{ type }}"> <span class="level-label level-label--1">Kritisk!</span></a> </td>
+      <td class="datatable__column--label"><a href="/sensitivity?value={{ sensitivity.value }}">{{ sensitivity.name }}</a></td>
+      <td class="datatable__column--count"><a href="/sensitivity?value={{ sensitivity.value }}">{{ count }}</a></td>
     </tr>
-      {% endwith %}
-      {% empty %}
+  {% empty %}
     <tr>
       <td class="datatable__column--label"><a>Ingen tilgængelig data</a></td>
-      <td></td>
       <td></td>
     </tr>
   {% endfor %}
