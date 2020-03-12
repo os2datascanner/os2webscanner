@@ -4,6 +4,7 @@ from django.db import models
 from django.contrib.postgres.fields import JSONField
 
 from os2datascanner.engine2.model.core import Handle
+from os2datascanner.engine2.rules.rule import Sensitivity
 
 
 class MatchesMessage(NamedTuple):
@@ -11,6 +12,22 @@ class MatchesMessage(NamedTuple):
     handle: Handle
     matched: bool
     matches: list
+
+    @property
+    def sensitivity(self):
+        """Computes the overall sensitivity of the matches contained in this
+        message (i.e., the highest sensitivity of any submatch), or None if
+        there are no matches."""
+        if not self.matches:
+            return None
+        else:
+
+            def _cms(match):
+                if "sensitivity" in match["rule"]:
+                    return match["rule"]["sensitivity"] or 0
+                else:
+                    return 0
+            return Sensitivity(max([_cms(match) for match in self.matches]))
 
 
 class DocumentReport(models.Model):
