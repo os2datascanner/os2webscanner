@@ -4,7 +4,7 @@ import pika
 from .pika_settings import AMQP_HOST, AMQP_USER, AMQP_PWD
 
 _amqp_obj = {
-    "amqp_channels": None,
+    "amqp_channel": None,
     "connection": None
 }
 
