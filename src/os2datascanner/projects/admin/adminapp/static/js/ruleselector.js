@@ -6,7 +6,7 @@
   $("body").on("inserted.bs.tooltip", "#available_rules li a, #selected_rules > .selected_rule span", function() {
     var elm = $(this);
     var tooltipElm = elm.next(".tooltip");
-    var textLength = elm.attr("title").length || elm.attr("data-original-title").length;
+    var textLength = elm.attr("title").length || elm.attr("data-original-title").length;
     var boxWidth = Math.min(textLength, 30); // whatever is smallest of text length and 30 characters
     tooltipElm.css({
       width: "calc(" + boxWidth + "ch + 5px)"
@@ -19,19 +19,16 @@
     var ruleId = $this.attr("data-rule-id");
     var ruleAnchor = $this.find("a");
     $("#rules_list").before($("<div/>", {
-      class: "selected_rule",
+      class: "selected_rule rule rule--selected",
       "data-rule-id": ruleId,
       html: $("<a/>", {
         text: "",
-        class: "remove-rule",
+        class: "remove-rule-button",
         href: "#",
-        "aria-label": "Fjern denne regel"
+        "title": "Fjern denne regel"
       }).add($("<span/>", {
         text: ruleAnchor.text(),
-        "data-toggle": "tooltip",
-        "data-placement": "top",
-        title: ruleAnchor.attr("title") || ruleAnchor.attr("data-original-title"),
-        tabindex: 0
+        title: ruleAnchor.attr("title") || ruleAnchor.attr("data-original-title")
       }))
     }));
     $("#selected_rules [data-rule-id=\"" + ruleId + "\"] [data-toggle=\"tooltip\"]").tooltip(); // enable tooltipping on new element
@@ -43,40 +40,22 @@
       name: "rules",
       value: ruleId
     }));
-
-    recalcIframeHeight();
   });
 
+  // removing a rule from the list of selected rules
+  $("#selected_rules").on("click", ".remove-rule-button:not(.disabled)", function() {
+    var elm = $(this).closest("div"); // we want the actual parent div, not the a itself
+    var ruleId = elm.attr("data-rule-id");
+    var ruleLi = $("#available_rules").find("li[data-rule-id=\"" + ruleId + "\"]");
+    var ruleAnchor = ruleLi.find("a");
+    ruleLi.removeAttr("data-disabled");
+    ruleAnchor.tooltip(); // re-enable tooltip
 
-  if ( $("#edit-scanner-modal-title").length ){
-    // removing a rule from the list of selected rules
-    $("#selected_rules").on("click", ".remove-rule", function() {
-      var elm = $(this).closest("div"); // we want the actual parent div, not the a itself
-      var ruleId = elm.attr("data-rule-id");
-      var ruleLi = $("#available_rules").find("li[data-rule-id=\"" + ruleId + "\"]");
-      var ruleAnchor = ruleLi.find("a");
-      ruleLi.removeAttr("data-disabled");
-      ruleAnchor.tooltip(); // re-enable tooltip
+    $(this).closest("form").find("input[type=\"hidden\"][name=\"rules\"][value=\"" + ruleId + "\"]").remove(); // remove the hidden input field corresponding to the rule we removed
+    elm.remove();
 
-      $(this).closest("form").find("input[type=\"hidden\"][name=\"rules\"][value=\"" + ruleId + "\"]").remove(); // remove the hidden input field corresponding to the rule we removed
-      elm.remove();
-
-      recalcIframeHeight();
-    });
-  }
-
-  // // adding a system rule
-  // $("#available_rules").on("click", "[data-systemrule-target]:not([data-disabled])", function() {
-  //   var $this = $(this);
-  //   var targ = $("#id_" + $this.attr("data-systemrule-target"));
-  //   targ.prop("checked", true).trigger("change"); // we need to manually trigger change event, as it doesn't happen automatically when programmatically setting the checked prop
-  // });
-  //
-  // // toggling a .checkbox-group input[type="checkbox"]:first-of-type should also toggle the visibility of the parent .checkbox-group
-  // $("#selected_rules .checkbox-group input[type=\"checkbox\"]:first-of-type").change(function() {
-  //   toggleCheckboxGroup($(this));
-  //   recalcIframeHeight();
-  // });
+    return false;
+  });
 
   // filter the list of rules when search field changes value
   $("#rule-filter").on("textInput input", os2debounce(function() {
@@ -114,13 +93,5 @@
       }
     });
   }, 150));
-
-  // set height of dropdown list in order to prevent it from breaking out of window
-  $("#rules_list").on("show.bs.dropdown", function() {
-    var top = $(this).offset().top;
-    var docHeight = $("body").height();
-    var maxHeight = top - 15;
-    $("#available_rules").css("max-height", maxHeight + "px");
-  });
 
 })(os2web, jQuery);

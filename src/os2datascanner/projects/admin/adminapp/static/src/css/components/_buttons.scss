@@ -38,6 +38,18 @@
     }
   }
 
+  &--danger {
+    background-color: var(--color-error);
+    color: #fff;
+    font-weight: bold;
+
+    &:focus,
+    &:hover {
+      background-color: var(--color-error-dark);
+      color: #fff;
+    }
+  }
+
   &--ghost {
     background-color: transparent;
     border: 1px solid rgba(0, 0, 0, 0.1);

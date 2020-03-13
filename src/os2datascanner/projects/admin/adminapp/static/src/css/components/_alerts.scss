@@ -30,3 +30,15 @@
     border-color: var(--color-error-dark);
   }
 }
+
+.bg--success {
+  background-color: var(--color-ok);
+}
+
+.bg--warning {
+  background-color: var(--color-warning);
+}
+
+.bg--danger {
+  background-color: var(--color-error);
+}
