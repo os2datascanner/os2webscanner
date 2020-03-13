@@ -5,6 +5,7 @@ from urllib.parse import quote, unquote, urlsplit
 from datetime import datetime
 from contextlib import contextmanager
 
+from ..utilities.backoff import run_with_backoff
 from ..conversions.types import OutputType
 from ..conversions.utilities.results import MultipleResults
 from .smb import make_smb_url, SMBSource
@@ -171,8 +172,10 @@ class SMBCResource(FileResource):
 
     def open_file(self):
         try:
-            _, context = self._get_cookie()
-            return context.open(self._make_url(), O_RDONLY)
+            def _open_file():
+                _, context = self._get_cookie()
+                return context.open(self._make_url(), O_RDONLY)
+            return run_with_backoff(_open_file, smbc.TimedOutError)[0]
         except (smbc.NoEntryError, smbc.PermissionError) as ex:
             raise ResourceUnavailableError(self.handle, ex)
 
@@ -181,9 +184,11 @@ class SMBCResource(FileResource):
         documentation for smbc.Context.getxattr for *most* of the supported
         attribute names.)"""
         try:
-            _, context = self._get_cookie()
-            return context.getxattr(self._make_url(), attr)
-            # Don't attempt to catch the ValueError if attr isn't valid
+            def _get_xattr():
+                _, context = self._get_cookie()
+                # Don't attempt to catch the ValueError if attr isn't valid
+                return context.getxattr(self._make_url(), attr)
+            return run_with_backoff(_get_xattr, smbc.TimedOutError)[0]
         except (smbc.NoEntryError, smbc.PermissionError) as ex:
             raise ResourceUnavailableError(self.handle, ex)
 

@@ -5,6 +5,7 @@ from os2datascanner.engine2.model.data import DataSource
 from os2datascanner.engine2.model.file import FilesystemSource
 from os2datascanner.engine2.model.http import SecureWebSource, WebSource
 from os2datascanner.engine2.model.smb import SMBSource
+from os2datascanner.engine2.model.smbc import SMBCSource
 
 
 class URLTests(unittest.TestCase):
@@ -45,6 +46,15 @@ class URLTests(unittest.TestCase):
                     "SYSGRP",
                 ),
                 "smb://SYSGRP;FaithfullA@10.0.0.30/Share%24/Documents",
+            ),
+            (
+                SMBCSource(
+                    "//INT-SRV-01/Q$",
+                    "FaithfullA",
+                    None,
+                    "SYSGRP",
+                ),
+                "smbc://SYSGRP;FaithfullA@INT-SRV-01/Q%24",
             ),
             (WebSource("http://www.example.com"), "http://www.example.com"),
             (

@@ -8,10 +8,24 @@
 {% block scripts %}
 <script src="{% static "3rdparty/jquery.modal.js" %} "></script>
 <script src="{% static "dist/bundle.js" %}"></script>
+<script src="{% static "js/tabs.js" %}"></script>
 {% endblock %}
 
 {% block body %}
 <div class="wrapper">
+
+  <div class="tabs">
+    {% if settings.ENABLE_WEBSCAN %}
+    <a id="web" class="tabs__control" href="/webscanners/">Webscannere</a>
+    {% endif %}
+    {% if settings.ENABLE_FILESCAN %}
+    <a id="file" class="tabs__control" href="/filescanners/">Filscannere</a>
+    {% endif %}
+    {% if settings.ENABLE_EXCHANGESCAN %}
+    <a id="exchange" class="tabs__control" href="/exchangescanners/">Exchangescannere</a>
+    {% endif %}
+  </div>
+
   <h2 style="display:inline-block;">Scannerjob</h2>
 
   <a 

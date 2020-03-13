@@ -80,7 +80,7 @@ class SMBSource(Source):
         return make_smb_url(
                 "smb", self._unc, self._user, self._domain, self._password)
 
-    netloc_regex = compile(r"^(((?P<domain>\w+);)?(?P<username>\w+)(:(?P<password>\w+))?@)?(?P<unc>[\w.]+)$")
+    netloc_regex = compile(r"^(((?P<domain>\w+);)?(?P<username>\w+)(:(?P<password>\w+))?@)?(?P<unc>[\w.-]+)$")
     @staticmethod
     @Source.url_handler("smb")
     def from_url(url):
