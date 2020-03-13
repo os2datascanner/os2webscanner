@@ -59,7 +59,7 @@
       {% if form.rules.field.disabled %}
       $("#selected_rules .remove-rule-button").addClass('disabled')
       $("#selected_rules span").addClass('disabled')
-      $("#select_scan_rules_container input").attr('disabled', '' )
+      $("#available_rules .rule").attr('data-disabled', '')
       {% endif %}
 
       $("#id_{{ form.download_sitemap.name }}").change(function() {
