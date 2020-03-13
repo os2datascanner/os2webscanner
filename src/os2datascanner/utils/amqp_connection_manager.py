@@ -4,7 +4,7 @@ import pika
 from .pika_settings import AMQP_HOST, AMQP_USER, AMQP_PWD
 
 _amqp_obj = {
-    "amqp_channel": None,
+    "amqp_channels": None,
     "connection": None
 }
 
@@ -15,19 +15,19 @@ def start_amqp(queue_name):
     :param queue_name: Name of the queue
     """
     _create_connection()
-    _create_queue(queue_name)
+    _create_channel(queue_name)
 
 
-def _create_queue(queue_name):
+def _create_channel(queue_name):
     """
     Creates an amqp queue if a connection is created.
     :param queue_name: Name of the queue
     """
-    if not 'amqp_channel' in _amqp_obj and _amqp_obj['connection']:
-            _amqp_obj['amqp_channel'] = _amqp_obj['connection'].channel()
-            _amqp_obj['amqp_channel'].queue_declare(queue=queue_name,
-                                                    passive=False, durable=True,
-                                                    exclusive=False, auto_delete=False)
+    if _amqp_obj['connection']:
+        _amqp_obj['amqp_channel'] = _amqp_obj['connection'].channel()
+        _amqp_obj['amqp_channel'].queue_declare(queue=queue_name,
+                                                passive=False, durable=True,
+                                                exclusive=False, auto_delete=False)
 
 
 def _create_connection():
