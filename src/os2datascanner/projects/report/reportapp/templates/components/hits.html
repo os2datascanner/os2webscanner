@@ -14,11 +14,11 @@
   </thead>
 
   <tbody>
-    {% for match_by_type in matches_by_type %}
-      {% if match_by_type.matches.handle|find_parent:"smbc" %}
-        {% include "components/rule-hits--smbc.html" %}
-      {% elif match_by_type.matches.handle|find_parent:"ews" %}
-        {% include "components/rule-hits--office365.html" %}
+    {% for match in matches %}
+      {% if match.matches.handle|find_parent:"smbc" %}
+        {% include "components/hits--smbc.html" %}
+      {% elif match.matches.handle|find_parent:"ews" %}
+        {% include "components/hits--office365.html" %}
       {% endif %}
     {% endfor %}
   </tbody>
