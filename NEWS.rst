@@ -1,6 +1,58 @@
 OS2datascanner
 ==============
 
+Version 3.2.0, 16th March 2020
+------------------------------
+
+"Sensitive, Specialised, and Shiny"
+
+New in this version:
+
+- Administration system:
+
+  - The login interface has been modernised with a new design.
+
+  - The interface for creating and listing scanner jobs has been modernised
+    with a new design.
+
+- The scanner engine can now associate user-specified sensitivity values with
+  rules.
+
+  - The report module groups matches together based on sensitivity values.
+
+- The scanner engine can now associate user-specified names with rules.
+
+  - Compound rules will automatically be given a name based on their
+    components.
+
+- The report module now has support for special user roles.
+
+  - Users can be assigned the special "remediator" role, which gives access to
+    all matches not assigned to another user.
+
+General improvements:
+
+- The scanner engine can now handle timeouts and throttling.
+
+- The report module now shows a more detailed name for all objects.
+
+- All matches are now displayed in the report module, including matches found
+  inside archive files and email attachments.
+
+- System components can now communicate using a RabbitMQ server secured with a
+  username and password.
+
+Bugfixes:
+
+- Tests for supported conversions now work properly again.
+
+- Incremental scans based on modification timestamps now work properly again.
+
+- Exchange Web Services mails with no subjects are now handled properly.
+
+- The report module's user interface now looks as it should when viewed using
+  Internet Explorer 11.
+
 Version 3.1.0, 14th February 2020
 ---------------------------------
 
