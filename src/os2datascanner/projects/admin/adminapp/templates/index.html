@@ -1,4 +1,10 @@
 {% extends 'os2datascanner/base.html' %}
+{% load staticfiles %}
+
+  {% block styling %}
+  <link rel="stylesheet" href="{% static "dist/bundle.css" %}">
+  {% endblock %}
+
   {% block body %}
 
   <div class="wrapper">

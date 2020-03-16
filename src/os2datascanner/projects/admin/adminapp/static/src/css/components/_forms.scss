@@ -1,0 +1,240 @@
+.form {
+  line-height: 1;
+  max-width: 80rem;
+  width: calc(100% - 2rem);
+
+  .iframe-modal & {
+    max-width: none;
+    width: 100%;
+  }
+
+  fieldset,
+  &__fieldset {
+    background-color: #fff;
+    border: none;
+    margin: 1rem 0;
+    padding: 2rem;
+    transition: var(--transition-default);
+
+    &:focus-within {
+      box-shadow: var(--box-shadow-large);
+    }
+  }
+
+  legend {
+    float: left;
+    font-weight: bold;
+    margin-bottom: 1em;
+    width: 100%;
+  }
+
+  label {
+    display: block;
+    font-size: 0.75em;
+    margin-bottom: 0.25rem;
+
+    + .form-control {
+      margin-top: 0.25rem;
+    }
+  }
+
+  input[type=checkbox] + label {
+    display: inline-block;
+  }
+
+  .form-control {
+    background-color: rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    border: none;
+    border-radius: var(--border-radius-small);
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+    display: block;
+    font-size: 1rem;
+    line-height: 1;
+    outline: none;
+    padding: 1rem;
+    transition: var(--transition-default);
+    width: 100%;
+
+    &:focus,
+    &:focus {
+      box-shadow: inset 0 0 0 4px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  &__help-text {
+    display: block;
+    font-size: 0.75em;
+    margin-top: 0.25rem;
+    opacity: 0.75;
+
+    &::before {
+      color: var(--color-main);
+      content: "\2191";
+      line-height: 1;
+      margin-right: 0.5em;
+    }
+  }
+
+  &__legend {
+    font-size: 2rem;
+    font-weight: 900;
+    margin-bottom: 1rem;
+    text-align: left;
+  }
+
+  &__group {
+    display: block;
+    overflow: hidden;
+    width: 100%;
+
+    & + & {
+      margin-top: 1rem;
+    }
+
+    &--inline {
+      display: inline-block;
+      margin-top: initial;
+      width: auto;
+
+      .form-control {
+        display: inline-block;
+        width: auto;
+      }
+
+      & + & {
+        margin-left: 1rem;
+      }
+    }
+  }
+
+  &__error {
+    background-color: var(--color-error);
+    border: 1px solid var(--color-error-dark);
+    color: #fff;
+    font-size: 0.75rem;
+    line-height: 1;
+    margin-top: 1rem;
+    padding: 0.5rem;
+  }
+}
+
+.checkbox-group {
+  background-color: rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: var(--border-radius-small);
+  margin: 0.5rem 0;
+  overflow: hidden;
+  padding: var(--size-ds-unit);
+}
+
+.ds-checkbox {
+  display: block;
+  min-height: 1.5rem;
+  padding-left: 1.5rem;
+
+  &--inline {
+    float: left;
+    margin-right: 1rem;
+  }
+
+  input[type="checkbox"] {
+    opacity: 0;
+    position: absolute;
+    z-index: -1;
+  }
+
+  label {
+    display: inline-block;
+    left: 0;
+    line-height: 1.5rem;
+    margin-bottom: initial;
+    margin-left: -1.5rem;
+    min-height: 1.5rem;
+    padding-left: 1.5rem;
+  }
+
+  input[type="checkbox"] + label {
+    &::before,
+    &::after {
+      :root {
+        --transition-property: opacity;
+      }
+
+      background-color: transparent;
+      content: "";
+      display: inline-block;
+      height: 1rem;
+      left: 0;
+      pointer-events: none;
+      position: absolute;
+      top: 0.25rem;
+      transition: var(--transition-default);
+      width: 1rem;
+    }
+
+    &::before {
+      border: 2px solid rgba(0, 0, 0, 0.4);
+      border-radius: 3px;
+    }
+
+    &::after {
+      background: no-repeat 50%/50% 50%;
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23fff' d='M6.564.75l-3.59 3.612-1.538-1.55L0 4.26 2.974 7.25 8 2.193z'/%3e%3c/svg%3e");
+      opacity: 0;
+      transition: var(--transition-default);
+    }
+  }
+
+  &:hover {
+    input[type="checkbox"] + label {
+      &::before {
+        border-color: var(--color-main);
+      }
+    }
+  }
+
+  input[type="checkbox"]:checked + label {
+    &::before {
+      background-color: var(--color-main);
+      border-color: transparent;
+    }
+
+    &::after {
+      opacity: 1;
+      transition-delay: 0.2s;
+    }
+  }
+
+  input[type="checkbox"]:disabled + label {
+    opacity: 0.5;
+
+    &::before {
+      border: 2px solid rgba(0, 0, 0, 0.1);
+    }
+  }
+}
+
+.has-error {
+  color: var(--color-error);
+  border-left: 5px solid var(--color-error);
+  padding-left: 1rem;
+
+  label {
+    color: var(--color-error);
+  }
+
+  .form-control {
+    box-shadow: inset 0 0 0 1px var(--color-error);
+
+    &:focus,
+    &:focus {
+      box-shadow: inset 0 0 0 4px var(--color-error);
+    }
+  }
+
+  .errorlist {
+    font-size: 0.75rem;
+    margin: 0.5rem 0 0 0;
+  }
+}

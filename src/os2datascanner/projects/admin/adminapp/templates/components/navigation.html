@@ -1,27 +1,33 @@
-<nav class="navigation">
+{% load staticfiles %}
 
-  {% if user.is_authenticated %}
-    {% if not user.profile.is_upload_only %}
-      {% if settings.ENABLE_WEBSCAN %}
-        <a href="/webscanners/">Scannerjob</a>
-      {% elif settings.ENABLE_FILESCAN %}
-        <a href="/filescanners/">Scannerjob</a>
-      {% elif settings.ENABLE_EXCHANGESCAN %}
-        <a href="/exchangescanners/">Scannerjob</a>
-      {% endif %}
-      {% if user.profile.is_groups_enabled %}
-        {% if user.is_superuser or user.profile.is_group_admin %}
-          <a href="/groups/">Grupper</a>
+{% block scripts %}
+<script src="{% static "js/activeMenu.js" %} "></script>
+{% endblock %}
+
+<nav id="navigation">
+  <li class="active">
+    {% if user.is_authenticated %}
+      {% if not user.profile.is_upload_only %}
+        {% if settings.ENABLE_WEBSCAN %}
+          <a href="/webscanners/">Scannerjob</a>
+        {% elif settings.ENABLE_FILESCAN %}
+          <a href="/filescanners/">Scannerjob</a>
+        {% elif settings.ENABLE_EXCHANGESCAN %}
+          <a href="/exchangescanners/">Scannerjob</a>
         {% endif %}
-      {% endif %}
-      <a href="/rules/">Regler</a>
-      {% if user.is_superuser or user.is_staff %}
-        {% if user.is_superuser %}
-          <a href="/system/orgs_and_domains/">Domæneoversigt</a>
+        {% if user.profile.is_groups_enabled %}
+          {% if user.is_superuser or user.profile.is_group_admin %}
+            <a href="/groups/">Grupper</a>
+          {% endif %}
         {% endif %}
-        <a href="/admin/" target="_NEW">Administration</a>
+        <a href="/rules/">Regler</a>
+        {% if user.is_superuser or user.is_staff %}
+          <a href="/admin/" target="_NEW">Administration</a>
+        {% endif %}
+        {% if settings.DEBUG %}
+          <a href="/designguide">Designguide</a>
+        {% endif %}
       {% endif %}
     {% endif %}
-  {% endif %}
-
+  </li>
 </nav>

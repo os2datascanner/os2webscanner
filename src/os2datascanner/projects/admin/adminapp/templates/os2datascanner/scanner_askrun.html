@@ -1,24 +1,34 @@
 {% extends 'os2datascanner/base.html' %}
+{% load staticfiles %}
 {% block topnav %}{% endblock %}
 {% block rendertype %}iframe-modal{% endblock %}
+
+{% block styling %}
+<link rel="stylesheet" href="{% static "dist/bundle.css" %}">
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static "3rdparty/jquery.modal.js" %} "></script>
+<script src="{% static "dist/bundle.js" %}"></script>
+{% endblock %}
+
 {% block body %}
 
 {% if ok %}
-<p class="lead">
-  Er du sikker på, at du vil starte scanneren?
-</p>
+<h3>Er du sikker på, at du vil starte scanneren?</h3>
 <p>
   {% if webscanner.pk %}
-      <a href="/webscanners/{{webscanner.pk}}/run/" class="btn btn-primary">Ja, kør!</a>
+  <a href="/webscanners/{{webscanner.pk}}/run/" class="button button--cta button--rounded">Ja, kør!</a>
   {% elif filescanner.pk %}
-      <a href="/filescanners/{{filescanner.pk}}/run/" class="btn btn-primary">Ja, kør!</a>
+  <a href="/filescanners/{{filescanner.pk}}/run/" class="button button--cta button--rounded">Ja, kør!</a>
   {% elif exchangescanner.pk %}
-      <a href="/exchangescanners/{{exchangescanner.pk}}/run/" class="btn btn-primary">Ja, kør!</a>
+  <a href="/exchangescanners/{{exchangescanner.pk}}/run/" class="button button--cta button--rounded">Ja, kør!</a>
   {% endif %}
 </p>
+
 {% else %}
-<p class="lead">
-{{ error_message }}
-</p>
+<div class="alert alert--danger">
+  <p>{{ error_message }}</p>
+</div>
 {% endif %}
 {% endblock %}

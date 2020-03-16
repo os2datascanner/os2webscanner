@@ -1,10 +1,523 @@
 {% extends 'os2datascanner/base.html' %}
-  {% block body %}
+{% load staticfiles %}
 
-  <div class="wrapper">
-    <h1>Designguide</h1>
-  </div>
+{% block styling %}
+<link rel="stylesheet" href="{% static "dist/bundle.css" %}">
 
-  {% endblock %}
+<style>
+  article + article {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    margin-top: 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static "3rdparty/jquery.modal.js" %} "></script>
+<script src="{% static "dist/bundle.js" %}"></script>
+<script src="{% static "js/tabs.js" %}"></script>
+{% endblock %}
+
+{%  block title %}
+Designguide
+{% endblock %}
+
+{% block body %}
+
+<div class="wrapper">
+  <h1>Designguide</h1>
+
+  <ol class="toc">
+    <li>
+      <a href="#colors">Colors</a>
+    </li>
+    <li>
+      <a href="#icons">Icons</a>
+    </li>
+    <li>
+      <a href="#buttons">Buttons</a>
+    </li>
+    <li>
+      <a href="#datatable">Datatable</a>
+    </li>
+    <li>
+      <a href="#datatable--wide">Datatable (wide)</a>
+    </li>
+    <li>
+      <a href="#modal">Modal</a>
+    </li>
+    <li>
+      <a href="#tabs">Tabs</a>
+    </li>
+    <li>
+      <a href="#form-controls">Form Controls</a>
+      <ol>
+        <li>
+          <a href="#form-controls-inputs">Input fields</a>
+        </li>
+        <li>
+          <a href="#form-controls-checkboxes">Checkboxes</a>
+        </li>
+      </ol>
+    </li>
+    <li>
+      <a href="#alerts">Alerts</a>
+    </li>
+  </ol>
+
+  <article id="colors">
+    <style>
+      .design-color-wrapper {
+        display: grid;
+        gap: 0.5rem;
+        grid-template-columns: repeat(6, 1fr);
+        margin: 1rem 0;
+      }
+
+      .color {
+        background-color: #fff;
+        border: 1px solid #ddd;
+        padding: 1rem;
+        transition: var(--transition-default);
+      }
+
+      .color:hover {
+        border-color: #ccc;
+        box-shadow: var(--box-shadow-large);
+        z-index: 1;
+      }
+
+      .color .example {
+        height: 4rem;
+      }
+
+      .color code {
+        display: block;
+        margin-top: 0.5rem;
+      }
+    </style>
+
+    <h2>Colors:</h2>
+
+    <div class="design-color-wrapper">
+
+      <div class="color">
+        <div class="example" style="background-color: var(--color-main);"></div>
+        <div class="meta">
+          <div>
+            <code>var(--color-main)</code>
+            <code>#3a69b4</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="color">
+        <div class="example" style="background-color: var(--color-main-dark);"></div>
+        <div class="meta">
+          <div>
+            <code>var(--color-main-dark)</code>
+            <code>#3a69b4</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="color">
+        <div class="example" style="background-color: var(--color-text-main);"></div>
+        <div class="meta">
+          <div>
+            <code>var(--color-text-main)</code>
+            <code>#3a69b4</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="color">
+        <div class="example" style="background-color: var(--color-body-bg);"></div>
+        <div class="meta">
+          <div>
+            <code>var(--color-body-bg)</code>
+            <code>#3a69b4</code>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="design-color-wrapper">
+
+      <div class="color">
+        <div class="example" style="background-color: var(--color-ok);"></div>
+        <div class="meta">
+          <div>
+            <code>var(--color-ok)</code>
+            <code>#3a69b4</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="color">
+        <div class="example" style="background-color: var(--color-ok-dark);"></div>
+        <div class="meta">
+          <div>
+            <code>var(--color-ok-dark)</code>
+            <code>#16a085</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="color">
+        <div class="example" style="background-color: var(--color-warning);"></div>
+        <div class="meta">
+          <div>
+            <code>var(--color-warning)</code>
+            <code>#3a69b4</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="color">
+        <div class="example" style="background-color: var(--color-warning-dark);"></div>
+        <div class="meta">
+          <div>
+            <code>var(--color-warning-dark)</code>
+            <code>#3a69b4</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="color">
+        <div class="example" style="background-color: var(--color-error);"></div>
+        <div class="meta">
+          <div>
+            <code>var(--color-error)</code>
+            <code>#3a69b4</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="color">
+        <div class="example" style="background-color: var(--color-error-dark);"></div>
+        <div class="meta">
+          <div>
+            <code>var(--color-error-dark)</code>
+            <code>#3a69b4</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </article>
+
+  <article id="icons">
+    <h2>Icons:</h2>
+
+<pre><code>&lt;svg class="icon"&gt;
+  &lt;use xlink:href="&#123;&#123; settings.ICON_SPRITE_URL &#125;&#125;#icon-pencil"&gt;&lt;/use&gt;
+&lt;/svg&gt;
+</code></pre>
+
+    <div>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-pencil"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-hour-glass"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-spinner"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-reload"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-search"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-cog"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-plus"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-minus"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-info"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-cross"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-checkmark1"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-checkmark2"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-play"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-pause"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-stop"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-loop"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-circle-up"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-circle-down"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-circle-left"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-circle-right"></use>
+      </svg>
+      <svg class="icon">
+        <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-embed"></use>
+      </svg>
+    </div>
+  </article>
+
+  <article id="buttons">
+    <h2>Buttons:</h2>
+
+<pre><code>&lt;button class="button" type="button"&gt;button&lt;/button&gt;
+&lt;button class="button button--cta" type="button"&gt;button--cta&lt;/button&gt;
+&lt;button class="button button--rounded" type="button"&gt;button--rounded&lt;/button&gt;
+&lt;button class="button button--small" type="button"&gt;button--small&lt;/button&gt;
+
+&lt;button class="button button--cta" type="button"&gt;
+  &lt;svg class="icon"&gt;
+    &lt;use xlink:href="&#123;&#123; settings.ICON_SPRITE_URL &#125;&#125;#icon-pencil"&gt;&lt;/use&gt;
+  &lt;/svg&gt;
+  &lt;button&gt;button w. icon&lt;/span&gt;
+&lt;/button&gt;
+</code></pre>
+
+    <div>
+      <button class="button" type="button">button</button>
+      <button class="button button--cta" type="button">button--cta</button>
+      <button class="button button--cta button--rounded" type="button">button--rounded</button>
+      <button class="button button--cta button--rounded button--small" type="button">button--small</button>
+      <button class="button button--cta" type="button">
+        <svg class="icon">
+          <use xlink:href="{{ settings.ICON_SPRITE_URL }}#icon-pencil"></use>
+        </svg>
+        <span>button w. icon</span></button>
+    </div>
+  </article>
+
+  <article id="datatable">
+    <h2>Datatable:</h2>
+
+<pre><code>&lt;table class="datatable"&gt;...&lt;/table&gt;</code></pre>
+
+    <table class="datatable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Title</th>
+          <th>Org.</th>
+          <th>Summary</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr tabindex="0">
+          <td>Firstname Lastname</td>
+          <td>Lead Something-fancy</td>
+          <td>Badass org.</td>
+          <td>Lorem ipsum dolor sit amet consectetur, adipisicing elit.</td>
+          <td>Verified!</td>
+        </tr>
+      </tbody>
+    </table>
+  </article>
+
+  <article id="datatable--wide">
+    <h3>Datatable (wide):</h3>
+
+<pre><code>&lt;table class="datatable datatable--wide&gt;...&lt;/table&gt;</code></pre>
+
+    <table class="datatable datatable--wide">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Title</th>
+          <th>Org.</th>
+          <th>Summary</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr tabindex="0">
+          <td>Firstname Lastname</td>
+          <td>Lead Something-fancy</td>
+          <td>Badass org.</td>
+          <td>Lorem ipsum dolor sit amet consectetur, adipisicing elit.</td>
+          <td>Verified!</td>
+        </tr>
+      </tbody>
+    </table>
+  </article>
+
+  <article id="modal">
+    <h2>Modal:</h2>
+
+    <p>Match the <code>href</code> on the link with the <code>id</code> of the modal, and add a <code>data-modal="modal:open"</code> attribute to the link.</p>
+
+<pre><code>&lt;a <strong>href="#modal-target</strong>" <strong>data-modal="modal:open"</strong> class="button"&gt;Show Modal&lt;/a&gt;
+&lt;div <strong>id="modal-target"</strong> class="modal" role="dialog" aria-labelledby="create-rule-modal-title" aria-hidden="true&gt;...&lt;/div&gt;
+</code></pre>
+
+    <p>If opening a <code>iframe</code> in a modal, add a <code>data-src=""</code> attribute to the link as well with the src of the iframe</p>
+
+    <a href="#new-modal" data-modal="modal:open" class="button button--cta button--rounded">Show Modal</a>
+
+    <div id="new-modal" class="modal">
+      <h4 class="modal__heading">Lorem ipsum, dolor sit amet</h4>
+      <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolores saepe ratione perspiciatis ullam doloribus modi quo dolore a, corporis deleniti quia alias porro sint provident! Explicabo incidunt expedita provident modi?</p>
+    </div>
+
+  </article>
+
+  <article id="tabs">
+    <h2>Tabs:</h2>
+
+    <div class="tabs">
+      <button id="defaultOpen" class="tabs__control" onclick="openTab(event, 'web')">Webscannere</button>
+      <button class="tabs__control" onclick="openTab(event, 'file')">Filscannere</button>
+      <button class="tabs__control" onclick="openTab(event, 'exchange')">Exchangescannere</button>
+    </div>
+
+    <div id="web" class="tabs__content">
+      <h2>Webscannere</h2>
+      <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit.</p>
+    </div>
+    
+    <div id="file" class="tabs__content">
+      <h2>Filscannere</h2>
+      <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit.</p>
+    </div>
+    
+    <div id="exchange" class="tabs__content">
+      <h2>Exchangescannere</h2>
+      <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit.</p>
+    </div>
+
+  </article>
+
+  <article id="form-controls">
+    <h2>Form Controls:</h2>
+
+    <form class="form">
+      <fieldset id="form-controls-inputs">
+        <legend>Input fields:</legend>
+
+        <div class="form__group">
+          <label for="test-input--text">Input field, Text</label>
+          <input class="form-control" type="text" name="test-input--text" id="test-input--text" placeholder="Text">
+        </div>
+
+        <div class="form__group">
+          <label for="test-input--password">Input field, Password</label>
+          <input class="form-control" type="password" name="test-input--password" id="test-input--password" placeholder="Password">
+        </div>
+
+        <div class="form__group">
+          <label for="test-input--select">Select</label>
+          <select class="form-control" name="test-input--select" id="test-input--select">
+            <option value="opt01">Option 01</option>
+            <option value="opt02">Option 02</option>
+            <option value="opt03">Option 03</option>
+            <option value="opt04">Option 04</option>
+            <option value="opt05">Option 05</option>
+          </select>
+        </div>
+
+        <div class="form__group">
+          <label for="test-input--textarea">Textarea</label>
+          <textarea class="form-control" name="test-input--textarea" id="test-input--textarea" cols="30" rows="10"></textarea>
+        </div>
+
+        <div class="form__group">
+          <div class="ds-checkbox">
+            <input type="checkbox" name="abc" id="abc">
+            <label for="abc">Checkbox label</label>
+          </div>
+        </div>
+
+        <div class="form__group has-error">
+          <label for="test-input--text-w-error">Navn</label>
+          <input type="text" class="form-control" name="name" id="test-input--text-w-error">
+          <ul class="errorlist">
+            <li>Dette felt er påkrævet.</li>
+          </ul>
+        </div>
+      </fieldset>
+
+      <fieldset class="form__fieldset" id="form-controls-checkboxes">
+        <legend>Checkboxes:</legend>
+
+<pre>
+<code>&lt;div class="ds-checkbox"&gt;
+  &lt;input type="checkbox" name="abc" id="abc"&gt;
+  &lt;label for="abc"&gt;Checkbox label&lt;/label&gt;
+&lt;/div&gt;</code>
+</pre>
+
+        <div class="form__group">
+
+          <div class="checkbox-group">
+            <div class="ds-checkbox">
+              <input type="checkbox" name="abc" id="abc">
+              <label for="abc" tabindex="0">Checkbox</label>
+            </div>
+
+            <div class="ds-checkbox">
+              <input type="checkbox" name="xyz" id="xyz" checked>
+              <label for="xyz" tabindex="0">Checked checkbox</label>
+            </div>
+
+            <div class="ds-checkbox">
+              <input type="checkbox" name="def" id="def" disabled>
+              <label for="def" tabindex="0">Disabled checkbox</label>
+            </div>
+          </div>
+        </div>
+
+      </fieldset>
+
+    </form>
+  </article>
+
+  <article id="alerts">
+    <h2>Alerts:</h2>
+
+    <div class="alert" role="alert">
+      <p>Bare lidt generel information du bør være opmærksom på.</p>
+    </div>
+
+    <div class="alert alert--success" role="alert">
+      <p>Alt er gået lige efter planen! Ingen grund til bekymring.</p>
+    </div>
+
+    <div class="alert alert--warning" role="alert">
+      <p>Der er lige et par småting du skal være opmærksom på inden du fortsætter.</p>
+    </div>
+
+    <div class="alert alert--danger" role="alert">
+      <p>Intet er gået efter planen! Der er grund til bekymring.</p>
+    </div>
+  </article>
+
+</div>
+
+{% endblock %}
 
 {% block index_active %}active{% endblock %}

@@ -79,6 +79,7 @@ SETTINGS_EXPORT = [
     'ENABLE_FILESCAN',
     'ENABLE_EXCHANGESCAN',
     'ENABLE_WEBSCAN',
+    'ICON_SPRITE_URL'
 ]
 
 TEST_RUNNER = 'xmlrunner.extra.djangotestrunner.XMLTestRunner'
@@ -187,6 +188,7 @@ USE_THOUSAND_SEPARATOR = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 AUTH_PROFILE_MODULE = 'os2datascanner.projects.admin.adminapp.UserProfile'
+ICON_SPRITE_URL = '/static/src/svg/symbol-defs.svg'
 
 LOGIN_REDIRECT_URL = '/'
 

@@ -1,18 +1,32 @@
-div.recurrence-widget {
-    /*float: left;
-    border: 1px solid #ccc;*/
+.panel-heading {
+    background-color: rgba(0, 0, 0, 0.1);
+    float: left;
+    overflow: hidden;
+    width: 100%;
+}
 
-    /* REMOVED TO NOT DISRUPT BOOSTRAP STYLES */
+.panel-body {
+    float: left;
+    overflow: hidden;
+    padding: 1rem 0;
+    width: 100%;
+}
+
+div.recurrence-widget {
     margin:0 0 -20px;
 }
 
 div.recurrence-widget div.panel {
-    /*border-bottom: 1px solid #ddd;*/
+    float: left;
+    width: 100%;
+}
+
+div.recurrence-widget div.panel + .panel {
+    margin-top: 0.5rem;
 }
 
 div.recurrence-widget select,
 div.recurrence-widget input {
-    margin: 0 .5em;
     display: inline-block;
     width:auto;
 }
@@ -21,13 +35,12 @@ div.recurrence-widget a.recurrence-label {
     display: block;
     cursor: pointer;
     color: black;
-    padding: 0;
+    padding: 0.5rem;
     font-weight: bold;
     white-space: nowrap;
     position:relative;
     overflow:hidden;
-
-    /* REMOVED TO NOT DISRUPT BOOTSTRAP STYLES */
+    text-decoration: none;
 }
 
 div.recurrence-widget a.recurrence-label:after {
@@ -41,75 +54,33 @@ div.recurrence-widget a.recurrence-label:after {
     margin-left:10px;
 }
 
-label[for="interval"] {
-    font-weight:normal;
-}
-
 div.recurrence-widget .remove,
 div.recurrence-widget .remove:link,
 div.recurrence-widget .remove:visited {
     float: right;
-    /*padding: .25em .5em;
-    font-size: 1.1em;
-    font-weight: bold;
-    cursor: pointer;
-    text-decoration: none;
-    color: #555;
-    line-height: 1.4em;*/
-
-    /* REMOVED TO NOT DISRUPT BOOTSTRAP STYLES */
-}
-
-div.recurrence-widget .remove:hover {
-    /*color: #a00;*/
 }
 
 div.recurrence-widget .control {
-    /*padding: .5em 1em .5em .5em;*/
     padding:15px 0 20px;
 }
 
-div.recurrence-widget .add-button,
-div.recurrence-widget .add-button:link,
-div.recurrence-widget .add-button:visited {
-    /*color: green;*/
-}
-
 div.recurrence-widget .plus {
-    /*font-size: 1.2em;
-    font-weight: bold;
-    padding-right: .5em;*/
     position:relative;
     top:.15em;
 }
 
-div.recurrence-widget .add-button:hover {
-    /*color: green;*/
-}
-
 div.recurrence-widget .control .add-date {
     margin-left: 1em;
-    /*padding-left: 1em;
-    border-left: 1px solid #ddd;*/
 }
 
-div.recurrence-widget .freq {
-    display: inline
-}
-
-div.recurrence-widget .interval {
-    display: inline;
-    padding-left: 1em;
+div.recurrence-widget .interval span {
+    display: inline-block;
+    margin-left: 0.5rem;
 }
 
 div.recurrence-widget form {
     overflow: hidden;
-    /*padding: .5em 2.2em;
-    border-top: 1px solid #ddd;*/
-}
-
-div.recurrence-widget .form {
-    padding: .5em 0;
+    width: 100%;
 }
 
 div.recurrence-widget .radio {
@@ -208,14 +179,6 @@ div.recurrence-widget .checkbox {
     display:inline;
 }
 
-div.recurrence-widget .until-count {
-    margin-left: 1.5em;
-}
-
-div.recurrence-widget .mode {
-    padding: .25em 0 1em 0;
-}
-
 div.recurrence-widget .date-selector .calendar-button {
     background: url('../img/recurrence-calendar-icon.png') no-repeat center;
     padding: .25em;
@@ -226,7 +189,6 @@ table.recurrence-calendar {
     background-color: white;
     border-top: 1px solid #ccc;
     border-left: 1px solid #ccc;
-    /*outline: 3px solid white;*/
     margin: 0;
 }
 
@@ -295,7 +257,6 @@ table.recurrence-calendar .navigation td.prev-year,
 table.recurrence-calendar .navigation td.next-year,
 table.recurrence-calendar .navigation td.prev-month,
 table.recurrence-calendar .navigation td.next-month {
-    /*width: 1%;*/
     font-size: .8em;
 }
 
@@ -323,4 +284,3 @@ table.recurrence-calendar .footer {
     border-bottom: 1px solid #ccc;
     border-right: 1px solid #ccc;
 }
-

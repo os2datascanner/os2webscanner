@@ -1,0 +1,37 @@
+.tabs {
+  background-color: var(--color-header-bg);
+  box-shadow: var(--box-shadow);
+  max-width: 80rem;
+  overflow: hidden;
+
+  &__control {
+    background-color: inherit;
+    border: none;
+    color: var(--color-main);
+    cursor: pointer;
+    float: left;
+    font-size: 1rem;
+    line-height: 1;
+    outline: none;
+    padding: 1rem;
+    text-decoration: none;
+    transition: 0.3s;
+
+    &:focus, 
+    &:hover, 
+    &.active {
+      background-color: var(--color-main);
+      color: #fff;
+    }
+
+    & + & {
+      border-left: 1px solid rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  &__content {
+    display: none;
+    max-width: 80rem;
+    padding: 1rem 0;
+  }
+}

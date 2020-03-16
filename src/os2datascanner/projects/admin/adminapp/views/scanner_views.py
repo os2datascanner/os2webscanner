@@ -23,7 +23,7 @@ class ScannerList(RestrictedListView):
 
 
 class ScannerBase():
-    template_name = 'os2datascanner/scanner_form.html'
+    template_name = 'os2datascanner/scanner_form_new.html'
 
     def get_form(self, form_class=None):
 

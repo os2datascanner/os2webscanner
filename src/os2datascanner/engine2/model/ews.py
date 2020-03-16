@@ -1,18 +1,14 @@
 import email
 import email.policy
+from urllib.parse import urlsplit
 import chardet
-from datetime import datetime
-from exchangelib import Account, Credentials, IMPERSONATION, Configuration
-from exchangelib.protocol import BaseProtocol
+from exchangelib import (Account,
+        Credentials, IMPERSONATION, Configuration, FaultTolerance)
 from exchangelib.errors import ErrorServerBusy, ErrorNonExistentMailbox
+from exchangelib.protocol import BaseProtocol
 
 from ..utilities.backoff import run_with_backoff
-from .core import (
-        Source, Handle, MailResource, SourceManager, ResourceUnavailableError)
-from .core.resource import MAIL_MIME
-
-from .core import (
-        Source, Handle, MailResource, SourceManager, ResourceUnavailableError)
+from .core import Source, Handle, MailResource, ResourceUnavailableError
 from .core.resource import MAIL_MIME
 
 
@@ -70,20 +66,19 @@ class EWSAccountSource(Source):
         return "{0}@{1}".format(self.user, self.domain)
 
     def _generate_state(self, sm):
-        config = None
         service_account = Credentials(
                 username=self._admin_user, password=self._admin_password)
-        if self._server is not None:
-            config = Configuration(
-                    service_endpoint=self._server,
-                    credentials=service_account)
+        config = Configuration(
+                retry_policy=FaultTolerance(max_wait=1800),
+                service_endpoint=self._server,
+                credentials=service_account if self._server else None)
 
         try:
             account = Account(
                     primary_smtp_address=self.address,
                     credentials=service_account,
                     config=config,
-                    autodiscover=not bool(config),
+                    autodiscover=not bool(self._server),
                     access_type=IMPERSONATION)
         except ErrorNonExistentMailbox as e:
             raise ResourceUnavailableError(self, e.args)
@@ -117,7 +112,7 @@ class EWSAccountSource(Source):
                     if headers:
                         yield EWSMailHandle(self,
                                 "{0}.{1}".format(folder.id, mail.id),
-                                headers["subject"], folder.name)
+                                headers.get("subject", "(no subject)"), folder.name)
 
         yield from relevant_mails(relevant_folders())
 
@@ -129,6 +124,19 @@ class EWSAccountSource(Source):
             "admin_password": self._admin_password,
             "user": self._user
         })
+
+    @staticmethod
+    @Source.url_handler("test-ews365")
+    def from_url(url):
+        scheme, netloc, path, _, _ = urlsplit(url)
+        auth, domain = netloc.split("@", maxsplit=1)
+        au, ap = auth.split(":", maxsplit=1)
+        return EWSAccountSource(
+                domain=domain,
+                server=OFFICE_365_ENDPOINT,
+                admin_user="{0}@{1}".format(au, domain),
+                admin_password=ap,
+                user=path[1:])
 
     @staticmethod
     @Source.json_handler(type_label)
@@ -151,8 +159,11 @@ class EWSMailResource(MailResource):
 
             def _retrieve_message():
                 return account.root.get_folder(folder_id).get(id=mail_id)
+            # Setting base=4 means that we'll *always* wait for ~8s before we
+            # retrieve anything; this should stop us from being penalised for
+            # hitting too hard
             self._message, _ = run_with_backoff(
-                    _retrieve_message, ErrorServerBusy)
+                    _retrieve_message, ErrorServerBusy, base=4, fuzz=0.25)
         return self._message
 
     def get_email_message(self):
@@ -161,7 +172,10 @@ class EWSMailResource(MailResource):
             # exchangelib seems not to (be able to?) give us any clues about
             # message encoding, so try using chardet to work out what this is
             detected = chardet.detect(msg)
-            msg = msg.decode(detected["encoding"])
+            try:
+                msg = msg.decode(detected["encoding"])
+            except UnicodeDecodeError as ex:
+                raise ResourceUnavailableError(self.handle, ex.args)
         return email.message_from_string(msg, policy=email.policy.default)
 
     def compute_type(self):
